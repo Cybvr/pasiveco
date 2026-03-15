@@ -43,6 +43,10 @@ export interface UserProfile {
     buttonColor?: string;
     textColor?: string;
   };
+  gender?: string;
+  dob?: string;
+  phoneNumber?: string;
+  source?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
