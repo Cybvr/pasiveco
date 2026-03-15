@@ -21,6 +21,7 @@ export interface UserProfile {
   displayName: string;
   bio: string;
   profilePicture: string;
+  slug: string;
   isPublic?: boolean;
   links: Array<{
     id: string;

@@ -1,15 +1,37 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { MoreHorizontal, Edit3, Share2, Eye, Globe, Instagram, Youtube, Twitter } from 'lucide-react'
+import { 
+  MoreHorizontal, 
+  Edit3, 
+  Share2, 
+  Eye, 
+  TrendingUp, 
+  Users, 
+  MousePointer2, 
+  Plus, 
+  Coins, 
+  Link as LinkIcon,
+  ChevronRight,
+  ArrowUpRight,
+  ShoppingBag,
+  Bell
+} from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview'
 import { getUserProfile } from '@/services/userProfilesService'
 import { useAuth } from '@/hooks/useAuth'
 
 function App() {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<{
+    username: string,
+    displayName: string,
+    bio: string,
+    profilePicture: string | null,
+    slug: string,
+  }>({
     username: "@username",
     displayName: "Your Name",
     bio: "Your bio here",
@@ -19,11 +41,9 @@ function App() {
   const router = useRouter()
   const { user } = useAuth()
   
-  const username = profileData.username
   const profileUrl = `pasive.co/${profileData.slug}`
   const fullUrl = `https://${profileUrl}`
 
-  // Load Firebase profile data
   useEffect(() => {
     const loadProfile = async () => {
       if (user?.uid) {
@@ -34,7 +54,7 @@ function App() {
               username: firebaseProfile.username,
               displayName: firebaseProfile.displayName,
               bio: firebaseProfile.bio || "",
-              profilePicture: firebaseProfile.profilePicture,
+              profilePicture: firebaseProfile.profilePicture || null,
               slug: firebaseProfile.slug,
             })
           }
@@ -43,93 +63,162 @@ function App() {
         }
       }
     }
-    
     loadProfile()
   }, [user])
 
-  const links = []
+  const stats = [
+    { label: "Total Revenue", value: "$0.00", icon: TrendingUp, color: "text-green-600", trend: "+0%" },
+    { label: "Total Clicks", value: "0", icon: MousePointer2, color: "text-blue-600", trend: "+0%" },
+    { label: "Total Audience", value: "0", icon: Users, color: "text-purple-600", trend: "+0%" },
+  ]
+
+  const quickActions = [
+    { label: "Add Product", icon: ShoppingBag, href: "/dashboard/products", color: "bg-orange-50 text-orange-600" },
+    { label: "Add Link", icon: LinkIcon, href: "/dashboard/edit", color: "bg-blue-50 text-blue-600" },
+    { label: "Wallet", icon: Coins, href: "/dashboard/wallet", color: "bg-green-50 text-green-600" },
+  ]
+
+  const recentActivity = [
+    { type: "notification", message: "Welcome to Pasive! Complete your profile to start selling.", time: "Just now" },
+  ]
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: username,
-          text: `Check out my profile: ${username}`,
+          title: profileData.displayName,
+          text: `Check out my profile on Pasive`,
           url: fullUrl
         })
-      } catch (error) {
-        console.error('Error sharing:', error)
-      }
+      } catch (error) {}
     } else {
-      try {
-        await navigator.clipboard.writeText(fullUrl)
-        alert('Link copied to clipboard!')
-      } catch (error) {
-        console.error('Error copying to clipboard:', error)
-      }
+      navigator.clipboard.writeText(fullUrl)
+      alert('Link copied!')
     }
-    setDropdownOpen(false)
-  }
-
-  const handleThumbnailClick = () => {
-    router.push('/dashboard/edit')  // Next.js navigation
-  }
-
-  const handleEdit = () => {
-    router.push('/dashboard/edit')  // Next.js navigation
-  }
-
-  const handleView = () => {
-    window.open(`/${profileData.slug}`, '_blank')  // Internal link to slug page
   }
 
   return (
-    <div className="bg-background text-foreground p-4">
-      <div className="max-w-sm w-full space-y-2">
-        {/* Welcome Text */}
-        <div className="space-y-1">
-          <p className="text-sm font-light text-foreground/60">Welcome</p>
+    <div className="max-w-7xl mx-auto space-y-8 p-6">
+      {/* Header & Welcome */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Hello, {profileData.displayName.split(' ')[0]} 👋</h1>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your creator profile today.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={handleShare}>
+            <Share2 className="w-4 h-4 mr-2" /> Share Profile
+          </Button>
+          <Button className="bg-[#5A1448] hover:bg-[#4A103B]" onClick={() => router.push('/dashboard/edit')}>
+            <Edit3 className="w-4 h-4 mr-2" /> Edit Page
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {stats.map((stat, i) => (
+          <Card key={i} className="border-none shadow-sm overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-2 rounded-lg ${stat.color.replace('text', 'bg')}/10`}>
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+                <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">{stat.trend}</span>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <p className="text-2xl font-bold">{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: Quick Actions & Preview */}
+        <div className="lg:col-span-4 space-y-8">
+          <Card className="border-none shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              {quickActions.map((action, i) => (
+                <button 
+                  key={i}
+                  onClick={() => router.push(action.href)}
+                  className="flex items-center justify-between w-full p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${action.color}`}>
+                      <action.icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-medium">{action.label}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Mini Bio Preview Card */}
+          <Card className="border-none shadow-sm overflow-hidden bg-muted/20">
+            <div className="p-4 border-b bg-background flex justify-between items-center">
+              <span className="text-sm font-medium">Page Preview</span>
+              <Button variant="ghost" size="sm" onClick={() => window.open(`/${profileData.slug}`, '_blank')}>
+                <Eye className="w-4 h-4 mr-2" /> View Live
+              </Button>
+            </div>
+            <div className="relative aspect-[9/16] overflow-hidden">
+              <div className="scale-[0.5] origin-top-left w-[200%] h-[200%] pointer-events-none p-8">
+                <BioPagePreview profileData={profileData} links={[]} selectedTheme="default" />
+              </div>
+            </div>
+          </Card>
         </div>
 
-        {/* Profile Info */}
-        <div className="space-y-1">
-          <h1 className="text-2xl font-light tracking-tight">{username}</h1>
-        </div>
-
-        {/* Edit Link Card - Vertical with Page and dropdown */}
-        <div className="bg-foreground/5 rounded-xl border border-foreground/10 overflow-hidden w-full max-w-xs">
-          <div 
-            className="h-80 relative cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
-            onClick={handleThumbnailClick}
-          >
-            <div className="scale-[0.65] origin-top-left w-[154%] h-[154%] pointer-events-none">
-              <BioPagePreview profileData={profileData} links={links} selectedTheme="default" />
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium text-foreground text-sm">pasive.co/{profileData.slug}</h3>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="p-1 rounded hover:bg-foreground/10 transition-colors">
-                  <MoreHorizontal className="w-5 h-5" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={handleEdit}>
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShare}>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleView}>
-                    <Eye className="w-4 h-4 mr-2" />
-                    View
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+        {/* Right Column: Activity & Detailed Stats */}
+        <div className="lg:col-span-8 space-y-8">
+          <Card className="border-none shadow-sm h-full">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <CardDescription>Stay updated with your latest sales and interactions.</CardDescription>
+              </div>
+              <Bell className="w-5 h-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {recentActivity.length > 0 ? (
+                <div className="space-y-6">
+                  {recentActivity.map((activity, i) => (
+                    <div key={i} className="flex gap-4 items-start pb-6 border-b last:border-0">
+                      <div className="p-2 rounded-full bg-blue-50">
+                        <ArrowUpRight className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium">{activity.message}</p>
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <Button variant="link" className="w-full text-muted-foreground font-normal" onClick={() => router.push('/dashboard/analytics')}>
+                    View all analytics
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                  <div className="p-4 rounded-full bg-muted">
+                    <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-medium">No activity yet</p>
+                    <p className="text-sm text-muted-foreground max-w-[250px]">Once you share your link and start selling, your activity will appear here.</p>
+                  </div>
+                  <Button onClick={() => router.push('/dashboard/edit')}>Start Creating</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
