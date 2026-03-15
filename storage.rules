@@ -1,0 +1,20 @@
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /profile_images/{userId}/{allPaths=**} {
+      allow read: if true;  // Anyone can read profile images
+      allow write: if request.auth != null && request.auth.uid == userId;  // Only owner can upload
+    }
+    
+    match /featured_images/{qrCodeId}/{allPaths=**} {
+      allow read: if true;  // Anyone can view featured images
+      allow write: if request.auth != null;  // Only authenticated users can upload
+    }
+
+    match /users/{userId}/backgrounds/{allPaths=**} {
+      allow read: if true;  // Anyone can read background images
+      allow write: if request.auth != null && request.auth.uid == userId;  // Only owner can upload
+    }
+  }
+}
