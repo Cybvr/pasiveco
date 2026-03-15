@@ -80,7 +80,7 @@ export default async function RootLayout({
       <body className={`${spaceGrotesk.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
           disableTransitionOnChange={false}
         >
