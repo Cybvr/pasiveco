@@ -274,8 +274,7 @@ const FaqSection = () => (
             <div className="space-y-4">
               <Accordion type="single" collapsible>
                 {FAQ_DATA.map((item, index) => (
-                  <AccordionItem key={item.id} value={item.id}>
-                    <div className="bg-card rounded-2xl px-6 border border-border mb-4">
+                  <AccordionItem key={item.id} value={item.id} className="bg-card rounded-2xl px-6 border border-border mb-4">
                       <AccordionTrigger>
                         <div className="text-left text-lg font-semibold text-foreground py-6">
                             <span className="flex items-start gap-4">
@@ -291,7 +290,6 @@ const FaqSection = () => (
                             {item.answer}
                         </div>
                       </AccordionContent>
-                    </div>
                   </AccordionItem>
                 ))}
               </Accordion>

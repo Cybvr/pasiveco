@@ -28,14 +28,12 @@ export const Accordion: React.FC<AccordionProps> = ({ children, type, collapsibl
   );
 };
 
-export const AccordionItem: React.FC<{ value: string; children: React.ReactNode }> = ({ value, children }) => {
-  // Pass the value down to children to identify this accordion item
+export const AccordionItem: React.FC<{ value: string; children: React.ReactNode; className?: string }> = ({ value, children, className }) => {
   return (
-    <div data-value={value} className="bg-card rounded-md">
+    <div data-value={value} className={className}>
       {React.Children.map(children, child => {
-        // Pass the value prop to each child
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, { itemValue: value });
+        if (React.isValidElement(child) && typeof child.type !== 'string') {
+          return React.cloneElement(child as React.ReactElement<any>, { itemValue: value });
         }
         return child;
       })}
