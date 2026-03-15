@@ -3,8 +3,15 @@ const nextConfig = {
   images: {
     minimumCacheTTL: 60,
     formats: ['image/webp'],
-    domains: ['firebasestorage.googleapis.com', 'res.cloudinary.com'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
       {
         protocol: 'https',
         hostname: '**',
@@ -15,9 +22,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true
   },
-  eslint: {
-    ignoreDuringBuilds: true
-  },
+
   devIndicators: false,
   experimental: {
   },
