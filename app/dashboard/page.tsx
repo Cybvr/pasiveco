@@ -102,7 +102,11 @@ function App() {
       {/* Header & Welcome */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Hello, {profileData.displayName.split(' ')[0]} 👋</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Hello, {profileData.displayName && profileData.displayName !== "Your Name" 
+              ? profileData.displayName.split(' ')[0] 
+              : (user?.displayName?.split(' ')[0] || "Creator")} 👋
+          </h1>
           <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your creator profile today.</p>
         </div>
         <div className="flex items-center gap-3">
