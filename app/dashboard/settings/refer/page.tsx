@@ -44,7 +44,7 @@ export default function ReferFriendSettings() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="px-4">
-        <h1 className="text-2xl font-bold tracking-tight">Refer a Friend</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Refer a Friend</h1>
         <p className="text-muted-foreground">Share Uniqode with your friends and earn QR codes!</p>
       </div>
       <Separator />
@@ -89,11 +89,11 @@ export default function ReferFriendSettings() {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center">
                 <p className="text-sm text-muted-foreground">Total Referrals</p>
-                <p className="text-2xl font-bold">{referrals}</p>
+                <p className="text-lg font-semibold">{referrals}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-lg shadow flex flex-col items-center">
                 <p className="text-sm text-muted-foreground">QR Codes Earned</p>
-                <p className="text-2xl font-bold">{qrCodesEarned}</p>
+                <p className="text-lg font-semibold">{qrCodesEarned}</p>
               </div>
             </CardContent>
           </Card>

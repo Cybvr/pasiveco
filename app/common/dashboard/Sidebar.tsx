@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   User,
+  Home,
   Cookie,
   Users,
   BarChart,
@@ -22,8 +23,8 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
   const navItems = [
     {
       href: '/dashboard',
-      icon: Cookie,
-      label: 'Design',
+      icon: Home,
+      label: 'Home',
     },
     {
       href: '/dashboard/products',
@@ -53,7 +54,7 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
     {
       href: '/dashboard/billings',
       icon: ReceiptText,
-      label: 'Billings',
+      label: 'Subscriptions',
     },
     {
       href: '/dashboard/settings/account',

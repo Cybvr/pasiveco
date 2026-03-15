@@ -14,7 +14,8 @@ export default function ClientLayout({
   const pathname = usePathname()
 
   // Check if current path is a slug page (not dashboard, auth, marketing, etc.)
-  const isSlugPage = pathname && !pathname.startsWith('/dashboard') &&
+  const isDashboardRoute = pathname?.startsWith('/dashboard')
+  const isSlugPage = pathname && !isDashboardRoute &&
                      !pathname.startsWith('/auth') &&
                      !pathname.startsWith('/admin') &&
                      !pathname.startsWith('/api') &&

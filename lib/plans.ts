@@ -29,69 +29,43 @@ interface SubscriptionPlan extends BasePricingPlan {
 export const pricingPlans = {
   free: {
     type: 'free' as const,
-    name: 'Free',
-    description: '14-day free trial with basic features',
+    name: 'Free Forever',
+    description: 'Customizable link-in-bio and essential tools',
     price: 0,
     credits: 5,
     features: [
-      "5 Custom Links",
-      "Basic Bio Page",
-      "Social Media Links",
-      "Basic Analytics",
-      "Standard Templates",
-      "Community Support",
+      "Customizable link-in-bio",
+      "Smart Reply Auto-DMs",
+      "Sell with 9% Seller Fees",
+      "Auto-updating Media Kits",
+      "Courses with Video Hosting",
+      "5 Email Automations",
     ] as const,
     stripePriceId: null,
-    isTrial: true,
-    trialDays: 14
+    isTrial: false,
+    trialDays: 0
   },
-  basic: {
+  creator_plus: {
     type: 'subscription' as const,
-    name: 'Starter',
-    description: 'Perfect for individuals and creators',
-    credits: 25,
-    annual: {
-      price: 4200, // $42/year (30% discount)
-      stripePriceId: 'price_1RF4e4HfPlG49dwkrfag8upM'
-    },
-    monthly: {
-      price: 5000, // $50/month
-      stripePriceId: 'price_1RF4cgHfPlG49dwkGq2vydvf'
-    },
-    features: [
-      "25 Custom Links",
-      "Advanced Bio Page",
-      "Social Media Integration",
-      "Link Analytics",
-      "Custom Appearance",
-      "5 Products/Services",
-      "Email Support",
-    ] as const,
-    isTrial: false
-  },
-  pro: {
-    type: 'subscription' as const,
-    name: 'Pro',
-    description: 'For businesses and power users',
+    name: 'Creator Plus',
+    description: 'The most popular plan for ambitious creators',
     credits: 'Unlimited',
     annual: {
-      price: 8400, // $84/year (30% discount)
+      price: 300, // $300/year (about $25/month)
       stripePriceId: 'price_1RF4fVHfPlG49dwk9fdm70xg'
     },
     monthly: {
-      price: 10000, // $100/month
+      price: 30, // $30/month
       stripePriceId: 'price_1RAT0fHfPlG49dwk4CcCpZBi'
     },
     features: [
-      "Unlimited Links",
-      "Premium Bio Pages",
-      "Advanced Analytics",
-      "Custom Domain",
-      "Unlimited Products",
-      "Paystack Integration",
-      "AI Chat Assistant",
-      "Custom Branding",
-      "Priority Support",
+      "All Free Features",
+      "Unlimited daily AI Credits",
+      "0% Seller Fees",
+      "BNPL (Buy Now Pay Later)",
+      "Unlimited Email Sends",
+      "Unlimited Memberships",
+      "Free Custom Domain",
     ] as const,
     isTrial: false
   }

@@ -31,9 +31,9 @@ export interface FooterData {
 
 export const footerData: FooterData = {
   brand: {
-    logoAlt: "Logo",
-    name: "pasive",
-    tagline: "All-in-one creator link platform."
+    logoAlt: "Pasive Logo",
+    name: "Pasive",
+    tagline: "One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place."
   },
   form: {
     placeholder: "Enter your email",
@@ -47,51 +47,50 @@ export const footerData: FooterData = {
   ],
   navigation: [
     {
-      category: "Features",
+      category: "Learn more",
       links: [
-        { text: "Digital Products", url: "/features/digital-products" },
-        { text: "Ebooks", url: "/features/ebooks" },
-        { text: "Courses", url: "/features/courses" },
-        { text: "Events & Training", url: "/features/event-tickets-training" },
-        { text: "Services", url: "/features/services" },
-        { text: "Physical Goods", url: "/features/physical-goods" }
-      ]
-    },
-    {
-      category: "Solutions",
-      links: [
-        { text: "Analytics", url: "/solutions/analytics" },
-        { text: "QR Code Generator", url: "/solutions/qr-codes" },
-        { text: "Link in Bio", url: "/solutions/link-in-bio" },
-        { text: "E-commerce", url: "/solutions/ecommerce" },
-        { text: "AI Features", url: "/solutions/ai-features" }
-      ]
-    },
-    {
-      category: "Support",
-      links: [
-        { text: "Help Center", url: "#" },
-        { text: "Contact Us", url: "#" },
-        { text: "Status", url: "#" },
-        { text: "API Docs", url: "#" }
-      ]
-    },
-    {
-      category: "Company",
-      links: [
-        { text: "About", url: "/about" },
+        { text: "Pasive for Managers", url: "/solutions/managers" },
+        { text: "Pasive for Brands", url: "/solutions/brands" },
+        { text: "Pricing", url: "/pricing" },
         { text: "Blog", url: "/blog" },
-        { text: "Careers", url: "#" },
-        { text: "Press", url: "#" }
+        { text: "Referral Program", url: "/referrals" }
+      ]
+    },
+    {
+      category: "Creator Tools",
+      links: [
+        { text: "Link in Bio", url: "/solutions/link-in-bio" },
+        { text: "Store", url: "/features/digital-products" },
+        { text: "Email Marketing", url: "/features/email-marketing" },
+        { text: "Media Kit", url: "/features/media-kit" },
+        { text: "Income Dashboard", url: "/dashboard" }
+      ]
+    },
+    {
+      category: "Legal",
+      links: [
+        { text: "Terms of Service", url: "/legal/terms" },
+        { text: "Privacy Policy", url: "/legal/privacy" },
+        { text: "Cookie Notice", url: "/legal/cookies" },
+        { text: "Report Violation", url: "/legal/report" },
+        { text: "Community Standards", url: "/legal/community" }
+      ]
+    },
+    {
+      category: "Pasive",
+      links: [
+        { text: "About Us", url: "/about" },
+        { text: "Careers", url: "/careers" },
+        { text: "Help Center", url: "/help" }
       ]
     }
   ],
   footerLinks: [
-    { text: "Privacy Policy", url: "#" },
-    { text: "Terms of Service", url: "#" },
-    { text: "Cookie Policy", url: "#" }
+    { text: "Terms of Service", url: "/legal/terms" },
+    { text: "Privacy Policy", url: "/legal/privacy" },
+    { text: "Cookie Notice", url: "/legal/cookies" }
   ],
   copyright: {
-    text: "© 2025 pasive. All rights reserved."
+    text: "© 2025 Pasive. All rights reserved."
   }
 };

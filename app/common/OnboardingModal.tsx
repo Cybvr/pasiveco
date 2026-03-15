@@ -18,6 +18,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/AuthContext"
+import { db } from "@/lib/firebase"
+import { doc, updateDoc } from "firebase/firestore"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
 
 interface OnboardingModalProps {
   isOpen: boolean
@@ -31,10 +36,40 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
     phoneNumber: "",
     source: "",
   })
+  const [isSaving, setIsSaving] = useState(false)
+  const { user } = useAuth()
 
-  const handleSave = () => {
-    console.log("Saving onboarding data:", formData)
-    onClose()
+  const handleSave = async () => {
+    if (!user) {
+      toast.error("You must be logged in to save your profile")
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const userRef = doc(db, "users", user.uid)
+      await updateDoc(userRef, {
+        onboarding: {
+          ...formData,
+          completedAt: new Date().toISOString(),
+          status: 'completed'
+        },
+        // Also update root level if preferred
+        gender: formData.gender,
+        dateOfBirth: formData.dob,
+        phoneNumber: formData.phoneNumber,
+        referralSource: formData.source,
+        onboardingCompleted: true
+      })
+
+      toast.success("Profile updated successfully!")
+      onClose()
+    } catch (error) {
+      console.error("Error saving onboarding data:", error)
+      toast.error("Failed to save profile. Please try again.")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -106,8 +141,16 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
           <Button
             className="w-full h-12 font-semibold rounded-lg text-base transition-colors"
             onClick={handleSave}
+            disabled={isSaving}
           >
-            Save
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save"
+            )}
           </Button>
         </div>
       </DialogContent>

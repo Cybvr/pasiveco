@@ -2,13 +2,10 @@
 
 import React from "react"
 import { 
-  ArrowUpRight, 
   Banknote, 
-  Building2, 
   Calendar, 
   CheckCircle2, 
   Clock, 
-  CreditCard,
   Settings
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,8 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
-import { payouts, payoutStats, payoutMethod } from "@/lib/payouts"
+import Link from "next/link"
+import { payouts, payoutStats } from "@/lib/payouts"
 
 export default function PayoutsPage() {
 
@@ -30,13 +27,15 @@ export default function PayoutsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payouts</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Payouts</h1>
           <p className="text-muted-foreground">Monitor your transfers and manage payout settings.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline">
-            <Settings className="mr-2 h-4 w-4" /> Manage Account
-          </Button>
+          <Link href="/dashboard/settings">
+            <Button variant="outline">
+              <Settings className="mr-2 h-4 w-4" /> Payout Method
+            </Button>
+          </Link>
           <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
              Request Payout
           </Button>
@@ -54,7 +53,7 @@ export default function PayoutsPage() {
                <Banknote className="h-4 w-4 text-muted-foreground" />}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-lg font-semibold">{stat.value}</div>
               <p className={`text-xs text-muted-foreground mt-1 ${stat.status === 'warning' ? 'text-orange-600' : ''}`}>
                 {stat.description}
               </p>
@@ -63,8 +62,8 @@ export default function PayoutsPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-2 border-none shadow-sm">
+      <div>
+        <Card className="border-none shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Payout History</CardTitle>
             <CardDescription>A summary of your most recent earnings transfers.</CardDescription>
@@ -96,38 +95,6 @@ export default function PayoutsPage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-muted/20">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center">
-              <Building2 className="mr-2 h-5 w-5 text-primary" /> Payout Method
-            </CardTitle>
-            <CardDescription>Where your funds are sent after processing.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="p-4 bg-background rounded-xl border border-border">
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <CreditCard className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">{payoutMethod.bankName}</p>
-                  <p className="text-sm text-muted-foreground">{payoutMethod.accountInfo}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Payout Settings</h4>
-              {payoutMethod.settings.map((setting, idx) => (
-                <div key={idx} className="flex justify-between text-sm py-2 border-b">
-                  <span className="text-muted-foreground">{setting.label}</span>
-                  <span className="font-medium">{setting.value}</span>
-                </div>
-              ))}
-            </div>
-            <Button variant="outline" className="w-full">Edit Payout Details</Button>
           </CardContent>
         </Card>
       </div>

@@ -31,7 +31,7 @@ export default function BillingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Billings</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Subscriptions</h1>
           <p className="text-muted-foreground">Manage your subscriptions, subscribers, and recurring revenue.</p>
         </div>
         <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export default function BillingsPage() {
                <CreditCard className="h-4 w-4 text-red-500" />}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-lg font-semibold">{stat.value}</div>
               <p className={`text-xs text-muted-foreground mt-1 ${
                 stat.trend === 'up' ? 'text-green-600 flex items-center' : 
                 stat.type === 'danger' ? 'text-red-600' : ''

@@ -13,7 +13,7 @@ export const billingStats = [
     type: "static"
   },
   {
-    title: "Avr. Revenue Per User",
+    title: "Avr. Revenue/User",
     value: "$32.50",
     description: "Up from $31.00",
     type: "static"

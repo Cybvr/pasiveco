@@ -26,7 +26,14 @@ import {
   BookOpen,
   GraduationCap,
   Calendar,
-  Headphones
+  Headphones,
+  Zap,
+  Shield,
+  TrendingUp,
+  Mail,
+  DollarSign,
+  Briefcase,
+  Star
 } from "lucide-react"
 import {
   Accordion,
@@ -34,391 +41,366 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { featuresService, Feature } from "@/services/featuresService"
+import { Button } from "@/components/ui/button"
 
-// Data Constants
-const FAQ_DATA = [
-  {
-    id: "q1",
-    question: "What can I add to my bio page?",
-    answer: "You can create a comprehensive bio page with your profile information, custom links, social media links, products for sale, and even an AI chat avatar. All content is fully customizable with themes, fonts, and appearance settings to match your brand.",
-  },
-  {
-    id: "q2",
-    question: "How do I customize the appearance of my bio page?",
-    answer: "Use our appearance settings to customize button shapes (rounded, square, pill), font families, font sizes, colors, and themes. You can also set custom backgrounds with colors or images for both your bio card and page background.",
-  },
-  {
-    id: "q3",
-    question: "Can I sell products directly from my bio page?",
-    answer: "Yes! You can add products to your shop tab, including product images, descriptions, prices, and direct purchase links. Your products will be displayed beautifully alongside your other content.",
-  },
-  {
-    id: "q4",
-    question: "What is the AI Avatar feature?",
-    answer: "The AI Avatar creates a digital twin that can answer questions about you based on your profile information and uploaded context files. Visitors can chat with your AI representative to learn more about your services, background, and expertise.",
-  },
-  {
-    id: "q5",
-    question: "How do QR codes work with my bio page?",
-    answer: "Generate custom QR codes that link directly to your bio page. You can customize the QR code design, colors, and add your logo. Print them on business cards, flyers, or display them anywhere to drive traffic to your bio page.",
-  },
+// Creators for the marquee
+const CREATORS = [
+  { name: "Chloe Shih", role: "Creator" },
+  { name: "Heather Gardner", role: "Comedy" },
+  { name: "Scott Ho", role: "Fitness" },
+  { name: "DJ Habibeats", role: "DJ" },
+  { name: "Elena Shinohara", role: "Gymnastics" },
+  { name: "Chipmunksoftiktok", role: "Chipmunks" },
+  { name: "Stream Elements", role: "Streaming" },
+  { name: "Mr TOV", role: "Creator" },
+  { name: "Andrea Botez", role: "Lifestyle" },
 ];
 
-const websiteData = {
-  hero: {
-    title: "CREATORS TOOLS",
-    subtitle: "Elevate your brand. Ignite your passion. Create, share, and monetize your creative business with our robust tools. Track analytics in one place.",
-    ctaText: "Get started for free",
+const TESTIMONIALS = [
+  {
+    quote: "As a standup comedian, the best way to market is on social media. Pasive makes it easy for my fans to put in their email addresses and subscribe to my updates, and I create targeted promotional emails based on their city.",
+    author: "Ahmedlovesbread",
+    role: "Comedian"
   },
-  products: [
-    {
-      id: "digital-products",
-      title: "Digital Products",
-      description: "Sell any and every kind of digital product, from content packs to designs to bundles and more without stress.",
-      icon: "Download",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop&crop=center",
-    },
-    {
-      id: "ebooks",
-      title: "Ebooks",
-      description: "Pasive is the best platform to sell your ebooks both downloadable and non-downloadable in any format.",
-      icon: "BookOpen",
-      image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop&crop=center",
-    },
-    {
-      id: "courses-memberships",
-      title: "Courses",
-      description: "You can host your courses & membership sites with unlimited videos & files, unlimited storage, and have unlimited students.",
-      icon: "GraduationCap",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&crop=center",
-    },
-  ]
-};
+  {
+    quote: "I've been able to build an email list using Pasive to create a community that is not reliant on social platforms.",
+    author: "Cesi",
+    role: "Gaming"
+  },
+  {
+    quote: "The Pasive Store has made it seamless for me to monetize and boosted my brand visibility.",
+    author: "Cleo Rualo",
+    role: "Career Coach"
+  },
+  {
+    quote: "Pasive is an amazing tool for all types of creators! The convenience of having everything in one platform has made it stand out for me.",
+    author: "DailyAlissa",
+    role: "Gaming creator"
+  }
+];
 
-const iconMap: any = {
-  'Download': Download,
-  'BookOpen': BookOpen,
-  'GraduationCap': GraduationCap,
-  'Calendar': Calendar,
-  'Headphones': Headphones,
-  'Package': Package
-};
+const AI_TOOLS = [
+  "Social Asset Generation",
+  "Ready for You Email Marketing",
+  "Social Digest Emails",
+  "Email Automations",
+  "Product Descriptions",
+  "Audience Intelligence",
+  "Image Thumbnails"
+];
 
-// Inline Components
-const HeroSection = () => (
-  <section className="text-foreground px-6 py-16 lg:py-24">
-    <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-      <div>
-        <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6 uppercase tracking-tight">
-          CREATORS 
-          <br />
-          TOOLS
-        </h1>
-        <p className="text-xl mb-8 opacity-90 leading-relaxed max-w-xl">
-          Elevate your brand. Ignite your passion. Create, share, and monetize your creative business with our robust tools. Track analytics in one place.
-        </p>
-        <p className="text-lg mb-8 opacity-80 max-w-xl">
-          No matter where your customers, clients, or fans are, Pasive makes it easy to showcase and get paid.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <button className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg hover:opacity-90 transition-all shadow-lg hover:shadow-primary/20">
-            Get started for free
-          </button>
-          <button className="border-2 border-primary/20 text-foreground px-8 py-4 rounded-full font-semibold text-lg hover:bg-accent transition-all">
-            Learn more
-          </button>
+const Marquee = () => (
+  <div className="relative flex overflow-x-hidden bg-primary py-4 text-primary-foreground font-medium uppercase tracking-widest text-sm">
+    <div className="animate-marquee whitespace-nowrap flex items-center">
+      {[...CREATORS, ...CREATORS, ...CREATORS].map((creator, i) => (
+        <span key={i} className="mx-8 flex items-center gap-2">
+          {creator.name} <span className="opacity-50">•</span> {creator.role}
+          <span className="mx-8">/</span>
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
+const FeatureCard = ({ title, subtitle, description, icon: Icon, image, reverse = false }: any) => (
+  <section className={`py-24 px-6 ${reverse ? 'bg-muted/30' : 'bg-background'}`}>
+    <div className={`max-w-7xl mx-auto flex flex-col ${reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-16`}>
+      <div className="lg:w-1/2 space-y-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+          <Icon className="w-4 h-4" />
+          {subtitle}
         </div>
-        <p className="text-sm opacity-60">Free forever. No credit card required.</p>
+        <h2 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+          {title}
+        </h2>
+        <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
+          {description}
+        </p>
+        <Button size="lg" className="rounded-full px-8 py-6 text-lg">
+          Get started for free
+        </Button>
       </div>
-      <div className="flex justify-center">
-        <img
-          src="/images/website/background.jpg"
-          alt="Background"
-          className="max-w-full h-auto rounded-lg shadow-2xl transform hover:scale-[1.02] transition-transform duration-500"
-        />
+      <div className="lg:w-1/2">
+        <div className="relative group">
+          <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <img
+            src={image}
+            alt={title}
+            className="relative rounded-3xl shadow-2xl border border-border w-full h-auto object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
+          />
+        </div>
       </div>
     </div>
   </section>
 );
 
-const ProductsShowcase = ({ features = [] }: { features?: any[] }) => (
-  <div className="bg-background py-16 px-4">
-    <div className="mx-auto max-w-5xl">
-      <div className="text-left mb-16">
-        <h2 className="text-5xl font-bold text-foreground mb-6">
-          Everything you need to grow
-        </h2>
-        <p className="text-left text-xl text-muted-foreground mb-8">
-          Pasive provides the best tools for creators to monetize their audience and scale their impact.
-        </p>
-        <div className="w-24 h-1 text-left bg-primary rounded-full"></div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {(features.length > 0 ? features : websiteData.products).map((item, index) => {
-          const isFeature = 'slug' in item;
-          const IconComponent = iconMap[item.icon] || Package;
-          const imageUrl = isFeature ? (item.featuredImage || item.imageUrl) : item.image;
-          const linkHref = isFeature ? `/features/${item.slug}` : '#';
-          
-          return (
-            <Link
-              key={isFeature ? item.id : index}
-              href={linkHref}
-              className="relative group cursor-pointer transform transition-all duration-500"
-            >
-              <div className="relative bg-card rounded-2xl shadow-lg transition-all duration-300 overflow-hidden h-[450px] flex flex-col group-hover:shadow-xl">
-                <div className="relative h-48 overflow-hidden flex-shrink-0">
-                  <img
-                    src={imageUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                </div>
-                <div className="flex-grow p-8 flex flex-col">
-                  <div className={`w-16 h-16 bg-primary rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 -mt-16 relative z-10 shadow-lg flex-shrink-0 group-hover:scale-110`}>
-                    <IconComponent className="w-8 h-8 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-4 transition-colors duration-300 flex-shrink-0 group-hover:text-primary">
-                    {item.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed transition-colors duration-300 mb-6 flex-grow">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
-              <div className={`absolute inset-0 rounded-2xl bg-primary opacity-0 group-hover:opacity-20 transition-opacity duration-300 -z-10 blur-xl`}></div>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-);
-
-const AskInBio = () => {
-  const [messages, setMessages] = useState<any[]>([
-    { id: "1", content: `Hi! I'm your Pasive AI. Ask me anything about how we help creators grow!`, isUser: false, timestamp: new Date() }
-  ]);
-  const [inputMessage, setInputMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
-    const userMsg = { id: Date.now().toString(), content: inputMessage, isUser: true, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setInputMessage("");
-    setIsLoading(true);
-    setTimeout(() => {
-      const aiMsg = { id: (Date.now()+1).toString(), content: "Pasive is designed to help you monetize your creative work instantly. We handle the technical stuff while you focus on creating!", isUser: false, timestamp: new Date() };
-      setMessages(prev => [...prev, aiMsg]);
-      setIsLoading(false);
-    }, 1000);
-  };
-
+export default function LandingPage() {
   return (
-    <section className="bg-background px-6 py-16 lg:py-24">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-primary rounded-full mx-auto mb-6 flex items-center justify-center">
-            <MessageCircle className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">Introducing Ask in Bio</h2>
-          <p className="text-xl text-muted-foreground">Let your audience connect with you on a deeper level through AI-powered conversations</p>
+    <div className="flex flex-col min-h-screen selection:bg-primary selection:text-primary-foreground">
+      <Header isMenuOpen={false} setIsMenuOpen={() => {}} />
+      
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-32 px-6 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 opacity-30 select-none pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse delay-700" />
         </div>
-        <div className="bg-card rounded-3xl shadow-xl overflow-hidden border border-border">
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
-            {messages.map((m: any) => (
-              <div key={m.id} className={`flex ${m.isUser ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-2xl px-4 py-3 max-w-xs ${m.isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>
-                  <p className="text-sm">{m.content}</p>
+        
+        <div className="max-w-7xl mx-auto text-center space-y-8">
+          <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase italic text-foreground">
+            All you need to <br />
+            power your <br />
+            <span className="text-primary">creator growth</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto font-medium">
+            One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 pt-4">
+            <Button size="xl" className="rounded-full px-10 py-8 text-xl font-bold shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all">
+              Start for free
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <Marquee />
+
+      {/* One and Done Section */}
+      <section className="py-24 px-6 bg-foreground text-background">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <h2 className="text-6xl font-bold tracking-tight">One and Done</h2>
+            <p className="text-2xl opacity-80 leading-relaxed">
+              One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place.
+            </p>
+            <Button variant="outline" size="lg" className="rounded-full border-background text-background hover:bg-background hover:text-foreground">
+              Explore Platform
+            </Button>
+          </div>
+          <div className="relative">
+            <img 
+              src="/images/artifacts/creator_hub_dashboard_1773559784918.png" 
+              alt="Dashboard" 
+              className="rounded-2xl shadow-2xl border border-border/10"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Features Showcase */}
+      <FeatureCard
+        subtitle="Customize your page"
+        title="Make your brand unforgettable"
+        description="Build a fully customizable Link in Bio or full website to promote your links, products, email list, and all social platforms—in minutes."
+        icon={Palette}
+        image="/images/artifacts/link_in_bio_design_1773559804736.png"
+      />
+
+      <FeatureCard
+        subtitle="Own your audience"
+        title="Screw the algorithm & market direct to fans"
+        description="Stop renting your audience—own it. Build a subscriber list, send emails, and automate DMs to turn comments into cash and followers into fans."
+        icon={Users}
+        image="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80"
+        reverse
+      />
+
+      <FeatureCard
+        subtitle="Drive sales"
+        title="Sell your own products & promote affiliate links"
+        description="Sell digital products, courses, appointments, and link to affiliates, right from your Link in Bio. Drive more sales with native checkout and cash out in one day."
+        icon={DollarSign}
+        image="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
+      />
+
+      <FeatureCard
+        subtitle="Get paid"
+        title="Build your dream brand partnerships"
+        description="Show brands where to spend their money: on you. Turn affiliate links into brand deals, pitch to brands directly, and use real-time media kits to land partnerships that pay."
+        icon={Briefcase}
+        image="/images/artifacts/brand_deals_inbox_1773559825324.png"
+        reverse
+      />
+
+      {/* Brand Deals Inbox Snippet */}
+      <section className="py-24 px-6 bg-muted/30">
+        <div className="max-w-5xl mx-auto text-center space-y-12">
+          <div className="space-y-4">
+            <h2 className="text-4xl md:text-5xl font-bold">Turn your inbox into brand deals</h2>
+            <p className="text-xl text-muted-foreground">We integrate with your emails and workflow to help you find the best brands, negotiate high rates, and reply with winning pitches in seconds.</p>
+          </div>
+          <div className="bg-card rounded-3xl p-8 shadow-xl border border-border overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-500">
+            <div className="space-y-4">
+              {[
+                { brand: "OSEA", status: "Paid", type: "Affiliate", date: "10:04 AM" },
+                { brand: "Fenty Beauty", status: "Negotiating", type: "Paid", date: "Jan 31" },
+                { brand: "Lululemon", status: "Signed", type: "Paid", date: "Jan 28" },
+              ].map((deal, i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">
+                      {deal.brand[0]}
+                    </div>
+                    <div className="text-left font-bold">{deal.brand}</div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${deal.status === 'Paid' ? 'bg-green-500/10 text-green-600' : deal.status === 'Signed' ? 'bg-blue-500/10 text-blue-600' : 'bg-orange-500/10 text-orange-600'}`}>
+                      {deal.status}
+                    </span>
+                    <span className="text-sm text-muted-foreground">{deal.date}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Section */}
+      <section className="py-24 px-6 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center rotate-3">
+                <Bot className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <h2 className="text-5xl font-bold tracking-tight">AI that Helps You Work Smarter</h2>
+              <p className="text-xl text-muted-foreground">An AI learning engine that gets smarter the more you use it—by building promotional emails, writing copy, and generating data insights.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {AI_TOOLS.map((tool, i) => (
+                  <div key={i} className="flex items-center gap-2 font-medium">
+                    <Check className="w-5 h-5 text-primary" />
+                    {tool}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-primary/5 to-purple-500/5 p-12 rounded-[3rem] border border-primary/10 relative">
+               <div className="absolute inset-0 bg-grid-black/[0.02] flex items-center justify-center" />
+               <div className="relative space-y-6">
+                 <div className="p-6 bg-card rounded-2xl shadow-xl border border-border max-w-sm mr-auto animate-float">
+                   <p className="text-sm font-medium">"Hey AI, generate a promotional email for my new Course."</p>
+                 </div>
+                 <div className="p-6 bg-primary text-primary-foreground rounded-2xl shadow-xl max-w-sm ml-auto animate-float-delayed">
+                   <p className="text-sm font-medium">"Sure! I've drafted a compelling email highlighting your course value props and added a direct checkout link."</p>
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Integration Section */}
+      <section className="py-24 px-6 bg-muted/30 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center space-y-16">
+          <div className="space-y-4">
+            <h2 className="text-5xl font-bold">Become the next big thing with Pasive</h2>
+            <p className="text-xl text-muted-foreground">Wherever you are in your creator journey, Pasive has the tools you need to level up and grow your income.</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+             {[Smartphone, Shield, Zap, TrendingUp, Mail, Globe].map((Icon, i) => (
+               <div key={i} className="group p-8 bg-card rounded-3xl border border-border hover:border-primary transition-all hover:shadow-2xl hover:shadow-primary/10 flex flex-col items-center gap-4">
+                 <Icon className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                 <span className="text-sm font-bold opacity-60 group-hover:opacity-100 transition-opacity">Integration</span>
+               </div>
+             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 px-6 bg-background">
+        <div className="max-w-7xl mx-auto space-y-16">
+          <h2 className="text-5xl font-bold text-center">The most ambitious creators love Pasive.</h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="p-10 bg-muted/30 rounded-[2.5rem] space-y-6 relative group hover:bg-muted/50 transition-colors">
+                <div className="flex text-yellow-500 gap-1">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+                </div>
+                <p className="text-xl leading-relaxed italic">"{t.quote}"</p>
+                <div className="flex items-center gap-4 pt-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center font-bold text-primary italic">
+                    {t.author[0]}
+                  </div>
+                  <div>
+                    <div className="font-bold">{t.author}</div>
+                    <div className="text-sm text-muted-foreground">{t.role}</div>
+                  </div>
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="border-t border-border p-6 flex gap-3">
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Ask me anything..."
-              className="flex-1 bg-muted text-foreground px-4 py-3 rounded-2xl focus:outline-none ring-primary/20 transition-all"
-            />
-            <button onClick={handleSendMessage} className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-semibold"><Send className="w-4 h-4" /></button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const FaqSection = () => (
-    <section id="faq" className="w-full py-16 md:py-24 bg-background relative overflow-hidden">
-      <div className="container px-6 mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-          <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-full text-sm font-medium text-foreground mb-4">
-              <div className="w-2 h-2 bg-primary rounded-full"></div>
-              Support & Help
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.1]">
-              Frequently Asked
-              <span className="block">Questions</span>
-            </h2>
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-md">Everything you need to know about our creator tools platform.</p>
-          </div>
-          <div className="lg:col-span-7">
-            <div className="space-y-4">
-              <Accordion type="single" collapsible>
-                {FAQ_DATA.map((item, index) => (
-                  <AccordionItem key={item.id} value={item.id} className="bg-card rounded-2xl px-6 border border-border mb-4">
-                      <AccordionTrigger>
-                        <div className="text-left text-lg font-semibold text-foreground py-6">
-                            <span className="flex items-start gap-4">
-                            <span className="flex-shrink-0 w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-bold text-foreground mt-1">
-                                {String(index + 1).padStart(2, '0')}
-                            </span>
-                            <span className="flex-1">{item.question}</span>
-                            </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="text-muted-foreground pb-6 pl-12 pr-4">
-                            {item.answer}
-                        </div>
-                      </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-);
-
-function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [features, setFeatures] = useState<Feature[]>([])
-
-  useEffect(() => {
-    const loadFeatures = async () => {
-      try {
-        const featuresData = await featuresService.getAllFeatures()
-        setFeatures(featuresData)
-      } catch (error) {
-        console.error("Error loading features:", error)
-      }
-    }
-    loadFeatures()
-  }, [])
-
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-      
-      <div className="mx-auto max-w-6xl">
-        <HeroSection />
-      </div>
-
-      <div className="px-6 py-8 bg-muted/30">
-        <div className="max-w-4xl mx-auto">
-          <img
-            src="images/website/screenshot.jpg"
-            alt="Pasive Dashboard"
-            className="w-full h-full object-cover rounded-2xl shadow-2xl border border-border"
-          />
-        </div>
-      </div>
-
-      <ProductsShowcase features={features} />
-
-      <div className="mx-auto max-w-6xl">
-        <AskInBio />
-      </div>
-
-      <section className="bg-muted/30 px-6 py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative">
-              <div className="bg-card rounded-3xl p-8 shadow-xl border border-border">
-                <div className="flex items-center mb-6">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-4">Build your creator hub</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-foreground">Match your brand aesthetic</span>
-                    <Palette className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <span className="text-foreground">Monetize your audience</span>
-                    <Check className="w-5 h-5 text-green-500" />
-                  </div>
-                </div>
-              </div>
-              <img src="images/website/potter.jpg" alt="potter" className="mt-6 rounded-2xl shadow-lg w-full object-cover" />
-            </div>
-            <div>
-              <h2 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
-                Build your
-                <br />
-                creator brand
-                <br />
-                in minutes
-              </h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Create a professional creator hub that converts followers into fans and revenue. Showcase everything in one beautiful link.
-              </p>
-              <button className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg shadow-lg">
-                Start creating for free
-              </button>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-background px-6 py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Drive traffic
-                <br />
-                from every
-                <br />
-                platform
-              </h2>
-              <p className="text-xl mb-8 text-muted-foreground">
-                Drop your Pasive link in your Instagram bio, TikTok profile, and YouTube description. Turn every interaction into an opportunity.
-              </p>
-              <button className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg">
-                Start creating for free
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-pink-500/10 rounded-2xl p-6 border border-pink-500/20">
-                <Instagram className="w-8 h-8 mb-4 text-pink-500" />
-                <h3 className="font-bold">Instagram</h3>
-              </div>
-              <div className="bg-blue-500/10 rounded-2xl p-6 border border-blue-500/20">
-                <Twitter className="w-8 h-8 mb-4 text-blue-500" />
-                <h3 className="font-bold">Twitter</h3>
-              </div>
-            </div>
+      {/* Pricing Teaser */}
+      <section className="py-24 px-6 bg-foreground text-background text-center">
+        <div className="max-w-3xl mx-auto space-y-8">
+          <h2 className="text-5xl font-bold">Get the best bang for your buck on the internet</h2>
+          <p className="text-xl opacity-80">Join over 100,000+ creators who trust Pasive with their business.</p>
+          <div className="flex items-center justify-center gap-8 py-8">
+             <div className="space-y-2">
+               <div className="text-4xl font-bold">$0</div>
+               <div className="uppercase tracking-widest text-xs opacity-60">Free Forever</div>
+             </div>
+             <div className="w-px h-16 bg-background/20" />
+             <div className="space-y-2">
+               <div className="text-4xl font-bold">$30<span className="text-xl opacity-60">/mo</span></div>
+               <div className="uppercase tracking-widest text-xs opacity-60">Creator Plus</div>
+             </div>
           </div>
+          <Link href="/pricing">
+            <Button size="xl" className="rounded-full bg-background text-foreground hover:bg-background/90 font-bold px-12">
+              View All Plans
+            </Button>
+          </Link>
         </div>
       </section>
 
-      <FaqSection />
       <Footer />
+      
+      <style jsx global>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: float 4s ease-in-out 2s infinite;
+        }
+      `}</style>
     </div>
   )
 }
 
-export default App
+function Users(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}

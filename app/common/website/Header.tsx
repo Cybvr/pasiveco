@@ -17,9 +17,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { featuresService, Feature } from '@/services/featuresService';
 import { solutionsService, Solution } from '@/services/solutionsService';
 
-const Header = ({ isMenuOpen, setIsMenuOpen }: {
-  isMenuOpen: boolean;
-  setIsMenuOpen: (open: boolean) => void;
+const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
+  isMenuOpen?: boolean;
+  setIsMenuOpen?: (open: boolean) => void;
 }) => {
   const { user } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -47,15 +47,16 @@ const Header = ({ isMenuOpen, setIsMenuOpen }: {
       <nav className="border-b sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-              <img src="/images/logo.svg" alt="Logo" className="w-8 h-8" />
-              <span className="text-2xl font-bold ml-2">Pasive</span>
-            </Link>
+            <div className="flex items-center gap-10">
+              {/* Logo */}
+              <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+                <img src="/images/logo.svg" alt="Logo" className="w-8 h-8" />
+                <span className="text-2xl font-bold ml-2">Pasive</span>
+              </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-6">
-              {/* Features Dropdown */}
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center space-x-6">
+                {/* Features Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="h-auto p-0 text-sm font-normal">
@@ -150,36 +151,37 @@ const Header = ({ isMenuOpen, setIsMenuOpen }: {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {/* User Actions */}
-              <div className="flex items-center space-x-3">
-                {user ? (
-                  <>
-                    <Link href="/dashboard">
-                      <Button variant="ghost" size="sm">
-                        Dashboard
-                      </Button>
-                    </Link>
-                    <UserMenu />
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => setIsAuthModalOpen(true)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      Sign In
-                    </Button>
-                    <Button
-                      onClick={() => setIsAuthModalOpen(true)}
-                      size="sm"
-                    >
-                      Get started for free
-                    </Button>
-                  </>
-                )}
               </div>
+            </div>
+
+            {/* User Actions */}
+            <div className="hidden md:flex items-center space-x-3">
+              {user ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm">
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <UserMenu />
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    size="sm"
+                  >
+                    Get started for free
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Navigation */}

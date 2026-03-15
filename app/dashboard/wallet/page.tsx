@@ -4,7 +4,6 @@ import React from "react"
 import { 
   Wallet, 
   Download, 
-  TrendingUp, 
   ArrowUpRight, 
   ArrowDownLeft, 
   Filter,
@@ -31,7 +30,7 @@ export default function WalletPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Wallet</h1>
           <p className="text-muted-foreground">Manage your earnings and view transaction history.</p>
         </div>
         <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
@@ -49,11 +48,7 @@ export default function WalletPage() {
                <ArrowDownLeft className="h-4 w-4 text-orange-500" />}
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stat.value}</div>
-              <p className={`text-xs text-muted-foreground mt-1 ${stat.trend === 'up' ? 'text-green-600 flex items-center' : stat.type === 'italic' ? 'italic' : ''}`}>
-                {stat.trend === 'up' && <TrendingUp className="mr-1 h-3 w-3" />}
-                {stat.description}
-              </p>
+              <div className="text-lg font-semibold">{stat.value}</div>
             </CardContent>
           </Card>
         ))}

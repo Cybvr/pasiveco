@@ -73,8 +73,8 @@ function AudiencePage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Audience</h1>
-          <p className="text-muted-foreground">Track your visitors and engagement metrics</p>
+          <h1 className="text-xl font-semibold tracking-tight">Audience</h1>
+          <p className="text-muted-foreground">Manage and understand your growing community.</p>
         </div>
         <div className="flex items-center bg-muted p-1 rounded-lg">
           {timeFilters.map((filter) => (

@@ -118,32 +118,37 @@ export default function PricingPlans({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {plans.map(([planId, plan]) => (
           <div
             key={planId}
-            className={`flex flex-col p-4 rounded-lg border ${
-              activePlan === planId ? 'border-primary' : 'border-muted'
-            }`}
+            className={`flex flex-col p-8 rounded-[2rem] border-2 transition-all duration-300 ${
+              activePlan === planId ? 'border-primary shadow-2xl shadow-primary/10' : 'border-muted hover:border-muted-foreground/20'
+            } bg-card relative overflow-hidden`}
           >
-            <div className="mb-2">
-              <h3 className="text-lg font-bold">{plan.name}</h3>
-              <p className="text-xs text-muted-foreground">{plan.description}</p>
+            {planId === 'creator_plus' && (
+              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 rounded-bl-xl text-xs font-bold uppercase tracking-wider">
+                Most Popular
+              </div>
+            )}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold">{plan.name}</h3>
+              <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
             </div>
-
-            <div className="mb-4">
-              <span className="text-2xl font-bold">
-                ₦{plan.type === 'free' ? '0' : getPlanPrice(planId as PlanId, billingPeriod).toLocaleString()}
+            {/* Added spacing and consistent price display */}
+            <div className="mb-8 flex items-baseline gap-1">
+              <span className="text-5xl font-black italic tracking-tighter">
+                ${plan.type === 'free' ? '0' : getPlanPrice(planId as PlanId, billingPeriod).toLocaleString()}
               </span>
-              {plan.type !== 'free' && <span className="text-muted-foreground">/{billingPeriod}</span>}
+              {plan.type !== 'free' && <span className="text-muted-foreground font-medium">/{billingPeriod === 'annual' ? 'yr' : 'mo'}</span>}
             </div>
 
             <div className="flex-grow">
               <ul className="space-y-2 mb-4">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center">
-                    <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                    <span className="text-xs">{feature}</span>
+                    <Check className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
+                    <span className="text-sm font-medium">{feature}</span>
                   </li>
                 ))}
               </ul>
