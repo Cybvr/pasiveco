@@ -175,7 +175,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }: {
                       onClick={() => setIsAuthModalOpen(true)}
                       size="sm"
                     >
-                      Get Started
+                      Get started for free
                     </Button>
                   </>
                 )}
@@ -249,7 +249,7 @@ const Header = ({ isMenuOpen, setIsMenuOpen }: {
                           onClick={() => setIsAuthModalOpen(true)}
                           className="w-full"
                         >
-                          Get Started
+                          Get started for free
                         </Button>
                       </div>
                     )}
