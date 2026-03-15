@@ -5,6 +5,7 @@ interface AccordionProps {
   children: React.ReactNode;
   type?: string;
   collapsible?: boolean;
+  className?: string;
 }
 
 interface AccordionContextType {
@@ -14,7 +15,7 @@ interface AccordionContextType {
 
 const AccordionContext = createContext<AccordionContextType | undefined>(undefined);
 
-export const Accordion: React.FC<AccordionProps> = ({ children, type, collapsible }) => {
+export const Accordion: React.FC<AccordionProps> = ({ children, type, collapsible, className }) => {
   const [openItem, setOpenItem] = useState<string | null>(null);
 
   const toggleItem = (item: string) => {
@@ -23,7 +24,7 @@ export const Accordion: React.FC<AccordionProps> = ({ children, type, collapsibl
 
   return (
     <AccordionContext.Provider value={{ openItem, toggleItem }}>
-      <div className="space-y-2">{children}</div>
+      <div className={className}>{children}</div>
     </AccordionContext.Provider>
   );
 };
@@ -41,7 +42,7 @@ export const AccordionItem: React.FC<{ value: string; children: React.ReactNode;
   );
 };
 
-export const AccordionTrigger: React.FC<{ children: React.ReactNode; itemValue?: string }> = ({ children, itemValue }) => {
+export const AccordionTrigger: React.FC<{ children: React.ReactNode; itemValue?: string; className?: string }> = ({ children, itemValue, className }) => {
   const context = useContext(AccordionContext);
   if (!context) throw new Error('AccordionTrigger must be used within an Accordion');
 
@@ -49,7 +50,7 @@ export const AccordionTrigger: React.FC<{ children: React.ReactNode; itemValue?:
 
   return (
     <button
-      className="flex justify-between items-center w-full px-4 py-2 text-left text-foreground font-medium focus:outline-none"
+      className={`flex justify-between items-center w-full px-4 py-2 text-left text-foreground font-medium focus:outline-none ${className || ''}`}
       onClick={() => toggleItem(itemValue || '')}
     >
       {children}
@@ -65,7 +66,7 @@ export const AccordionTrigger: React.FC<{ children: React.ReactNode; itemValue?:
   );
 };
 
-export const AccordionContent: React.FC<{ children: React.ReactNode; itemValue?: string }> = ({ children, itemValue }) => {
+export const AccordionContent: React.FC<{ children: React.ReactNode; itemValue?: string; className?: string }> = ({ children, itemValue, className }) => {
   const context = useContext(AccordionContext);
   if (!context) throw new Error('AccordionContent must be used within an Accordion');
 
@@ -74,5 +75,5 @@ export const AccordionContent: React.FC<{ children: React.ReactNode; itemValue?:
   // Only show content if this item is open
   if (openItem !== itemValue) return null;
 
-  return <div className="px-4 py-2 text-foreground">{children}</div>;
+  return <div className={`px-4 py-2 text-foreground ${className || ''}`}>{children}</div>;
 }

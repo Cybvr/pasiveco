@@ -51,6 +51,7 @@ interface ProfileData {
   pageBackgroundType?: 'color' | 'image'
   pageBackgroundColor?: string
   pageBackgroundImage?: string | null
+  appearance?: AppearanceData
 }
 
 interface BioModeProps {
@@ -89,34 +90,35 @@ const BioMode: React.FC<BioModeProps> = ({
           const firebaseProfile = await getUserProfile(user.uid)
           if (firebaseProfile) {
             setProfileData({
-              username: firebaseProfile.username,
-              displayName: firebaseProfile.displayName,
+              username: firebaseProfile.username || "",
+              displayName: firebaseProfile.displayName || "",
               bio: firebaseProfile.bio || "",
-              profilePicture: firebaseProfile.profilePicture,
-              slug: firebaseProfile.slug,
+              profilePicture: firebaseProfile.profilePicture || null,
+              slug: firebaseProfile.slug || "",
               backgroundType: firebaseProfile.backgroundType,
               backgroundColor: firebaseProfile.backgroundColor,
               backgroundImage: firebaseProfile.backgroundImage,
               pageBackgroundType: firebaseProfile.pageBackgroundType,
               pageBackgroundColor: firebaseProfile.pageBackgroundColor,
               pageBackgroundImage: firebaseProfile.pageBackgroundImage,
+              appearance: firebaseProfile.appearance as AppearanceData
             })
 
             // Set links from Firebase profile
             if (firebaseProfile.links) {
-              setLinks(firebaseProfile.links)
+              setLinks(firebaseProfile.links as CustomLink[])
             }
 
             // Set social links from Firebase profile or initialize with defaults
             if (firebaseProfile.socialLinks && firebaseProfile.socialLinks.length > 0) {
-              setSocialLinks(firebaseProfile.socialLinks)
+              setSocialLinks(firebaseProfile.socialLinks as SocialLink[])
             } else {
               initializeDefaultSocialLinks()
             }
 
             // Set appearance data from Firebase profile
             if (firebaseProfile.appearance) {
-              setAppearanceData(firebaseProfile.appearance)
+              setAppearanceData(firebaseProfile.appearance as AppearanceData)
             }
           } else {
             initializeDefaultSocialLinks()
@@ -130,10 +132,10 @@ const BioMode: React.FC<BioModeProps> = ({
     }
 
     loadProfileData()
-  }, [user, setProfileData, setSocialLinks, setLinks])
+  }, [user, setProfileData, setSocialLinks, setLinks, setAppearanceData])
 
   const initializeDefaultSocialLinks = () => {
-    const defaultSocialLinks = [
+    const defaultSocialLinks: SocialLink[] = [
       { id: '1', platform: 'Instagram', url: '', thumbnail: '/images/pages/instagram.svg', active: false },
       { id: '2', platform: 'Twitter', url: '', thumbnail: '/images/pages/twitter.svg', active: false },
       { id: '3', platform: 'YouTube', url: '', thumbnail: '/images/pages/youtube.svg', active: false },
@@ -146,13 +148,13 @@ const BioMode: React.FC<BioModeProps> = ({
     setSocialLinks(defaultSocialLinks)
   }
 
-  const saveProfileData = async (updates: Partial<ProfileData> | { socialLinks: SocialLink[] }) => {
+  const saveProfileData = async (updates: any) => {
     if (!user?.uid) return
 
     try {
       const currentProfile = await getUserProfile(user.uid)
       if (currentProfile) {
-        await updateUserProfile(currentProfile.id, updates)
+        await updateUserProfile(currentProfile.id || "", updates)
       }
     } catch (error) {
       console.error("Error saving profile:", error)
@@ -166,7 +168,7 @@ const BioMode: React.FC<BioModeProps> = ({
 
     const newTimeout = setTimeout(() => {
       saveProfileData(updates)
-    }, 1000) // Save after 1 second of no changes
+    }, 1000)
 
     setSaveTimeout(newTimeout)
   }, [saveTimeout, user?.uid])
@@ -176,7 +178,7 @@ const BioMode: React.FC<BioModeProps> = ({
 
     try {
       const currentProfile = await getUserProfile(user.uid)
-      if (currentProfile) {
+      if (currentProfile && currentProfile.id) {
         await updateUserProfile(currentProfile.id, updates)
       }
     } catch (error) {
@@ -185,7 +187,7 @@ const BioMode: React.FC<BioModeProps> = ({
   }
 
   return (
-    <div className="w-full md:w-96 p-4 sm:p-6 bg-zinc-800/30 border-b md:border-b-0 md:border-r border-zinc-800 overflow-auto max-h-screen">
+    <div className="w-full md:w-96 p-4 sm:p-6 bg-muted/30 border-b md:border-b-0 md:border-r border-border overflow-auto max-h-screen">
       <Accordion type="multiple" className="space-y-3 overflow-hidden">
         <ProfileSettings 
           profileData={profileData}

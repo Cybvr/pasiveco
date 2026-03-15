@@ -12,14 +12,14 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({
   setSelectedTheme 
 }) => {
   const themes = [
-    { name: 'default', color: 'bg-zinc-800', title: 'Default Theme' },
+    { name: 'default', color: 'bg-background border-border', title: 'Default Theme' },
     { name: 'blue', color: 'bg-blue-600', title: 'Blue Theme' },
     { name: 'green', color: 'bg-green-600', title: 'Green Theme' },
     { name: 'purple', color: 'bg-purple-600', title: 'Purple Theme' },
   ]
 
   return (
-    <AccordionItem value="theme" className="border-none bg-zinc-800/50 rounded-lg">
+    <AccordionItem value="theme" className="border-none bg-card/50 rounded-lg">
       <AccordionTrigger className="px-3 py-2 hover:no-underline">
         <span className="flex items-center gap-2">
           <Palette className="w-5 h-5" />
@@ -33,7 +33,7 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({
               key={theme.name}
               onClick={() => setSelectedTheme(theme.name)}
               className={`w-12 h-12 ${theme.color} rounded-lg border-2 transition-all ${
-                selectedTheme === theme.name ? 'border-orange-500' : 'border-transparent hover:scale-105'
+                selectedTheme === theme.name ? 'border-primary' : 'border-transparent hover:scale-105'
               }`}
               title={theme.title}
               aria-label={`Select ${theme.title.toLowerCase()}`}

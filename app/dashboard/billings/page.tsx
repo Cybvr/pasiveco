@@ -23,14 +23,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
+import { subscribers, billingStats } from "@/lib/billings"
+
 export default function BillingsPage() {
-  const subscribers = [
-    { name: "Alex Johnson", email: "alex@example.com", plan: "Pro Monthly", amount: "$29/mo", status: "Active", joined: "Jan 12, 2024" },
-    { name: "Maria Garcia", email: "m.garcia@test.io", plan: "Basic Annual", amount: "$199/yr", status: "Active", joined: "Feb 05, 2024" },
-    { name: "Kevin Lee", email: "klee@hq.com", plan: "Pro Monthly", amount: "$29/mo", status: "Canceled", joined: "Nov 20, 2023" },
-    { name: "Emma Davis", email: "emma.d@web.com", plan: "Business", amount: "$99/mo", status: "Active", joined: "Mar 01, 2024" },
-    { name: "Robert Chen", email: "r.chen@tech.com", plan: "Pro Monthly", amount: "$29/mo", status: "Retrying", joined: "Dec 15, 2023" },
-  ]
 
   return (
     <div className="space-y-6">
@@ -50,48 +45,27 @@ export default function BillingsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active Subscribers</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,284</div>
-            <p className="text-xs text-muted-foreground mt-1 text-green-600 flex items-center">
-              <TrendingUp className="mr-1 h-3 w-3" /> +4.5% vs last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Recurring Revenue</CardTitle>
-            <RefreshCcw className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$14,560.00</div>
-            <p className="text-xs text-muted-foreground mt-1">Projected MRR</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Average Revenue Per User</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$32.50</div>
-            <p className="text-xs text-muted-foreground mt-1">Up from $31.00</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Churn Rate</CardTitle>
-            <CreditCard className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2.4%</div>
-            <p className="text-xs text-muted-foreground mt-1 text-red-600">Increased slightly</p>
-          </CardContent>
-        </Card>
+        {billingStats.map((stat, idx) => (
+          <Card key={idx} className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+              {idx === 0 ? <Users className="h-4 w-4 text-primary" /> :
+               idx === 1 ? <RefreshCcw className="h-4 w-4 text-green-500" /> :
+               idx === 2 ? <TrendingUp className="h-4 w-4 text-blue-500" /> :
+               <CreditCard className="h-4 w-4 text-red-500" />}
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className={`text-xs text-muted-foreground mt-1 ${
+                stat.trend === 'up' ? 'text-green-600 flex items-center' : 
+                stat.type === 'danger' ? 'text-red-600' : ''
+              }`}>
+                {stat.trend === 'up' && <TrendingUp className="mr-1 h-3 w-3" />}
+                {stat.description}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Card className="border-none shadow-sm">

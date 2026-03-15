@@ -126,7 +126,7 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
   }
 
   return (
-    <AccordionItem value="links" className="border-none bg-zinc-800/50 rounded-lg">
+    <AccordionItem value="links" className="border-none bg-card/50 rounded-lg">
       <AccordionTrigger className="px-3 py-2 hover:no-underline">
         <span className="flex items-center gap-2">
           <LinkIcon className="w-5 h-5" />
@@ -138,7 +138,7 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
           <span className="sr-only">Add Link</span>
           <button
             onClick={handleAddLink}
-            className="ml-auto bg-orange-500 hover:bg-orange-600 p-2 rounded-lg transition-colors"
+            className="ml-auto bg-primary hover:bg-primary/90 p-2 rounded-lg transition-colors text-white"
             aria-label="Add link"
           >
             <Plus className="w-4 h-4" />
@@ -147,20 +147,20 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
 
         <div className="space-y-2">
           {links.map((link) => (
-            <div key={link.id} className="p-3 bg-zinc-700 rounded-lg">
+            <div key={link.id} className="p-3 bg-muted rounded-lg border border-border">
               {editingLink === Number(link.id) ? (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-zinc-400 mb-1">Title</label>
+                    <label className="block text-xs text-muted-foreground mb-1">Title</label>
                     <input
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="w-full bg-zinc-600 border border-zinc-500 rounded px-2 py-1 text-sm focus:outline-none focus:border-orange-500"
+                      className="w-full bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-zinc-400 mb-1">URL</label>
+                    <label className="block text-xs text-muted-foreground mb-1">URL</label>
                     <input
                       type="url"
                       value={editUrl}
@@ -183,20 +183,20 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
                           }
                         }
                       }}
-                      className="w-full bg-zinc-600 border border-zinc-500 rounded px-2 py-1 text-sm focus:outline-none focus:border-orange-500"
+                      className="w-full bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
                       placeholder="https://example.com"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleSaveLink(Number(link.id))}
-                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                      className="flex-1 bg-primary hover:bg-primary/90 text-white px-3 py-1 rounded text-sm transition-colors"
                     >
                       Save
                     </button>
                     <button
                       onClick={handleCancelEdit}
-                      className="flex-1 bg-zinc-600 hover:bg-zinc-500 text-zinc-300 px-3 py-1 rounded text-sm transition-colors"
+                      className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1 rounded text-sm transition-colors border border-border"
                     >
                       Cancel
                     </button>
@@ -208,7 +208,7 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
                     <img 
                       src={link.thumbnail} 
                       alt={link.title} 
-                      className="w-8 h-8 object-contain rounded border border-zinc-600" 
+                      className="w-8 h-8 object-contain rounded border border-border bg-background" 
                       onError={(e) => {
                         e.currentTarget.src = "/images/pages/website.svg"
                       }}
@@ -230,12 +230,12 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{link.title}</p>
-                    <p className="text-xs text-zinc-400 truncate">{link.url}</p>
+                    <p className="text-xs text-muted-foreground truncate">{link.url}</p>
                   </div>
                   <button 
                     onClick={() => handleToggleLink(link.id)}
                     className={`p-2 rounded transition-colors ${
-                      link.active ? 'bg-orange-500 text-white' : 'bg-zinc-600 text-zinc-300 hover:bg-zinc-500'
+                      link.active ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
                     }`} 
                     aria-label={`${link.active ? 'Hide' : 'Show'} ${link.title}`}
                   >
@@ -243,14 +243,14 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
                   </button>
                   <button 
                     onClick={() => handleEditLink(link)}
-                    className="p-1 hover:bg-zinc-600 rounded transition-colors" 
+                    className="p-1 hover:bg-muted rounded transition-colors" 
                     aria-label={`Edit ${link.title}`}
                   >
                     <Edit3 className="w-3 h-3" />
                   </button>
                   <button 
                     onClick={() => handleDeleteLink(Number(link.id))}
-                    className="p-1 hover:bg-red-600 rounded transition-colors text-red-400 hover:text-white" 
+                    className="p-1 hover:bg-destructive rounded transition-colors text-destructive hover:text-destructive-foreground" 
                     aria-label={`Delete ${link.title}`}
                   >
                     ×

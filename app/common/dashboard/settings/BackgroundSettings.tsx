@@ -120,7 +120,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
     return (
       <div className="space-y-3">
         <div>
-          <label className="block text-sm text-zinc-400 mb-2">
+          <label className="block text-sm text-muted-foreground mb-2">
             {isPage ? 'Page' : 'Bio Card'} Background Type
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -128,8 +128,8 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               onClick={() => handleBackgroundTypeChange('color', isPage)}
               className={`p-2 rounded-lg border-2 text-sm transition-all ${
                 backgroundType === 'color' 
-                  ? 'border-orange-500 bg-orange-500/20' 
-                  : 'border-zinc-600 hover:border-zinc-500'
+                  ? 'border-primary bg-primary/20' 
+                  : 'border-border hover:border-muted-foreground'
               }`}
             >
               Color
@@ -138,8 +138,8 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               onClick={() => handleBackgroundTypeChange('image', isPage)}
               className={`p-2 rounded-lg border-2 text-sm transition-all ${
                 backgroundType === 'image' 
-                  ? 'border-orange-500 bg-orange-500/20' 
-                  : 'border-zinc-600 hover:border-zinc-500'
+                  ? 'border-primary bg-primary/20' 
+                  : 'border-border hover:border-muted-foreground'
               }`}
             >
               Image
@@ -149,7 +149,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
 
         {backgroundType === 'color' ? (
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">
+            <label className="block text-sm text-muted-foreground mb-2">
               {isPage ? 'Page' : 'Bio Card'} Background Color
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -159,8 +159,8 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                   onClick={() => handleColorChange(color, isPage)}
                   className={`w-full h-10 rounded-lg border-2 transition-all ${
                     backgroundColor === color 
-                      ? 'border-orange-500' 
-                      : 'border-zinc-600 hover:scale-105'
+                      ? 'border-primary' 
+                      : 'border-border hover:scale-105'
                   }`}
                   style={{ backgroundColor: color }}
                   title={`${isPage ? 'Page' : 'Bio card'} background color ${color}`}
@@ -172,13 +172,13 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 type="color"
                 value={backgroundColor}
                 onChange={(e) => handleColorChange(e.target.value, isPage)}
-                className="w-full h-10 rounded-lg border border-zinc-600 bg-transparent cursor-pointer"
+                className="w-full h-10 rounded-lg border border-border bg-transparent cursor-pointer"
               />
             </div>
           </div>
         ) : (
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">
+            <label className="block text-sm text-muted-foreground mb-2">
               {isPage ? 'Page' : 'Bio Card'} Background Image
             </label>
             <div className="space-y-3">
@@ -186,7 +186,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               {!isPage && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs text-zinc-500">Unsplash Gallery</label>
+                    <label className="block text-xs text-muted-foreground">Unsplash Gallery</label>
                   </div>
                   <div className="flex gap-2 mb-2">
                     <input
@@ -194,12 +194,12 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                       value={unsplashQuery}
                       onChange={(e) => setUnsplashQuery(e.target.value)}
                       placeholder="Search backgrounds..."
-                      className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs focus:outline-none focus:border-orange-500"
+                      className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs focus:outline-none focus:border-primary"
                     />
                     <button
                       onClick={searchUnsplashImages}
                       disabled={isSearching}
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-xs transition-colors disabled:opacity-50"
+                      className="bg-primary hover:bg-primary/90 text-white px-3 py-1 rounded text-xs transition-colors disabled:opacity-50"
                     >
                       <Search className="w-3 h-3" />
                     </button>
@@ -211,8 +211,8 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                           onClick={() => handleImageSelect(image.urls.regular, isPage)}
                           className={`w-full h-16 rounded-lg border-2 transition-all overflow-hidden ${
                             backgroundImage === image.urls.regular 
-                              ? 'border-orange-500' 
-                              : 'border-zinc-600 hover:border-zinc-500 hover:scale-105'
+                              ? 'border-primary' 
+                              : 'border-border hover:border-muted-foreground hover:scale-105'
                           }`}
                           style={{
                             backgroundImage: `url(${image.urls.small})`,
@@ -224,12 +224,12 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                       </div>
                     ))}
                     {isSearching && (
-                      <div className="col-span-3 text-center py-4 text-zinc-500 text-xs">
+                      <div className="col-span-3 text-center py-4 text-muted-foreground text-xs">
                         Searching Unsplash...
                       </div>
                     )}
                     {!isSearching && unsplashImages.length === 0 && (
-                      <div className="col-span-3 text-center py-4 text-zinc-500 text-xs">
+                      <div className="col-span-3 text-center py-4 text-muted-foreground text-xs">
                         No images found. Try a different search term.
                       </div>
                     )}
@@ -239,9 +239,9 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
 
               {/* Upload Custom Image */}
               <div>
-                <label className="block text-xs text-zinc-500 mb-2">Upload Custom Image</label>
+                <label className="block text-xs text-muted-foreground mb-2">Upload Custom Image</label>
                 <div className="relative">
-                  <div className={`w-full h-24 bg-zinc-700 rounded-lg border-2 border-dashed border-zinc-600 flex items-center justify-center cursor-pointer hover:border-zinc-500 transition-colors overflow-hidden ${
+                  <div className={`w-full h-24 bg-muted rounded-lg border-2 border-dashed border-border flex items-center justify-center cursor-pointer hover:border-muted-foreground transition-colors overflow-hidden ${
                     backgroundImage ? 'border-solid' : ''
                   }`}>
                     {backgroundImage ? (
@@ -252,8 +252,8 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                       />
                     ) : (
                       <div className="text-center">
-                        <Plus className="w-6 h-6 text-zinc-400 mx-auto mb-1" />
-                        <span className="text-xs text-zinc-400">Upload Image</span>
+                        <Plus className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
+                        <span className="text-xs text-muted-foreground">Upload Image</span>
                       </div>
                     )}
                   </div>
@@ -277,7 +277,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                     setProfileData(newProfileData)
                     onSave({ [field]: null })
                   }}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                  className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground px-3 py-2 rounded-lg text-sm transition-colors"
                 >
                   Remove Background
                 </button>
@@ -292,7 +292,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
   return (
     <>
       {/* Page Background */}
-      <AccordionItem value="page-background" className="border-none bg-zinc-800/50 rounded-lg">
+      <AccordionItem value="page-background" className="border-none bg-card/50 rounded-lg">
         <AccordionTrigger className="px-3 py-2 hover:no-underline">
           <span className="flex items-center gap-2">
             <Monitor className="w-5 h-5" />
@@ -305,7 +305,7 @@ const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       </AccordionItem>
 
       {/* Bio Card Background */}
-      <AccordionItem value="background" className="border-none bg-zinc-800/50 rounded-lg">
+      <AccordionItem value="background" className="border-none bg-card/50 rounded-lg">
         <AccordionTrigger className="px-3 py-2 hover:no-underline">
           <span className="flex items-center gap-2">
             <Monitor className="w-5 h-5" />

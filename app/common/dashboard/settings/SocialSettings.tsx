@@ -38,7 +38,7 @@ const SocialSettings: React.FC<SocialSettingsProps> = ({
   }
 
   return (
-    <AccordionItem value="social" className="border-none bg-zinc-800/50 rounded-lg">
+    <AccordionItem value="social" className="border-none bg-card/50 rounded-lg">
       <AccordionTrigger className="px-3 py-2 hover:no-underline">
         <span className="flex items-center gap-2">
           <Globe className="w-5 h-5" />
@@ -48,7 +48,7 @@ const SocialSettings: React.FC<SocialSettingsProps> = ({
       <AccordionContent className="px-3 pb-3">
         <div className="space-y-2">
           {socialLinks.map((social) => (
-            <div key={social.id} className="p-3 bg-zinc-700 rounded-lg">
+            <div key={social.id} className="p-3 bg-muted rounded-lg border border-border">
               <div className="flex items-center gap-3">
                 <img 
                   src={social.thumbnail} 
@@ -61,14 +61,14 @@ const SocialSettings: React.FC<SocialSettingsProps> = ({
                     type="url"
                     value={social.url}
                     onChange={(e) => handleUrlChange(social.id, e.target.value)}
-                    className="w-full bg-zinc-600 border border-zinc-500 rounded px-2 py-1 text-xs mt-1 focus:outline-none focus:border-orange-500"
+                    className="w-full bg-background border border-border rounded px-2 py-1 text-xs mt-1 focus:outline-none focus:border-primary"
                     placeholder={`Your ${social.platform} URL`}
                   />
                 </div>
                 <button 
                   onClick={() => handleToggleActive(social.id)}
                   className={`p-2 rounded transition-colors ${
-                    social.active ? 'bg-orange-500 text-white' : 'bg-zinc-600 text-zinc-300 hover:bg-zinc-500'
+                    social.active ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
                   }`} 
                   aria-label={`${social.active ? 'Hide' : 'Show'} ${social.platform}`}
                 >

@@ -20,10 +20,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, profileUrl: pr
   const cleanUsername = profileData?.username?.startsWith('@')
     ? profileData.username.substring(1)
     : profileData?.username;
-  const shareUrl = `${window.location.origin}/${cleanUsername}`;
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/${cleanUsername}` : '';
 
   // Use the generated shareUrl if profileData exists, otherwise fall back to propProfileUrl
-  const finalShareUrl = profileData ? shareUrl : propProfileUrl;
+  const finalShareUrl = (profileData ? shareUrl : propProfileUrl) || '';
 
   const qrCodeData = qrData || {
     url: finalShareUrl,

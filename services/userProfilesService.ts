@@ -20,7 +20,7 @@ export interface UserProfile {
   username: string;
   displayName: string;
   bio: string;
-  profilePicture: string;
+  profilePicture: string | null;
   slug: string;
   isPublic?: boolean;
   links: Array<{
@@ -28,11 +28,17 @@ export interface UserProfile {
     title: string;
     url: string;
     type: string;
+    description?: string;
+    thumbnail?: string;
+    active?: boolean;
+    clicks?: number;
+    ctr?: number;
   }>;
   socialLinks: Array<{
     id: string;
     platform: string;
     url: string;
+    thumbnail?: string;
     active?: boolean;
   }>;
   theme: string;
@@ -48,6 +54,12 @@ export interface UserProfile {
   dob?: string;
   phoneNumber?: string;
   source?: string;
+  backgroundType?: 'color' | 'image';
+  backgroundColor?: string;
+  backgroundImage?: string | null;
+  pageBackgroundType?: 'color' | 'image';
+  pageBackgroundColor?: string;
+  pageBackgroundImage?: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

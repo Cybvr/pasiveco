@@ -43,7 +43,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
   }
 
   return (
-    <AccordionItem value="profile" className="border-none bg-zinc-800/50 rounded-lg">
+    <AccordionItem value="profile" className="border-none bg-card/50 rounded-lg">
       <AccordionTrigger className="px-3 py-2 hover:no-underline">
         <span className="flex items-center gap-2">
           <User className="w-5 h-5" />
@@ -53,9 +53,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
       <AccordionContent className="px-3 pb-3">
         <div className="space-y-3">
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Profile Picture</label>
+            <label className="block text-sm text-muted-foreground mb-2">Profile Picture</label>
             <div className="relative">
-              <div className="w-20 h-20 bg-zinc-700 rounded-full flex items-center justify-center cursor-pointer hover:bg-zinc-600 transition-colors overflow-hidden">
+              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors overflow-hidden border border-border">
                 {profileData.profilePicture ? (
                   <img
                     src={profileData.profilePicture || "/placeholder.svg"}
@@ -63,7 +63,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Plus className="w-6 h-6 text-zinc-400" />
+                  <Plus className="w-6 h-6 text-muted-foreground" />
                 )}
               </div>
               <input
@@ -77,35 +77,35 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Username</label>
+            <label className="block text-sm text-muted-foreground mb-2">Username</label>
             <div className="flex items-center">
-              <span className="text-zinc-400 text-sm mr-1">pasive.co/</span>
+              <span className="text-muted-foreground text-sm mr-1">pasive.co/</span>
               <input
                 type="text"
                 value={profileData.username.replace('@', '')}
                 onChange={(e) => handleFieldChange('username', e.target.value)}
-                className="flex-1 bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+                className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Display Name</label>
+            <label className="block text-sm text-muted-foreground mb-2">Display Name</label>
             <input
               type="text"
               value={profileData.displayName}
               onChange={(e) => handleFieldChange('displayName', e.target.value)}
-              className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
           </div>
 
           <div>
-            <label className="block text-sm text-zinc-400 mb-2">Bio</label>
+            <label className="block text-sm text-muted-foreground mb-2">Bio</label>
             <textarea
               value={profileData.bio}
               onChange={(e) => handleFieldChange('bio', e.target.value)}
               rows={3}
-              className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-500 resize-none"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none"
             />
           </div>
         </div>

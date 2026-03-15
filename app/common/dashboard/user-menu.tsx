@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
   ThemeToggle,
 } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User, Settings, LogOut, CreditCard, Shield } from 'lucide-react'
 
-export default function UserMenu() {
+export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const { user } = useAuth()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -49,16 +50,37 @@ export default function UserMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
+          <Button 
+            variant="ghost" 
+            className={cn(
+              "relative flex items-center gap-3 transition-all duration-300 hover:bg-accent group",
+              isCollapsed ? "h-10 w-10 p-0 justify-center rounded-xl" : "w-full justify-start p-2 rounded-xl"
+            )}
+          >
+            <Avatar className={cn(
+              "transition-all duration-300",
+              isCollapsed ? "h-10 w-10 rounded-xl" : "h-9 w-9 rounded-lg"
+            )}>
               <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-              <AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
+            {!isCollapsed && (
+              <div className="flex flex-col items-start overflow-hidden text-left">
+                <span className="text-sm font-semibold truncate w-full">{user.displayName || 'Creator'}</span>
+                <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
+              </div>
+            )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent 
+          className="w-56" 
+          align={isCollapsed ? "center" : "start"} 
+          side={isCollapsed ? "right" : "bottom"} 
+          sideOffset={isCollapsed ? 15 : 4} 
+          forceMount
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">

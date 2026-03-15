@@ -22,13 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { payouts, payoutStats, payoutMethod } from "@/lib/payouts"
+
 export default function PayoutsPage() {
-  const payouts = [
-    { id: "PAY-001", amount: "$1,200.00", date: "Mar 01, 2024", method: "Bank Transfer (**** 4567)", status: "Completed" },
-    { id: "PAY-002", amount: "$850.00", date: "Feb 15, 2024", method: "Bank Transfer (**** 4567)", status: "Completed" },
-    { id: "PAY-003", amount: "$2,100.00", date: "Feb 01, 2024", method: "Bank Transfer (**** 4567)", status: "Completed" },
-    { id: "PAY-004", amount: "$420.00", date: "Jan 15, 2024", method: "Bank Transfer (**** 4567)", status: "Completed" },
-  ]
 
   return (
     <div className="space-y-6">
@@ -48,46 +44,23 @@ export default function PayoutsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Next Scheduled Payout</CardTitle>
-            <Calendar className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Mar 15, 2024</div>
-            <p className="text-xs text-muted-foreground mt-1">Automatic weekly transfer</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Paid Out</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$10,440.00</div>
-            <p className="text-xs text-muted-foreground mt-1">Successfully cleared</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Payouts</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$1,560.00</div>
-            <p className="text-xs text-muted-foreground mt-1 text-orange-600">Currently processing</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Unpaid Earnings</CardTitle>
-            <Banknote className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$890.00</div>
-            <p className="text-xs text-muted-foreground mt-1">Below $1,000 threshold</p>
-          </CardContent>
-        </Card>
+        {payoutStats.map((stat, idx) => (
+          <Card key={idx} className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+              {idx === 0 ? <Calendar className="h-4 w-4 text-primary" /> :
+               idx === 1 ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
+               idx === 2 ? <Clock className="h-4 w-4 text-orange-500" /> :
+               <Banknote className="h-4 w-4 text-muted-foreground" />}
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <p className={`text-xs text-muted-foreground mt-1 ${stat.status === 'warning' ? 'text-orange-600' : ''}`}>
+                {stat.description}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -140,21 +113,19 @@ export default function PayoutsPage() {
                   <CreditCard className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">Chase Bank Business</p>
-                  <p className="text-sm text-muted-foreground">Checking •••• 4567</p>
+                  <p className="font-semibold text-foreground">{payoutMethod.bankName}</p>
+                  <p className="text-sm text-muted-foreground">{payoutMethod.accountInfo}</p>
                 </div>
               </div>
             </div>
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Payout Settings</h4>
-              <div className="flex justify-between text-sm py-2 border-b">
-                <span className="text-muted-foreground">Minimum Threshold</span>
-                <span className="font-medium">$100.00</span>
-              </div>
-              <div className="flex justify-between text-sm py-2 border-b">
-                <span className="text-muted-foreground">Payment Frequency</span>
-                <span className="font-medium">Every Friday</span>
-              </div>
+              {payoutMethod.settings.map((setting, idx) => (
+                <div key={idx} className="flex justify-between text-sm py-2 border-b">
+                  <span className="text-muted-foreground">{setting.label}</span>
+                  <span className="font-medium">{setting.value}</span>
+                </div>
+              ))}
             </div>
             <Button variant="outline" className="w-full">Edit Payout Details</Button>
           </CardContent>

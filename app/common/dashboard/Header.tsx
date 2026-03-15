@@ -29,10 +29,10 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 flex items-center justify-between px-2 py-2 border-b border-border backdrop-blur-sm bg-background/10">
-        <Link href="/dashboard" className="flex items-center space-x-2">
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 h-[73px] border-b border-border backdrop-blur-sm bg-background/80">
+        <Link href="/dashboard" className="flex items-center space-x-2 md:hidden">
           <Image src="/images/monster.png" alt="Monster" width={32} height={32} />
-          <h1 className="text-xl text-muted-foreground font-semibold hidden md:inline">pasive</h1>
+          <h1 className="text-xl text-foreground font-bold italic tracking-tighter uppercase transition-colors">pasive</h1>
         </Link>
         <div className="flex items-center justify-end space-x-1">
           {userProfile?.username && (
@@ -58,7 +58,6 @@ const Header: React.FC = () => {
           >
             <Share2 className="text-muted-foreground w-4 h-4" />
           </button>
-          <UserMenu />
         </div>
       </header>
       <ShareModal

@@ -62,7 +62,7 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   ]
 
   return (
-    <AccordionItem value="appearance" className="border-none bg-zinc-800/50 rounded-lg">
+    <AccordionItem value="appearance" className="border-none bg-card/50 rounded-lg">
       <AccordionTrigger className="px-3 py-2 hover:no-underline">
         <span className="flex items-center gap-2">
           <Type className="w-5 h-5" />
@@ -72,12 +72,12 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
       <AccordionContent className="px-3 pb-3">
         <div className="space-y-4">
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Button Shape</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Button Shape</Label>
             <Select
               value={appearanceData.buttonShape || 'rounded'}
               onValueChange={(value) => handleFieldChange('buttonShape', value)}
             >
-              <SelectTrigger className="w-full bg-zinc-700 border-zinc-600">
+              <SelectTrigger className="w-full bg-muted border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -91,12 +91,12 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Font Family</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Font Family</Label>
             <Select
               value={appearanceData.fontFamily || 'inter'}
               onValueChange={(value) => handleFieldChange('fontFamily', value)}
             >
-              <SelectTrigger className="w-full bg-zinc-700 border-zinc-600">
+              <SelectTrigger className="w-full bg-muted border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -110,12 +110,12 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Font Size</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Font Size</Label>
             <Select
               value={appearanceData.fontSize || 'medium'}
               onValueChange={(value) => handleFieldChange('fontSize', value)}
             >
-              <SelectTrigger className="w-full bg-zinc-700 border-zinc-600">
+              <SelectTrigger className="w-full bg-muted border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -129,12 +129,12 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Button Size</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Button Size</Label>
             <Select
               value={appearanceData.buttonSize || 'medium'}
               onValueChange={(value) => handleFieldChange('buttonSize', value)}
             >
-              <SelectTrigger className="w-full bg-zinc-700 border-zinc-600">
+              <SelectTrigger className="w-full bg-muted border-border">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -148,38 +148,38 @@ const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Button Color</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Button Color</Label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
                 value={appearanceData.buttonColor || '#ffffff'}
                 onChange={(e) => handleFieldChange('buttonColor', e.target.value)}
-                className="w-8 h-8 rounded border border-zinc-600 bg-transparent cursor-pointer"
+                className="w-8 h-8 rounded border border-border bg-transparent cursor-pointer"
               />
               <input
                 type="text"
                 value={appearanceData.buttonColor || '#ffffff'}
                 onChange={(e) => handleFieldChange('buttonColor', e.target.value)}
-                className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-white"
+                className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs text-foreground"
                 placeholder="#ffffff"
               />
             </div>
           </div>
 
           <div>
-            <Label className="text-sm text-zinc-400 mb-2 block">Text Color</Label>
+            <Label className="text-sm text-muted-foreground mb-2 block">Text Color</Label>
             <div className="flex items-center gap-2">
               <input
                 type="color"
                 value={appearanceData.textColor || '#000000'}
                 onChange={(e) => handleFieldChange('textColor', e.target.value)}
-                className="w-8 h-8 rounded border border-zinc-600 bg-transparent cursor-pointer"
+                className="w-8 h-8 rounded border border-border bg-transparent cursor-pointer"
               />
               <input
                 type="text"
                 value={appearanceData.textColor || '#000000'}
                 onChange={(e) => handleFieldChange('textColor', e.target.value)}
-                className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-white"
+                className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs text-foreground"
                 placeholder="#000000"
               />
             </div>

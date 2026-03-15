@@ -23,14 +23,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { transactions, walletStats } from "@/lib/wallet"
+
 export default function WalletPage() {
-  const transactions = [
-    { id: "INV001", customer: "John Doe", type: "Sale", amount: "$45.00", date: "Mar 12, 2024", status: "Paid" },
-    { id: "INV002", customer: "Jane Smith", type: "Subscription", amount: "$15.00", date: "Mar 11, 2024", status: "Paid" },
-    { id: "INV003", customer: "Michael Brown", type: "Sale", amount: "$120.00", date: "Mar 10, 2024", status: "Paid" },
-    { id: "INV004", customer: "Sarah Wilson", type: "Sale", amount: "$25.00", date: "Mar 09, 2024", status: "Pending" },
-    { id: "INV005", customer: "Chris Evans", type: "Refund", amount: "-$30.00", date: "Mar 08, 2024", status: "Refunded" },
-  ]
 
   return (
     <div className="space-y-6">
@@ -45,38 +40,23 @@ export default function WalletPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-none shadow-sm bg-muted/30">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Available Balance</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">$2,450.00</div>
-            <p className="text-xs text-muted-foreground mt-1 text-green-600 flex items-center">
-              <TrendingUp className="mr-1 h-3 w-3" /> +12% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Earnings</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">$12,890.00</div>
-            <p className="text-xs text-muted-foreground mt-1">Lifetime revenue</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Clearance</CardTitle>
-            <ArrowDownLeft className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">$420.00</div>
-            <p className="text-xs text-muted-foreground mt-1 italic">Expected within 3-5 days</p>
-          </CardContent>
-        </Card>
+        {walletStats.map((stat, idx) => (
+          <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? 'bg-muted/30' : ''}`}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+              {idx === 0 ? <Wallet className="h-4 w-4 text-muted-foreground" /> : 
+               idx === 1 ? <ArrowUpRight className="h-4 w-4 text-green-500" /> : 
+               <ArrowDownLeft className="h-4 w-4 text-orange-500" />}
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stat.value}</div>
+              <p className={`text-xs text-muted-foreground mt-1 ${stat.trend === 'up' ? 'text-green-600 flex items-center' : stat.type === 'italic' ? 'italic' : ''}`}>
+                {stat.trend === 'up' && <TrendingUp className="mr-1 h-3 w-3" />}
+                {stat.description}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Card className="border-none shadow-sm">

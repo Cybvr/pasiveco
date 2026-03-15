@@ -47,6 +47,12 @@ const QRMode: React.FC<QRModeProps> = ({
     updatedAt: new Date() as any
   })
 
+  useEffect(() => {
+    if (user?.uid && !qrData.userId) {
+      setQrData(prev => ({ ...prev, userId: user.uid }))
+    }
+  }, [user?.uid, qrData.userId])
+
   const [qrOptions, setQROptions] = useState<QRCodeOptions>({
     foreground: qrData.foreground,
     background: qrData.background,
@@ -88,7 +94,7 @@ const QRMode: React.FC<QRModeProps> = ({
     if (onQRDataChange) {
       onQRDataChange(updatedQrData)
     }
-  }, [profileUrl, qrOptions, logo, onQRDataChange])
+  }, [profileUrl, qrOptions, logo, onQRDataChange, qrData])
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -123,10 +129,10 @@ const QRMode: React.FC<QRModeProps> = ({
           updatedAt: new Date() as any
         })
       } else {
+        const { id, scanCount, createdAt, updatedAt, ...createData } = qrData;
         await createQRCode({
-          userId: user.uid,
-          ...qrData,
-          scanCount: 0
+          ...createData,
+          userId: user.uid
         })
       }
     } catch (error) {
@@ -137,14 +143,14 @@ const QRMode: React.FC<QRModeProps> = ({
   }
 
   return (
-    <div className="w-full md:w-96 p-4 sm:p-6 bg-zinc-800/30 border-b md:border-b-0 md:border-r border-zinc-800">
+    <div className="w-full md:w-96 p-4 sm:p-6 bg-muted/30 border-b md:border-b-0 md:border-r border-border">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">QR Code Generator</h2>
+        <h2 className="text-lg font-semibold text-foreground">QR Code Generator</h2>
         <Button
           onClick={saveQRCode}
           disabled={saving}
           size="sm"
-          className="gap-1"
+          className="gap-1 bg-primary text-white"
         >
           <Save className="w-3 h-3" />
           {saving ? 'Saving...' : 'Save'}
@@ -153,17 +159,17 @@ const QRMode: React.FC<QRModeProps> = ({
 
       <Accordion type="multiple" className="space-y-3">
         {/* Colors */}
-        <AccordionItem value="colors" className="border-none bg-zinc-800/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline">
+        <AccordionItem value="colors" className="border-none bg-card/50 rounded-lg">
+          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
             <span className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
+              <Palette className="w-5 h-5 text-muted-foreground" />
               <span>Colors</span>
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pb-3">
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-white mb-3">Presets</h4>
+                <h4 className="text-sm font-medium text-foreground mb-3">Presets</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {colorPresets.map((preset, index) => (
                     <button
@@ -175,7 +181,7 @@ const QRMode: React.FC<QRModeProps> = ({
                           background: preset.bg,
                         }))
                       }
-                      className="p-2 rounded-lg border border-zinc-600 hover:border-orange-500 transition-colors text-left"
+                      className="p-2 rounded-lg border border-border hover:border-primary transition-colors text-left"
                     >
                       <div className="flex items-center space-x-2">
                         <div
@@ -184,7 +190,7 @@ const QRMode: React.FC<QRModeProps> = ({
                         >
                           <div className="w-2 h-2 rounded-sm m-0.5" style={{ backgroundColor: preset.fg }} />
                         </div>
-                        <span className="text-xs text-zinc-300">{preset.name}</span>
+                        <span className="text-xs text-muted-foreground">{preset.name}</span>
                       </div>
                     </button>
                   ))}
@@ -192,37 +198,37 @@ const QRMode: React.FC<QRModeProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Foreground</label>
+                <label className="block text-sm text-muted-foreground mb-2">Foreground</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={qrOptions.foreground}
                     onChange={(e) => setQROptions((prev) => ({ ...prev, foreground: e.target.value }))}
-                    className="w-8 h-8 rounded border border-zinc-600 bg-transparent cursor-pointer"
+                    className="w-8 h-8 rounded border border-border bg-transparent cursor-pointer"
                   />
                   <input
                     type="text"
                     value={qrOptions.foreground}
                     onChange={(e) => setQROptions((prev) => ({ ...prev, foreground: e.target.value }))}
-                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-white"
+                    className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs text-foreground"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Background</label>
+                <label className="block text-sm text-muted-foreground mb-2">Background</label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     value={qrOptions.background}
                     onChange={(e) => setQROptions((prev) => ({ ...prev, background: e.target.value }))}
-                    className="w-8 h-8 rounded border border-zinc-600 bg-transparent cursor-pointer"
+                    className="w-8 h-8 rounded border border-border bg-transparent cursor-pointer"
                   />
                   <input
                     type="text"
                     value={qrOptions.background}
                     onChange={(e) => setQROptions((prev) => ({ ...prev, background: e.target.value }))}
-                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-white"
+                    className="flex-1 bg-muted border border-border rounded px-2 py-1 text-xs text-foreground"
                   />
                 </div>
               </div>
@@ -231,17 +237,17 @@ const QRMode: React.FC<QRModeProps> = ({
         </AccordionItem>
 
         {/* Settings */}
-        <AccordionItem value="settings" className="border-none bg-zinc-800/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline">
+        <AccordionItem value="settings" className="border-none bg-card/50 rounded-lg">
+          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
             <span className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
+              <Settings className="w-5 h-5 text-muted-foreground" />
               <span>Settings</span>
             </span>
           </AccordionTrigger>
-          <AccordionContent className="px-3 pb-3">
+          <AccordionContent className="px-3 pb-3 text-foreground">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Size: {qrOptions.size}px</label>
+                <label className="block text-sm text-muted-foreground mb-2">Size: {qrOptions.size}px</label>
                 <input
                   type="range"
                   min="150"
@@ -249,11 +255,11 @@ const QRMode: React.FC<QRModeProps> = ({
                   step="25"
                   value={qrOptions.size}
                   onChange={(e) => setQROptions((prev) => ({ ...prev, size: Number.parseInt(e.target.value) }))}
-                  className="w-full accent-orange-500"
+                  className="w-full accent-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Margin: {qrOptions.margin}</label>
+                <label className="block text-sm text-muted-foreground mb-2">Margin: {qrOptions.margin}</label>
                 <input
                   type="range"
                   min="0"
@@ -261,11 +267,11 @@ const QRMode: React.FC<QRModeProps> = ({
                   step="1"
                   value={qrOptions.margin}
                   onChange={(e) => setQROptions((prev) => ({ ...prev, margin: Number.parseInt(e.target.value) }))}
-                  className="w-full accent-orange-500"
+                  className="w-full accent-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Error Correction</label>
+                <label className="block text-sm text-muted-foreground mb-2">Error Correction</label>
                 <select
                   value={qrOptions.errorCorrectionLevel}
                   onChange={(e) =>
@@ -274,7 +280,7 @@ const QRMode: React.FC<QRModeProps> = ({
                       errorCorrectionLevel: e.target.value as "L" | "M" | "Q" | "H",
                     }))
                   }
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-sm text-white"
+                  className="w-full bg-muted border border-border rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary"
                 >
                   <option value="L">Low (7%)</option>
                   <option value="M">Medium (15%)</option>
@@ -287,29 +293,29 @@ const QRMode: React.FC<QRModeProps> = ({
         </AccordionItem>
 
         {/* Logo */}
-        <AccordionItem value="logo" className="border-none bg-zinc-800/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline">
+        <AccordionItem value="logo" className="border-none bg-card/50 rounded-lg">
+          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
             <span className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
+              <ImageIcon className="w-5 h-5 text-muted-foreground" />
               <span>Logo</span>
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pb-3">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-zinc-400 mb-2">Upload Logo</label>
+                <label className="block text-sm text-muted-foreground mb-2">Upload Logo</label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleLogoUpload}
-                  className="w-full text-xs text-zinc-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-orange-500 file:text-white hover:file:bg-orange-600"
+                  className="w-full text-xs text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-primary file:text-white hover:file:bg-primary/90"
                 />
               </div>
 
               {logo && (
                 <>
                   <div>
-                    <label className="block text-sm text-zinc-400 mb-2">Logo Size: {qrOptions.logoSize}px</label>
+                    <label className="block text-sm text-muted-foreground mb-2">Logo Size: {qrOptions.logoSize}px</label>
                     <input
                       type="range"
                       min="20"
@@ -319,15 +325,15 @@ const QRMode: React.FC<QRModeProps> = ({
                       onChange={(e) =>
                         setQROptions((prev) => ({ ...prev, logoSize: Number.parseInt(e.target.value) }))
                       }
-                      className="w-full accent-orange-500"
+                      className="w-full accent-primary"
                     />
                   </div>
-                  <div className="p-3 bg-zinc-700 rounded-lg">
-                    <p className="text-xs text-zinc-400 mb-2">Preview:</p>
+                  <div className="p-3 bg-muted rounded-lg border border-border">
+                    <p className="text-xs text-muted-foreground mb-2">Preview:</p>
                     <img
                       src={logo || "/placeholder.svg"}
                       alt="Logo preview"
-                      className="w-12 h-12 rounded-full border-2 border-zinc-600"
+                      className="w-12 h-12 rounded-full border-2 border-border"
                     />
                   </div>
                 </>
@@ -338,10 +344,10 @@ const QRMode: React.FC<QRModeProps> = ({
       </Accordion>
 
       {/* Reset Button */}
-      <div className="mt-4 pt-4 border-t border-zinc-700">
+      <div className="mt-4 pt-4 border-t border-border">
         <button
           onClick={resetToDefaults}
-          className="w-full flex items-center justify-center space-x-2 py-2 px-3 bg-zinc-700 hover:bg-zinc-600 rounded-lg transition-colors text-zinc-300 hover:text-white text-sm"
+          className="w-full flex items-center justify-center space-x-2 py-2 px-3 bg-muted hover:bg-muted/80 border border-border rounded-lg transition-colors text-muted-foreground hover:text-foreground text-sm"
         >
           <RotateCcw className="w-4 h-4" />
           <span>Reset to Defaults</span>
@@ -349,8 +355,8 @@ const QRMode: React.FC<QRModeProps> = ({
       </div>
 
       <div className="mt-4 text-center">
-        <p className="text-xs text-zinc-400">QR Code for:</p>
-        <p className="text-xs text-white font-medium truncate">{profileUrl}</p>
+        <p className="text-xs text-muted-foreground">QR Code for:</p>
+        <p className="text-xs text-foreground font-medium truncate">{profileUrl}</p>
       </div>
     </div>
   )

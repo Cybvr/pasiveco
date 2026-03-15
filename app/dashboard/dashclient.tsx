@@ -1,8 +1,8 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import Header from "@/app/common/dashboard/Header"
 import Sidebar from "@/app/common/dashboard/Sidebar"
+import { cn } from "@/lib/utils"
 import OnboardingModal from "@/app/common/OnboardingModal"
 import { useAuth } from "@/hooks/useAuth"
 import { getUserProfile } from "@/services/userProfilesService"
@@ -11,6 +11,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const pathname = usePathname()
   const { user } = useAuth()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const isEditRoute = pathname === "/dashboard/edit"
   const isSettingsRoute = pathname.startsWith("/dashboard/settings")
 
@@ -42,22 +43,22 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <Header />
+    <div className="h-screen flex overflow-hidden bg-background">
+      {/* Sidebar - Full height on desktop */}
+      <aside className={cn(
+        "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
+        isSidebarCollapsed ? "w-20" : "w-72"
+      )}>
+        <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+      </aside>
 
-      {/* Main content area */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Sidebar */}
-        {!isSettingsRoute && (
-          <div className="hidden md:block w-64 border-r p-4 flex-shrink-0 h-full">
-            <Sidebar />
+      {/* Main content area (Content only, Header removed as per request) */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
+        
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-8 max-w-[1600px] mx-auto">
+            {children}
           </div>
-        )}
-
-        {/* Content area */}
-        <main className="flex-1 overflow-y-auto  lg:p-6 ">
-          {children}
         </main>
       </div>
       
