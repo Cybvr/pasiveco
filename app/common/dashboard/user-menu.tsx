@@ -29,11 +29,28 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User, Settings, LogOut, CreditCard, Shield } from 'lucide-react'
+import { getUserProfile, type UserProfile } from '@/services/userProfilesService'
+import { useEffect } from 'react'
 
 export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const { user } = useAuth()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.uid) {
+        try {
+          const fetchedProfile = await getUserProfile(user.uid)
+          setProfile(fetchedProfile)
+        } catch (error) {
+          console.error('Error fetching profile for UserMenu:', error)
+        }
+      }
+    }
+    fetchProfile()
+  }, [user])
 
   const handleLogout = async () => {
     try {
@@ -45,6 +62,9 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
   }
 
   if (!user) return null
+
+  const displayName = profile?.displayName || user.displayName || 'User'
+  const handle = profile?.username ? `@${profile.username}` : user.email
 
   return (
     <>
@@ -61,15 +81,15 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
               "transition-all duration-300",
               isCollapsed ? "h-10 w-10 rounded-xl" : "h-9 w-9 rounded-lg"
             )}>
-              <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+              <AvatarImage src={profile?.profilePicture || user.photoURL || ''} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                {displayName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <div className="flex flex-col items-start overflow-hidden text-left">
-                <span className="text-sm font-semibold truncate w-full">{user.displayName || 'Creator'}</span>
-                <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
+                <span className="text-sm font-semibold truncate w-full">{displayName}</span>
+                <span className="text-xs text-muted-foreground truncate w-full font-mono">{handle}</span>
               </div>
             )}
           </Button>
@@ -84,10 +104,10 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user.displayName || 'User'}
+                {displayName}
               </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
+              <p className="text-xs leading-none text-muted-foreground font-mono">
+                {handle}
               </p>
             </div>
           </DropdownMenuLabel>

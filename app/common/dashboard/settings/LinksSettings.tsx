@@ -1,6 +1,5 @@
 import React from "react"
-import { LinkIcon, Plus, Edit3, Eye } from "lucide-react"
-import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import { Plus, Eye, EyeOff, Check } from "lucide-react"
 
 interface CustomLink {
   id: string
@@ -126,142 +125,110 @@ const LinksSettings: React.FC<LinksSettingsProps> = ({ links, setLinks }) => {
   }
 
   return (
-    <AccordionItem value="links" className="border-none bg-card/50 rounded-lg">
-      <AccordionTrigger className="px-3 py-2 hover:no-underline">
-        <span className="flex items-center gap-2">
-          <LinkIcon className="w-5 h-5" />
-          <span>Links</span>
-        </span>
-      </AccordionTrigger>
-      <AccordionContent className="px-3 pb-3">
-        <div className="flex items-center justify-between mb-3">
-          <span className="sr-only">Add Link</span>
-          <button
-            onClick={handleAddLink}
-            className="ml-auto bg-primary hover:bg-primary/90 p-2 rounded-lg transition-colors text-white"
-            aria-label="Add link"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="space-y-0.5">
+      <div className="flex items-center justify-between px-1 mb-1.5 pt-1">
+        <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest pl-1">Links</span>
+        <button
+          onClick={handleAddLink}
+          className="text-primary hover:bg-primary/10 p-1.5 rounded-lg transition-all"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
-        <div className="space-y-2">
-          {links.map((link) => (
-            <div key={link.id} className="p-3 bg-muted rounded-lg border border-border">
+      {links.map((link) => (
+        <div 
+          key={link.id} 
+          className="group flex flex-col gap-0.5 py-1 px-1 rounded-md hover:bg-muted/30 transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            {/* Icon */}
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 flex items-center justify-center bg-muted/40 rounded-sm shrink-0 overflow-hidden">
+                <img 
+                  src={link.thumbnail} 
+                  alt="" 
+                  className="w-3.5 h-3.5 object-contain grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all" 
+                  onError={(e) => { e.currentTarget.src = "/images/pages/website.svg" }}
+                />
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleThumbnailUpload(link.id, file)
+                }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+            </div>
+
+            {/* Title / Main Content */}
+            <div className="flex-1 min-w-0" onClick={() => editingLink !== Number(link.id) && handleEditLink(link)}>
               {editingLink === Number(link.id) ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-1">Title</label>
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      className="w-full bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-muted-foreground mb-1">URL</label>
-                    <input
-                      type="url"
-                      value={editUrl}
-                      onChange={async (e) => {
-                        const newUrl = e.target.value
-                        setEditUrl(newUrl)
-
-                        if (newUrl.startsWith('http') && newUrl.includes('.')) {
-                          try {
-                            const favicon = await fetchFavicon(newUrl)
-                            if (favicon) {
-                              setLinks(prev => 
-                                prev.map(l => 
-                                  Number(l.id) === editingLink ? { ...l, thumbnail: favicon } : l
-                                )
-                              )
-                            }
-                          } catch (error) {
-                            console.log('Failed to fetch favicon:', error)
-                          }
-                        }
-                      }}
-                      className="w-full bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:border-primary"
-                      placeholder="https://example.com"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleSaveLink(Number(link.id))}
-                      className="flex-1 bg-primary hover:bg-primary/90 text-white px-3 py-1 rounded text-sm transition-colors"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground px-3 py-1 rounded text-sm transition-colors border border-border"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+                <input
+                  autoFocus
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 m-0 text-[13px] font-medium focus:ring-0 focus:outline-none placeholder:text-muted-foreground/10"
+                  placeholder="Link Title"
+                />
               ) : (
-                <div className="flex items-center gap-3">
-                  <div className="relative group">
-                    <img 
-                      src={link.thumbnail} 
-                      alt={link.title} 
-                      className="w-8 h-8 object-contain rounded border border-border bg-background" 
-                      onError={(e) => {
-                        e.currentTarget.src = "/images/pages/website.svg"
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            handleThumbnailUpload(link.id, file)
-                          }
-                        }}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                      <Plus className="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{link.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{link.url}</p>
-                  </div>
-                  <button 
-                    onClick={() => handleToggleLink(link.id)}
-                    className={`p-2 rounded transition-colors ${
-                      link.active ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
-                    }`} 
-                    aria-label={`${link.active ? 'Hide' : 'Show'} ${link.title}`}
-                  >
-                    <Eye className={`w-3 h-3 ${!link.active ? 'opacity-50' : ''}`} />
-                  </button>
-                  <button 
-                    onClick={() => handleEditLink(link)}
-                    className="p-1 hover:bg-muted rounded transition-colors" 
-                    aria-label={`Edit ${link.title}`}
-                  >
-                    <Edit3 className="w-3 h-3" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteLink(Number(link.id))}
-                    className="p-1 hover:bg-destructive rounded transition-colors text-destructive hover:text-destructive-foreground" 
-                    aria-label={`Delete ${link.title}`}
-                  >
-                    ×
-                  </button>
-                </div>
+                <h4 className="text-[13px] font-medium text-foreground truncate cursor-text">{link.title}</h4>
               )}
             </div>
-          ))}
+
+            {/* Actions */}
+            <div className="flex items-center gap-0.5">
+              <button 
+                onClick={() => handleToggleLink(link.id)}
+                className={`p-1.5 rounded transition-all ${
+                  link.active 
+                    ? 'text-primary' 
+                    : 'text-muted-foreground/10 hover:text-muted-foreground/40'
+                }`}
+              >
+                {link.active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              </button>
+              
+              <button 
+                onClick={() => editingLink === Number(link.id) ? handleSaveLink(Number(link.id)) : handleDeleteLink(Number(link.id))}
+                className="p-1.5 text-muted-foreground/10 hover:text-destructive rounded transition-all"
+              >
+                {editingLink === Number(link.id) ? (
+                  <Check className="w-3.5 h-3.5 text-primary" />
+                ) : (
+                  <span className="text-base leading-none">×</span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Expanded Edit State (URL) */}
+          {editingLink === Number(link.id) && (
+            <div className="pl-10 pr-1 pb-0.5">
+              <input
+                type="url"
+                value={editUrl}
+                onChange={async (e) => {
+                  const newUrl = e.target.value
+                  setEditUrl(newUrl)
+                  if (newUrl.startsWith('http') && newUrl.includes('.')) {
+                    try {
+                      const favicon = await fetchFavicon(newUrl)
+                      if (favicon) setLinks(prev => prev.map(l => Number(l.id) === editingLink ? { ...l, thumbnail: favicon } : l))
+                    } catch (e) {}
+                  }
+                }}
+                className="w-full bg-transparent border-none p-0 m-0 text-[11px] text-muted-foreground/60 focus:ring-0 focus:outline-none placeholder:text-muted-foreground/20 italic"
+                placeholder="https://yourlink.com"
+              />
+            </div>
+          )}
         </div>
-      </AccordionContent>
-    </AccordionItem>
+      ))}
+    </div>
   )
 }
 

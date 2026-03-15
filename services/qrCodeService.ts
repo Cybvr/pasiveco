@@ -20,6 +20,7 @@ export interface QRCodeRecord {
   name: string;
   url: string;
   type: 'profile' | 'custom' | 'url' | 'vcard' | 'wifi' | 'text';
+  qrStyle?: 'square' | 'dots' | 'rounded' | 'extra-rounded' | 'classy' | 'classy-rounded';
   foreground: string;
   background: string;
   size: number;

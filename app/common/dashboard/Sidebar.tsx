@@ -12,7 +12,8 @@ import {
   ArrowUpRight,
   ReceiptText,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Palette
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -25,6 +26,11 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       href: '/dashboard',
       icon: Home,
       label: 'Home',
+    },
+    {
+      href: '/dashboard/edit',
+      icon: Palette,
+      label: 'Customize',
     },
     {
       href: '/dashboard/products',
@@ -55,11 +61,6 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       href: '/dashboard/billings',
       icon: ReceiptText,
       label: 'Subscriptions',
-    },
-    {
-      href: '/dashboard/settings/account',
-      icon: User,
-      label: 'Profile',
     }
   ]
 
@@ -79,7 +80,7 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+          className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors hidden md:block"
         >
           {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>

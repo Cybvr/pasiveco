@@ -2,13 +2,14 @@
 import React, { useEffect, useRef } from "react";
 import { QrCode, Download, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import QRCode from "qrcode";
+import QRCodeStyling, { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 import { QRCodeRecord } from "@/services/qrCodeService";
 
 interface QRCodeData {
   url: string;
   name: string;
   type: 'profile' | 'custom' | 'url' | 'vcard' | 'wifi' | 'text';
+  qrStyle?: 'square' | 'dots' | 'rounded' | 'extra-rounded' | 'classy' | 'classy-rounded';
   foreground: string;
   background: string;
   size: number;
@@ -33,81 +34,115 @@ const QRCodePreview: React.FC<QRCodePreviewProps> = ({
   onQRGenerated,
   showActions = false,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = React.useState(false);
-
-  const generateQRCode = async (): Promise<void> => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    try {
-      await QRCode.toCanvas(canvas, qrData.url, {
-        width: qrData.size,
-        margin: qrData.margin,
-        color: {
-          dark: qrData.foreground,
-          light: qrData.background,
-        },
-        errorCorrectionLevel: qrData.errorCorrectionLevel,
-      });
-
-      if (qrData.logo && qrData.logoSize > 0) {
-        return new Promise<void>((resolve) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => {
-            const logoSize = qrData.logoSize;
-            const x = (canvas.width - logoSize) / 2;
-            const y = (canvas.height - logoSize) / 2;
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x + logoSize / 2, y + logoSize / 2, logoSize / 2, 0, 2 * Math.PI);
-            ctx.clip();
-            ctx.fillStyle = qrData.background;
-            ctx.fill();
-            ctx.drawImage(img, x, y, logoSize, logoSize);
-            ctx.restore();
-            resolve();
-          };
-          img.src = qrData.logo;
-        });
-      }
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-    }
-  };
+  const qrCode = useRef<QRCodeStyling>();
 
   useEffect(() => {
-    generateQRCode().then(() => {
-      if (onQRGenerated && canvasRef.current) {
-        onQRGenerated(canvasRef.current);
+    qrCode.current = new QRCodeStyling({
+      width: qrData.size,
+      height: qrData.size,
+      data: qrData.url,
+      margin: qrData.margin,
+      qrOptions: {
+        errorCorrectionLevel: qrData.errorCorrectionLevel,
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 5,
+        imageSize: qrData.logoSize / qrData.size, 
+      },
+      dotsOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle as DotType) || "square"
+      },
+      backgroundOptions: {
+        color: qrData.background,
+      },
+      cornersSquareOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle === 'square' || !qrData.qrStyle ? 'square' : 'extra-rounded') as CornerSquareType,
+      },
+      cornersDotOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle === 'square' || !qrData.qrStyle ? 'square' : 'dot') as CornerDotType,
+      },
+      image: qrData.logo || undefined
+    });
+
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+      qrCode.current.append(containerRef.current);
+      
+      setTimeout(() => {
+        if (containerRef.current) {
+          const canvas = containerRef.current.querySelector('canvas');
+          if (canvas && onQRGenerated) {
+            onQRGenerated(canvas);
+          }
+        }
+      }, 100);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!qrCode.current) return;
+    qrCode.current.update({
+      width: qrData.size,
+      height: qrData.size,
+      data: qrData.url,
+      margin: qrData.margin,
+      image: qrData.logo || undefined,
+      qrOptions: {
+        errorCorrectionLevel: qrData.errorCorrectionLevel,
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 5,
+        imageSize: qrData.logoSize / qrData.size, 
+      },
+      dotsOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle as DotType) || "square"
+      },
+      backgroundOptions: {
+        color: qrData.background,
+      },
+      cornersSquareOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle === 'square' || !qrData.qrStyle ? 'square' : 'extra-rounded') as CornerSquareType,
+      },
+      cornersDotOptions: {
+        color: qrData.foreground,
+        type: (qrData.qrStyle === 'square' || !qrData.qrStyle ? 'square' : 'dot') as CornerDotType,
       }
     });
-  }, [qrData]);
+    
+    setTimeout(() => {
+      if (containerRef.current) {
+        const canvas = containerRef.current.querySelector('canvas');
+        if (canvas && onQRGenerated) {
+          onQRGenerated(canvas);
+        }
+      }
+    }, 100);
+  }, [qrData, onQRGenerated]);
 
   const handleDownload = () => {
-    if (!canvasRef.current) return;
-    
-    const link = document.createElement('a');
-    link.download = `${qrData.name || 'qr-code'}.png`;
-    link.href = canvasRef.current.toDataURL();
-    link.click();
+    if (!qrCode.current) return;
+    qrCode.current.download({ name: qrData.name || "qr-code", extension: "png" });
   };
 
   const handleCopy = async () => {
-    if (!canvasRef.current) return;
-    
+    if (!qrCode.current) return;
     try {
-      canvasRef.current.toBlob(async (blob) => {
-        if (blob) {
-          const item = new ClipboardItem({ 'image/png': blob });
-          await navigator.clipboard.write([item]);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        }
-      });
+      const blob = await qrCode.current.getRawData("png");
+      if (blob) {
+        const item = new ClipboardItem({ 'image/png': blob });
+        await navigator.clipboard.write([item]);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     } catch (error) {
       console.error('Failed to copy QR code:', error);
     }
@@ -119,10 +154,10 @@ const QRCodePreview: React.FC<QRCodePreviewProps> = ({
         {/* QR Code Display */}
         <div className="flex justify-center">
           <div
-            className="bg-white rounded-lg p-1 shadow-md inline-block"
+            className="bg-white rounded-lg p-1 shadow-md inline-block overflow-hidden"
             style={{ backgroundColor: qrData.background }}
           >
-            <canvas ref={canvasRef} className="max-w-[250px] max-h-[250px]" />
+            <div ref={containerRef} className="max-w-[250px] max-h-[250px] flex items-center justify-center [&>canvas]:max-w-full [&>canvas]:max-h-full" />
           </div>
         </div>
 

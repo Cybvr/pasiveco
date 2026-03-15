@@ -156,7 +156,7 @@ export default function LandingPage() {
             One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place.
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <Button size="xl" className="rounded-full px-10 py-8 text-xl font-bold shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all">
+            <Button size="lg" className="rounded-full px-10 py-8 text-xl font-bold shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all h-auto">
               Start for free
             </Button>
           </div>
@@ -351,7 +351,7 @@ export default function LandingPage() {
              </div>
           </div>
           <Link href="/pricing">
-            <Button size="xl" className="rounded-full bg-background text-foreground hover:bg-background/90 font-bold px-12">
+            <Button size="lg" className="rounded-full bg-background text-foreground hover:bg-background/90 font-bold px-12 h-auto py-6">
               View All Plans
             </Button>
           </Link>

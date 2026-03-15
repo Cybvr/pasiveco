@@ -23,6 +23,7 @@ import { db } from "@/lib/firebase"
 import { doc, updateDoc } from "firebase/firestore"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { getUserProfile, updateUserProfile } from "@/services/userProfilesService"
 
 interface OnboardingModalProps {
   isOpen: boolean
@@ -47,6 +48,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
 
     setIsSaving(true)
     try {
+      // 1. Update general user document (metadata)
       const userRef = doc(db, "users", user.uid)
       await updateDoc(userRef, {
         onboarding: {
@@ -54,13 +56,20 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
           completedAt: new Date().toISOString(),
           status: 'completed'
         },
-        // Also update root level if preferred
-        gender: formData.gender,
-        dateOfBirth: formData.dob,
-        phoneNumber: formData.phoneNumber,
-        referralSource: formData.source,
         onboardingCompleted: true
       })
+
+      // 2. Update the actual user profile in 'user_profiles' collection
+      // This is what DashboardClientLayout checks to show/hide the modal
+      const profile = await getUserProfile(user.uid)
+      if (profile && profile.id) {
+        await updateUserProfile(profile.id, {
+          gender: formData.gender,
+          dob: formData.dob,
+          phoneNumber: formData.phoneNumber,
+          source: formData.source,
+        })
+      }
 
       toast.success("Profile updated successfully!")
       onClose()

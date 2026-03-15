@@ -1,20 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { User, ImageIcon, QrCode, Home } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { User, QrCode, ExternalLink } from "lucide-react"
 import { getUserProfile, createUserProfile, updateUserProfile, type UserProfile } from "@/services/userProfilesService"
 import type { QRCodeRecord } from "@/services/qrCodeService"
 import { useAuth } from "@/hooks/useAuth"
 import QRMode from "@/app/common/dashboard/QRMode"
 import BioMode from "@/app/common/dashboard/BioMode"
 import BioPagePreview from "@/app/common/dashboard/BioPagePreview"
-import AvatarMode from "@/app/common/dashboard/ChatMode"
 import QRCodePreview from "@/app/common/dashboard/QRCodePreview"
-import AIChatPreview from "@/app/common/dashboard/ChatPreview"
 import { Button } from "@/components/ui/button"
-import { Toaster } from "@/components/ui/toaster"
-import UserMenu from "@/app/common/dashboard/user-menu"
-import Link from "next/link" // Import Link from Next.js
+import { cn } from "@/lib/utils"
 
 function Page() {
   const { user } = useAuth()
@@ -24,20 +20,20 @@ function Page() {
   const [qrDownloadFn, setQrDownloadFn] = useState<(() => void) | null>(null)
   const [qrCopyFn, setQrCopyFn] = useState<(() => Promise<void>) | null>(null)
   const [selectedTheme, setSelectedTheme] = useState("default")
-  const [avatarData, setAvatarData] = useState({
-    name: "Digital Twin",
-    personality: "I am a helpful and knowledgeable assistant representing the profile owner.",
-    instructions:
-      "Answer questions about my background, skills, services, and experience. Be helpful and provide accurate information based on the context provided.",
-    contextFile: null,
-    responseStyle: "professional" as const,
-    enabled: true,
-  })
-  const [profileData, setProfileData] = useState({
+
+  const [profileData, setProfileData] = useState<Partial<UserProfile> & { username: string, slug: string, displayName: string, bio: string, profilePicture: string | null, bannerImage: string | null }>({
     username: "username",
     displayName: "Your Name",
     bio: "Your bio here",
-    profilePicture: "/images/dud.png",
+    profilePicture: "/images/dud.png" as string | null,
+    bannerImage: null,
+    slug: "username",
+    backgroundType: 'color',
+    backgroundColor: '#ffffff',
+    backgroundImage: null,
+    pageBackgroundType: 'color',
+    pageBackgroundColor: '#ffffff',
+    pageBackgroundImage: null,
   })
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [qrData, setQrData] = useState<Partial<QRCodeRecord>>({
@@ -51,20 +47,21 @@ function Page() {
     errorCorrectionLevel: "M",
     logoSize: 40,
     isActive: true,
-    isPublic: false,
   })
-  const [links, setLinks] = useState([])
-  const [socialLinks, setSocialLinks] = useState([])
-  const profileUrl = `https://pasive.co${profileData.username}`
+  const [links, setLinks] = useState<any[]>([])
+  const [socialLinks, setSocialLinks] = useState<any[]>([])
+  const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/${profileData.username}` : `https://pasive.co/${profileData.username}`
 
-  // Appearance settings for buttons and text
   const [appearanceData, setAppearanceData] = useState({
-    buttonShape: "rounded",
-    fontSize: "medium",
-    fontFamily: "sans-serif",
+    buttonShape: "rounded" as "rounded" | "square" | "pill",
+    fontSize: "medium" as "small" | "medium" | "large",
+    fontFamily: "sans-serif" as any,
+    buttonSize: "medium" as "small" | "medium" | "large",
+    buttonColor: "#ffffff",
+    buttonTextColor: "#000000",
+    textColor: "#000000",
   })
 
-  // Load user profile data from Firebase
   useEffect(() => {
     const loadUserProfile = async () => {
       if (!user) return
@@ -72,36 +69,97 @@ function Page() {
       try {
         let profile = await getUserProfile(user.uid)
         if (!profile) {
-          // Create new profile if doesn't exist
+          const defaultLinks = [
+            { id: '1', title: 'My Portfolio', description: 'Check out my latest work', url: 'https://example.com', thumbnail: '/images/pages/website.svg', active: true, clicks: 0, ctr: 0, type: 'custom' },
+            { id: '2', title: 'Personal Website', description: 'Visit my home on the web', url: 'https://example.com', thumbnail: '/images/pages/website.svg', active: true, clicks: 0, ctr: 0, type: 'custom' },
+            { id: '3', title: 'Contact Me', description: 'Reach out for collaborations', url: 'mailto:hello@pasive.co', thumbnail: '/images/pages/website.svg', active: true, clicks: 0, ctr: 0, type: 'custom' },
+          ]
+          const defaultSocialLinks = [
+            { id: '1', platform: 'Instagram', url: 'https://instagram.com/username', thumbnail: '/images/pages/instagram.svg', active: true },
+            { id: '2', platform: 'Twitter', url: 'https://twitter.com/username', thumbnail: '/images/pages/twitter.svg', active: true },
+            { id: '3', platform: 'YouTube', url: '', thumbnail: '/images/pages/youtube.svg', active: false },
+            { id: '4', platform: 'LinkedIn', url: 'https://linkedin.com/in/username', thumbnail: '/images/pages/linkedin.svg', active: true },
+            { id: '5', platform: 'Facebook', url: '', thumbnail: '/images/pages/facebook.svg', active: false },
+            { id: '6', platform: 'TikTok', url: '', thumbnail: '/images/pages/tik-tok.svg', active: false },
+            { id: '7', platform: 'Spotify', url: '', thumbnail: '/images/pages/spotify.svg', active: false },
+            { id: '8', platform: 'Discord', url: '', thumbnail: '/images/pages/discord.svg', active: false },
+          ]
+
           const profileId = await createUserProfile({
             userId: user.uid,
             username: user.email?.split("@")[0] || "user",
             displayName: user.displayName || "Your Name",
-            bio: "Your bio here",
+            bio: "Building something amazing ✨",
             profilePicture: user.photoURL || "/images/dud.png",
-            links: [],
-            socialLinks: [],
+            links: defaultLinks,
+            socialLinks: defaultSocialLinks,
             theme: "default",
             isPublic: true,
-            // Initialize appearance settings
+            slug: user.email?.split("@")[0] || "user",
             appearance: appearanceData,
           })
           profile = await getUserProfile(user.uid)
         }
         if (profile) {
           setUserProfile(profile)
-          setProfileData({
+          setProfileData(prev => ({
+            ...prev,
             username: profile.username,
             displayName: profile.displayName,
-            bio: profile.bio,
+            bio: profile.bio || "Building something amazing ✨",
             profilePicture: profile.profilePicture,
-          })
-          setLinks(profile.links || [])
-          setSocialLinks(profile.socialLinks || [])
-          setSelectedTheme(profile.theme)
-          // Load appearance settings if available
+            bannerImage: profile.bannerImage || null,
+            slug: profile.slug || profile.username,
+            backgroundType: profile.backgroundType || 'color',
+            backgroundColor: profile.backgroundColor || '#ffffff',
+            backgroundImage: profile.backgroundImage || null,
+            pageBackgroundType: profile.pageBackgroundType || 'color',
+            pageBackgroundColor: profile.pageBackgroundColor || '#ffffff',
+            pageBackgroundImage: profile.pageBackgroundImage || null,
+          }))
+          
+          // Define high-quality defaults
+          const defaultLinks = [
+            { id: '1', title: 'My Portfolio', description: 'Check out my latest work', url: 'https://github.com', thumbnail: '/images/pages/website.svg', active: true, clicks: 0, ctr: 0, type: 'custom' },
+            { id: '2', title: 'Personal Website', description: 'Visit my home on the web', url: 'https://example.com', thumbnail: '/images/pages/website.svg', active: true, clicks: 0, ctr: 0, type: 'custom' },
+          ]
+          const defaultSocials = [
+            { id: '1', platform: 'Instagram', url: 'https://instagram.com/username', thumbnail: '/images/pages/instagram.svg', active: true },
+            { id: '2', platform: 'Twitter', url: 'https://twitter.com/username', thumbnail: '/images/pages/twitter.svg', active: true },
+            { id: '3', platform: 'LinkedIn', url: 'https://linkedin.com/in/username', thumbnail: '/images/pages/linkedin.svg', active: true },
+            { id: '4', platform: 'YouTube', url: '', thumbnail: '/images/pages/youtube.svg', active: false },
+            { id: '5', platform: 'Facebook', url: '', thumbnail: '/images/pages/facebook.svg', active: false },
+            { id: '6', platform: 'TikTok', url: '', thumbnail: '/images/pages/tik-tok.svg', active: false },
+            { id: '7', platform: 'Spotify', url: '', thumbnail: '/images/pages/spotify.svg', active: false },
+            { id: '8', platform: 'Discord', url: '', thumbnail: '/images/pages/discord.svg', active: false },
+          ]
+
+          // Heal links if empty
+          if (!profile.links || profile.links.length === 0) {
+            setLinks(defaultLinks)
+          } else {
+            setLinks(profile.links)
+          }
+
+          // Heal socials if empty or all inactive
+          const hasActiveSocials = profile.socialLinks?.some(s => s.active && s.url)
+          if (!profile.socialLinks || profile.socialLinks.length === 0 || !hasActiveSocials) {
+            setSocialLinks(defaultSocials)
+          } else {
+            setSocialLinks(profile.socialLinks)
+          }
+
+          setSelectedTheme(profile.theme || "default")
           if (profile.appearance) {
-            setAppearanceData(profile.appearance)
+            setAppearanceData({
+              buttonShape: profile.appearance.buttonShape || "rounded",
+              fontSize: profile.appearance.fontSize || "medium",
+              fontFamily: profile.appearance.fontFamily || "sans-serif",
+              buttonSize: profile.appearance.buttonSize || "medium",
+              buttonColor: profile.appearance.buttonColor || "#ffffff",
+              buttonTextColor: profile.appearance.buttonTextColor || "#000000",
+              textColor: profile.appearance.textColor || "#000000",
+            })
           }
         }
       } catch (error) {
@@ -113,7 +171,6 @@ function Page() {
     loadUserProfile()
   }, [user])
 
-  // Sync qrData URL with profileData changes
   useEffect(() => {
     setQrData((prev) => ({
       ...prev,
@@ -121,7 +178,6 @@ function Page() {
     }))
   }, [profileUrl])
 
-  // Save profile changes to Firebase
   const saveProfile = async () => {
     if (!user || !userProfile) return
     try {
@@ -130,15 +186,28 @@ function Page() {
         displayName: profileData.displayName,
         bio: profileData.bio,
         profilePicture: profileData.profilePicture,
+        bannerImage: profileData.bannerImage,
         links,
         socialLinks,
         theme: selectedTheme,
-        appearance: appearanceData, // Save appearance data
+        appearance: appearanceData,
+        backgroundType: profileData.backgroundType,
+        backgroundColor: profileData.backgroundColor,
+        backgroundImage: profileData.backgroundImage,
+        pageBackgroundType: profileData.pageBackgroundType,
+        pageBackgroundColor: profileData.pageBackgroundColor,
+        pageBackgroundImage: profileData.pageBackgroundImage,
       })
     } catch (error) {
       console.error("Error saving profile:", error)
     }
   }
+
+  const handleQRGenerated = useCallback((canvas: HTMLCanvasElement, downloadFn: () => void, copyFn: () => Promise<void>) => {
+    setQrCanvas(canvas)
+    setQrDownloadFn(() => downloadFn)
+    setQrCopyFn(() => copyFn)
+  }, [])
 
   if (loading) {
     return (
@@ -151,108 +220,77 @@ function Page() {
     )
   }
 
-  const handleQRGenerated = (canvas: HTMLCanvasElement, downloadFn: () => void, copyFn: () => Promise<void>) => {
-    setQrCanvas(canvas)
-    setQrDownloadFn(() => downloadFn)
-    setQrCopyFn(() => copyFn)
-  }
-
   const modes = [
-    { key: "bio", label: "Bio Mode", icon: User },
+    { key: "bio", label: "Link in Bio", icon: User },
     { key: "qr", label: "QR Mode", icon: QrCode },
-    { key: "avatar", label: "Avatar Mode", icon: ImageIcon },
   ]
 
-  const renderModeContent = () => {
-    switch (currentMode) {
-      case "bio":
-        return (
-          <BioMode
-            profileData={profileData}
-            setProfileData={setProfileData}
-            links={links}
-            setLinks={setLinks}
-            socialLinks={socialLinks}
-            setSocialLinks={setSocialLinks}
-            selectedTheme={selectedTheme}
-            setSelectedTheme={setSelectedTheme}
-            appearanceData={appearanceData}
-            setAppearanceData={setAppearanceData}
-          />
-        )
-      case "qr":
-        return <QRMode profileUrl={profileUrl} onQRGenerated={handleQRGenerated} onQRDataChange={setQrData} />
-      case "avatar":
-        return <AvatarMode avatarData={avatarData} onAvatarDataChange={setAvatarData} />
-      default:
-        return <BioMode profileData={profileData} setProfileData={setProfileData} links={links} setLinks={setLinks} />
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Toaster component for notifications */}
-      <Toaster />
-      {/* Navigation Bar */}
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center gap-1">
-          {/* Home Button - Now part of the mode selector group */}
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm">
-              <Home className="w-4 h-4" />
-            </Button>
-          </Link>
-          {/* Mode Selector - Beside the Home button */}
+    <div className="h-full bg-background flex flex-col overflow-hidden">
+      {/* Re-introducing the Top Navigation styled like Sidebar */}
+      <nav className="flex items-center justify-between h-14 border-b px-4 shrink-0">
+        <div className="flex items-center gap-1.5 h-full">
           {modes.map((mode) => {
             const Icon = mode.icon
+            const isActive = currentMode === mode.key
             return (
-              <Button
+              <button
                 key={mode.key}
                 onClick={() => setCurrentMode(mode.key)}
-                variant={currentMode === mode.key ? "default" : "ghost"}
-                size="sm"
-                className="gap-1"
+                className={cn(
+                  "flex items-center text-[13px] font-semibold rounded-lg transition-all duration-200 px-3 py-2",
+                  isActive
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
               >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{mode.label}</span>
-              </Button>
+                <Icon className={cn("h-4 w-4 mr-2", isActive ? "text-foreground" : "text-muted-foreground")} />
+                <span>{mode.label}</span>
+              </button>
             )
           })}
         </div>
 
-        {/* Action Buttons - Right aligned */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.open(`/${profileData.username}`, "_blank")}
+        <div className="flex items-center gap-2 h-full">
+          <button
+            onClick={() => window.open(profileUrl, "_blank")}
+            className="flex items-center text-[13px] font-semibold rounded-lg border border-border px-4 py-2 hover:bg-accent transition-all duration-200"
           >
-            View
-          </Button>
-          <Button variant="secondary" size="sm" onClick={saveProfile}>
-            Save
-          </Button>
-          <UserMenu />
+            My Page
+            <ExternalLink className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
+          </button>
         </div>
       </nav>
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col md:flex-row">
-        {/* Left Panel - Dynamic Mode Content */}
-        {renderModeContent()}
-        {/* Right Panel - Preview Area */}
-        <div className="flex-1 p-4 sm:p-6 flex items-center justify-center">
-          <div className="w-full max-w-sm h-[600px] flex items-center justify-center overflow-hidden rounded-lg border bg-card">
-            <div className="w-full h-full overflow-auto">
+
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden min-h-0">
+        <div className="w-full md:w-64 h-full overflow-hidden min-h-0">
+          {currentMode === "bio" ? (
+            <BioMode
+              profileData={profileData as any}
+              setProfileData={setProfileData as any}
+              links={links}
+              setLinks={setLinks}
+              socialLinks={socialLinks}
+              setSocialLinks={setSocialLinks}
+              selectedTheme={selectedTheme}
+              setSelectedTheme={setSelectedTheme}
+              appearanceData={appearanceData as any}
+              setAppearanceData={setAppearanceData as any}
+              saveProfile={saveProfile}
+            />
+          ) : (
+            <QRMode profileUrl={profileUrl} onQRGenerated={handleQRGenerated} onQRDataChange={setQrData} />
+          )}
+        </div>
+
+        <div className="flex-1 p-6 flex items-center justify-center bg-muted/20 overflow-hidden min-h-0">
+          <div className="w-full max-w-sm h-full max-h-[650px] flex items-start justify-center min-h-0">
+            <div className="w-full h-full overflow-auto bg-card rounded-xl border shadow-lg border-border">
               {currentMode === "qr" ? (
-                /* QR Code Preview */
-                <QRCodePreview qrData={qrData} onQRGenerated={handleQRGenerated} />
-              ) : currentMode === "avatar" ? (
-                /* AI Avatar Chat Interface Preview */
-                <AIChatPreview avatarData={avatarData} profileData={profileData} />
+                <QRCodePreview qrData={qrData as any} onQRGenerated={setQrCanvas} />
               ) : (
-                /* Bio Profile Preview */
                 <BioPagePreview
-                  profileData={{ ...profileData, socialLinks, appearance: appearanceData }}
+                  profileData={{ ...profileData, socialLinks, appearance: appearanceData } as any}
                   links={links}
                   selectedTheme={selectedTheme}
                 />

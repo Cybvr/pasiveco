@@ -1,12 +1,13 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { QrCode, Download, Palette, ImageIcon, RotateCcw, Settings, Copy, Check, Save } from "lucide-react"
+import { Palette, ImageIcon, RotateCcw, Settings, LayoutGrid } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { createQRCode, updateQRCode, QRCodeRecord } from "@/services/qrCodeService"
 import { useAuth } from "@/hooks/useAuth"
 import QRCodePreview from "./QRCodePreview"
+import { cn } from "@/lib/utils"
 
 interface QRModeProps {
   profileUrl?: string
@@ -22,6 +23,7 @@ interface QRCodeOptions {
   errorCorrectionLevel: "L" | "M" | "Q" | "H"
   logo?: string
   logoSize: number
+  qrStyle?: "square" | "dots" | "rounded" | "extra-rounded" | "classy" | "classy-rounded"
 }
 
 const QRMode: React.FC<QRModeProps> = ({ 
@@ -60,6 +62,7 @@ const QRMode: React.FC<QRModeProps> = ({
     margin: qrData.margin,
     errorCorrectionLevel: qrData.errorCorrectionLevel,
     logoSize: qrData.logoSize,
+    qrStyle: qrData.qrStyle || "square",
   })
 
   const [copied, setCopied] = useState(false)
@@ -77,7 +80,6 @@ const QRMode: React.FC<QRModeProps> = ({
     { fg: "#ea580c", bg: "#fff7ed", name: "Orange" },
   ]
 
-  // Sync qrData with qrOptions
   useEffect(() => {
     const updatedQrData = {
       ...qrData,
@@ -88,13 +90,28 @@ const QRMode: React.FC<QRModeProps> = ({
       margin: qrOptions.margin,
       errorCorrectionLevel: qrOptions.errorCorrectionLevel,
       logoSize: qrOptions.logoSize,
-      logo: logo || undefined
+      logo: logo || undefined,
+      qrStyle: qrOptions.qrStyle
     }
-    setQrData(updatedQrData)
-    if (onQRDataChange) {
-      onQRDataChange(updatedQrData)
+    
+    // Check if data actually changed to avoid unnecessary updates
+    if (
+      qrData.url !== updatedQrData.url ||
+      qrData.foreground !== updatedQrData.foreground ||
+      qrData.background !== updatedQrData.background ||
+      qrData.size !== updatedQrData.size ||
+      qrData.margin !== updatedQrData.margin ||
+      qrData.errorCorrectionLevel !== updatedQrData.errorCorrectionLevel ||
+      qrData.logoSize !== updatedQrData.logoSize ||
+      qrData.logo !== updatedQrData.logo ||
+      qrData.qrStyle !== updatedQrData.qrStyle
+    ) {
+      setQrData(updatedQrData)
+      if (onQRDataChange) {
+        onQRDataChange(updatedQrData)
+      }
     }
-  }, [profileUrl, qrOptions, logo, onQRDataChange, qrData])
+  }, [profileUrl, qrOptions, logo, onQRDataChange])
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -114,6 +131,7 @@ const QRMode: React.FC<QRModeProps> = ({
       margin: 4,
       errorCorrectionLevel: "M",
       logoSize: 40,
+      qrStyle: "square",
     })
     setLogo(null)
   }
@@ -142,31 +160,23 @@ const QRMode: React.FC<QRModeProps> = ({
     }
   }
 
-  return (
-    <div className="w-full md:w-96 p-4 sm:p-6 bg-muted/30 border-b md:border-b-0 md:border-r border-border">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">QR Code Generator</h2>
-        <Button
-          onClick={saveQRCode}
-          disabled={saving}
-          size="sm"
-          className="gap-1 bg-primary text-white"
-        >
-          <Save className="w-3 h-3" />
-          {saving ? 'Saving...' : 'Save'}
-        </Button>
-      </div>
+  const TriggerStyle = "flex w-full items-center text-[13px] font-medium rounded-lg transition-all duration-200 px-2 py-1.5 text-muted-foreground hover:bg-accent hover:text-foreground group data-[state=open]:text-foreground"
+  const IconStyle = "h-4 w-4 mr-2.5 transition-colors group-hover:text-foreground group-data-[state=open]:text-foreground"
 
-      <Accordion type="multiple" className="space-y-3">
+  return (
+    <div className="w-full h-full bg-card border-r border-border flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto py-4 px-2.5">
+
+      <Accordion type="multiple" className="space-y-2">
         {/* Colors */}
-        <AccordionItem value="colors" className="border-none bg-card/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
-            <span className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-muted-foreground" />
+        <AccordionItem value="colors" className="border-none">
+          <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
+            <div className="flex items-center">
+              <Palette className={IconStyle} />
               <span>Colors</span>
-            </span>
+            </div>
           </AccordionTrigger>
-          <AccordionContent className="px-3 pb-3">
+          <AccordionContent className="pt-2.5 px-1 pb-1.5">
             <div className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-3">Presets</h4>
@@ -236,15 +246,60 @@ const QRMode: React.FC<QRModeProps> = ({
           </AccordionContent>
         </AccordionItem>
 
-        {/* Settings */}
-        <AccordionItem value="settings" className="border-none bg-card/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
-            <span className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-muted-foreground" />
-              <span>Settings</span>
-            </span>
+        {/* Style */}
+        <AccordionItem value="style" className="border-none">
+          <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
+            <div className="flex items-center">
+              <LayoutGrid className={IconStyle} />
+              <span>Style</span>
+            </div>
           </AccordionTrigger>
-          <AccordionContent className="px-3 pb-3 text-foreground">
+          <AccordionContent className="pt-2.5 px-1 pb-1.5">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-muted-foreground mb-2">Dot Pattern</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: "square", label: "Square" },
+                    { value: "dots", label: "Dots" },
+                    { value: "rounded", label: "Rounded" },
+                    { value: "extra-rounded", label: "Extra Rounded" },
+                    { value: "classy", label: "Classy" },
+                    { value: "classy-rounded", label: "Classy Rounded" },
+                  ].map((styleOption) => (
+                    <button
+                      key={styleOption.value}
+                      onClick={() =>
+                        setQROptions((prev) => ({
+                          ...prev,
+                          qrStyle: styleOption.value as QRCodeOptions["qrStyle"],
+                        }))
+                      }
+                      className={cn(
+                        "p-2 rounded-lg border transition-colors text-left text-xs",
+                        qrOptions.qrStyle === styleOption.value
+                          ? "border-primary bg-primary/10 text-primary font-medium"
+                          : "border-border hover:border-primary/50 text-muted-foreground"
+                      )}
+                    >
+                      {styleOption.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Settings */}
+        <AccordionItem value="settings" className="border-none">
+          <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
+            <div className="flex items-center">
+              <Settings className={IconStyle} />
+              <span>Settings</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-2.5 px-1 pb-1.5 text-foreground">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-muted-foreground mb-2">Size: {qrOptions.size}px</label>
@@ -293,14 +348,14 @@ const QRMode: React.FC<QRModeProps> = ({
         </AccordionItem>
 
         {/* Logo */}
-        <AccordionItem value="logo" className="border-none bg-card/50 rounded-lg">
-          <AccordionTrigger className="px-3 py-2 hover:no-underline text-foreground">
-            <span className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-muted-foreground" />
+        <AccordionItem value="logo" className="border-none">
+          <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
+            <div className="flex items-center">
+              <ImageIcon className={IconStyle} />
               <span>Logo</span>
-            </span>
+            </div>
           </AccordionTrigger>
-          <AccordionContent className="px-3 pb-3">
+          <AccordionContent className="pt-2.5 px-1 pb-1.5">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm text-muted-foreground mb-2">Upload Logo</label>
@@ -354,9 +409,17 @@ const QRMode: React.FC<QRModeProps> = ({
         </button>
       </div>
 
-      <div className="mt-4 text-center">
-        <p className="text-xs text-muted-foreground">QR Code for:</p>
-        <p className="text-xs text-foreground font-medium truncate">{profileUrl}</p>
+      
+      </div>
+
+      <div className="p-4 border-t border-border bg-card">
+        <Button 
+          className="w-full h-10 bg-[#1a8d44] hover:bg-[#1a8d44]/90 text-white rounded-xl font-semibold text-sm transition-all active:scale-[0.98]"
+          onClick={saveQRCode}
+          disabled={saving}
+        >
+          {saving ? 'Saving...' : 'Save QR Code'}
+        </Button>
       </div>
     </div>
   )

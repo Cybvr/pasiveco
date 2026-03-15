@@ -9,7 +9,6 @@ import { getUserProfile } from '@/services/userProfilesService'
 import { useAuth } from '@/hooks/useAuth'
 import MiniPageModal from "./MiniPageModal"
 import ShareModal from "./ShareModal"
-import AIChatPreview from "./ChatPreview"
 import Watermark from "./Watermark"
 import Image from "next/image"
 import { Inter, Roboto, Poppins, Open_Sans, Lato, Montserrat, Nunito, Raleway, Ubuntu, Playfair_Display, Merriweather, Oswald, Source_Sans_3, Work_Sans, DM_Sans } from 'next/font/google'
@@ -44,6 +43,7 @@ interface AppearanceData {
   fontSize?: 'small' | 'medium' | 'large'
   buttonSize?: 'small' | 'medium' | 'large'
   buttonColor?: string
+  buttonTextColor?: string
   textColor?: string
 }
 
@@ -52,6 +52,7 @@ interface ProfileData {
   displayName: string
   bio: string
   profilePicture: string | null
+  bannerImage?: string | null
   socialLinks?: SocialLink[]
   appearance?: AppearanceData
   backgroundType?: 'color' | 'image'
@@ -166,6 +167,10 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
       color: appearance.textColor
     } : {}
 
+    const customButtonTextStyle = appearance.buttonTextColor ? {
+      color: appearance.buttonTextColor
+    } : {}
+
     return {
       buttonShapeClass,
       fontFamilyClass,
@@ -173,7 +178,8 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
       buttonSizeClass,
       tabSizeClass,
       customButtonStyle,
-      customTextStyle
+      customTextStyle,
+      customButtonTextStyle
     }
   }
 
@@ -289,19 +295,27 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
         {(profileData.backgroundType === 'image' && profileData.backgroundImage) && (
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px]" />
         )}
-        <div className="absolute top-0 left-0 right-0 z-20 bg-transparent">
-          <div className="flex items-center justify-between p-3">
+        <div className="absolute top-0 left-0 right-0 z-20 bg-transparent pointer-events-none">
+          <div className="flex items-center justify-between p-3 pointer-events-auto">
             <button onClick={() => setIsPageModalOpen(true)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
-              <Menu className="w-4 h-4 text-muted-foreground" />
+              <Menu className={`w-4 h-4 ${profileData.bannerImage ? 'text-white drop-shadow-md' : 'text-muted-foreground'}`} />
             </button>
             <button onClick={() => setIsShareModalOpen(true)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
-              <Share2 className="w-4 h-4 text-muted-foreground" />
+              <Share2 className={`w-4 h-4 ${profileData.bannerImage ? 'text-white drop-shadow-md' : 'text-muted-foreground'}`} />
             </button>
           </div>
         </div>
-        <CardContent className="p-2 pt-16 relative z-10">
+
+        {profileData.bannerImage && (
+          <div className="w-full h-32 relative z-10">
+            <img src={profileData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
+          </div>
+        )}
+
+        <CardContent className={`p-2 relative z-10 ${profileData.bannerImage ? '-mt-12' : 'pt-14'}`}>
           <div className="text-center space-y-4 mb-6">
-            <div className="w-24 h-24 bg-muted rounded-full mx-auto overflow-hidden">
+            <div className={`w-24 h-24 bg-muted rounded-full mx-auto overflow-hidden relative z-20 ${profileData.bannerImage ? 'border-4 border-background shadow-sm' : ''}`}>
               {profileData.profilePicture ? (
                 <img src={profileData.profilePicture || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -354,15 +368,13 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
           <div className="flex justify-center mb-4">
             <Tabs defaultValue="links" className="w-full max-w-md mx-auto">
               <TabsList className={`flex justify-center w-full gap-1 border-none ${appearance.buttonShapeClass}`}>
-                <TabsTrigger value="links" className={`flex items-center gap-2  ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass} data-[state=active]:${theme.tabActiveClass}`} style={{...appearance.customButtonStyle, ...appearance.customTextStyle}}>
-                  <span style={appearance.customTextStyle}>Links</span>
+                <TabsTrigger value="links" className={`flex items-center gap-2  ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass} data-[state=active]:${theme.tabActiveClass}`} style={{...appearance.customButtonStyle, ...appearance.customButtonTextStyle}}>
+                  <span style={appearance.customButtonTextStyle}>Links</span>
                 </TabsTrigger>
-                <TabsTrigger value="shop" className={`flex items-center gap-2 ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass} data-[state=active]:${theme.tabActiveClass}`} style={{...appearance.customButtonStyle, ...appearance.customTextStyle}}>
-                  <span style={appearance.customTextStyle}>Shop</span>
+                <TabsTrigger value="shop" className={`flex items-center gap-2 ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass} data-[state=active]:${theme.tabActiveClass}`} style={{...appearance.customButtonStyle, ...appearance.customButtonTextStyle}}>
+                  <span style={appearance.customButtonTextStyle}>Shop</span>
                 </TabsTrigger>
-                <TabsTrigger value="avatar" className={`flex items-center gap-2 ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass} data-[state=active]:${theme.tabActiveClass}`} style={{...appearance.customButtonStyle, ...appearance.customTextStyle}}>
-                  <span style={appearance.customTextStyle}>Ask Me</span>
-                </TabsTrigger>
+
               </TabsList>
 
               <TabsContent value="links" className="mt-4">
@@ -374,10 +386,10 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
                       target="_blank" 
                       rel="noopener noreferrer"
                       className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer ${appearance.buttonSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`} 
-                      style={appearance.customButtonStyle}
+                      style={{...appearance.customButtonStyle, ...appearance.customButtonTextStyle}}
                     >
                       <img src={link.thumbnail} alt={link.title} className="w-5 h-5 object-contain" onError={(e) => { e.currentTarget.src = "/images/pages/website.svg" }} />
-                      <span className={`font-medium ${selectedTheme === 'default' ? '' : theme.textClass}`} style={appearance.customTextStyle}>
+                      <span className={`font-medium ${selectedTheme === 'default' ? '' : theme.textClass}`} style={appearance.customButtonTextStyle}>
                         {link.title}
                       </span>
                     </a>
@@ -425,9 +437,9 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
                             <Button 
                               size="sm" 
                               className={`w-full ${appearance.buttonShapeClass}`} 
-                              style={appearance.customButtonStyle}
+                              style={{...appearance.customButtonStyle, ...appearance.customButtonTextStyle}}
                             >
-                              <span style={appearance.customTextStyle}>Buy Now</span>
+                              <span style={appearance.customButtonTextStyle}>Buy Now</span>
                             </Button>
                           </a>
                         )}
@@ -441,21 +453,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, sel
                 </div>
               </TabsContent>
 
-              <TabsContent value="avatar" className="mt-4">
-                <div className="w-full">
-                  <AIChatPreview
-                    avatarData={{
-                      name: "Digital Twin",
-                      personality: "I am a helpful and knowledgeable assistant representing the profile owner.",
-                      instructions: "Answer questions about my background, skills, services, and experience. Be helpful and provide accurate information.",
-                      contextFile: null,
-                      responseStyle: "professional",
-                      enabled: true,
-                    }}
-                    profileData={profileData}
-                  />
-                </div>
-              </TabsContent>
+
             </Tabs>
           </div>
 

@@ -21,6 +21,7 @@ export interface UserProfile {
   displayName: string;
   bio: string;
   profilePicture: string | null;
+  bannerImage?: string | null;
   slug: string;
   isPublic?: boolean;
   links: Array<{
@@ -48,6 +49,7 @@ export interface UserProfile {
     fontSize?: 'small' | 'medium' | 'large';
     buttonSize?: 'small' | 'medium' | 'large';
     buttonColor?: string;
+    buttonTextColor?: string;
     textColor?: string;
   };
   gender?: string;

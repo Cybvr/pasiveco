@@ -45,7 +45,7 @@ export default function ClientLayout({
   return (
     <AuthProvider>
       {children}
-      {!isSlugPage && <MobileFooter />}
+      {!isSlugPage && !isDashboardRoute && <MobileFooter />}
       <Toaster />
       <Sonner />
     </AuthProvider>

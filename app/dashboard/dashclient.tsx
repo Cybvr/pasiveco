@@ -17,7 +17,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
-  const isEditRoute = pathname === "/dashboard/edit"
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -40,14 +39,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     setIsMobileOpen(false)
   }, [pathname])
 
-  if (isEditRoute) {
-    return (
-      <>
-        <main>{children}</main>
-        <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
-      </>
-    )
-  }
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-background">
@@ -59,7 +50,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72">
+          <SheetContent side="left" className="p-0 w-64">
             <Sidebar isCollapsed={false} onToggle={() => {}} />
           </SheetContent>
         </Sheet>
@@ -72,15 +63,18 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       {/* Sidebar - Desktop only */}
       <aside className={cn(
         "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
-        isSidebarCollapsed ? "w-20" : "w-72"
+        isSidebarCollapsed ? "w-14" : "w-56"
       )}>
         <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       </aside>
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-8 max-w-[1600px] mx-auto">
+        <main className={cn("flex-1 min-h-0", pathname !== '/dashboard/edit' && "overflow-y-auto")}>
+          <div className={cn(
+            pathname !== '/dashboard/edit' && "p-4 md:p-8 max-w-[1600px] mx-auto",
+            pathname === '/dashboard/edit' && "h-full"
+          )}>
             {children}
           </div>
         </main>

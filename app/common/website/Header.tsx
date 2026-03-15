@@ -163,7 +163,6 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                       Dashboard
                     </Button>
                   </Link>
-                  <UserMenu />
                 </>
               ) : (
                 <>

@@ -5,7 +5,7 @@ import { getUserProfileByUsername } from '@/services/userProfilesService';
 
 export default function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>('');
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState<any>(null);
   const [profileOwnerId, setProfileOwnerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,11 +40,17 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
             displayName: firebaseProfile.displayName,
             bio: firebaseProfile.bio,
             profilePicture: firebaseProfile.profilePicture,
+            bannerImage: firebaseProfile.bannerImage,
             links: firebaseProfile.links || [],
             socialLinks: firebaseProfile.socialLinks || [],
             backgroundType: firebaseProfile.backgroundType,
             backgroundColor: firebaseProfile.backgroundColor,
-            backgroundImage: firebaseProfile.backgroundImage
+            backgroundImage: firebaseProfile.backgroundImage,
+            pageBackgroundType: firebaseProfile.pageBackgroundType,
+            pageBackgroundColor: firebaseProfile.pageBackgroundColor,
+            pageBackgroundImage: firebaseProfile.pageBackgroundImage,
+            appearance: firebaseProfile.appearance,
+            theme: firebaseProfile.theme
           });
           setProfileOwnerId(firebaseProfile.userId);
           setError(null);
@@ -125,7 +131,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   return (
     <div className="min-h-screen p-2 bg-background" style={getPageBackgroundStyle()}>
       <div className="max-w-md mx-auto">
-        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId} />
+        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId ?? undefined} selectedTheme={profileData?.theme || 'default'} />
       </div>
     </div>
   );

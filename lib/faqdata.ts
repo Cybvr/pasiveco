@@ -10,7 +10,7 @@ export const FAQ_DATA: FaqItem[] = [
     id: "q1",
     question: "What can I add to my bio page?",
     answer:
-      "You can create a comprehensive bio page with your profile information, custom links, social media links, products for sale, and even an AI chat avatar. All content is fully customizable with themes, fonts, and appearance settings to match your brand.",
+      "You can create a comprehensive bio page with your profile information, custom links, social media links, and products for sale. All content is fully customizable with themes, fonts, and appearance settings to match your brand.",
   },
   {
     id: "q2",
@@ -24,12 +24,7 @@ export const FAQ_DATA: FaqItem[] = [
     answer:
       "Yes! You can add products to your shop tab, including product images, descriptions, prices, and direct purchase links. Your products will be displayed beautifully alongside your other content.",
   },
-  {
-    id: "q4",
-    question: "What is the AI Avatar feature?",
-    answer:
-      "The AI Avatar creates a digital twin that can answer questions about you based on your profile information and uploaded context files. Visitors can chat with your AI representative to learn more about your services, background, and expertise.",
-  },
+
   {
     id: "q5",
     question: "How do QR codes work with my bio page?",
