@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -11,17 +15,21 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"
       }
     ],
     "strictNullChecks": true,
-    "baseUrl": ".",  // Ensure the baseUrl is set to the root directory
+    "baseUrl": ".", // Ensure the baseUrl is set to the root directory
     "paths": {
-      "@/*": ["./*"], // Support the alias '@' to point to the root directory
-      "@components/*": ["components/*"]  // Ensure the directory is correctly mapped
+      "@/*": [
+        "./*"
+      ], // Support the alias '@' to point to the root directory
+      "@components/*": [
+        "components/*"
+      ] // Ensure the directory is correctly mapped
     },
     "target": "es2015",
     "downlevelIteration": true
@@ -30,7 +38,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

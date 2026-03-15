@@ -17,6 +17,7 @@ const AskInBio: React.FC<AskInBioProps> = ({
   creatorName = "Creator",
   creatorInfo = "A passionate content creator sharing insights and experiences."
 }) => {
+  const [hasMounted, setHasMounted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -29,6 +30,10 @@ const AskInBio: React.FC<AskInBioProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
   // Mock AI response function - replace with actual AI integration
   const generateAIResponse = async (userMessage: string): Promise<string> => {
@@ -164,10 +169,12 @@ const AskInBio: React.FC<AskInBioProps> = ({
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
                     <p className="text-xs opacity-70 mt-1">
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {hasMounted
+                        ? message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : ""}
                     </p>
                   </div>
                 </div>
