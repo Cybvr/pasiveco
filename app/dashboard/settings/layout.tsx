@@ -36,7 +36,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col md:flex-row min-h-full">
       {/* Mobile menu header - moved to top */}
       <div className="md:hidden border-b bg-background">
         <div className="">

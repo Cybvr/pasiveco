@@ -97,8 +97,13 @@ export default function GeneralSettings() {
   }, [])
 
   return (
-    <div className="space-y-2 max-w-4xl">
-      <h1 className="text-lg font-semibold text-foreground">Profile</h1>
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+          <p className="text-muted-foreground">Manage your account information and preferences.</p>
+        </div>
+      </div>
 
       {/* Profile Section */}
       <div className="bg-background border rounded-lg">

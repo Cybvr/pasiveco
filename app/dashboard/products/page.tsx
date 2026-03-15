@@ -53,36 +53,29 @@ function ProductCreator() {
   
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-semibold text-foreground">
-                Products
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Manage your products and start selling with Paystack integration
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-1 mt-4">
-            {tabs.map((tab) => (
-              <Button
-                key={tab.key}
-                variant={activeTab === tab.key ? "default" : "ghost"}
-                size="sm"
-                className="h-7 px-2.5 text-xs"
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </Button>
-            ))}
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+          <p className="text-muted-foreground">Manage your products and start selling with Paystack integration</p>
         </div>
       </div>
+      
+      <div className="flex flex-wrap items-center gap-1">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.key}
+            variant={activeTab === tab.key ? "default" : "secondary"}
+            size="sm"
+            className="h-8 px-4 rounded-full"
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6">
+      <div className="pt-2">
         
 
         {activeTab === "explore" && (

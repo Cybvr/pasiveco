@@ -28,12 +28,12 @@ export default function PayoutsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Payouts</h1>
           <p className="text-muted-foreground">Monitor your transfers and manage payout settings.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <Button variant="outline">
             <Settings className="mr-2 h-4 w-4" /> Manage Account
           </Button>

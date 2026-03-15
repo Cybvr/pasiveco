@@ -39,36 +39,34 @@ function AnalyticsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-1 sm:px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg font-semibold text-foreground">Analytics</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Monitor your link performance and engagement</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {timeFilters.map((filter) => (
-                <Button
-                  key={filter.key}
-                  variant={timeFilter === filter.key ? "default" : "outline"}
-                  size="sm"
-                  className="h-7 px-2.5 text-xs"
-                  onClick={() => setTimeFilter(filter.key)}
-                >
-                  {filter.label}
-                </Button>
-              ))}
-              <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs gap-1.5">
-                <Download className="w-3 h-3" />
-                Export
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-muted-foreground">Monitor your link performance and engagement</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center bg-muted p-1 rounded-lg">
+            {timeFilters.map((filter) => (
+              <Button
+                key={filter.key}
+                variant={timeFilter === filter.key ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 px-3 text-xs"
+                onClick={() => setTimeFilter(filter.key)}
+              >
+                {filter.label}
               </Button>
-            </div>
+            ))}
           </div>
+          <Button variant="outline" size="sm" className="h-10 px-4 gap-2">
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
+      <div className="pt-2">
         {/* Overview Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {analyticsData?.analyticsStats?.map((stat) => (

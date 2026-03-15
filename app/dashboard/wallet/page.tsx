@@ -29,7 +29,7 @@ export default function WalletPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Wallet</h1>
           <p className="text-muted-foreground">Manage your earnings and view transaction history.</p>
