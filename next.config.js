@@ -25,7 +25,6 @@ const nextConfig = {
 
   devIndicators: false,
   experimental: {
-    turbopack: {},
   },
   webpack: (config) => {
     config.watchOptions = {

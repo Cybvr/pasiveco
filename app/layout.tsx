@@ -1,5 +1,5 @@
 // app/layout.tsx
-import { Space_Grotesk } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import ClientLayout from './ClientLayout';
@@ -9,11 +9,9 @@ import Script from 'next/script';
 import MobileFooter from '@/app/common/website/MobileFooter';
 import { headers } from 'next/headers';
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '700'],
   display: 'swap',
-  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -77,7 +75,7 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${spaceGrotesk.className} antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
