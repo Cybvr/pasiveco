@@ -43,7 +43,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
         <div className="p-8 space-y-6 bg-card">
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-2xl font-bold">
-              Let&apos;s do a little housekeeping
+              Let’s quickly cover a few basics
             </DialogTitle>
             <DialogDescription className="text-sm">
               We&apos;d like to get a little more info about you

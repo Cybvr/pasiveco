@@ -7,13 +7,13 @@ export const billingStats = [
     trend: "up"
   },
   {
-    title: "Monthly Recurring Revenue",
+    title: "Monthly Recurring",
     value: "$14,560.00",
     description: "Projected MRR",
     type: "static"
   },
   {
-    title: "Average Revenue Per User",
+    title: "Avr. Revenue Per User",
     value: "$32.50",
     description: "Up from $31.00",
     type: "static"

@@ -1,14 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  User, 
-  Cookie, 
-  Users, 
-  BarChart, 
-  Coins, 
-  Wallet, 
-  ArrowUpRight, 
+import {
+  User,
+  Cookie,
+  Users,
+  BarChart,
+  Coins,
+  Wallet,
+  ArrowUpRight,
   ReceiptText,
   PanelLeftClose,
   PanelLeftOpen
@@ -73,10 +73,10 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
             <div className="p-1.5 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
               <Image src="/images/monster.png" alt="Monster" width={24} height={24} />
             </div>
-            <h1 className="text-lg text-foreground font-black italic tracking-tighter uppercase">pasive</h1>
+            <h1 className="text-lg text-foreground font-black tracking-tighter">pasive</h1>
           </Link>
         )}
-        <button 
+        <button
           onClick={onToggle}
           className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors"
         >
@@ -96,8 +96,8 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
                 className={cn(
                   "flex items-center text-[13px] font-medium rounded-lg transition-all duration-200",
                   isCollapsed ? "justify-center p-2" : "px-2.5 py-2",
-                  isActive 
-                    ? "bg-muted text-foreground" 
+                  isActive
+                    ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >

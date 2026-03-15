@@ -1,8 +1,8 @@
 export const payoutStats = [
   {
-    title: "Next Scheduled Payout",
+    title: "Next Scheduled",
     value: "Mar 15, 2024",
-    description: "Automatic weekly transfer",
+    description: "Auto weekly transfer",
     status: "primary"
   },
   {
