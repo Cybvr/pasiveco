@@ -1,7 +1,16 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { User, Cookie, Users, BarChart, Coins } from 'lucide-react'
+import { 
+  User, 
+  Cookie, 
+  Users, 
+  BarChart, 
+  Coins, 
+  Wallet, 
+  ArrowUpRight, 
+  ReceiptText 
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Sidebar() {
@@ -26,6 +35,21 @@ export default function Sidebar() {
       href: '/dashboard/analytics',
       icon: BarChart,
       label: 'Analytics',
+    },
+    {
+      href: '/dashboard/wallet',
+      icon: Wallet,
+      label: 'Wallet',
+    },
+    {
+      href: '/dashboard/payouts',
+      icon: ArrowUpRight,
+      label: 'Payouts',
+    },
+    {
+      href: '/dashboard/billings',
+      icon: ReceiptText,
+      label: 'Billings',
     },
     {
       href: '/dashboard/settings/account',
