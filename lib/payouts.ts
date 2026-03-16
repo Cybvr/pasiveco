@@ -34,3 +34,5 @@ export const payoutMethod = {
     { label: "Payment Frequency", value: "Every Friday" }
   ]
 };
+
+export const getPayoutById = (id: string) => payouts.find((item) => item.id === id);
