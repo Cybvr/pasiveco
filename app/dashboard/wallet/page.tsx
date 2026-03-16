@@ -1,15 +1,7 @@
 "use client"
 
 import React from "react"
-import { 
-  Wallet, 
-  Download, 
-  CalendarClock, 
-  Clock3, 
-  Filter,
-  MoreVertical,
-  Search
-} from "lucide-react"
+import { Download, Filter, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,10 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import { transactions, walletStats } from "@/lib/wallet"
 
 export default function WalletPage() {
+  const router = useRouter()
 
   return (
     <div className="space-y-6">
@@ -33,22 +28,22 @@ export default function WalletPage() {
           <h1 className="text-xl font-semibold tracking-tight">Earnings</h1>
           <p className="text-muted-foreground">View earnings, available balance, and withdrawal methods.</p>
         </div>
-        <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
-          <Download className="mr-2 h-4 w-4" /> Download Report
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button asChild>
+            <Link href="/dashboard/payouts">Withdraw</Link>
+          </Button>
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" /> Download Report
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {walletStats.map((stat, idx) => (
-          <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? 'bg-muted/30' : ''}`}>
-            <CardHeader className="flex flex-row items-center justify-end space-y-0 pb-2">
-              {idx === 0 ? <Wallet className="h-4 w-4 text-muted-foreground" /> : 
-               idx === 1 ? <Clock3 className="h-4 w-4 text-green-500" /> : 
-               <CalendarClock className="h-4 w-4 text-orange-500" />}
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold">{stat.value}</div>
-              <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
+          <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? "bg-muted/30" : ""}`}>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold leading-none">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mt-2">{stat.title}</p>
             </CardContent>
           </Card>
         ))}
@@ -74,42 +69,26 @@ export default function WalletPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>Invoice</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.map((tx) => (
-                <TableRow key={tx.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <TableRow
+                  key={tx.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => router.push(`/dashboard/wallet/${tx.id}`)}
+                >
                   <TableCell className="font-medium">{tx.id}</TableCell>
-                  <TableCell>{tx.customer}</TableCell>
-                  <TableCell>{tx.type}</TableCell>
-                  <TableCell className={tx.amount.startsWith('-') ? 'text-red-500' : ''}>{tx.amount}</TableCell>
+                  <TableCell className={tx.amount.startsWith("-") ? "text-red-500" : ""}>{tx.amount}</TableCell>
                   <TableCell>{tx.date}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      tx.status === 'Paid' ? 'bg-green-100 text-green-700' : 
-                      tx.status === 'Pending' ? 'bg-orange-100 text-orange-700' : 
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {tx.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           <div className="flex justify-center mt-4 pt-4 border-t">
-            <Button variant="link" className="text-[#5A1448]">View all transactions</Button>
+            <Button variant="link">View all transactions</Button>
           </div>
         </CardContent>
       </Card>

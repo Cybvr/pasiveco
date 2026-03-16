@@ -2,10 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  User,
   Home,
-  Cookie,
-  Users,
   BarChart,
   Coins,
   Wallet,
@@ -36,11 +33,6 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       href: '/dashboard/products',
       icon: Coins,
       label: 'Products',
-    },
-    {
-      href: '/dashboard/audience',
-      icon: Users,
-      label: 'Audience',
     },
     {
       href: '/dashboard/analytics',
