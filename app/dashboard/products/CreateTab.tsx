@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Video, Headphones, Image, Calendar, Package, Eye, DollarSign, Upload, Download, BookOpen, GraduationCap } from 'lucide-react'
+import { Video, Image, Calendar, Package, Eye, DollarSign, Upload, Download, GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -69,13 +70,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
       badge: "Instant Delivery"
     },
     { 
-      id: "ebooks", 
-      name: "Ebooks", 
-      icon: BookOpen, 
-      description: "Digital books in any format",
-      badge: "DRM Protected"
-    },
-    { 
       id: "courses", 
       name: "Courses", 
       icon: GraduationCap, 
@@ -90,40 +84,12 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
       badge: "QR Codes"
     },
     { 
-      id: "services", 
-      name: "Services", 
-      icon: Headphones, 
-      description: "Coaching, consulting, design",
-      badge: "Booking System"
-    },
-    { 
       id: "video", 
       name: "Video Content", 
       icon: Video, 
       description: "Tutorials, courses, content",
       badge: "Streaming"
     },
-    { 
-      id: "audio", 
-      name: "Audio Content", 
-      icon: Headphones, 
-      description: "Podcasts, music, audio",
-      badge: "High Quality"
-    },
-    { 
-      id: "physical", 
-      name: "Physical Products", 
-      icon: Package, 
-      description: "Tangible goods with shipping",
-      badge: "Inventory Tracking"
-    },
-  ]
-
-  const currencies = [
-    { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
-    { code: 'USD', symbol: '$', name: 'US Dollar' },
-    { code: 'EUR', symbol: '€', name: 'Euro' },
-    { code: 'GBP', symbol: '£', name: 'British Pound' },
   ]
 
   const handleInputChange = (field, value) => {
@@ -133,11 +99,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
   const handleCreateProduct = async () => {
     if (!user || !formData.name.trim()) {
       toast.error('Please fill in the product name')
-      return
-    }
-
-    if (formData.price <= 0) {
-      toast.error('Please set a valid price')
       return
     }
 
@@ -216,7 +177,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
   }
 
   const currentType = getProductTypeInfo(productType) || productTypes[0]
-  const selectedCurrency = currencies.find(c => c.code === formData.currency)
 
   return (
     <div className="space-y-6">
@@ -226,7 +186,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
         </div>
         <div>
           <h2 className="text-lg font-semibold">Create Product</h2>
-          <Badge variant="outline" className="text-xs">{currentType.badge}</Badge>
         </div>
       </div>
 
@@ -251,17 +210,18 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
 
               <div>
                 <label className="block text-xs font-semibold mb-1.5">Product Type</label>
-                <select
-                  value={productType}
-                  onChange={(e) => setProductType(e.target.value)}
-                  className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
+                <Select value={productType} onValueChange={setProductType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product type" />
+                  </SelectTrigger>
+                  <SelectContent>
                   {productTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
+                    <SelectItem key={type.id} value={type.id}>
                       {type.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
+                  </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground mt-1">The form updates automatically based on this selection.</p>
               </div>
 
@@ -274,40 +234,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5">Price *</label>
-                  <div className="relative">
-                    <span className="absolute left-2.5 top-2.5 text-sm text-muted-foreground">
-                      {selectedCurrency?.symbol}
-                    </span>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.price}
-                      onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                      className="w-full pl-8 p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5">Currency</label>
-                  <select 
-                    value={formData.currency}
-                    onChange={(e) => handleInputChange('currency', e.target.value)}
-                    className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    {currencies.map(currency => (
-                      <option key={currency.code} value={currency.code}>
-                        {currency.symbol} {currency.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
               </div>
 
               {productType === "link" && (
@@ -390,7 +316,7 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
             <Button 
               className="w-full gap-2" 
               onClick={handleCreateProduct}
-              disabled={loading || !formData.name.trim() || formData.price <= 0}
+              disabled={loading || !formData.name.trim()}
             >
               <Package className="w-4 h-4" />
               {loading ? 'Creating...' : 'Create Product'}
@@ -400,16 +326,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
               Preview
             </Button>
           </div>
-
-          {/* Pricing Tip */}
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <h4 className="font-semibold text-sm text-blue-900 mb-2">💡 Pricing Tip</h4>
-              <p className="text-xs text-blue-800">
-                Research similar products in your niche. Start with competitive pricing and adjust based on customer feedback.
-              </p>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
