@@ -2,13 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getPayoutById } from "@/lib/payouts"
 
-export default function PayoutPage({ params }: { params: { id: string } }) {
-  const payout = getPayoutById(params.id)
+export default async function PayoutPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const payout = getPayoutById(id)
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Withdrawal {payout?.id ?? params.id}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Withdrawal {payout?.id ?? id}</h1>
         <p className="text-muted-foreground">
           {payout ? "Withdrawal details" : "We couldn't find this withdrawal in local data."}
         </p>
