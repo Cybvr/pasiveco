@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, Video, Headphones, Image, Calendar, Link, Package, Eye, DollarSign, Upload, Download, BookOpen, GraduationCap } from 'lucide-react'
+import { Video, Headphones, Image, Calendar, Package, Eye, DollarSign, Upload, Download, BookOpen, GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 
 function CreateTab({ user, selectedCategory, onProductCreated }) {
-  const [productType, setProductType] = useState(selectedCategory || "")
+  const [productType, setProductType] = useState(selectedCategory || "digital-products")
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -215,62 +215,18 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
     return productTypes.find(type => type.id === typeId)
   }
 
-  if (!productType) {
-    return (
-      <>
-        <div className="text-center mb-6">
-          <h2 className="text-xl font-bold mb-2">Choose Your Product Type</h2>
-          <p className="text-sm text-muted-foreground">
-            Select what type of product you want to create and start selling with Paystack integration
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {productTypes.map((type) => {
-            const IconComponent = type.icon
-            return (
-              <Card 
-                key={type.id} 
-                className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50 group" 
-                onClick={() => setProductType(type.id)}
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="relative">
-                    <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                      <IconComponent className="h-6 w-6" />
-                    </div>
-                    <Badge variant="secondary" className="absolute -top-1 -right-1 text-xs">
-                      {type.badge}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">{type.name}</h3>
-                  <p className="text-xs text-muted-foreground">{type.description}</p>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      </>
-    )
-  }
-
-  const currentType = getProductTypeInfo(productType)
+  const currentType = getProductTypeInfo(productType) || productTypes[0]
   const selectedCurrency = currencies.find(c => c.code === formData.currency)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setProductType("")}>
-          ← Back
-        </Button>
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
-            <currentType.icon className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Create {currentType?.name}</h2>
-            <Badge variant="outline" className="text-xs">{currentType?.badge}</Badge>
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
+          <currentType.icon className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Create Product</h2>
+          <Badge variant="outline" className="text-xs">{currentType.badge}</Badge>
         </div>
       </div>
 
@@ -291,6 +247,22 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold mb-1.5">Product Type</label>
+                <select
+                  value={productType}
+                  onChange={(e) => setProductType(e.target.value)}
+                  className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {productTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">The form updates automatically based on this selection.</p>
               </div>
 
               <div>

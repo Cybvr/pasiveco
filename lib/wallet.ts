@@ -7,15 +7,15 @@ export const walletStats = [
     trend: "up"
   },
   {
-    title: "Total Earnings",
-    value: "$12,890.00",
-    description: "Lifetime revenue",
+    title: "Pending",
+    value: "$420.00",
+    description: "Awaiting withdrawal",
     type: "static"
   },
   {
-    title: "Pending Clearance",
-    value: "$420.00",
-    description: "Expected within 3-5 days",
+    title: "Scheduled Withdrawal",
+    value: "Mar 15, 2024",
+    description: "Next transfer date",
     type: "italic"
   }
 ];

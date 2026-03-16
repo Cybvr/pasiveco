@@ -27,26 +27,25 @@ export default function PayoutsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Payouts</h1>
-          <p className="text-muted-foreground">Monitor your transfers and manage payout settings.</p>
+          <h1 className="text-xl font-semibold tracking-tight">Withdrawals</h1>
+          <p className="text-muted-foreground">View earnings, available balance, and withdrawal methods.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/settings">
             <Button variant="outline">
-              <Settings className="mr-2 h-4 w-4" /> Payout Method
+              <Settings className="mr-2 h-4 w-4" /> Withdrawal methods
             </Button>
           </Link>
           <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
-             Request Payout
+             Request Withdrawal
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {payoutStats.map((stat, idx) => (
           <Card key={idx} className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-end space-y-0 pb-2">
               {idx === 0 ? <Calendar className="h-4 w-4 text-primary" /> :
                idx === 1 ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
                idx === 2 ? <Clock className="h-4 w-4 text-orange-500" /> :
@@ -54,6 +53,7 @@ export default function PayoutsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-lg font-semibold">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
               <p className={`text-xs text-muted-foreground mt-1 ${stat.status === 'warning' ? 'text-orange-600' : ''}`}>
                 {stat.description}
               </p>
@@ -65,14 +65,14 @@ export default function PayoutsPage() {
       <div>
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Payout History</CardTitle>
-            <CardDescription>A summary of your most recent earnings transfers.</CardDescription>
+            <CardTitle className="text-lg font-semibold">Withdrawal History</CardTitle>
+            <CardDescription>A summary of your most recent withdrawals.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Payout ID</TableHead>
+                  <TableHead>Withdrawal ID</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Account</TableHead>

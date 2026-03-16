@@ -4,8 +4,8 @@ import React from "react"
 import { 
   Wallet, 
   Download, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
+  CalendarClock, 
+  Clock3, 
   Filter,
   MoreVertical,
   Search
@@ -30,8 +30,8 @@ export default function WalletPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Wallet</h1>
-          <p className="text-muted-foreground">Manage your earnings and view transaction history.</p>
+          <h1 className="text-xl font-semibold tracking-tight">Earnings</h1>
+          <p className="text-muted-foreground">View earnings, available balance, and withdrawal methods.</p>
         </div>
         <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
           <Download className="mr-2 h-4 w-4" /> Download Report
@@ -41,14 +41,14 @@ export default function WalletPage() {
       <div className="grid gap-4 md:grid-cols-3">
         {walletStats.map((stat, idx) => (
           <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? 'bg-muted/30' : ''}`}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-end space-y-0 pb-2">
               {idx === 0 ? <Wallet className="h-4 w-4 text-muted-foreground" /> : 
-               idx === 1 ? <ArrowUpRight className="h-4 w-4 text-green-500" /> : 
-               <ArrowDownLeft className="h-4 w-4 text-orange-500" />}
+               idx === 1 ? <Clock3 className="h-4 w-4 text-green-500" /> : 
+               <CalendarClock className="h-4 w-4 text-orange-500" />}
             </CardHeader>
             <CardContent>
               <div className="text-lg font-semibold">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
             </CardContent>
           </Card>
         ))}
