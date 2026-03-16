@@ -7,7 +7,6 @@ import {
   Coins,
   Wallet,
   ArrowUpRight,
-  ReceiptText,
   PanelLeftClose,
   PanelLeftOpen,
   Palette
@@ -49,11 +48,6 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       icon: ArrowUpRight,
       label: 'Withdrawals',
     },
-    {
-      href: '/dashboard/billings',
-      icon: ReceiptText,
-      label: 'Subscriptions',
-    }
   ]
 
   return (
