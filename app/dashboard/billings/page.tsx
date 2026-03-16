@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useRouter } from "next/navigation"
 import { Calendar, MoreHorizontal, Mail, UserPlus } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,8 @@ import { Badge } from "@/components/ui/badge"
 import { subscribers, billingStats } from "@/lib/billings"
 
 export default function BillingsPage() {
+  const router = useRouter()
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -70,8 +73,12 @@ export default function BillingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {subscribers.map((sub, idx) => (
-                <TableRow key={idx} className="hover:bg-muted/50 transition-colors">
+              {subscribers.map((sub) => (
+                <TableRow
+                  key={sub.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => router.push(`/dashboard/billings/${sub.id}`)}
+                >
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium text-foreground">{sub.name}</span>
