@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Video, Image, Calendar, Package, Eye, DollarSign, Upload, Download, GraduationCap } from 'lucide-react'
+import { Video, Image, Calendar, Package, Eye, Upload, Download, GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createProduct } from '@/services/productsService'
 import { toast } from 'sonner'
@@ -185,7 +184,7 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
           <currentType.icon className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold">Create Product</h2>
+          <h2 className="text-lg font-semibold">New</h2>
         </div>
       </div>
 
@@ -289,28 +288,6 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Payment Integration Info */}
-          <Card>
-            <CardHeader className="px-4 py-3 border-b">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-                Payment Integration
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Paystack</span>
-                <Badge variant="default" className="text-xs">Enabled</Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Accept payments securely with Paystack. Supports cards, bank transfers, and mobile money.
-              </p>
-              <div className="text-xs text-muted-foreground">
-                <strong>Supported:</strong> Visa, Mastercard, Verve, Bank Transfer, USSD
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Actions */}
           <div className="space-y-3">
             <Button 
@@ -319,7 +296,7 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
               disabled={loading || !formData.name.trim()}
             >
               <Package className="w-4 h-4" />
-              {loading ? 'Creating...' : 'Create Product'}
+              {loading ? 'Creating...' : 'New'}
             </Button>
             <Button variant="outline" className="w-full gap-2">
               <Eye className="w-4 h-4" />

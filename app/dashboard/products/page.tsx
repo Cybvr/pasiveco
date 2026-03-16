@@ -46,7 +46,7 @@ function ProductCreator() {
 
   const tabs = [
     { key: "manage", label: "My Products" },
-    { key: "create", label: "Create Product" },
+    { key: "create", label: "New" },
     { key: "explore", label: "Explore" },
   ]
 
