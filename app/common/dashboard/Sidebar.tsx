@@ -50,12 +50,12 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
     {
       href: '/dashboard/wallet',
       icon: Wallet,
-      label: 'Wallet',
+      label: 'Earnings',
     },
     {
       href: '/dashboard/payouts',
       icon: ArrowUpRight,
-      label: 'Payouts',
+      label: 'Withdrawals',
     },
     {
       href: '/dashboard/billings',

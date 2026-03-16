@@ -3,24 +3,17 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Edit3,
-  Share2,
-  Eye,
   Coins,
   Link as LinkIcon,
   ChevronRight,
   ShoppingBag,
-  Bell,
-  Crown,
-  ExternalLink
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview'
-import ShareModal from '@/app/common/dashboard/ShareModal'
 import { getUserProfile } from '@/services/userProfilesService'
 import { blogService, BlogPost } from '@/services/blogService'
 import { useAuth } from '@/hooks/useAuth'
-import Image from 'next/image'
 import Link from 'next/link'
 
 function App() {
@@ -37,14 +30,10 @@ function App() {
     profilePicture: null,
     slug: "yourslug",
   })
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   const router = useRouter()
   const { user } = useAuth()
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [isBlogLoading, setIsBlogLoading] = useState(true)
-
-  const profileUrl = `pasive.co/${profileData.slug}`
-  const fullUrl = `https://${profileUrl}`
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -84,14 +73,12 @@ function App() {
 
   const stats = [
     { label: "Total Revenue", value: "$0.00" },
-    { label: "Total Clicks", value: "0" },
-    { label: "Total Audience", value: "0" },
   ]
 
   const quickActions = [
     { label: "Add Product", icon: ShoppingBag, href: "/dashboard/products", color: "bg-primary/10 text-primary" },
     { label: "Add Link", icon: LinkIcon, href: "/dashboard/edit", color: "bg-secondary/20 text-secondary-foreground" },
-    { label: "Wallet", icon: Coins, href: "/dashboard/wallet", color: "bg-muted text-muted-foreground" },
+    { label: "Earnings", icon: Coins, href: "/dashboard/wallet", color: "bg-muted text-muted-foreground" },
   ]
 
   const firstName =
@@ -108,39 +95,17 @@ function App() {
           <h1 className="text-xl font-semibold tracking-tight">Hello, {firstName} 👋</h1>
           <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your creator profile today.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {profileData.slug && (
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
-              <Link href={`/${profileData.slug}`} target="_blank">
-                <ExternalLink className="w-4 h-4" />
-              </Link>
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" asChild>
-            <Link href="/pricing">
-              <Crown className="w-4 h-4" />
-            </Link>
-          </Button>
-          <div className="w-[1px] h-4 bg-border mx-1" />
-          <Button variant="outline" onClick={() => setIsShareModalOpen(true)}>
-            <Share2 className="w-4 h-4" /> Share
-          </Button>
-        </div>
+
       </div>
 
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        profileData={profileData}
-      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, i) => (
           <Card key={i}>
             <CardContent className="p-6 space-y-1">
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
               <p className="text-lg font-semibold">{stat.value}</p>
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
             </CardContent>
           </Card>
         ))}

@@ -1,27 +1,21 @@
 export const payoutStats = [
   {
-    title: "Next Scheduled",
-    value: "Mar 15, 2024",
-    description: "Auto weekly transfer",
+    title: "Available",
+    value: "$890.00",
+    description: "Ready to withdraw",
     status: "primary"
   },
   {
-    title: "Total Paid Out",
-    value: "$10,440.00",
-    description: "Successfully cleared",
-    status: "success"
-  },
-  {
-    title: "Pending Payouts",
+    title: "Pending",
     value: "$1,560.00",
     description: "Currently processing",
     status: "warning"
   },
   {
-    title: "Unpaid Earnings",
-    value: "$890.00",
-    description: "Below $1,000 threshold",
-    status: "muted"
+    title: "Scheduled Withdrawal",
+    value: "Mar 15, 2024",
+    description: "Auto weekly transfer",
+    status: "success"
   }
 ];
 
