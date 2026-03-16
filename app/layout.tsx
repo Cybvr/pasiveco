@@ -1,5 +1,5 @@
 // app/layout.tsx
-import { Inter } from 'next/font/google';
+import { IBM_Plex_Sans } from 'next/font/google';
 import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import ClientLayout from './ClientLayout';
@@ -9,8 +9,9 @@ import Script from 'next/script';
 import MobileFooter from '@/app/common/website/MobileFooter';
 import { headers } from 'next/headers';
 
-const inter = Inter({
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -75,7 +76,7 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${ibmPlexSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
