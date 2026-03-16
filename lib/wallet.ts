@@ -27,3 +27,5 @@ export const transactions = [
   { id: "INV-004", customer: "Sarah Wilson", type: "Sale", amount: "$25.00", date: "Mar 09, 2024", status: "Pending" },
   { id: "INV-005", customer: "Chris Evans", type: "Refund", amount: "-$30.00", date: "Mar 08, 2024", status: "Refunded" },
 ];
+
+export const getTransactionById = (id: string) => transactions.find((item) => item.id === id);

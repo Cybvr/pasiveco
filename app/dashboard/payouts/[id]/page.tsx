@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { payouts } from "@/lib/payouts"
+import { getPayoutById } from "@/lib/payouts"
 
 export default function PayoutPage({ params }: { params: { id: string } }) {
-  const payout = payouts.find((item) => item.id === params.id)
+  const payout = getPayoutById(params.id)
 
   return (
     <div className="space-y-6 max-w-2xl">

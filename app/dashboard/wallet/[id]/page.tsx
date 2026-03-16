@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { transactions } from "@/lib/wallet"
+import { getTransactionById } from "@/lib/wallet"
 
 export default function TransactionPage({ params }: { params: { id: string } }) {
-  const transaction = transactions.find((item) => item.id === params.id)
+  const transaction = getTransactionById(params.id)
 
   return (
     <div className="space-y-6 max-w-2xl">

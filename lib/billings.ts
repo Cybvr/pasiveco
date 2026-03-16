@@ -91,3 +91,8 @@ export const subscriptionTimeline = {
   "SUB-004": ["Subscription started on Mar 01, 2024", "Seat add-on purchased on Mar 08, 2024", "Payment succeeded"],
   "SUB-005": ["Subscription started on Dec 15, 2023", "Payment retry in progress", "Customer notified"],
 } as const;
+
+export const getSubscriberById = (id: string) => subscribers.find((item) => item.id === id);
+
+export const getSubscriptionTimeline = (id: string) =>
+  subscriptionTimeline[id as keyof typeof subscriptionTimeline] || [];

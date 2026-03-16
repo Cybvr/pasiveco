@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { subscribers, subscriptionTimeline } from "@/lib/billings"
+import { getSubscriberById, getSubscriptionTimeline } from "@/lib/billings"
 
 export default function SubscriptionPage({ params }: { params: { id: string } }) {
-  const subscriber = subscribers.find((item) => item.id === params.id)
+  const subscriber = getSubscriberById(params.id)
 
-  const timeline = subscriber ? subscriptionTimeline[subscriber.id as keyof typeof subscriptionTimeline] || [] : []
+  const timeline = subscriber ? getSubscriptionTimeline(subscriber.id) : []
 
   return (
     <div className="space-y-6 max-w-2xl">
