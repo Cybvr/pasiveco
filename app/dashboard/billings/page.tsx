@@ -1,16 +1,7 @@
 "use client"
 
 import React from "react"
-import { 
-  Users, 
-  CreditCard, 
-  RefreshCcw, 
-  TrendingUp, 
-  Calendar,
-  MoreHorizontal,
-  Mail,
-  UserPlus
-} from "lucide-react"
+import { Calendar, MoreHorizontal, Mail, UserPlus } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +17,6 @@ import { Badge } from "@/components/ui/badge"
 import { subscribers, billingStats } from "@/lib/billings"
 
 export default function BillingsPage() {
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -38,8 +28,8 @@ export default function BillingsPage() {
           <Button variant="outline">
             <Mail className="mr-2 h-4 w-4" /> Message All
           </Button>
-          <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
-             <UserPlus className="mr-2 h-4 w-4" /> Add Subscriber
+          <Button>
+            <UserPlus className="mr-2 h-4 w-4" /> Add Subscriber
           </Button>
         </div>
       </div>
@@ -47,20 +37,14 @@ export default function BillingsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {billingStats.map((stat, idx) => (
           <Card key={idx} className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
-              {idx === 0 ? <Users className="h-4 w-4 text-primary" /> :
-               idx === 1 ? <RefreshCcw className="h-4 w-4 text-green-500" /> :
-               idx === 2 ? <TrendingUp className="h-4 w-4 text-blue-500" /> :
-               <CreditCard className="h-4 w-4 text-red-500" />}
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold">{stat.value}</div>
-              <p className={`text-xs text-muted-foreground mt-1 ${
-                stat.trend === 'up' ? 'text-green-600 flex items-center' : 
-                stat.type === 'danger' ? 'text-red-600' : ''
-              }`}>
-                {stat.trend === 'up' && <TrendingUp className="mr-1 h-3 w-3" />}
+            <CardContent className="pt-6">
+              <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+              <div className="text-3xl font-bold mt-2">{stat.value}</div>
+              <p
+                className={`text-xs text-muted-foreground mt-1 ${
+                  stat.trend === "up" ? "text-green-600" : stat.type === "danger" ? "text-red-600" : ""
+                }`}
+              >
                 {stat.description}
               </p>
             </CardContent>
@@ -103,13 +87,10 @@ export default function BillingsPage() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{sub.joined}</TableCell>
                   <TableCell>
-                    <Badge variant={
-                      sub.status === 'Active' ? 'default' : 
-                      sub.status === 'Canceled' ? 'destructive' : 
-                      'outline'
-                    } className={
-                      sub.status === 'Active' ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''
-                    }>
+                    <Badge
+                      variant={sub.status === "Active" ? "default" : sub.status === "Canceled" ? "destructive" : "outline"}
+                      className={sub.status === "Active" ? "bg-green-100 text-green-700 hover:bg-green-100" : ""}
+                    >
                       {sub.status}
                     </Badge>
                   </TableCell>

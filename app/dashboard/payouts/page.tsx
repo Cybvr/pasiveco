@@ -1,13 +1,6 @@
 "use client"
 
 import React from "react"
-import { 
-  Banknote, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
-  Settings
-} from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,9 +12,22 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { payouts, payoutStats } from "@/lib/payouts"
 
 export default function PayoutsPage() {
+  const router = useRouter()
 
   return (
     <div className="space-y-6">
@@ -31,30 +37,39 @@ export default function PayoutsPage() {
           <p className="text-muted-foreground">View earnings, available balance, and withdrawal methods.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/settings">
-            <Button variant="outline">
-              <Settings className="mr-2 h-4 w-4" /> Withdrawal methods
-            </Button>
+          <Link href="/dashboard/payment-methods">
+            <Button variant="outline">Withdrawal methods</Button>
           </Link>
-          <Button className="bg-[#5A1448] hover:bg-[#4A103B]">
-             Request Withdrawal
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>Withdraw</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Withdraw</DialogTitle>
+                <DialogDescription>Enter the amount you want to withdraw.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input id="amount" placeholder="$0.00" />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="submit">Withdraw</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {payoutStats.map((stat, idx) => (
           <Card key={idx} className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-end space-y-0 pb-2">
-              {idx === 0 ? <Calendar className="h-4 w-4 text-primary" /> :
-               idx === 1 ? <CheckCircle2 className="h-4 w-4 text-green-500" /> :
-               idx === 2 ? <Clock className="h-4 w-4 text-orange-500" /> :
-               <Banknote className="h-4 w-4 text-muted-foreground" />}
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-semibold">{stat.value}</div>
-              <p className="text-sm text-muted-foreground mt-1">{stat.title}</p>
-              <p className={`text-xs text-muted-foreground mt-1 ${stat.status === 'warning' ? 'text-orange-600' : ''}`}>
+            <CardContent className="pt-6">
+              <div className="text-3xl font-bold leading-none">{stat.value}</div>
+              <p className="text-sm text-muted-foreground mt-2">{stat.title}</p>
+              <p className={`text-xs text-muted-foreground mt-1 ${stat.status === "warning" ? "text-orange-600" : ""}`}>
                 {stat.description}
               </p>
             </CardContent>
@@ -72,25 +87,19 @@ export default function PayoutsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead>Withdrawal ID</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Account</TableHead>
-                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {payouts.map((payout) => (
-                  <TableRow key={payout.id} className="hover:bg-muted/50 transition-colors">
-                    <TableCell className="font-medium">{payout.id}</TableCell>
+                  <TableRow
+                    key={payout.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => router.push(`/dashboard/payouts/${payout.id}`)}
+                  >
                     <TableCell className="font-semibold text-foreground">{payout.amount}</TableCell>
                     <TableCell>{payout.date}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{payout.method}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
-                        {payout.status}
-                      </span>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

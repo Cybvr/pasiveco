@@ -72,15 +72,10 @@ function AnalyticsPage() {
           {analyticsData?.analyticsStats?.map((stat) => (
             <Card key={stat.title}>
               <CardContent className="p-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground truncate">{stat.title}</p>
-                    <p className="text-lg font-semibold text-foreground mt-0.5">{stat.value}</p>
-                    <p className="text-xs text-green-600 mt-0.5">{stat.change}</p>
-                  </div>
-                  <div className="w-7 h-7 bg-primary/10 rounded flex items-center justify-center flex-shrink-0 ml-2">
-                    <stat.icon className="w-3.5 h-3.5 text-primary" />
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground truncate">{stat.title}</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{stat.value}</p>
+                  <p className="text-xs text-green-600 mt-1">{stat.change}</p>
                 </div>
               </CardContent>
             </Card>
