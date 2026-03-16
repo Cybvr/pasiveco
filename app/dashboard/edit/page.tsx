@@ -262,8 +262,8 @@ function Page() {
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-3.5rem)] overflow-hidden min-h-0">
-        <div className="w-full md:w-64 h-full overflow-hidden min-h-0">
+      <main className="flex-1 flex flex-col md:flex-row md:h-[calc(100vh-3.5rem)] overflow-auto md:overflow-hidden min-h-0">
+        <div className="w-full md:w-64 md:h-full overflow-visible md:overflow-hidden min-h-0 shrink-0">
           {currentMode === "bio" ? (
             <BioMode
               profileData={profileData as any}
@@ -283,8 +283,8 @@ function Page() {
           )}
         </div>
 
-        <div className="flex-1 p-6 flex items-center justify-center bg-muted/20 overflow-hidden min-h-0">
-          <div className="w-full max-w-sm h-full max-h-[650px] flex items-start justify-center min-h-0">
+        <div className="flex-1 p-4 md:p-6 flex items-center justify-center bg-muted/20 overflow-hidden min-h-[420px] md:min-h-0">
+          <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[650px] flex items-start justify-center min-h-0">
             <div className="w-full h-full overflow-auto bg-card rounded-xl border shadow-lg border-border">
               {currentMode === "qr" ? (
                 <QRCodePreview qrData={qrData as any} onQRGenerated={setQrCanvas} />
