@@ -185,7 +185,7 @@
                                                                       <p className="text-muted-foreground mb-4">Create your first product to get started</p>
                                                                       <Button onClick={onCreateNew}>
                                                                         <Plus className="w-4 h-4 mr-2" />
-                                                                        Create Product
+                                                                        New
                                                                       </Button>
                                                                     </div>
                                                                   )}
