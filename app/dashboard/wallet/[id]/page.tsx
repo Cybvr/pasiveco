@@ -2,13 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { getTransactionById } from "@/lib/wallet"
 
-export default function TransactionPage({ params }: { params: { id: string } }) {
-  const transaction = getTransactionById(params.id)
+export default async function TransactionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const transaction = getTransactionById(id)
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Earning {transaction?.id ?? params.id}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">Earning {transaction?.id ?? id}</h1>
         <p className="text-muted-foreground">
           {transaction ? "Earning transaction details" : "We couldn't find this transaction in local data."}
         </p>
