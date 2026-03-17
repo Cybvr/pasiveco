@@ -1,14 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Edit3,
-  Link as LinkIcon,
-  ChevronRight,
-  ShoppingBag,
-} from 'lucide-react'
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview'
 import { getUserProfile } from '@/services/userProfilesService'
 import { blogService, BlogPost } from '@/services/blogService'
@@ -74,11 +67,6 @@ function App() {
     { label: "Total Revenue", value: "$0.00" },
   ]
 
-  const quickActions = [
-    { label: "Add Product", icon: ShoppingBag, href: "/dashboard/products", color: "bg-primary/10 text-primary" },
-    { label: "Add Link", icon: LinkIcon, href: "/dashboard/edit", color: "bg-secondary/20 text-secondary-foreground" },
-  ]
-
   const firstName =
     profileData.displayName && profileData.displayName !== "Your Name"
       ? profileData.displayName.split(' ')[0]
@@ -110,22 +98,10 @@ function App() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex flex-col gap-3">
-          {quickActions.map((action, i) => (
-            <button
-              key={i}
-              onClick={() => router.push(action.href)}
-              className="flex items-center justify-between w-full p-4 rounded-xl border border-border hover:bg-muted transition-colors group"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg ${action.color}`}>
-                  <action.icon className="w-5 h-5" />
-                </div>
-                <span className="font-medium">{action.label}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-            </button>
-          ))}
+        <div className="flex flex-row gap-3">
+          <button type="button" onClick={() => router.push('/dashboard/products')}>Add Product</button>
+          <button type="button" onClick={() => router.push('/dashboard/edit')}>Add Link</button>
+          <button type="button" onClick={() => router.push('/dashboard/edit')}>Edit Page</button>
         </div>
 
         <div className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col">
@@ -135,15 +111,8 @@ function App() {
                 <BioPagePreview profileData={profileData} links={[]} selectedTheme="default" />
               </div>
             </div>
-            <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity md:flex items-center justify-center hidden">
-              <Button onClick={() => router.push('/dashboard/edit')}>
-                <Edit3 className="w-4 h-4" /> Edit Page
-              </Button>
-            </div>
+            <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity md:flex items-center justify-center hidden" />
           </div>
-          <Button onClick={() => router.push('/dashboard/edit')} className="mt-3 md:hidden w-full">
-            <Edit3 className="w-4 h-4" /> Edit Page
-          </Button>
         </div>
       </div>
 
