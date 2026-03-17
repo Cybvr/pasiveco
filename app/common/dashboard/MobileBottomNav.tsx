@@ -44,13 +44,13 @@ export default function MobileBottomNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex min-w-0 flex-1 flex-col items-center justify-center px-3 py-2.5 text-xs transition-colors',
+                  'flex min-w-0 flex-1 flex-col items-center justify-center px-3 py-3 text-sm transition-colors',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 <Icon
                   className={cn(
-                    'mb-1 h-5 w-5',
+                    'mb-1 h-6 w-6',
                     isActive ? 'text-primary' : 'text-muted-foreground',
                   )}
                 />
