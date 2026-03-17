@@ -5,7 +5,8 @@ import Sidebar from "@/app/common/dashboard/Sidebar"
 import { cn } from "@/lib/utils"
 import OnboardingModal from "@/app/common/OnboardingModal"
 import { useAuth } from "@/hooks/useAuth"
-import { getUserProfile } from "@/services/userProfilesService"
+import { db } from "@/lib/firebase"
+import { doc, getDoc } from "firebase/firestore"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
@@ -19,10 +20,11 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     const checkOnboarding = async () => {
       if (user?.uid) {
         try {
-          const profile = await getUserProfile(user.uid)
-          if (profile && !profile.gender) {
-            setShowOnboarding(true)
-          }
+          const userDoc = await getDoc(doc(db, "users", user.uid))
+          const userData = userDoc.data()
+          const onboardingCompleted = Boolean(userData?.onboardingCompleted)
+
+          setShowOnboarding(!onboardingCompleted)
         } catch (error) {
           console.error("Error checking onboarding status:", error)
         }

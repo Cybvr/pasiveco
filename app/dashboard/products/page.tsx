@@ -2,20 +2,12 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getUserProducts } from '@/services/productsService'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
-import { 
-  Download, 
-  BookOpen, 
-  GraduationCap, 
-  Calendar, 
-  Headphones, 
-  Package
-} from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import ExploreTab from './ExploreTab'
 import CreateTab from './CreateTab'  
@@ -25,7 +17,8 @@ import ManageTab from './ManageTab'
 
 function ProductCreator() {
   const [activeTab, setActiveTab] = useState("manage")
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedCategory] = useState(null)
   const [myProducts, setMyProducts] = useState([])
   const { user } = useAuth()
 
@@ -45,8 +38,7 @@ function ProductCreator() {
   }, [user])
 
   const tabs = [
-    { key: "manage", label: "My Products" },
-    { key: "create", label: "New" },
+    { key: "manage", label: "Products" },
     { key: "explore", label: "Explore" },
   ]
 
@@ -60,46 +52,49 @@ function ProductCreator() {
         </div>
       </div>
       
-      <div className="flex flex-wrap items-center gap-1">
-        {tabs.map((tab) => (
-          <Button
-            key={tab.key}
-            variant={activeTab === tab.key ? "default" : "secondary"}
-            size="sm"
-            className="h-8 px-4 rounded-full"
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </Button>
-        ))}
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.key} value={tab.key}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <div className="pt-2">
-        
-
         {activeTab === "explore" && (
           <ExploreTab user={user} onProductsAdded={loadMyProducts} />
-        )}
-
-        {activeTab === "create" && (
-          <CreateTab 
-            user={user} 
-            selectedCategory={selectedCategory}
-            onProductCreated={() => {
-              setActiveTab('manage')
-              loadMyProducts()
-            }} 
-          />
         )}
 
         {activeTab === "manage" && (
           <ManageTab 
             products={myProducts}
             onProductsChanged={loadMyProducts}
-            onCreateNew={() => setActiveTab("create")}
+            onCreateNew={() => setIsCreateModalOpen(true)}
           />
         )}
       </div>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Product
+            </DialogTitle>
+          </DialogHeader>
+          <CreateTab
+            user={user}
+            selectedCategory={selectedCategory}
+            onProductCreated={() => {
+              setIsCreateModalOpen(false)
+              setActiveTab('manage')
+              loadMyProducts()
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

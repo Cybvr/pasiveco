@@ -88,7 +88,7 @@
                                                                 <div className="space-y-4">
                                                                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                                                     <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
-                                                                    <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5 w-full sm:w-auto">
+                                                                    <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5 self-end sm:self-auto">
                                                                       <Plus className="w-3.5 h-3.5" />
                                                                       New Product
                                                                     </Button>
