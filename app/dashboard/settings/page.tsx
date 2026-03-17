@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart } from 'lucide-react'
+import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight } from 'lucide-react'
 import { getUserProfile } from "@/services/userProfilesService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -26,13 +26,13 @@ import { toast } from "@/hooks/use-toast"
 
 
 const settingsLinks = [
-  { href: '/dashboard/settings', label: 'General', icon: User },
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
-  { href: '/dashboard/settings/plans', label: 'Plans', icon: CreditCard },
-  { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
-  { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
-  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
+  { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
+  { href: '/dashboard/settings/plans', label: 'Subscriptions', icon: CreditCard },
+  { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
+  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
+  { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
 ]
 interface UserData {
   displayName: string
@@ -165,41 +165,44 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      <div className="md:hidden bg-background border rounded-lg p-3 space-y-1">
+      <div className="md:hidden bg-background border rounded-lg p-2 space-y-1">
         {settingsLinks.map((link) => (
           <Button
             key={link.href}
             variant="ghost"
-            className="w-full justify-start gap-2"
+            className="w-full justify-start px-2 gap-2"
             onClick={() => router.push(link.href)}
           >
             <link.icon className="h-4 w-4" />
-            {link.label}
+            <span className="flex-1 text-left">{link.label}</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Button>
         ))}
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
-              <AlertDialogDescription>
-                You will need to login again to access your account.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <div className="pt-3 mt-2 border-t">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You will need to login again to access your account.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
     </div>
