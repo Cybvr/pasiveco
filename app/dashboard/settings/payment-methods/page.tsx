@@ -4,9 +4,7 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
@@ -21,149 +19,140 @@ type PaymentMethod = {
 }
 
 const starterMethods: PaymentMethod[] = [
-  { id: 'pm_1', brand: 'Visa', last4: '4242', exp: '10/28', holder: 'Primary card', isDefault: true },
-  { id: 'pm_2', brand: 'Mastercard', last4: '4444', exp: '07/27', holder: 'Team card' },
+  { id: 'pm_1', brand: 'Visa', last4: '4242', exp: '10/28', holder: 'Primary', isDefault: true },
+  { id: 'pm_2', brand: 'Mastercard', last4: '4444', exp: '07/27', holder: 'Team' },
 ]
 
 export default function PaymentMethodsPage() {
   const { user } = useAuth()
   const [methods, setMethods] = useState<PaymentMethod[]>(starterMethods)
-  const [newCardName, setNewCardName] = useState('')
-  const [newCardLast4, setNewCardLast4] = useState('')
+  const [name, setName] = useState('')
+  const [last4, setLast4] = useState('')
 
-  const defaultMethod = useMemo(() => methods.find((method) => method.isDefault), [methods])
+  const defaultMethod = useMemo(
+    () => methods.find((m) => m.isDefault),
+    [methods]
+  )
 
-  const handleAddPrototypeMethod = () => {
-    if (!newCardName.trim() || newCardLast4.trim().length !== 4) {
-      toast.error('Add a card nickname and 4-digit ending to continue')
+  const addMethod = () => {
+    const digits = last4.replace(/\D/g, '').slice(0, 4)
+
+    if (!name.trim() || digits.length !== 4) {
+      toast.error('Enter name + 4 digits')
       return
     }
 
-    const normalizedLast4 = newCardLast4.replace(/\D/g, '').slice(0, 4)
-
-    if (normalizedLast4.length !== 4) {
-      toast.error('Card ending must be 4 numbers')
-      return
-    }
-
-    setMethods((current) => [
-      ...current,
+    setMethods((curr) => [
+      ...curr,
       {
-        id: `pm_proto_${Date.now()}`,
+        id: `pm_${Date.now()}`,
         brand: 'Card',
-        last4: normalizedLast4,
+        last4: digits,
         exp: 'MM/YY',
-        holder: newCardName.trim(),
+        holder: name.trim(),
       },
     ])
 
-    setNewCardName('')
-    setNewCardLast4('')
-    toast.success('Payment method added')
+    setName('')
+    setLast4('')
+    toast.success('Added')
   }
 
-  const handleSetDefault = (id: string) => {
-    setMethods((current) =>
-      current.map((method) => ({
-        ...method,
-        isDefault: method.id === id,
-      }))
+  const setDefault = (id: string) => {
+    setMethods((curr) =>
+      curr.map((m) => ({ ...m, isDefault: m.id === id }))
     )
-    toast.success('Default method updated')
   }
 
-  const handleRemove = (id: string) => {
-    setMethods((current) => current.filter((method) => method.id !== id))
-    toast.success('Payment method removed')
+  const remove = (id: string) => {
+    setMethods((curr) => curr.filter((m) => m.id !== id))
   }
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold text-foreground">Payment Methods</h1>
-      </div>
+    <div className="max-w-xl space-y-6 p-4 md:p-6">
+      <h1 className="text-lg font-semibold">Payment methods</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Saved methods</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!user ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-10 w-48" />
-            </div>
-          ) : methods.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No saved payment methods yet.</p>
-          ) : (
-            methods.map((method) => (
-              <div key={method.id} className="rounded-lg border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-medium">
-                      {method.brand} •••• {method.last4}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {method.holder} · Expires {method.exp}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {method.isDefault ? (
-                      <Badge>Default</Badge>
-                    ) : (
-                      <Button variant="outline" size="sm" onClick={() => handleSetDefault(method.id)}>
-                        Set default
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => handleRemove(method.id)}>
-                      Remove
-                    </Button>
-                  </div>
+      {/* LIST */}
+      {!user ? (
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : methods.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No saved methods</p>
+      ) : (
+        <div className="divide-y rounded-md border">
+          {methods.map((m) => (
+            <div
+              key={m.id}
+              className="flex items-center justify-between gap-3 px-4 py-3"
+            >
+              {/* LEFT */}
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-medium truncate">
+                    {m.brand} •••• {m.last4}
+                  </p>
+                  {m.isDefault && <Badge variant="secondary">Default</Badge>}
                 </div>
+
+                <p className="text-xs text-muted-foreground">
+                  {m.holder} · {m.exp}
+                </p>
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Add method</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="card-name">Card nickname</Label>
-              <Input
-                id="card-name"
-                value={newCardName}
-                onChange={(event) => setNewCardName(event.target.value)}
-                placeholder="Ops team card"
-              />
+              {/* ACTIONS */}
+              <div className="flex items-center gap-1">
+                {!m.isDefault && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDefault(m.id)}
+                  >
+                    Default
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => remove(m.id)}
+                >
+                  Remove
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="card-last4">Card ending</Label>
-              <Input
-                id="card-last4"
-                value={newCardLast4}
-                onChange={(event) => setNewCardLast4(event.target.value)}
-                inputMode="numeric"
-                maxLength={4}
-                placeholder="1234"
-              />
-            </div>
-          </div>
+          ))}
+        </div>
+      )}
 
-          <Separator />
+      {/* ADD */}
+      <div className="space-y-3">
+        <Separator />
 
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              Default: {defaultMethod ? `${defaultMethod.brand} •••• ${defaultMethod.last4}` : 'No default selected'}
-            </p>
-            <Button onClick={handleAddPrototypeMethod}>Add payment method</Button>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex flex-col gap-3 md:flex-row">
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Card name"
+          />
+          <Input
+            value={last4}
+            onChange={(e) => setLast4(e.target.value)}
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="Last 4"
+            className="md:max-w-[120px]"
+          />
+          <Button onClick={addMethod}>Add</Button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          Default:{" "}
+          {defaultMethod
+            ? `${defaultMethod.brand} •••• ${defaultMethod.last4}`
+            : 'None'}
+        </p>
+      </div>
     </div>
   )
 }
