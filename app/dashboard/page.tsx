@@ -132,10 +132,17 @@ function App() {
           <button type="button" onClick={() => router.push('/dashboard/edit')}>Edit Page</button>
         </div>
 
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={() => router.push('/dashboard/edit')}
-          className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col text-left"
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              router.push('/dashboard/edit')
+            }
+          }}
+          className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Open page editor"
         >
           <div className="relative overflow-hidden bg-muted/20 rounded-xl group/preview h-[420px] md:h-[520px]">
@@ -146,7 +153,7 @@ function App() {
             </div>
             <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity md:flex items-center justify-center hidden" />
           </div>
-        </button>
+        </div>
       </div>
 
       {/* Blog Posts */}
