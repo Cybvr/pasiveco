@@ -141,7 +141,6 @@ export default function GeneralSettings() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Profile</h1>
-          <p className="text-muted-foreground">Manage your account information and preferences.</p>
         </div>
       </div>
 
