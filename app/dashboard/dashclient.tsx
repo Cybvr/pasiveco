@@ -9,6 +9,7 @@ import { getUserProfile } from "@/services/userProfilesService"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -78,6 +79,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             {children}
           </div>
         </main>
+        <MobileBottomNav />
       </div>
       
       <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
