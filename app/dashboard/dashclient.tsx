@@ -6,16 +6,13 @@ import { cn } from "@/lib/utils"
 import OnboardingModal from "@/app/common/OnboardingModal"
 import { useAuth } from "@/hooks/useAuth"
 import { getUserProfile } from "@/services/userProfilesService"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useAuth()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
   
 
   useEffect(() => {
@@ -34,32 +31,8 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     checkOnboarding()
   }, [user])
 
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    setIsMobileOpen(false)
-  }, [pathname])
-
-
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-background">
-      {/* Mobile Header */}
-      <header className="flex md:hidden items-center justify-between px-4 h-14 border-b bg-card">
-        <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <Sidebar isCollapsed={false} onToggle={() => {}} />
-          </SheetContent>
-        </Sheet>
-        <div className="flex items-center gap-2">
-           <span className="text-lg font-black tracking-tighter">pasive</span>
-        </div>
-        <div className="w-10" /> {/* Spacer for centering logo if needed */}
-      </header>
-
       {/* Sidebar - Desktop only */}
       <aside className={cn(
         "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
@@ -78,6 +51,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             {children}
           </div>
         </main>
+        <MobileBottomNav />
       </div>
       
       <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
