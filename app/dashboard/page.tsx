@@ -78,7 +78,7 @@ function App() {
   const quickActions = [
     { label: "Add Product", icon: ShoppingBag, href: "/dashboard/products", color: "bg-primary/10 text-primary" },
     { label: "Add Link", icon: LinkIcon, href: "/dashboard/edit", color: "bg-secondary/20 text-secondary-foreground" },
-    { label: "Earnings", icon: Coins, href: "/dashboard/wallet", color: "bg-muted text-muted-foreground" },
+    { label: "Earnings", icon: Coins, href: "/dashboard/settings/earnings", color: "bg-muted text-muted-foreground" },
   ]
 
   const firstName =

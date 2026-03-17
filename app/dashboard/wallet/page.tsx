@@ -30,7 +30,7 @@ export default function WalletPage() {
         </div>
         <div className="flex items-center gap-3">
           <Button asChild>
-            <Link href="/dashboard/payouts">Withdraw</Link>
+            <Link href="/dashboard/settings/withdrawals">Withdraw</Link>
           </Button>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" /> Download Report
@@ -78,7 +78,7 @@ export default function WalletPage() {
                 <TableRow
                   key={tx.id}
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => router.push(`/dashboard/wallet/${tx.id}`)}
+                  onClick={() => router.push(`/dashboard/settings/earnings/${tx.id}`)}
                 >
                   <TableCell className="font-medium">{tx.id}</TableCell>
                   <TableCell className={tx.amount.startsWith("-") ? "text-red-500" : ""}>{tx.amount}</TableCell>

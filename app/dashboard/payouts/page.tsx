@@ -96,7 +96,7 @@ export default function PayoutsPage() {
                   <TableRow
                     key={payout.id}
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => router.push(`/dashboard/payouts/${payout.id}`)}
+                    onClick={() => router.push(`/dashboard/settings/withdrawals/${payout.id}`)}
                   >
                     <TableCell className="font-semibold text-foreground">{payout.amount}</TableCell>
                     <TableCell>{payout.date}</TableCell>
