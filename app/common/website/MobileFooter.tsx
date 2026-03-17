@@ -1,8 +1,7 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { User, Cookie, Users, BarChart, ShoppingBag } from 'lucide-react'
+import { User, Cookie, BarChart, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -23,11 +22,6 @@ export default function MobileFooter() {
       href: '/dashboard/products',
       icon: ShoppingBag,
       label: 'Products',
-    },
-    {
-      href: '/dashboard/audience',
-      icon: Users,
-      label: 'Audience',
     },
     {
       href: '/dashboard/analytics',
