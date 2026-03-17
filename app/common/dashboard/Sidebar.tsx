@@ -6,7 +6,6 @@ import {
   BarChart,
   Coins,
   Compass,
-  Search,
   PanelLeftClose,
   PanelLeftOpen,
   Palette
@@ -22,11 +21,6 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       href: '/dashboard',
       icon: Home,
       label: 'Home',
-    },
-    {
-      href: '/dashboard/search',
-      icon: Search,
-      label: 'Search',
     },
     {
       href: '/dashboard/discovery',
