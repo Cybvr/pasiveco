@@ -29,6 +29,17 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname()
   const router = useRouter()
 
+  const getPageTitle = () => {
+    if (pathname.startsWith('/dashboard/settings/withdrawals/')) return 'Withdrawal Details'
+    if (pathname.startsWith('/dashboard/settings/earnings/')) return 'Earnings Details'
+
+    const activeLink = settingsLinks.find((link) =>
+      pathname === link.href || pathname.startsWith(`${link.href}/`)
+    )
+
+    return activeLink?.label ?? 'Settings'
+  }
+
   const isSettingsLinkActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
 
@@ -95,7 +106,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
       <div className="flex-1 overflow-auto">
         {!isRootSettingsPage && (
-          <div className="md:hidden px-4 pt-3">
+          <div className="px-4 py-3 border-b bg-background">
+            <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -105,6 +117,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
+              <h1 className="text-base font-semibold tracking-tight">{getPageTitle()}</h1>
+            </div>
           </div>
         )}
         {children}

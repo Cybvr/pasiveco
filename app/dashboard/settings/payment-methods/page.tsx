@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -59,7 +59,7 @@ export default function PaymentMethodsPage() {
 
     setNewCardName('')
     setNewCardLast4('')
-    toast.success('Prototype method added to the UI')
+    toast.success('Payment method added')
   }
 
   const handleSetDefault = (id: string) => {
@@ -69,28 +69,23 @@ export default function PaymentMethodsPage() {
         isDefault: method.id === id,
       }))
     )
-    toast.success('Prototype default updated')
+    toast.success('Default method updated')
   }
 
   const handleRemove = (id: string) => {
     setMethods((current) => current.filter((method) => method.id !== id))
-    toast.success('Prototype method removed')
+    toast.success('Payment method removed')
   }
 
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold text-foreground">Payment Methods</h1>
-          <p className="text-sm text-muted-foreground">UI prototype for card management flow.</p>
-        </div>
-        <Badge variant="secondary">Prototype</Badge>
+        <h1 className="text-lg font-semibold text-foreground">Payment Methods</h1>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Saved methods</CardTitle>
-          <CardDescription>Preview how customers can pick, set default, and remove cards.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!user ? (
@@ -99,7 +94,7 @@ export default function PaymentMethodsPage() {
               <Skeleton className="h-10 w-48" />
             </div>
           ) : methods.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No cards in this prototype yet.</p>
+            <p className="text-sm text-muted-foreground">No saved payment methods yet.</p>
           ) : (
             methods.map((method) => (
               <div key={method.id} className="rounded-lg border p-4">
@@ -134,7 +129,6 @@ export default function PaymentMethodsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Add method</CardTitle>
-          <CardDescription>Local-only form to demo add-card behavior without billing portal redirects.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">

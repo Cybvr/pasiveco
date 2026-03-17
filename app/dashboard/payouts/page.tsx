@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
   Table,
@@ -34,7 +34,6 @@ export default function PayoutsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Withdrawals</h1>
-          <p className="text-muted-foreground">View earnings, available balance, and withdrawal methods.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/payment-methods">
@@ -63,15 +62,12 @@ export default function PayoutsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {payoutStats.map((stat, idx) => (
           <Card key={idx} className="border-none shadow-sm">
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold leading-none">{stat.value}</div>
+            <CardContent className="pt-4 pb-4">
+              <div className="text-2xl font-bold leading-none">{stat.value}</div>
               <p className="text-sm text-muted-foreground mt-2">{stat.title}</p>
-              <p className={`text-xs text-muted-foreground mt-1 ${stat.status === "warning" ? "text-orange-600" : ""}`}>
-                {stat.description}
-              </p>
             </CardContent>
           </Card>
         ))}
@@ -81,7 +77,6 @@ export default function PayoutsPage() {
         <Card className="border-none shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Withdrawal History</CardTitle>
-            <CardDescription>A summary of your most recent withdrawals.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
