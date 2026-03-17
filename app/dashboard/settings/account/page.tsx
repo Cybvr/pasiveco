@@ -207,9 +207,6 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-2">
-      <div>
-        <h1 className="text-lg font-semibold text-foreground">Account Settings</h1>
-      </div>
 
       {/* Profile Information */}
       <div className="bg-card rounded-lg overflow-hidden">

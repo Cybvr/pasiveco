@@ -69,8 +69,7 @@ export default function PaymentMethodsPage() {
   }
 
   return (
-    <div className="max-w-xl space-y-6 p-4 md:p-6">
-      <h1 className="text-lg font-semibold">Payment methods</h1>
+    <div className="max-w-xl space-y-6">
 
       {/* LIST */}
       {!user ? (

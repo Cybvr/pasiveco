@@ -6,7 +6,6 @@ import { ClipboardListIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 
 const fetchReferralData = async () => {
   const response = await fetch('/api/referral-stats'); // Ensure this matches your API path
@@ -42,13 +41,8 @@ export default function ReferFriendSettings() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="px-4">
-        <h1 className="text-xl font-semibold tracking-tight">Refer a Friend</h1>
-      </div>
-      <Separator />
-
-      <div className="grid gap-6 lg:grid-cols-2 px-4">
+    <div className="max-w-6xl mx-auto">
+      <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-6">
           <Card>
             <CardHeader>

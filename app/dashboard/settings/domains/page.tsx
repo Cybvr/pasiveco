@@ -56,12 +56,8 @@ export default function DomainsSettings() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Custom Domains ({domains.length})</h1>
-          <p className="text-gray-600">Add your own Custom Domain to boost trust and engagement in your brand. How do I set this up?</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <button
           onClick={addDomain}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
