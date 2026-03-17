@@ -1,13 +1,11 @@
 import React from "react"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
-import { User, Palette, Monitor, LinkIcon, Globe } from "lucide-react"
+import { User, LinkIcon, Globe } from "lucide-react"
 
 import ProfileSettings from "./settings/ProfileSettings"
 import LinksSettings from "./settings/LinksSettings"
 import SocialSettings from "./settings/SocialSettings"
-import DesignSettings from "./settings/DesignSettings"
-import ThemeSettings from "./settings/ThemeSettings"
 
 import { getUserProfile, updateUserProfile } from "@/services/userProfilesService"
 import { useAuth } from "@/hooks/useAuth"
@@ -77,10 +75,6 @@ const BioMode: React.FC<BioModeProps> = ({
   setLinks, 
   socialLinks, 
   setSocialLinks, 
-  selectedTheme, 
-  setSelectedTheme,
-  appearanceData,
-  setAppearanceData,
   saveProfile
 }) => {
   const [saveTimeout, setSaveTimeout] = React.useState<NodeJS.Timeout | null>(null)
@@ -134,47 +128,6 @@ const BioMode: React.FC<BioModeProps> = ({
                 profileData={profileData}
                 setProfileData={setProfileData}
                 onSave={debouncedSave}
-              />
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Themes Section */}
-          <AccordionItem value="theme" className="border-none">
-            <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
-              <div className="flex items-center">
-                <Palette className={IconStyle} />
-                <span>Themes</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2.5 px-1 pb-1.5">
-              <ThemeSettings 
-                selectedTheme={selectedTheme}
-                setSelectedTheme={setSelectedTheme}
-                profileData={profileData}
-                setProfileData={setProfileData}
-                appearanceData={appearanceData}
-                setAppearanceData={setAppearanceData}
-                onSave={saveProfileData}
-              />
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* Design Section */}
-          <AccordionItem value="design" className="border-none">
-            <AccordionTrigger className={cn(TriggerStyle, "hover:no-underline [&>svg]:w-3.5 [&>svg]:h-3.5 [&>svg]:text-muted-foreground")}>
-              <div className="flex items-center">
-                <Monitor className={IconStyle} />
-                <span>Design</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-2.5 px-1 pb-1.5">
-              <DesignSettings 
-                profileData={profileData}
-                setProfileData={setProfileData}
-                onSave={saveProfileData}
-                user={user}
-                appearanceData={appearanceData}
-                setAppearanceData={setAppearanceData}
               />
             </AccordionContent>
           </AccordionItem>
