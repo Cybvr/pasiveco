@@ -10,13 +10,13 @@ export const FAQ_DATA: FaqItem[] = [
     id: "q1",
     question: "What can I add to my bio page?",
     answer:
-      "You can create a comprehensive bio page with your profile information, custom links, social media links, and products for sale. All content is fully customizable with themes, fonts, and appearance settings to match your brand.",
+      "You can create a comprehensive bio page with your profile information, custom links, social media links, and products for sale.",
   },
   {
     id: "q2",
-    question: "How do I customize the appearance of my bio page?",
+    question: "How do I edit my bio page?",
     answer:
-      "Use our appearance settings to customize button shapes (rounded, square, pill), font families, font sizes, colors, and themes. You can also set custom backgrounds with colors or images for both your bio card and page background.",
+      "Use the editor to update your profile details, links, and social media items, then save your changes.",
   },
   {
     id: "q3",
@@ -45,9 +45,9 @@ export const FAQ_DATA: FaqItem[] = [
   },
   {
     id: "q8",
-    question: "Can I change my bio page theme and colors?",
+    question: "Can I update my bio page details anytime?",
     answer:
-      "Absolutely! Choose from multiple pre-designed themes (default, blue, green, purple) or customize colors, fonts, button styles, and backgrounds to create a unique look that represents your brand perfectly.",
+      "Absolutely. You can return to the editor anytime to update your links, bio, and profile content.",
   },
   {
     id: "q9",

@@ -43,14 +43,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
             bannerImage: firebaseProfile.bannerImage,
             links: firebaseProfile.links || [],
             socialLinks: firebaseProfile.socialLinks || [],
-            backgroundType: firebaseProfile.backgroundType,
-            backgroundColor: firebaseProfile.backgroundColor,
-            backgroundImage: firebaseProfile.backgroundImage,
-            pageBackgroundType: firebaseProfile.pageBackgroundType,
-            pageBackgroundColor: firebaseProfile.pageBackgroundColor,
-            pageBackgroundImage: firebaseProfile.pageBackgroundImage,
-            appearance: firebaseProfile.appearance,
-            theme: firebaseProfile.theme
+            appearance: firebaseProfile.appearance
           });
           setProfileOwnerId(firebaseProfile.userId);
           setError(null);
@@ -74,22 +67,6 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   }, [params]);
 
   const links = profileData?.links || [];
-
-  const getPageBackgroundStyle = () => {
-    if (profileData?.pageBackgroundType === 'image' && profileData?.pageBackgroundImage) {
-      return {
-        backgroundImage: `url(${profileData.pageBackgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      };
-    } else if (profileData?.pageBackgroundColor) {
-      return {
-        backgroundColor: profileData.pageBackgroundColor
-      };
-    }
-    return {};
-  };
 
   if (loading) {
     return (
@@ -129,9 +106,9 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   }
 
   return (
-    <div className="min-h-screen p-2 bg-background" style={getPageBackgroundStyle()}>
+    <div className="min-h-screen p-2 bg-background">
       <div className="max-w-md mx-auto">
-        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId ?? undefined} selectedTheme={profileData?.theme || 'default'} />
+        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId ?? undefined} />
       </div>
     </div>
   );

@@ -25,59 +25,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import {
-  Inter,
-  Roboto,
-  Poppins,
-  Open_Sans,
-  Lato,
-  Montserrat,
-  Nunito,
-  Raleway,
-  Ubuntu,
-  Playfair_Display,
-  Merriweather,
-  Oswald,
-  Source_Sans_3,
-  Work_Sans,
-  DM_Sans,
-} from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
-const roboto = Roboto({ weight: ["400", "500", "700"], subsets: ["latin"] });
-const poppins = Poppins({ weight: ["400", "500", "600"], subsets: ["latin"] });
-const openSans = Open_Sans({ subsets: ["latin"] });
-const lato = Lato({ weight: ["400", "700"], subsets: ["latin"] });
-const montserrat = Montserrat({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-});
-const nunito = Nunito({ weight: ["400", "600", "700"], subsets: ["latin"] });
-const raleway = Raleway({ weight: ["400", "500", "600"], subsets: ["latin"] });
-const ubuntu = Ubuntu({ weight: ["400", "500", "700"], subsets: ["latin"] });
-const playfairDisplay = Playfair_Display({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-});
-const merriweather = Merriweather({
-  weight: ["400", "700"],
-  subsets: ["latin"],
-});
-const oswald = Oswald({ weight: ["400", "500", "600"], subsets: ["latin"] });
-const sourceSansPro = Source_Sans_3({
-  weight: ["400", "600"],
-  subsets: ["latin"],
-});
-const workSans = Work_Sans({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-});
-const dmSans = DM_Sans({ weight: ["400", "500", "700"], subsets: ["latin"] });
 
 function Page() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [selectedTheme, setSelectedTheme] = useState("default");
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
@@ -103,12 +54,6 @@ function Page() {
     profilePicture: "/images/dud.png" as string | null,
     bannerImage: null,
     slug: "username",
-    backgroundType: "color",
-    backgroundColor: "#ffffff",
-    backgroundImage: null,
-    pageBackgroundType: "color",
-    pageBackgroundColor: "#ffffff",
-    pageBackgroundImage: null,
   });
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [links, setLinks] = useState<any[]>([]);
@@ -118,15 +63,6 @@ function Page() {
       ? `${window.location.origin}/${profileData.username}`
       : `https://pasive.co/${profileData.username}`;
 
-  const [appearanceData, setAppearanceData] = useState({
-    buttonShape: "rounded" as "rounded" | "square" | "pill",
-    fontSize: "medium" as "small" | "medium" | "large",
-    fontFamily: "sans-serif" as any,
-    buttonSize: "medium" as "small" | "medium" | "large",
-    buttonColor: "#ffffff",
-    buttonTextColor: "#000000",
-    textColor: "#000000",
-  });
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -237,10 +173,8 @@ function Page() {
             profilePicture: user.photoURL || "/images/dud.png",
             links: defaultLinks,
             socialLinks: defaultSocialLinks,
-            theme: "default",
             isPublic: true,
             slug: user.email?.split("@")[0] || "user",
-            appearance: appearanceData,
           });
           profile = await getUserProfile(user.uid);
         }
@@ -254,12 +188,6 @@ function Page() {
             profilePicture: profile.profilePicture,
             bannerImage: profile.bannerImage || null,
             slug: profile.slug || profile.username,
-            backgroundType: profile.backgroundType || "color",
-            backgroundColor: profile.backgroundColor || "#ffffff",
-            backgroundImage: profile.backgroundImage || null,
-            pageBackgroundType: profile.pageBackgroundType || "color",
-            pageBackgroundColor: profile.pageBackgroundColor || "#ffffff",
-            pageBackgroundImage: profile.pageBackgroundImage || null,
           }));
 
           const defaultLinks = [
@@ -364,18 +292,6 @@ function Page() {
             setSocialLinks(profile.socialLinks);
           }
 
-          setSelectedTheme(profile.theme || "default");
-          if (profile.appearance) {
-            setAppearanceData({
-              buttonShape: profile.appearance.buttonShape || "rounded",
-              fontSize: profile.appearance.fontSize || "medium",
-              fontFamily: profile.appearance.fontFamily || "sans-serif",
-              buttonSize: profile.appearance.buttonSize || "medium",
-              buttonColor: profile.appearance.buttonColor || "#ffffff",
-              buttonTextColor: profile.appearance.buttonTextColor || "#000000",
-              textColor: profile.appearance.textColor || "#000000",
-            });
-          }
         }
       } catch (error) {
         console.error("Error loading user profile:", error);
@@ -413,154 +329,18 @@ function Page() {
         bannerImage: profileData.bannerImage,
         links,
         socialLinks,
-        theme: selectedTheme,
-        appearance: appearanceData,
-        backgroundType: profileData.backgroundType,
-        backgroundColor: profileData.backgroundColor,
-        backgroundImage: profileData.backgroundImage,
-        pageBackgroundType: profileData.pageBackgroundType,
-        pageBackgroundColor: profileData.pageBackgroundColor,
-        pageBackgroundImage: profileData.pageBackgroundImage,
       });
     } catch (error) {
       console.error("Error saving profile:", error);
     }
   };
 
-  const getAppearanceStyles = () => {
-    const buttonShapeClass = {
-      rounded: "rounded-lg",
-      square: "rounded-none",
-      pill: "rounded-full",
-    }[appearanceData.buttonShape || "rounded"];
-
-    const fontFamilyClass = {
-      inter: inter.className,
-      roboto: roboto.className,
-      poppins: poppins.className,
-      "open-sans": openSans.className,
-      lato: lato.className,
-      montserrat: montserrat.className,
-      nunito: nunito.className,
-      raleway: raleway.className,
-      ubuntu: ubuntu.className,
-      "playfair-display": playfairDisplay.className,
-      merriweather: merriweather.className,
-      oswald: oswald.className,
-      "source-sans-pro": sourceSansPro.className,
-      "work-sans": workSans.className,
-      "dm-sans": dmSans.className,
-    }[(appearanceData.fontFamily as any) || "inter"];
-
-    const fontSizeClass = {
-      small: "text-sm",
-      medium: "text-base",
-      large: "text-lg",
-    }[appearanceData.fontSize || "medium"];
-
-    const buttonSizeClass = {
-      small: "h-auto p-2",
-      medium: "h-auto p-4",
-      large: "h-auto p-6",
-    }[appearanceData.buttonSize || "medium"];
-
-    const tabSizeClass = {
-      small: "py-1.5 px-3",
-      medium: "py-2 px-4",
-      large: "py-3 px-6",
-    }[appearanceData.buttonSize || "medium"];
-
-    return {
-      buttonShapeClass,
-      fontFamilyClass,
-      fontSizeClass,
-      buttonSizeClass,
-      tabSizeClass,
-      customButtonStyle: appearanceData.buttonColor
-        ? {
-            backgroundColor: appearanceData.buttonColor,
-            borderColor: appearanceData.buttonColor,
-          }
-        : {},
-      customTextStyle: appearanceData.textColor
-        ? { color: appearanceData.textColor }
-        : {},
-      customButtonTextStyle: appearanceData.buttonTextColor
-        ? { color: appearanceData.buttonTextColor }
-        : {},
-    };
-  };
-
-  const getThemeStyles = () => {
-    switch (selectedTheme) {
-      case "blue":
-        return {
-          cardClass: "bg-blue-50 border-blue-200",
-          buttonClass:
-            "border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-700",
-          textClass: "text-blue-800",
-          iconClass: "text-blue-600",
-          tabActiveClass: "bg-blue-100 text-blue-700 border-blue-300",
-        };
-      case "green":
-        return {
-          cardClass: "bg-green-50 border-green-200",
-          buttonClass:
-            "border-green-300 hover:border-green-400 hover:bg-green-50 text-green-700",
-          textClass: "text-green-800",
-          iconClass: "text-green-600",
-          tabActiveClass: "bg-green-100 text-green-700 border-green-300",
-        };
-      case "purple":
-        return {
-          cardClass: "bg-purple-50 border-purple-200",
-          buttonClass:
-            "border-purple-300 hover:border-purple-400 hover:bg-purple-50 text-purple-700",
-          textClass: "text-purple-800",
-          iconClass: "text-purple-600",
-          tabActiveClass: "bg-purple-100 text-purple-700 border-purple-300",
-        };
-      default:
-        return {
-          cardClass: "bg-background border-border",
-          buttonClass:
-            "border-border hover:border-muted-foreground hover:bg-muted/50 text-foreground",
-          textClass: "text-foreground",
-          iconClass: "text-muted-foreground",
-          tabActiveClass: "bg-muted text-foreground border-muted-foreground",
-        };
-    }
-  };
-
-  const getBackgroundStyle = () => {
-    if (profileData.backgroundType === "image" && profileData.backgroundImage) {
-      return {
-        backgroundImage: `url(${profileData.backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    }
-    return profileData.backgroundColor
-      ? { backgroundColor: profileData.backgroundColor }
-      : {};
-  };
-
-  const getPageBackgroundStyle = () => {
-    if (
-      profileData.pageBackgroundType === "image" &&
-      profileData.pageBackgroundImage
-    ) {
-      return {
-        backgroundImage: `url(${profileData.pageBackgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      };
-    }
-    return profileData.pageBackgroundColor
-      ? { backgroundColor: profileData.pageBackgroundColor }
-      : {};
+  const theme = {
+    cardClass: "bg-background border-border",
+    buttonClass:
+      "border-border hover:border-muted-foreground hover:bg-muted/50 text-foreground",
+    textClass: "text-foreground",
+    iconClass: "text-muted-foreground",
   };
 
 
@@ -647,8 +427,6 @@ function Page() {
     );
   }
 
-  const theme = getThemeStyles();
-  const appearance = getAppearanceStyles();
   const activeProducts = products.filter(
     (product) => product.status === "active",
   );
@@ -802,17 +580,11 @@ function Page() {
           <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[650px] flex items-start justify-center min-h-0 mx-auto">
             <div className="w-full h-full overflow-auto bg-card rounded-xl border shadow-lg border-border">
               <div
-                className={`rounded-lg overflow-hidden p-2 min-h-[500px] ${appearance.fontFamilyClass}`}
-                style={getPageBackgroundStyle()}
+                className="rounded-lg overflow-hidden p-2 min-h-[500px]"
               >
                 <Card
                   className={`shadow-lg ${theme.cardClass} relative overflow-hidden border-none`}
-                  style={getBackgroundStyle()}
                 >
-                  {profileData.backgroundType === "image" &&
-                    profileData.backgroundImage && (
-                      <div className="absolute inset-0 bg-black/30 backdrop-blur-[0.5px]" />
-                    )}
                   <div className="absolute top-0 left-0 right-0 z-20 bg-transparent pointer-events-none">
                     <div className="flex items-center justify-between p-3 pointer-events-auto">
                       <button
@@ -916,11 +688,7 @@ function Page() {
                               href={link.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer ${appearance.buttonSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`}
-                              style={{
-                                ...appearance.customButtonStyle,
-                                ...appearance.customButtonTextStyle,
-                              }}
+                              className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer h-auto p-4 rounded-lg text-base ${theme.buttonClass}`}
                             >
                               <img
                                 src={link.thumbnail}
@@ -977,11 +745,7 @@ function Page() {
                                 <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
                                   <Button
                                     size="sm"
-                                    className={`w-full ${appearance.buttonShapeClass}`}
-                                    style={{
-                                      ...appearance.customButtonStyle,
-                                      ...appearance.customButtonTextStyle,
-                                    }}
+                                    className="w-full rounded-lg"
                                   >
                                     Buy Now
                                   </Button>

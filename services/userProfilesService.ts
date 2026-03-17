@@ -42,16 +42,8 @@ export interface UserProfile {
     thumbnail?: string;
     active?: boolean;
   }>;
-  theme: string;
-  appearance?: {
-    buttonShape?: 'rounded' | 'square' | 'pill';
-    fontFamily?: 'inter' | 'roboto' | 'poppins' | 'open-sans' | 'lato' | 'montserrat' | 'nunito' | 'raleway' | 'ubuntu' | 'playfair-display' | 'merriweather' | 'oswald' | 'source-sans-pro' | 'work-sans' | 'dm-sans';
-    fontSize?: 'small' | 'medium' | 'large';
-    buttonSize?: 'small' | 'medium' | 'large';
-    buttonColor?: string;
-    buttonTextColor?: string;
-    textColor?: string;
-  };
+  theme?: string;
+  appearance?: Record<string, unknown>;
   gender?: string;
   dob?: string;
   phoneNumber?: string;
