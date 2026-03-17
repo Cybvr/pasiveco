@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Plus,
   Package,
@@ -19,7 +20,7 @@ import {
 import { deleteProduct, updateProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 
-function ManageTab({ products, onProductsChanged, onCreateNew }) {
+function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew }) {
   const [editingProduct, setEditingProduct] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState({})
@@ -93,17 +94,30 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
-        <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5 self-end sm:self-auto">
+        <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
           <Plus className="w-3.5 h-3.5" />
           New
         </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {products.map((product) => (
-          <Card key={product.id}>
+        {isLoading &&
+          Array.from({ length: 6 }).map((_, index) => (
+            <Card key={`product-skeleton-${index}`}>
+              <CardContent className="p-3 space-y-3">
+                <Skeleton className="w-full aspect-square rounded-md" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+        {!isLoading && products.map((product) => (
+          <Card key={product.id} className="cursor-pointer transition-colors hover:border-primary/40" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ' ) { event.preventDefault(); handleEditProduct(product) } }}>
             <CardContent className="p-3 space-y-3">
               <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
                 {product.thumbnail ? (
@@ -121,18 +135,7 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
 
               <div className="flex items-start justify-between gap-2">
                 <div className="space-y-1 min-w-0">
-                  {product.url && product.url !== '' ? (
-                    <a
-                      href={product.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-sm line-clamp-2 hover:text-primary hover:underline"
-                    >
-                      {product.name}
-                    </a>
-                  ) : (
-                    <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                  )}
+                  <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
                   <p className="text-sm font-semibold text-green-600">${product.price.toFixed(2)}</p>
                 </div>
 
@@ -144,20 +147,21 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
                         variant="secondary"
                         className="h-7 w-7 rounded-full"
                         aria-label="Product actions"
+                        onClick={(event) => event.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => copyProductLink(product.id)}>
-                        <Copy className="mr-2 h-3.5 w-3.5" />
-                        Copy
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
                         <Settings className="mr-2 h-3.5 w-3.5" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDeleteProduct(product.id)}>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
+                        <Copy className="mr-2 h-3.5 w-3.5" />
+                        Copy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
                         <Trash2 className="mr-2 h-3.5 w-3.5" />
                         Delete
                       </DropdownMenuItem>
@@ -170,15 +174,11 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
         ))}
       </div>
 
-      {products.length === 0 && (
+      {!isLoading && products.length === 0 && (
         <div className="text-center py-10">
           <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No products yet</h3>
-          <p className="text-muted-foreground mb-4">Create your first product to get started</p>
-          <Button onClick={onCreateNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            New
-          </Button>
+          <p className="text-muted-foreground">Create your first product to get started</p>
         </div>
       )}
 
