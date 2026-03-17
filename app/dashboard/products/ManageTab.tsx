@@ -97,7 +97,7 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
         <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
         <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5 self-end sm:self-auto">
           <Plus className="w-3.5 h-3.5" />
-          New Product
+          New
         </Button>
       </div>
 
@@ -105,22 +105,38 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
         {products.map((product) => (
           <Card key={product.id}>
             <CardContent className="p-3 space-y-3">
-              <div className="relative">
-                <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
-                  {product.thumbnail ? (
-                    <img
-                      src={product.thumbnail}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
+              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
+                {product.thumbnail ? (
+                  <img
+                    src={product.thumbnail}
+                    alt={product.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Package className="h-8 w-8 text-primary" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 min-w-0">
+                  {product.url && product.url !== '' ? (
+                    <a
+                      href={product.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-sm line-clamp-2 hover:text-primary hover:underline"
+                    >
+                      {product.name}
+                    </a>
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                      <Package className="h-8 w-8 text-primary" />
-                    </div>
+                    <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
                   )}
+                  <p className="text-sm font-semibold text-green-600">${product.price.toFixed(2)}</p>
                 </div>
 
-                <div className="absolute right-2 top-2">
+                <div className="shrink-0 -mr-1 -mt-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -148,22 +164,6 @@ function ManageTab({ products, onProductsChanged, onCreateNew }) {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                {product.url && product.url !== '' ? (
-                  <a
-                    href={product.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-sm line-clamp-2 hover:text-primary hover:underline"
-                  >
-                    {product.name}
-                  </a>
-                ) : (
-                  <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                )}
-                <p className="text-sm font-semibold text-green-600">${product.price.toFixed(2)}</p>
               </div>
             </CardContent>
           </Card>
