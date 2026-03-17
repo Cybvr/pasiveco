@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, ExternalLink, Package, Menu, Share2 } from "lucide-react";
+import { User, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2 } from "lucide-react";
 import {
   getUserProfile,
   createUserProfile,
@@ -16,8 +16,14 @@ import ShareModal from "@/app/common/dashboard/ShareModal";
 import Watermark from "@/app/common/dashboard/Watermark";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import {
   Inter,
@@ -76,6 +82,10 @@ function Page() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editUrl, setEditUrl] = useState("");
 
   const [profileData, setProfileData] = useState<
     Partial<UserProfile> & {
@@ -553,6 +563,79 @@ function Page() {
       : {};
   };
 
+
+  const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setProfileData((prev) => ({
+        ...prev,
+        profilePicture: e.target?.result as string,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setProfileData((prev) => ({
+        ...prev,
+        bannerImage: e.target?.result as string,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddLink = () => {
+    const newLink = {
+      id: Date.now().toString(),
+      title: "New Link",
+      description: "",
+      url: "https://example.com",
+      thumbnail: "/images/pages/website.svg",
+      active: true,
+      clicks: 0,
+      ctr: 0,
+      type: "custom",
+    };
+    setLinks((prev) => [...prev, newLink]);
+  };
+
+  const handleEditLink = (link: any) => {
+    setEditingLinkId(link.id);
+    setEditTitle(link.title || "");
+    setEditUrl(link.url || "");
+  };
+
+  const handleSaveLink = (linkId: string) => {
+    setLinks((prev) =>
+      prev.map((link) =>
+        link.id === linkId ? { ...link, title: editTitle, url: editUrl } : link,
+      ),
+    );
+    setEditingLinkId(null);
+    setEditTitle("");
+    setEditUrl("");
+  };
+
+  const handleDeleteLink = (linkId: string) => {
+    setLinks((prev) => prev.filter((link) => link.id !== linkId));
+  };
+
+  const handleToggleLink = (linkId: string) => {
+    setLinks((prev) =>
+      prev.map((link) =>
+        link.id === linkId ? { ...link, active: !link.active } : link,
+      ),
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -574,15 +657,15 @@ function Page() {
     <div className="h-full bg-background flex flex-col overflow-hidden">
       <nav className="flex items-center justify-between h-14 border-b px-4 shrink-0">
         <div className="flex items-center gap-1.5 h-full">
-          <button
+          <div
             className={cn(
               "flex items-center text-[13px] font-semibold rounded-lg transition-all duration-200 px-3 py-2",
               "bg-muted text-foreground",
             )}
           >
             <User className="h-4 w-4 mr-2 text-foreground" />
-            <span>Link in Bio</span>
-          </button>
+            <span>Edit Page</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 h-full">
@@ -599,22 +682,124 @@ function Page() {
       <main className="flex-1 flex flex-col md:flex-row md:h-[calc(100vh-3.5rem)] overflow-auto md:overflow-hidden min-h-0">
         <div className="w-full md:w-64 md:h-full overflow-visible md:overflow-hidden min-h-0 shrink-0">
           <BioMode
-            profileData={profileData as any}
-            setProfileData={setProfileData as any}
-            links={links}
-            setLinks={setLinks}
             socialLinks={socialLinks}
             setSocialLinks={setSocialLinks}
-            selectedTheme={selectedTheme}
-            setSelectedTheme={setSelectedTheme}
-            appearanceData={appearanceData as any}
-            setAppearanceData={setAppearanceData as any}
             saveProfile={saveProfile}
           />
         </div>
 
-        <div className="flex-1 p-4 md:p-6 flex items-center justify-center bg-muted/20 overflow-hidden min-h-[420px] md:min-h-0">
-          <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[650px] flex items-start justify-center min-h-0">
+        <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 bg-muted/20 overflow-auto min-h-[420px] md:min-h-0">
+          <Card className="border-border">
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-semibold text-sm">Page Content</h3>
+                <div className="flex items-center gap-2">
+                  <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">Profile Settings</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Edit profile</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-semibold mb-2">Profile Banner</label>
+                          <div className="relative">
+                            <div className="w-full h-24 bg-muted rounded-xl flex items-center justify-center overflow-hidden border border-border">
+                              {profileData.bannerImage ? (
+                                <img src={profileData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Upload banner</span>
+                              )}
+                            </div>
+                            <input type="file" accept="image/*" onChange={handleBannerUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2">Profile Picture</label>
+                          <div className="relative w-20 h-20">
+                            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center overflow-hidden border border-border">
+                              {profileData.profilePicture ? (
+                                <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </div>
+                            <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2">Display Name</label>
+                          <input
+                            type="text"
+                            value={profileData.displayName}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, displayName: e.target.value }))}
+                            className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold mb-2">Bio</label>
+                          <textarea
+                            value={profileData.bio}
+                            onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
+                            rows={3}
+                            className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm resize-none"
+                          />
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button size="sm" onClick={handleAddLink}>
+                    <Plus className="w-4 h-4 mr-1" /> Add Link
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {links.map((link) => (
+                  <div key={link.id} className="border rounded-lg p-3 bg-background">
+                    {editingLinkId === link.id ? (
+                      <div className="space-y-2">
+                        <input
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="w-full border rounded-md px-2 py-1 text-sm"
+                          placeholder="Link title"
+                        />
+                        <input
+                          value={editUrl}
+                          onChange={(e) => setEditUrl(e.target.value)}
+                          className="w-full border rounded-md px-2 py-1 text-sm"
+                          placeholder="https://example.com"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditingLinkId(null)}>Cancel</Button>
+                          <Button size="sm" onClick={() => handleSaveLink(link.id)}><Check className="w-4 h-4 mr-1" />Save</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3">
+                        <button onClick={() => handleToggleLink(link.id)} className={`text-xs px-2 py-1 rounded ${link.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
+                          {link.active ? "Visible" : "Hidden"}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{link.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{link.url}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" onClick={() => handleEditLink(link)}><Pencil className="w-4 h-4" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => handleDeleteLink(link.id)}><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[650px] flex items-start justify-center min-h-0 mx-auto">
             <div className="w-full h-full overflow-auto bg-card rounded-xl border shadow-lg border-border">
               <div
                 className={`rounded-lg overflow-hidden p-2 min-h-[500px] ${appearance.fontFamilyClass}`}
@@ -721,151 +906,94 @@ function Page() {
                       </div>
                     </div>
 
-                    <Tabs defaultValue="links" className="w-full">
-                      <TabsList
-                        className={`grid grid-cols-2 p-1 rounded-lg items-center justify-center w-full gap-1 border-none ${appearance.buttonShapeClass}`}
-                      >
-                        <TabsTrigger
-                          value="links"
-                          className={`flex items-center gap-2 ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`}
-                          style={{
-                            ...appearance.customButtonStyle,
-                            ...appearance.customButtonTextStyle,
-                          }}
-                        >
-                          Links
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="shop"
-                          className={`flex items-center gap-2 ${appearance.tabSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`}
-                          style={{
-                            ...appearance.customButtonStyle,
-                            ...appearance.customButtonTextStyle,
-                          }}
-                        >
-                          Shop
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="links" className="mt-4">
-                        <div className="space-y-3">
-                          {links
-                            .filter((link) => link.active)
-                            .map((link) => (
-                              <a
-                                key={link.id}
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer ${appearance.buttonSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`}
-                                style={{
-                                  ...appearance.customButtonStyle,
-                                  ...appearance.customButtonTextStyle,
+                    <div className="w-full mt-4 space-y-5">
+                      <div className="space-y-3">
+                        {links
+                          .filter((link) => link.active)
+                          .map((link) => (
+                            <a
+                              key={link.id}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer ${appearance.buttonSizeClass} ${appearance.buttonShapeClass} ${appearance.fontSizeClass} ${theme.buttonClass}`}
+                              style={{
+                                ...appearance.customButtonStyle,
+                                ...appearance.customButtonTextStyle,
+                              }}
+                            >
+                              <img
+                                src={link.thumbnail}
+                                alt={link.title}
+                                className="w-5 h-5 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/images/pages/website.svg";
                                 }}
-                              >
-                                <img
-                                  src={link.thumbnail}
-                                  alt={link.title}
-                                  className="w-5 h-5 object-contain"
-                                  onError={(e) => {
-                                    e.currentTarget.src =
-                                      "/images/pages/website.svg";
-                                  }}
-                                />
-                                <span className="font-medium">
-                                  {link.title}
-                                </span>
-                              </a>
-                            ))}
-                        </div>
-                      </TabsContent>
+                              />
+                              <span className="font-medium">{link.title}</span>
+                            </a>
+                          ))}
+                      </div>
 
-                      <TabsContent value="shop" className="mt-4">
-                        <div className="space-y-3">
-                          {loadingProducts ? (
-                            <div className="text-center py-4">
-                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                            </div>
-                          ) : activeProducts.length > 0 ? (
-                            activeProducts.map((product) => (
-                              <div key={product.id} className="space-y-2">
-                                <a
-                                  href={`/${profileData.username}/product/${product.id}`}
-                                  className={`block border rounded-lg p-4 ${theme.buttonClass} transition-all`}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                                      {product.thumbnail ? (
-                                        <img
-                                          src={product.thumbnail}
-                                          alt={product.name}
-                                          className="w-8 h-8 object-cover rounded"
-                                        />
-                                      ) : (
-                                        <Package
-                                          className={`w-6 h-6 ${theme.iconClass}`}
-                                        />
-                                      )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4
-                                        className={`font-medium text-sm ${theme.textClass}`}
-                                      >
-                                        {product.name}
-                                      </h4>
-                                      <p
-                                        className={`text-xs ${theme.iconClass} mt-1 line-clamp-2`}
-                                      >
-                                        {product.description}
-                                      </p>
-                                      <div className="flex items-center justify-between mt-2">
-                                        <Badge
-                                          variant="secondary"
-                                          className="text-xs"
-                                        >
-                                          {product.category}
-                                        </Badge>
-                                        <span
-                                          className={`font-bold text-sm ${theme.textClass}`}
-                                        >
-                                          {product.currency === "USD"
-                                            ? "$"
-                                            : product.currency}
-                                          {product.price}
-                                        </span>
-                                      </div>
+                      <div className="space-y-3 border-t pt-4">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Shop</p>
+                        {loadingProducts ? (
+                          <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                          </div>
+                        ) : activeProducts.length > 0 ? (
+                          activeProducts.map((product) => (
+                            <div key={product.id} className="space-y-2">
+                              <a
+                                href={`/${profileData.username}/product/${product.id}`}
+                                className={`block border rounded-lg p-4 ${theme.buttonClass} transition-all`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                                    {product.thumbnail ? (
+                                      <img
+                                        src={product.thumbnail}
+                                        alt={product.name}
+                                        className="w-8 h-8 object-cover rounded"
+                                      />
+                                    ) : (
+                                      <Package className={`w-6 h-6 ${theme.iconClass}`} />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className={`font-medium text-sm ${theme.textClass}`}>{product.name}</h4>
+                                    <p className={`text-xs ${theme.iconClass} mt-1 line-clamp-2`}>{product.description}</p>
+                                    <div className="flex items-center justify-between mt-2">
+                                      <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                                      <span className={`font-bold text-sm ${theme.textClass}`}>
+                                        {product.currency === "USD" ? "$" : product.currency}
+                                        {product.price}
+                                      </span>
                                     </div>
                                   </div>
-                                </a>
-                                {product.url && (
-                                  <a
-                                    href={product.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block"
+                                </div>
+                              </a>
+                              {product.url && (
+                                <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
+                                  <Button
+                                    size="sm"
+                                    className={`w-full ${appearance.buttonShapeClass}`}
+                                    style={{
+                                      ...appearance.customButtonStyle,
+                                      ...appearance.customButtonTextStyle,
+                                    }}
                                   >
-                                    <Button
-                                      size="sm"
-                                      className={`w-full ${appearance.buttonShapeClass}`}
-                                      style={{
-                                        ...appearance.customButtonStyle,
-                                        ...appearance.customButtonTextStyle,
-                                      }}
-                                    >
-                                      Buy Now
-                                    </Button>
-                                  </a>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-center py-4 text-muted-foreground text-sm">
-                              No products available
+                                    Buy Now
+                                  </Button>
+                                </a>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </TabsContent>
-                    </Tabs>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-muted-foreground text-sm">No products available</div>
+                        )}
+                      </div>
+                    </div>
                     <Watermark />
                   </CardContent>
                 </Card>
