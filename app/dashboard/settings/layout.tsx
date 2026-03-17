@@ -20,7 +20,6 @@ const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
-  { href: '/dashboard/settings/plans', label: 'Subscriptions', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },

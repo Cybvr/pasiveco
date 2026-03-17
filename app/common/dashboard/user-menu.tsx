@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, CreditCard, Shield } from 'lucide-react'
+import { User, Settings, LogOut, Shield } from 'lucide-react'
 import { getUserProfile, type UserProfile } from '@/services/userProfilesService'
 import { useEffect } from 'react'
 
@@ -119,10 +119,6 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push('/dashboard/settings/plans')}>
-            <CreditCard className="mr-2 h-4 w-4" />
-            <span>Plans</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/admin')}>
             <Shield className="mr-2 h-4 w-4" />

@@ -29,7 +29,6 @@ const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
-  { href: '/dashboard/settings/plans', label: 'Subscriptions', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
@@ -49,7 +48,6 @@ interface UserData {
 }
 
 export default function GeneralSettings() {
-  const [subscription, setSubscription] = useState(null)
   const [userData, setUserData] = useState<UserData>({
     displayName: "User",
     firstName: "User",
@@ -98,28 +96,6 @@ export default function GeneralSettings() {
     if (firebaseProfile?.profilePicture) return firebaseProfile.profilePicture
     return getGravatarUrl(userData.email)
   }
-
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const response = await fetch('/api/subscriptions/default')
-        if (!response.ok) {
-          setSubscription({ plan: 'free', status: 'no_subscription' })
-          return
-        }
-        const data = await response.json()
-        if (data && data.plan) {
-          data.plan = data.plan.toLowerCase()
-        }
-        setSubscription(data)
-      } catch (error) {
-        console.error('Error fetching subscription:', error)
-        setSubscription({ plan: 'free', status: 'no_subscription' })
-      } finally {
-      }
-    }
-    fetchSubscription()
-  }, [])
 
 
 
