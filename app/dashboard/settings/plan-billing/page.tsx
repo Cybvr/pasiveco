@@ -107,11 +107,7 @@ export default function BillingPage() {
   const planExists = pricingPlans[currentPlan] !== undefined;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Billing & Subscription</h2>
-      </div>
-
+    <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>Your Plan</CardTitle>
@@ -178,9 +174,7 @@ export default function BillingPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="mt-8">
-        <Invoices userId={user?.uid} />
-      </div>
+      <Invoices userId={user?.uid} />
     </div>
   );
 }

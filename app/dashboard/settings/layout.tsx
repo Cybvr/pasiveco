@@ -106,7 +106,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
       <div className="flex-1 overflow-auto">
         {!isRootSettingsPage && (
-          <div className="px-4 py-3 border-b bg-background">
+          <div className="px-3 py-2 border-b bg-background">
             <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -121,7 +121,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             </div>
           </div>
         )}
-        {children}
+        <div className={isRootSettingsPage ? '' : 'px-3 py-3 md:px-4 md:py-4'}>
+          {children}
+        </div>
       </div>
     </div>
   )

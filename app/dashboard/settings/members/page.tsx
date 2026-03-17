@@ -27,11 +27,8 @@ export default function MembersSettings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Team Members</h1>
-      <p className="text-gray-600 mb-8">Manage your team members and their access levels.</p>
-
-      <div className="mb-8">
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
         <h2 className="text-lg font-medium mb-4">Invite new member</h2>
         <form onSubmit={handleInviteMember} className="flex items-center space-x-4">
           <input
