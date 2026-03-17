@@ -45,7 +45,6 @@ export default function ReferFriendSettings() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="px-4">
         <h1 className="text-xl font-semibold tracking-tight">Refer a Friend</h1>
-        <p className="text-muted-foreground">Share Uniqode with your friends and earn QR codes!</p>
       </div>
       <Separator />
 
