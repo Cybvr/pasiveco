@@ -1,104 +1,161 @@
+'use client'
 
-'use client';
+import { useEffect, useMemo, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { getAllUsers, type User } from '@/services/userService'
 
-import { useEffect, useState } from 'react'
-import { getAllUsers } from '@/services/userService'
+type DashboardStats = {
+  totalUsers: number
+  activeUsers: number
+  adminUsers: number
+  verifiedUsers: number
+  recentUsers: User[]
+}
+
+const defaultStats: DashboardStats = {
+  totalUsers: 0,
+  activeUsers: 0,
+  adminUsers: 0,
+  verifiedUsers: 0,
+  recentUsers: [],
+}
+
+function formatJoinedDate(user: User) {
+  if (!user.createdAt?.toDate) return '—'
+  return user.createdAt.toDate().toLocaleDateString()
+}
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    adminUsers: 0,
-    premiumUsers: 0,
-    recentUsers: []
-  })
+  const [stats, setStats] = useState<DashboardStats>(defaultStats)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchStats() {
+    const fetchStats = async () => {
       try {
         const users = await getAllUsers()
-        const activeUsers = users.filter(user => user.isActive)
-        const adminUsers = users.filter(user => user.role === 'admin')
-        const premiumUsers = users.filter(user => user.metadata?.signUpMethod === 'premium')
-        
+
         setStats({
           totalUsers: users.length,
-          activeUsers: activeUsers.length,
-          adminUsers: adminUsers.length,
-          premiumUsers: premiumUsers.length,
-          recentUsers: users.slice(0, 5)
+          activeUsers: users.filter((user) => user.isActive).length,
+          adminUsers: users.filter((user) => user.role === 'admin').length,
+          verifiedUsers: users.filter((user) => user.emailVerified).length,
+          recentUsers: users.slice(0, 6),
         })
       } catch (error) {
         console.error('Error fetching user stats:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchStats()
   }, [])
 
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="p-6 bg-card rounded-lg">
-          <h3 className="font-medium text-muted-foreground">Total Users</h3>
-          <p className="text-2xl font-bold">{stats.totalUsers}</p>
-        </div>
-        <div className="p-6 bg-card rounded-lg">
-          <h3 className="font-medium text-muted-foreground">Active Users</h3>
-          <p className="text-2xl font-bold">{stats.activeUsers}</p>
-        </div>
-        <div className="p-6 bg-card rounded-lg">
-          <h3 className="font-medium text-muted-foreground">Admin Users</h3>
-          <p className="text-2xl font-bold">{stats.adminUsers}</p>
-        </div>
-        <div className="p-6 bg-card rounded-lg">
-          <h3 className="font-medium text-muted-foreground">Premium Users</h3>
-          <p className="text-2xl font-bold">{stats.premiumUsers}</p>
-        </div>
-      </div>
+  const statCards = useMemo(
+    () => [
+      { label: 'Total Users', value: stats.totalUsers },
+      { label: 'Active Users', value: stats.activeUsers },
+      { label: 'Admin Users', value: stats.adminUsers },
+      { label: 'Verified Emails', value: stats.verifiedUsers },
+    ],
+    [stats]
+  )
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Recent Users</h2>
-        <div className="bg-card rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left p-4 font-medium">Name</th>
-                <th className="text-left p-4 font-medium">Email</th>
-                <th className="text-left p-4 font-medium">Role</th>
-                <th className="text-left p-4 font-medium">Status</th>
-                <th className="text-left p-4 font-medium">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.recentUsers.map((user: any, index: number) => (
-                <tr key={index} className="border-b last:border-0">
-                  <td className="p-4">{user.displayName || 'N/A'}</td>
-                  <td className="p-4">{user.email}</td>
-                  <td className="p-4 capitalize">{user.role || 'user'}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {user.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {user.createdAt?.toDate ? 
-                      user.createdAt.toDate().toLocaleDateString() : 
-                      'N/A'
-                    }
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  return (
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Clear overview of user activity and account health.
+        </p>
+      </header>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((card) => (
+          <Card key={card.label}>
+            <CardHeader className="space-y-1 pb-2">
+              <CardDescription>{card.label}</CardDescription>
+              <CardTitle className="text-2xl font-semibold">{card.value}</CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
+      </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Recent Users</CardTitle>
+          <CardDescription>Latest accounts created on the platform.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.recentUsers.map((user) => (
+                  <TableRow key={user.id ?? user.email}>
+                    <TableCell className="font-medium">{user.displayName || 'Unknown'}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell className="capitalize">{user.role || 'user'}</TableCell>
+                    <TableCell>
+                      <Badge variant={user.isActive ? 'secondary' : 'outline'}>
+                        {user.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatJoinedDate(user)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {stats.recentUsers.map((user) => (
+              <div key={user.id ?? user.email} className="rounded-md border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{user.displayName || 'Unknown'}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                  <Badge variant={user.isActive ? 'secondary' : 'outline'}>
+                    {user.isActive ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
+                  <span className="capitalize">{user.role || 'user'}</span>
+                  <span>{formatJoinedDate(user)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {!loading && stats.recentUsers.length === 0 && (
+            <p className="text-sm text-muted-foreground">No users found.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
