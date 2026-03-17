@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       ],
       mode: 'subscription',
       success_url: `${origin}/dashboard/settings/plan-billing?success=true`,
-      cancel_url: `${origin}/dashboard/settings/plans?canceled=true`,
+      cancel_url: `${origin}/dashboard/settings/plan-billing?canceled=true`,
       metadata: {
         userId: userId,
         planId: planId,
