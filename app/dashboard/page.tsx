@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent } from "@/components/ui/card"
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview'
 import { getUserProfile } from '@/services/userProfilesService'
 import { useAuth } from '@/hooks/useAuth'
@@ -50,10 +49,6 @@ function App() {
     loadProfile()
   }, [user])
 
-  const stats = [
-    { label: "Total Revenue", value: "$0.00" },
-  ]
-
   const firstName =
     profileData.displayName && profileData.displayName !== "Your Name"
       ? profileData.displayName.split(' ')[0]
@@ -66,23 +61,9 @@ function App() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Hello, {firstName} 👋</h1>
-          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your creator profile today.</p>
         </div>
-
       </div>
 
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, i) => (
-          <Card key={i}>
-            <CardContent className="p-6 space-y-1">
-              <p className="text-lg font-semibold">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       <div className="space-y-4">
         <div className="flex flex-row gap-3">

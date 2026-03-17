@@ -115,16 +115,10 @@ export default function GeneralSettings() {
     }
   }
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Profile</h1>
-        </div>
-      </div>
-
+    <div className="space-y-4 max-w-2xl">
       {/* Profile Section */}
       <div className="bg-background border rounded-lg">
-        <div className="p-2">
+        <div className="p-3 sm:p-4">
           <div className="flex items-start space-x-2">
             <Avatar className="h-14 w-14">
               <AvatarImage src={getProfilePicture()} alt={userData.displayName} />

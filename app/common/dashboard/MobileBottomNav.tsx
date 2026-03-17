@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, MessageSquare, Bell, User } from 'lucide-react'
+import { Compass, Home, Search, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -12,14 +12,14 @@ const navItems = [
     label: 'Home',
   },
   {
-    href: '/dashboard/messages',
-    icon: MessageSquare,
-    label: 'Messages',
+    href: '/dashboard/search',
+    icon: Search,
+    label: 'Search',
   },
   {
-    href: '/dashboard/notifications',
-    icon: Bell,
-    label: 'Notifications',
+    href: '/dashboard/discovery',
+    icon: Compass,
+    label: 'Discover',
   },
   {
     href: '/dashboard/settings',
@@ -44,7 +44,7 @@ export default function MobileBottomNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex min-w-0 flex-1 flex-col items-center justify-center px-2 py-2 text-xs transition-colors',
+                  'flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2 text-[11px] transition-colors',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
