@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Bell, ChevronRight, Coins, MessageSquare, UserCircle2 } from 'lucide-react'
+import { Bell, ChevronRight, Coins, MessageSquare, PackagePlus, SquarePen, UserCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getUserProfile } from '@/services/userProfilesService'
 
@@ -17,11 +17,14 @@ const pageTitles: Record<string, string> = {
   '/dashboard/settings': 'Settings',
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
+  '/dashboard/posts': 'Posts',
 }
 
 const quickLinks = [
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
+  { href: '/dashboard/products', label: 'Add Product', icon: PackagePlus },
   { href: '/dashboard/edit', label: 'My Profile', icon: UserCircle2 },
+  { href: '/dashboard/posts', label: 'New Post', icon: SquarePen },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
 ]

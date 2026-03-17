@@ -6,20 +6,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, Send } from 'lucide-react'
-
-const inbox = [
-  { id: 'm1', name: 'Maya Thompson', avatar: 'https://i.pravatar.cc/100?img=32', preview: 'Can we lock in a sponsored reel for next Thursday?', time: '2m ago', unread: true },
-  { id: 'm2', name: 'Derek from HypeFuel', avatar: 'https://i.pravatar.cc/100?img=12', preview: 'Draft contract sent. Let me know if you want edits.', time: '1h ago', unread: true },
-  { id: 'm3', name: 'Nina Patel', avatar: 'https://i.pravatar.cc/100?img=49', preview: 'Loved your latest post. Looking to collab in April.', time: 'Yesterday', unread: false },
-]
-
-const activeThread = [
-  { fromMe: false, text: 'Hey! We are launching a new campaign next week.', at: '10:21 AM' },
-  { fromMe: true, text: 'Perfect timing. Send the creative brief and budget range.', at: '10:24 AM' },
-  { fromMe: false, text: 'Awesome. Budget is $1,500 for 1 reel + 3 stories.', at: '10:27 AM' },
-]
+import { demoUserId, userMessages, userThreadMessages } from '@/lib/user-activity-data'
 
 export default function MessagesPage() {
+  const inbox = userMessages.filter((message) => message.userId === demoUserId)
+  const activeThread = userThreadMessages.filter((message) => message.userId === demoUserId)
+
   return (
     <div className="space-y-4">
       <div>
@@ -59,8 +51,8 @@ export default function MessagesPage() {
             <CardTitle className="text-base">Maya Thompson</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activeThread.map((message, idx) => (
-              <div key={idx} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${message.fromMe ? 'ml-auto bg-primary text-primary-foreground' : 'bg-muted'}`}>
+            {activeThread.map((message) => (
+              <div key={message.id} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${message.fromMe ? 'ml-auto bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 <p>{message.text}</p>
                 <p className={`mt-1 text-[10px] ${message.fromMe ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{message.at}</p>
               </div>
