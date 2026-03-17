@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, Gift, Wallet, ArrowUpRight } from 'lucide-react'
+import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -22,7 +22,7 @@ const settingsLinks = [
   { href: '/dashboard/settings/plans', label: 'Plans', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
-  { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Wallet },
+  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
 ]
 
@@ -90,7 +90,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </div>
 
       {/* Content area */}
-      <div className="flex-1 p-4 lg:p-6 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto">{children}</div>
     </div>
   )
 }
