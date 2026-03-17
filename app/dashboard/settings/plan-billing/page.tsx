@@ -4,18 +4,19 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
 import { pricingPlans } from "@/lib/plans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Button } from '@/components/ui/button';
 import PricingPlans from "@/app/common/website/PricingPlans";
 import Invoices from "./invoices";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function BillingPage() {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPlansModalOpen, setIsPlansModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -109,12 +110,11 @@ export default function BillingPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Billing & Subscription</h2>
-        <p className="text-muted-foreground">Manage your subscription and payment details.</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Plan</CardTitle>
+          <CardTitle>Your Plan</CardTitle>
           <CardDescription>Your current subscription details</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -155,29 +155,28 @@ export default function BillingPage() {
               )}
 
               <div className="border-t pt-4">
-                <h3 className="font-semibold mb-2">Plan Features:</h3>
-                <ul className="space-y-2">
-                  {planExists && pricingPlans[currentPlan]?.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-500" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <Button variant="outline" onClick={() => setIsPlansModalOpen(true)}>
+                  Switch Plan
+                </Button>
               </div>
             </>
           )}
         </CardContent>
       </Card>
 
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-4">Available Plans</h3>
-        <PricingPlans 
-          currentPlan={currentPlan} 
-          subscription={subscription}
-          onManageSubscription={handleManageSubscription}
-        />
-      </div>
+      <Dialog open={isPlansModalOpen} onOpenChange={setIsPlansModalOpen}>
+        <DialogContent className="w-[95vw] max-w-[900px] h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Available Plans</DialogTitle>
+            <DialogDescription>Choose a plan that fits your goals.</DialogDescription>
+          </DialogHeader>
+          <PricingPlans 
+            currentPlan={currentPlan} 
+            subscription={subscription}
+            onManageSubscription={handleManageSubscription}
+          />
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-8">
         <Invoices userId={user?.uid} />
