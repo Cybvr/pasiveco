@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart } from 'lucide-react'
+import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ArrowLeft } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -17,13 +17,13 @@ import { auth } from '@/lib/firebase'
 import { toast } from "@/hooks/use-toast"
 
 const settingsLinks = [
-  { href: '/dashboard/settings', label: 'General', icon: User },
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
-  { href: '/dashboard/settings/plans', label: 'Plans', icon: CreditCard },
-  { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
-  { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
-  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
+  { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
+  { href: '/dashboard/settings/plans', label: 'Subscriptions', icon: CreditCard },
+  { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
+  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
+  { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +32,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   const isSettingsLinkActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
+
+  const isRootSettingsPage = pathname === '/dashboard/settings'
 
   const handleLogout = async () => {
     try {
@@ -49,25 +51,28 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="flex flex-col md:flex-row min-h-full">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex md:w-56 border-r bg-background">
-        <nav className="space-y-1 p-4 w-full">
+      <div className="hidden md:flex md:w-56 border-r bg-background flex-col p-3">
+        <nav className="space-y-1 w-full">
           {settingsLinks.map((link) => (
             <Button
               key={link.href}
               variant={isSettingsLinkActive(link.href) ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2 mb-1"
+              className="w-full justify-start px-2 gap-2"
               onClick={() => router.push(link.href)}
             >
               <link.icon className="h-4 w-4" />
-              {link.label}
+              <span className="flex-1 text-left">{link.label}</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </Button>
           ))}
+        </nav>
+
+        <div className="mt-6 pt-4 border-t">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 mt-4"
+                className="w-full justify-start px-2 gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -86,11 +91,25 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </nav>
+        </div>
       </div>
 
-      {/* Content area */}
-      <div className="flex-1 overflow-auto">{children}</div>
+      <div className="flex-1 overflow-auto">
+        {!isRootSettingsPage && (
+          <div className="md:hidden px-4 pt-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => router.push('/dashboard/settings')}
+              aria-label="Back to settings"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   )
 }
