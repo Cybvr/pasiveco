@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Coins, Home, ShoppingBag, User } from 'lucide-react'
+import { Home, MessageSquare, Bell, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -12,14 +12,14 @@ const navItems = [
     label: 'Home',
   },
   {
-    href: '/dashboard/products',
-    icon: ShoppingBag,
-    label: 'Products',
+    href: '/dashboard/messages',
+    icon: MessageSquare,
+    label: 'Messages',
   },
   {
-    href: '/dashboard/settings/earnings',
-    icon: Coins,
-    label: 'Earnings',
+    href: '/dashboard/notifications',
+    icon: Bell,
+    label: 'Notifications',
   },
   {
     href: '/dashboard/settings',
