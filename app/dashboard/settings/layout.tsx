@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ArrowLeft, ShieldCheck, Coins } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast"
 const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
+  { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },

@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { db } from "@/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
+import DashboardHeader from "@/app/common/dashboard/DashboardHeader"
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -45,6 +46,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
+        <DashboardHeader />
         <main className={cn("flex-1 min-h-0", pathname !== '/dashboard/edit' && "overflow-y-auto")}>
           <div className={cn(
             pathname !== '/dashboard/edit' && "p-4 md:p-8 max-w-[1600px] mx-auto",
