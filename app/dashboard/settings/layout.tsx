@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { auth } from '@/lib/firebase'
-import { cn } from '@/lib/utils'
+import { toast } from "@/hooks/use-toast"
 import { useState } from 'react'
 
 const settingsLinks = [
@@ -30,9 +30,21 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const router = useRouter()
   const [isDropdownOpen, setDropdownOpen] = useState(false)
 
+  const isSettingsLinkActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`)
+
   const handleLogout = async () => {
-    await auth.signOut()
-    router.push('/auth/login')
+    try {
+      await auth.signOut()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+      toast({
+        title: 'Unable to log out',
+        description: 'Please try again.',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
@@ -56,7 +68,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             {settingsLinks.map((link) => (
               <Button
                 key={link.href}
-                variant={pathname === link.href ? "secondary" : "ghost"}
+                variant={isSettingsLinkActive(link.href) ? "secondary" : "ghost"}
                 className="w-full justify-start gap-2"
                 onClick={() => {
                   router.push(link.href)
@@ -100,7 +112,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           {settingsLinks.map((link) => (
             <Button
               key={link.href}
-              variant={pathname === link.href ? "secondary" : "ghost"}
+              variant={isSettingsLinkActive(link.href) ? "secondary" : "ghost"}
               className="w-full justify-start gap-2 mb-1"
               onClick={() => router.push(link.href)}
             >
