@@ -17,7 +17,7 @@ const navItems = [
     label: 'Products',
   },
   {
-    href: '/dashboard/wallet',
+    href: '/dashboard/settings/earnings',
     icon: Coins,
     label: 'Earnings',
   },
