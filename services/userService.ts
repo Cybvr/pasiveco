@@ -129,8 +129,19 @@ export const getAllUsers = async (): Promise<User[]> => {
       ...doc.data()
     })) as User[];
   } catch (error) {
-    console.error('Error fetching all users:', error);
-    throw error;
+    console.warn('Falling back to unsorted users query:', error);
+
+    const snapshot = await getDocs(collection(db, 'users'));
+    const users = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as User[];
+
+    return users.sort((a, b) => {
+      const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toMillis() : 0;
+      const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toMillis() : 0;
+      return dateB - dateA;
+    });
   }
 };
 

@@ -1,12 +1,10 @@
 "use client"
 import type React from "react"
 import Link from "next/link"
-import { Home, Users, BarChart2, Settings, QrCode, File, FileText, Bell, Menu, ChevronDown } from "lucide-react"
+import { Home, Users, QrCode, FileText, Menu } from "lucide-react"
 import Image from "next/image"
-import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import UserMenu from "@/app/common/dashboard/user-menu"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 const navigation = [
@@ -21,91 +19,93 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [activeItem, setActiveItem] = useState("/admin")
+  const pathname = usePathname()
+
+  const isActiveRoute = (href: string) => {
+    if (href === "/admin") return pathname === href
+    return pathname.startsWith(href)
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          {/* Logo and mobile menu */}
-          <div className="flex items-center gap-4">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-16 p-0">
-                <div className="h-16 border-b flex items-center px-6">
-                  <Image src="/images/logo.svg" alt="Pasive Logo" width={12} height={12} />
-                </div>
-                <nav className="p-4 space-y-2">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-accent"
-                      onClick={() => setActiveItem(item.href)}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
-            <Link href="/admin" className="flex items-center gap-2">
-              <Image src="/images/logo.svg" alt="Pasive Logo" width={32} height={32} />
-              <span className="text-base font-semibold">Pasive</span>
+    <div className="min-h-screen bg-muted/20">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1600px]">
+        <aside className="hidden w-64 border-r bg-background lg:block">
+          <div className="flex h-16 items-center border-b px-6">
+            <Link href="/admin" className="flex items-center gap-3">
+              <Image src="/images/monster.png" alt="Pasive Logo" width={28} height={28} />
+              <div>
+                <p className="text-sm font-semibold leading-none">Pasive</p>
+                <p className="text-xs text-muted-foreground">Admin</p>
+              </div>
             </Link>
           </div>
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="space-y-1 p-3">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors ${
-                  activeItem === item.href ? "bg-accent/50 font-medium" : ""
+                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                  isActiveRoute(item.href)
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 }`}
-                onClick={() => setActiveItem(item.href)}
               >
+                <item.icon className="h-4 w-4" />
                 {item.name}
               </Link>
             ))}
           </nav>
-          {/* Mobile dropdown for navigation */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="md:hidden">
-              <Button variant="outline" className="ml-auto mr-2">
-                Navigate
-                <ChevronDown className="ml-1 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {navigation.map((item) => (
-                <DropdownMenuItem key={item.name} asChild>
-                  <Link href={item.href} className="flex items-center gap-2 w-full">
-                    <item.icon className="h-4 w-4" />
-                    {item.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {/* User actions */}
-          <div className="flex items-center gap-2">
+        </aside>
 
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <UserMenu />
-          </div>
+        <div className="flex min-h-screen flex-1 flex-col">
+          <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+            <div className="flex h-16 items-center justify-between px-4 md:px-6">
+              <div className="flex items-center gap-3">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="lg:hidden">
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-0">
+                    <div className="flex h-16 items-center border-b px-6">
+                      <Link href="/admin" className="flex items-center gap-3">
+                        <Image src="/images/monster.png" alt="Pasive Logo" width={28} height={28} />
+                        <div>
+                          <p className="text-sm font-semibold leading-none">Pasive</p>
+                          <p className="text-xs text-muted-foreground">Admin</p>
+                        </div>
+                      </Link>
+                    </div>
+                    <nav className="space-y-1 p-3">
+                      {navigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                            isActiveRoute(item.href)
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                          }`}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.name}
+                        </Link>
+                      ))}
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+                <h1 className="text-sm font-medium text-muted-foreground">Admin Console</h1>
+              </div>
+
+              <div className="hidden text-sm text-muted-foreground md:block">Manage users and content</div>
+            </div>
+          </header>
+
+          <main className="flex-1 p-4 md:p-6">{children}</main>
         </div>
-      </header>
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-background">{children}</main>
+      </div>
     </div>
   )
 }
