@@ -22,22 +22,17 @@ const activeThread = [
 export default function MessagesPage() {
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">Messages</h2>
-        <p className="text-sm text-muted-foreground">Manage brand conversations and creator collabs in one place.</p>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[320px,1fr]">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Inbox</CardTitle>
+      <div className="grid gap-3 lg:grid-cols-[320px,1fr]">
+        <Card className="min-h-[420px]">
+          <CardHeader className="pb-2 px-3 pt-3 sm:px-6 sm:pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input className="pl-9" placeholder="Search messages" />
             </div>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 px-2 pb-2 sm:px-6 sm:pb-6">
             {inbox.map((chat) => (
-              <button key={chat.id} className="flex w-full items-start gap-3 rounded-lg border p-3 text-left hover:bg-accent/40">
+              <button key={chat.id} className="flex w-full items-start gap-2 rounded-lg border p-2.5 text-left hover:bg-accent/40 sm:gap-3 sm:p-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={chat.avatar} alt={chat.name} />
                   <AvatarFallback>{chat.name.slice(0, 1)}</AvatarFallback>
@@ -54,11 +49,11 @@ export default function MessagesPage() {
             ))}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
+        <Card className="min-h-[420px]">
+          <CardHeader className="px-3 pt-3 sm:px-6 sm:pt-6">
             <CardTitle className="text-base">Maya Thompson</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
             {activeThread.map((message, idx) => (
               <div key={idx} className={`max-w-[85%] rounded-xl px-3 py-2 text-sm ${message.fromMe ? 'ml-auto bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 <p>{message.text}</p>
