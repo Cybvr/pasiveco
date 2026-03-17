@@ -15,17 +15,35 @@ function App() {
     bio: string
     profilePicture: string | null
     slug: string
+    socialLinks?: any[]
+    appearance?: any
+    backgroundType?: 'color' | 'image'
+    backgroundColor?: string
+    backgroundImage?: string | null
+    pageBackgroundType?: 'color' | 'image'
+    pageBackgroundColor?: string
+    pageBackgroundImage?: string | null
   }>({
     username: "@username",
     displayName: "Your Name",
     bio: "Your bio here",
     profilePicture: null,
     slug: "yourslug",
+    socialLinks: [],
+    appearance: undefined,
+    backgroundType: 'color',
+    backgroundColor: '#ffffff',
+    backgroundImage: null,
+    pageBackgroundType: 'color',
+    pageBackgroundColor: '#ffffff',
+    pageBackgroundImage: null,
   })
   const router = useRouter()
   const { user } = useAuth()
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [isBlogLoading, setIsBlogLoading] = useState(true)
+  const [selectedTheme, setSelectedTheme] = useState('default')
+  const [links, setLinks] = useState<any[]>([])
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -39,7 +57,17 @@ function App() {
               bio: firebaseProfile.bio || "",
               profilePicture: firebaseProfile.profilePicture || null,
               slug: firebaseProfile.slug,
+              socialLinks: firebaseProfile.socialLinks || [],
+              appearance: firebaseProfile.appearance,
+              backgroundType: firebaseProfile.backgroundType || 'color',
+              backgroundColor: firebaseProfile.backgroundColor || '#ffffff',
+              backgroundImage: firebaseProfile.backgroundImage || null,
+              pageBackgroundType: firebaseProfile.pageBackgroundType || 'color',
+              pageBackgroundColor: firebaseProfile.pageBackgroundColor || '#ffffff',
+              pageBackgroundImage: firebaseProfile.pageBackgroundImage || null,
             })
+            setLinks(firebaseProfile.links || [])
+            setSelectedTheme(firebaseProfile.theme || 'default')
           }
         } catch (error) {
           console.error("Error loading profile:", error)
@@ -104,16 +132,21 @@ function App() {
           <button type="button" onClick={() => router.push('/dashboard/edit')}>Edit Page</button>
         </div>
 
-        <div className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col">
+        <button
+          type="button"
+          onClick={() => router.push('/dashboard/edit')}
+          className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col text-left"
+          aria-label="Open page editor"
+        >
           <div className="relative overflow-hidden bg-muted/20 rounded-xl group/preview h-[420px] md:h-[520px]">
             <div className="absolute inset-0">
               <div className="scale-[0.5] origin-top-left w-[200%] h-[200%] pointer-events-none p-8">
-                <BioPagePreview profileData={profileData} links={[]} selectedTheme="default" />
+                <BioPagePreview profileData={profileData} links={links} selectedTheme={selectedTheme} />
               </div>
             </div>
             <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity md:flex items-center justify-center hidden" />
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Blog Posts */}

@@ -20,16 +20,25 @@ function ProductCreator() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedCategory] = useState(null)
   const [myProducts, setMyProducts] = useState([])
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true)
   const { user } = useAuth()
 
   const loadMyProducts = async () => {
-    if (!user) return
+    if (!user) {
+      setMyProducts([])
+      setIsLoadingProducts(false)
+      return
+    }
+
+    setIsLoadingProducts(true)
     try {
       const products = await getUserProducts(user.uid)
       setMyProducts(products)
     } catch (error) {
       console.error('Error fetching products:', error)
       toast.error('Failed to fetch products')
+    } finally {
+      setIsLoadingProducts(false)
     }
   }
 
@@ -70,6 +79,7 @@ function ProductCreator() {
         {activeTab === "manage" && (
           <ManageTab 
             products={myProducts}
+            isLoading={isLoadingProducts}
             onProductsChanged={loadMyProducts}
             onCreateNew={() => setIsCreateModalOpen(true)}
           />
