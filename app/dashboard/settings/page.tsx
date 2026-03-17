@@ -1,13 +1,39 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { LogOut, User, CreditCard, Gift, Wallet, ArrowUpRight } from 'lucide-react'
 import { getUserProfile } from "@/services/userProfilesService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { auth } from '@/lib/firebase'
+import { toast } from "@/hooks/use-toast"
 
+
+
+const settingsLinks = [
+  { href: '/dashboard/settings', label: 'General', icon: User },
+  { href: '/dashboard/settings/account', label: 'My Account', icon: User },
+  { href: '/dashboard/settings/plans', label: 'Plans', icon: CreditCard },
+  { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
+  { href: '/dashboard/settings/refer', label: 'Refer a friend', icon: Gift },
+  { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Wallet },
+  { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
+]
 interface UserData {
   displayName: string
   firstName: string
@@ -24,7 +50,6 @@ interface UserData {
 
 export default function GeneralSettings() {
   const [subscription, setSubscription] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<UserData>({
     displayName: "User",
     firstName: "User",
@@ -37,6 +62,7 @@ export default function GeneralSettings() {
   })
   const [firebaseProfile, setFirebaseProfile] = useState(null)
   const { user } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -90,12 +116,26 @@ export default function GeneralSettings() {
         console.error('Error fetching subscription:', error)
         setSubscription({ plan: 'free', status: 'no_subscription' })
       } finally {
-        setLoading(false)
       }
     }
     fetchSubscription()
   }, [])
 
+
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+      toast({
+        title: 'Unable to log out',
+        description: 'Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -126,32 +166,43 @@ export default function GeneralSettings() {
         </div>
       </div>
 
-      {/* Account Details */}
-      <div className="bg-background border rounded-lg p-4">
-        <h2 className="text-sm font-medium text-foreground pb-4">Account Details</h2>
-        <div>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <dt className="text-sm font-medium text-foreground">Full Name</dt>
-              <dd className="text-sm text-muted-foreground mt-1">{userData.firstName} {userData.lastName}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-foreground">Email Address</dt>
-              <dd className="text-sm text-muted-foreground mt-1">{userData.email}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-foreground">Phone Number</dt>
-              <dd className="text-sm text-muted-foreground mt-1">{userData.phone || 'Not provided'}</dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-foreground">Location</dt>
-              <dd className="text-sm text-muted-foreground mt-1">{userData.location || 'Not provided'}</dd>
-            </div>
-          </dl>
-        </div>
+      <div className="md:hidden bg-background border rounded-lg p-3 space-y-1">
+        {settingsLinks.map((link) => (
+          <Button
+            key={link.href}
+            variant="ghost"
+            className="w-full justify-start gap-2"
+            onClick={() => router.push(link.href)}
+          >
+            <link.icon className="h-4 w-4" />
+            {link.label}
+          </Button>
+        ))}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will need to login again to access your account.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
-     
     </div>
   )
 }

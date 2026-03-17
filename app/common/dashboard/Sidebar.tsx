@@ -5,8 +5,6 @@ import {
   Home,
   BarChart,
   Coins,
-  Wallet,
-  ArrowUpRight,
   PanelLeftClose,
   PanelLeftOpen,
   Palette
@@ -37,16 +35,6 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       href: '/dashboard/analytics',
       icon: BarChart,
       label: 'Analytics',
-    },
-    {
-      href: '/dashboard/wallet',
-      icon: Wallet,
-      label: 'Earnings',
-    },
-    {
-      href: '/dashboard/payouts',
-      icon: ArrowUpRight,
-      label: 'Withdrawals',
     },
   ]
 
