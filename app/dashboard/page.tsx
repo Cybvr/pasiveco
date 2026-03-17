@@ -1,13 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Edit3,
-  Coins,
-  Link as LinkIcon,
-  ChevronRight,
-  ShoppingBag,
-} from 'lucide-react'
+import { Edit3 } from 'lucide-react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview'
@@ -76,9 +70,9 @@ function App() {
   ]
 
   const quickActions = [
-    { label: "Add Product", icon: ShoppingBag, href: "/dashboard/products", color: "bg-primary/10 text-primary" },
-    { label: "Add Link", icon: LinkIcon, href: "/dashboard/edit", color: "bg-secondary/20 text-secondary-foreground" },
-    { label: "Earnings", icon: Coins, href: "/dashboard/wallet", color: "bg-muted text-muted-foreground" },
+    { label: "Add Product", href: "/dashboard/products" },
+    { label: "Add Link", href: "/dashboard/edit" },
+    { label: "Edit Page", href: "/dashboard/edit" },
   ]
 
   const firstName =
@@ -111,54 +105,38 @@ function App() {
         ))}
       </div>
 
-      {/* Main Grid: 2-col layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-
-        {/* Left: Preview */}
-        <div className="lg:col-span-4">
-          <div className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-sm font-medium">My Pasive Page</span>
-            </div>
-            <div className="relative flex-1 overflow-hidden bg-muted/20 rounded-xl group/preview" style={{ minHeight: 0 }}>
-              <div className="absolute inset-0">
-                <div className="scale-[0.5] origin-top-left w-[200%] h-[200%] pointer-events-none p-8">
-                  <BioPagePreview profileData={profileData} links={[]} selectedTheme="default" />
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center">
-                <Button onClick={() => router.push('/dashboard/edit')}>
-                  <Edit3 className="w-4 h-4" /> Edit Page
-                </Button>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2 md:gap-3">
+          {quickActions.map((action, i) => (
+            <Button
+              key={i}
+              type="button"
+              variant="outline"
+              onClick={() => router.push(action.href)}
+              className="rounded-full"
+            >
+              {action.label}
+            </Button>
+          ))}
         </div>
 
-        {/* Right: Quick Actions */}
-        <div className="lg:col-span-8 flex flex-col">
-          <div className="rounded-xl text-card-foreground flex flex-col flex-1">
-            <h3 className="text-sm font-semibold leading-none tracking-tight pb-4">Quick Actions</h3>
-            <div className="flex flex-col gap-3 flex-1">
-              {quickActions.map((action, i) => (
-                <button
-                  key={i}
-                  onClick={() => router.push(action.href)}
-                  className="flex items-center justify-between w-full p-4 rounded-xl border border-border hover:bg-muted transition-colors group flex-1"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-lg ${action.color}`}>
-                      <action.icon className="w-5 h-5" />
-                    </div>
-                    <span className="font-medium">{action.label}</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-                </button>
-              ))}
+        <div className="rounded-xl text-card-foreground overflow-hidden h-full flex flex-col">
+          <div className="relative overflow-hidden bg-muted/20 rounded-xl group/preview h-[420px] md:h-[520px]">
+            <div className="absolute inset-0">
+              <div className="scale-[0.5] origin-top-left w-[200%] h-[200%] pointer-events-none p-8">
+                <BioPagePreview profileData={profileData} links={[]} selectedTheme="default" />
+              </div>
+            </div>
+            <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity md:flex items-center justify-center hidden">
+              <Button onClick={() => router.push('/dashboard/edit')}>
+                <Edit3 className="w-4 h-4" /> Edit Page
+              </Button>
             </div>
           </div>
+          <Button onClick={() => router.push('/dashboard/edit')} className="mt-3 md:hidden w-full">
+            <Edit3 className="w-4 h-4" /> Edit Page
+          </Button>
         </div>
-
       </div>
 
       {/* Blog Posts */}
@@ -169,8 +147,8 @@ function App() {
         <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory">
           {isBlogLoading ? (
             Array.from({ length: 3 }).map((_, idx) => (
-              <Card key={idx} className="h-full min-w-[260px] md:min-w-[300px] animate-pulse snap-start">
-                <CardContent className="p-5 space-y-3">
+              <Card key={idx} className="h-full min-w-[260px] md:min-w-[300px] animate-pulse snap-start border-0 shadow-none bg-transparent">
+                <CardContent className="p-0 space-y-3">
                   <div className="h-28 rounded-lg bg-muted/70" />
                   <div className="space-y-2">
                     <div className="h-4 w-24 rounded bg-muted/70" />
@@ -185,8 +163,8 @@ function App() {
               const imageSrc = post.imageUrl || post.image
               return (
                 <Link key={post.id || post.slug} href={`/blog/${post.slug}`} className="group min-w-[260px] md:min-w-[300px] snap-start" prefetch={false}>
-                  <Card className="h-full transition-colors hover:border-muted-foreground/40">
-                    <CardContent className="p-5 space-y-3">
+                  <Card className="h-full transition-colors hover:border-muted-foreground/40 border-0 shadow-none bg-transparent">
+                    <CardContent className="p-0 space-y-3">
                       {imageSrc ? (
                         <img
                           src={imageSrc}
