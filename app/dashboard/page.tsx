@@ -164,15 +164,12 @@ function App() {
       {/* Blog Posts */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Latest from the blog</h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/blog">View all</Link>
-          </Button>
+          <h2 className="text-lg font-semibold">What's New</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory">
           {isBlogLoading ? (
             Array.from({ length: 3 }).map((_, idx) => (
-              <Card key={idx} className="h-full animate-pulse">
+              <Card key={idx} className="h-full min-w-[260px] md:min-w-[300px] animate-pulse snap-start">
                 <CardContent className="p-5 space-y-3">
                   <div className="h-28 rounded-lg bg-muted/70" />
                   <div className="space-y-2">
@@ -187,7 +184,7 @@ function App() {
             blogPosts.map((post) => {
               const imageSrc = post.imageUrl || post.image
               return (
-                <Link key={post.id || post.slug} href={`/blog/${post.slug}`} className="group" prefetch={false}>
+                <Link key={post.id || post.slug} href={`/blog/${post.slug}`} className="group min-w-[260px] md:min-w-[300px] snap-start" prefetch={false}>
                   <Card className="h-full transition-colors hover:border-muted-foreground/40">
                     <CardContent className="p-5 space-y-3">
                       {imageSrc ? (
@@ -201,15 +198,9 @@ function App() {
                         <div className="h-28 rounded-lg bg-muted/70" />
                       )}
                       <div className="space-y-2">
-                        {post.date && (
-                          <p className="text-sm text-muted-foreground">{post.date}</p>
-                        )}
                         <h3 className="text-base font-semibold group-hover:text-primary transition-colors">
                           {post.title}
                         </h3>
-                        {post.excerpt && (
-                          <p className="text-sm text-muted-foreground">{post.excerpt}</p>
-                        )}
                       </div>
                     </CardContent>
                   </Card>

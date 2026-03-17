@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import Link from 'next/link'
 import Header from "@/app/common/website/Header"
 import Footer from "@/app/common/website/Footer"
@@ -42,6 +43,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/hooks/useAuth"
 
 // Creators for the marquee
 const CREATORS = [
@@ -135,6 +137,17 @@ const FeatureCard = ({ title, subtitle, description, icon: Icon, image, reverse 
 );
 
 export default function LandingPage() {
+  const router = useRouter()
+  const { user, loading } = useAuth()
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard')
+    }
+  }, [loading, user, router])
+
+  if (loading || user) return null
+
   return (
     <div className="flex flex-col min-h-screen selection:bg-primary selection:text-primary-foreground">
       <Header isMenuOpen={false} setIsMenuOpen={() => {}} />
