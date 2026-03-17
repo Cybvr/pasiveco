@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2 } from "lucide-react";
+import { User, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X } from "lucide-react";
 import {
   getUserProfile,
   createUserProfile,
@@ -11,7 +11,6 @@ import {
 import { getUserProducts, type Product } from "@/services/productsService";
 import { useAuth } from "@/hooks/useAuth";
 import BioMode from "@/app/common/dashboard/BioMode";
-import MiniPageModal from "@/app/common/dashboard/MiniPageModal";
 import ShareModal from "@/app/common/dashboard/ShareModal";
 import Watermark from "@/app/common/dashboard/Watermark";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,12 +30,12 @@ function Page() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [isPageModalOpen, setIsPageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editUrl, setEditUrl] = useState("");
+  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
 
   const [profileData, setProfileData] = useState<
     Partial<UserProfile> & {
@@ -416,6 +415,25 @@ function Page() {
     );
   };
 
+  const handleSocialLinkChange = (
+    socialId: string,
+    updates: { url?: string; active?: boolean },
+  ) => {
+    setSocialLinks((prev) =>
+      prev.map((social) =>
+        social.id === socialId ? { ...social, ...updates } : social,
+      ),
+    );
+  };
+
+  const handleAddSocialPlatform = (socialId: string) => {
+    setSocialLinks((prev) =>
+      prev.map((social) =>
+        social.id === socialId ? { ...social, active: true } : social,
+      ),
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -467,117 +485,7 @@ function Page() {
         </div>
 
         <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 bg-muted/20 overflow-auto min-h-[420px] md:min-h-0">
-          <Card className="border-border">
-            <CardContent className="p-4 space-y-4">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-semibold text-sm">Page Content</h3>
-                <div className="flex items-center gap-2">
-                  <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">Profile Settings</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Edit profile</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs font-semibold mb-2">Profile Banner</label>
-                          <div className="relative">
-                            <div className="w-full h-24 bg-muted rounded-xl flex items-center justify-center overflow-hidden border border-border">
-                              {profileData.bannerImage ? (
-                                <img src={profileData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Upload banner</span>
-                              )}
-                            </div>
-                            <input type="file" accept="image/*" onChange={handleBannerUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold mb-2">Profile Picture</label>
-                          <div className="relative w-20 h-20">
-                            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center overflow-hidden border border-border">
-                              {profileData.profilePicture ? (
-                                <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                              ) : (
-                                <User className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </div>
-                            <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold mb-2">Display Name</label>
-                          <input
-                            type="text"
-                            value={profileData.displayName}
-                            onChange={(e) => setProfileData((prev) => ({ ...prev, displayName: e.target.value }))}
-                            className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold mb-2">Bio</label>
-                          <textarea
-                            value={profileData.bio}
-                            onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
-                            rows={3}
-                            className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm resize-none"
-                          />
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Button size="sm" onClick={handleAddLink}>
-                    <Plus className="w-4 h-4 mr-1" /> Add Link
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {links.map((link) => (
-                  <div key={link.id} className="border rounded-lg p-3 bg-background">
-                    {editingLinkId === link.id ? (
-                      <div className="space-y-2">
-                        <input
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          className="w-full border rounded-md px-2 py-1 text-sm"
-                          placeholder="Link title"
-                        />
-                        <input
-                          value={editUrl}
-                          onChange={(e) => setEditUrl(e.target.value)}
-                          className="w-full border rounded-md px-2 py-1 text-sm"
-                          placeholder="https://example.com"
-                        />
-                        <div className="flex justify-end gap-2">
-                          <Button size="sm" variant="outline" onClick={() => setEditingLinkId(null)}>Cancel</Button>
-                          <Button size="sm" onClick={() => handleSaveLink(link.id)}><Check className="w-4 h-4 mr-1" />Save</Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between gap-3">
-                        <button onClick={() => handleToggleLink(link.id)} className={`text-xs px-2 py-1 rounded ${link.active ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
-                          {link.active ? "Visible" : "Hidden"}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{link.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">{link.url}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => handleEditLink(link)}><Pencil className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDeleteLink(link.id)}><Trash2 className="w-4 h-4" /></Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[650px] flex items-start justify-center min-h-0 mx-auto">
+          <div className="w-full max-w-sm h-[600px] md:h-full md:max-h-[740px] flex items-start justify-center min-h-0 mx-auto">
             <div className="w-full h-full overflow-auto bg-card rounded-xl border shadow-lg border-border">
               <div
                 className="rounded-lg overflow-hidden p-2 min-h-[500px]"
@@ -587,14 +495,66 @@ function Page() {
                 >
                   <div className="absolute top-0 left-0 right-0 z-20 bg-transparent pointer-events-none">
                     <div className="flex items-center justify-between p-3 pointer-events-auto">
-                      <button
-                        onClick={() => setIsPageModalOpen(true)}
-                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <Menu
-                          className={`w-4 h-4 ${profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground"}`}
-                        />
-                      </button>
+                      <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+                        <DialogTrigger asChild>
+                          <button className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <Menu
+                              className={`w-4 h-4 ${profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground"}`}
+                            />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg">
+                          <DialogHeader>
+                            <DialogTitle>Edit profile</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-xs font-semibold mb-2">Profile Banner</label>
+                              <div className="relative">
+                                <div className="w-full h-24 bg-muted rounded-xl flex items-center justify-center overflow-hidden border border-border">
+                                  {profileData.bannerImage ? (
+                                    <img src={profileData.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">Upload banner</span>
+                                  )}
+                                </div>
+                                <input type="file" accept="image/*" onChange={handleBannerUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold mb-2">Profile Picture</label>
+                              <div className="relative w-20 h-20">
+                                <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center overflow-hidden border border-border">
+                                  {profileData.profilePicture ? (
+                                    <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <User className="w-5 h-5 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold mb-2">Display Name</label>
+                              <input
+                                type="text"
+                                value={profileData.displayName}
+                                onChange={(e) => setProfileData((prev) => ({ ...prev, displayName: e.target.value }))}
+                                className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold mb-2">Bio</label>
+                              <textarea
+                                value={profileData.bio}
+                                onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
+                                rows={3}
+                                className="w-full bg-muted/40 border border-border/50 rounded-lg px-3 py-2 text-sm resize-none"
+                              />
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <button
                         onClick={() => setIsShareModalOpen(true)}
                         className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
@@ -650,57 +610,142 @@ function Page() {
                         <p className={`${theme.iconClass} text-sm mt-2`}>
                           {profileData.bio}
                         </p>
-                        {socialLinks.filter((link) => link.active).length >
-                          0 && (
-                          <div className="flex justify-center gap-3 mt-4">
-                            {socialLinks
-                              .filter((link) => link.active)
-                              .map((social) => (
-                                <a
-                                  key={social.id}
-                                  href={social.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="w-8 h-8 flex items-center justify-center rounded-full border border-border hover:bg-muted/50 transition-colors"
-                                >
-                                  <img
-                                    src={
-                                      social.thumbnail ||
-                                      "/images/pages/website.svg"
-                                    }
-                                    alt={social.platform}
-                                    className="w-4 h-4 object-contain"
+                        <div className="flex justify-center gap-3 mt-4 flex-wrap items-center">
+                          {socialLinks
+                            .filter((link) => link.active)
+                            .map((social) => (
+                              <a
+                                key={social.id}
+                                href={social.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-border hover:bg-muted/50 transition-colors"
+                              >
+                                <img
+                                  src={
+                                    social.thumbnail ||
+                                    "/images/pages/website.svg"
+                                  }
+                                  alt={social.platform}
+                                  className="w-4 h-4 object-contain"
+                                />
+                              </a>
+                            ))}
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setIsSocialModalOpen(true)}
+                            className="w-8 h-8 rounded-full"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <Dialog
+                          open={isSocialModalOpen}
+                          onOpenChange={setIsSocialModalOpen}
+                        >
+                          <DialogContent className="sm:max-w-lg">
+                            <DialogHeader>
+                              <DialogTitle>Social links</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-3 max-h-[60vh] overflow-auto pr-1">
+                              {socialLinks.map((social) => (
+                                <div key={social.id} className="border rounded-lg p-3 space-y-2">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                      <img src={social.thumbnail} alt={social.platform} className="w-4 h-4 object-contain" />
+                                      <span className="text-sm font-medium">{social.platform}</span>
+                                    </div>
+                                    {social.active ? (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleSocialLinkChange(social.id, { active: false })}
+                                      >
+                                        <X className="w-4 h-4 mr-1" /> Remove
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleAddSocialPlatform(social.id)}
+                                      >
+                                        <Plus className="w-4 h-4 mr-1" /> Add
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <input
+                                    value={social.url || ""}
+                                    onChange={(e) => handleSocialLinkChange(social.id, { url: e.target.value })}
+                                    disabled={!social.active}
+                                    placeholder={`${social.platform} URL`}
+                                    className="w-full border rounded-md px-2 py-1.5 text-sm disabled:opacity-50"
                                   />
-                                </a>
+                                </div>
                               ))}
-                          </div>
-                        )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                     </div>
 
                     <div className="w-full mt-4 space-y-5">
                       <div className="space-y-3">
-                        {links
-                          .filter((link) => link.active)
-                          .map((link) => (
-                            <a
-                              key={link.id}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`w-full flex items-center justify-start gap-3 border transition-colors cursor-pointer h-auto p-4 rounded-lg text-base ${theme.buttonClass}`}
-                            >
-                              <img
-                                src={link.thumbnail}
-                                alt={link.title}
-                                className="w-5 h-5 object-contain"
-                                onError={(e) => {
-                                  e.currentTarget.src = "/images/pages/website.svg";
-                                }}
-                              />
-                              <span className="font-medium">{link.title}</span>
-                            </a>
-                          ))}
+                        {links.map((link) => (
+                          <div
+                            key={link.id}
+                            className={`w-full border h-auto p-4 rounded-lg text-base ${theme.buttonClass}`}
+                          >
+                            {editingLinkId === link.id ? (
+                              <div className="space-y-2">
+                                <input
+                                  value={editTitle}
+                                  onChange={(e) => setEditTitle(e.target.value)}
+                                  className="w-full border rounded-md px-2 py-1 text-sm"
+                                  placeholder="Link title"
+                                />
+                                <input
+                                  value={editUrl}
+                                  onChange={(e) => setEditUrl(e.target.value)}
+                                  className="w-full border rounded-md px-2 py-1 text-sm"
+                                  placeholder="https://example.com"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button size="sm" variant="outline" onClick={() => setEditingLinkId(null)}>Cancel</Button>
+                                  <Button size="sm" onClick={() => handleSaveLink(link.id)}><Check className="w-4 h-4 mr-1" />Save</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between gap-3">
+                                <a
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-start gap-3 min-w-0 flex-1"
+                                >
+                                  <img
+                                    src={link.thumbnail}
+                                    alt={link.title}
+                                    className="w-5 h-5 object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "/images/pages/website.svg";
+                                    }}
+                                  />
+                                  <span className="font-medium truncate">{link.title}</span>
+                                </a>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button size="icon" variant="ghost" onClick={() => handleToggleLink(link.id)}>
+                                    <span className="text-[10px] font-semibold">{link.active ? "ON" : "OFF"}</span>
+                                  </Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleEditLink(link)}><Pencil className="w-4 h-4" /></Button>
+                                  <Button size="icon" variant="ghost" onClick={() => handleDeleteLink(link.id)}><Trash2 className="w-4 h-4" /></Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        <Button size="sm" onClick={handleAddLink} className="w-full">
+                          <Plus className="w-4 h-4 mr-1" /> Add Link
+                        </Button>
                       </div>
 
                       <div className="space-y-3 border-t pt-4">
@@ -761,10 +806,6 @@ function Page() {
                     <Watermark />
                   </CardContent>
                 </Card>
-                <MiniPageModal
-                  isOpen={isPageModalOpen}
-                  onClose={() => setIsPageModalOpen(false)}
-                />
                 <ShareModal
                   isOpen={isShareModalOpen}
                   onClose={() => setIsShareModalOpen(false)}
