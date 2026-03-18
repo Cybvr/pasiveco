@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview';
+import { getSocialPosts, getSocialProfileByUsername } from '@/lib/social-data';
 import { getUserProfileByUsername } from '@/services/userProfilesService';
 
 export default function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -67,6 +68,8 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   }, [params]);
 
   const links = profileData?.links || [];
+  const socialProfile = slug ? getSocialProfileByUsername(slug) : null;
+  const posts = socialProfile ? getSocialPosts().filter((post) => post.authorId === socialProfile.id) : [];
 
   if (loading) {
     return (
@@ -108,7 +111,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   return (
     <div className="min-h-screen p-2 bg-background">
       <div className="max-w-md mx-auto">
-        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId ?? undefined} />
+        <BioPagePreview profileData={profileData} links={links} profileOwnerId={profileOwnerId ?? undefined} posts={posts} />
       </div>
     </div>
   );

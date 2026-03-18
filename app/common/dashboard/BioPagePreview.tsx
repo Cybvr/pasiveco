@@ -1,4 +1,5 @@
 import React from "react"
+import Link from 'next/link'
 import { User, Package, Menu, Share2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,13 +39,22 @@ interface CustomLink {
   ctr: number
 }
 
+interface PublicPost {
+  id: string
+  message: string
+  createdAt: string
+  likeCount: number
+  commentCount: number
+}
+
 interface BioPagePreviewProps {
   profileData: ProfileData
   links: CustomLink[]
   profileOwnerId?: string
+  posts?: PublicPost[]
 }
 
-const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId }) => {
+const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId, posts = [] }) => {
   const { user } = useAuth()
   const [isPageModalOpen, setIsPageModalOpen] = React.useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
@@ -123,6 +133,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
               <TabsList className="flex items-center justify-center w-full gap-1 border-none">
                 <TabsTrigger value="links" className="flex items-center gap-2 py-2 px-4 rounded-lg text-base border border-border text-foreground">Links</TabsTrigger>
                 <TabsTrigger value="shop" className="flex items-center gap-2 py-2 px-4 rounded-lg text-base border border-border text-foreground">Shop</TabsTrigger>
+                <TabsTrigger value="posts" className="flex items-center gap-2 py-2 px-4 rounded-lg text-base border border-border text-foreground">Posts</TabsTrigger>
               </TabsList>
 
               <TabsContent value="links" className="mt-4">
@@ -183,6 +194,29 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                     ))
                   ) : (
                     <div className="text-center py-4 text-muted-foreground text-sm">No products available</div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="posts" className="mt-4">
+                <div className="space-y-3">
+                  {posts.length > 0 ? (
+                    posts.map((post) => (
+                      <Link
+                        key={post.id}
+                        href={`/dashboard/posts/${post.id}`}
+                        className="block rounded-lg border border-border p-4 text-left transition-colors hover:bg-muted/50"
+                      >
+                        <p className="text-sm font-medium text-foreground line-clamp-3">{post.message}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(post.createdAt))} · {post.likeCount} likes · {post.commentCount} comments
+                        </p>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                      No posts yet.
+                    </div>
                   )}
                 </div>
               </TabsContent>
