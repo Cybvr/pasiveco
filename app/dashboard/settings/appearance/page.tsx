@@ -30,7 +30,7 @@ export default function AppearancePage() {
     setMounted(true)
   }, [])
 
-  const activeTheme = mounted ? theme : 'light'
+  const activeTheme = mounted ? theme : 'dark'
 
   return (
     <div className="max-w-3xl space-y-4">

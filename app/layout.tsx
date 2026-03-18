@@ -1,5 +1,5 @@
 // app/layout.tsx
-import { IBM_Plex_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import ClientLayout from './ClientLayout';
@@ -9,10 +9,10 @@ import Script from 'next/script';
 import MobileFooter from '@/app/common/website/MobileFooter';
 import { headers } from 'next/headers';
 
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const geistSans = localFont({
+  src: '../public/font/GeistVF.ttf',
   display: 'swap',
+  variable: '--font-geist-sans',
 });
 
 export const metadata: Metadata = {
@@ -76,10 +76,10 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${ibmPlexSans.className} antialiased`}>
+      <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem={false}
           disableTransitionOnChange={false}
         >
