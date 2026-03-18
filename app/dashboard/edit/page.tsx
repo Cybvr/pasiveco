@@ -478,8 +478,6 @@ function Page() {
       <main className="flex-1 flex flex-col md:flex-row md:h-[calc(100vh-3.5rem)] overflow-auto md:overflow-hidden min-h-0">
         <div className="w-full md:w-64 md:h-full overflow-visible md:overflow-hidden min-h-0 shrink-0">
           <BioMode
-            socialLinks={socialLinks}
-            setSocialLinks={setSocialLinks}
             saveProfile={saveProfile}
           />
         </div>
