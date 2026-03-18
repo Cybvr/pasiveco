@@ -1,27 +1,26 @@
 'use client'
 
-import { FormEvent } from 'react'
+import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { createSocialPost } from '@/lib/social-data'
-import { useState } from 'react'
 
 export default function NewPostPage() {
   const router = useRouter()
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const trimmedMessage = message.trim()
     if (!trimmedMessage) return
 
     setIsSubmitting(true)
-    const newPost = createSocialPost(trimmedMessage, 'viewer-me')
+    const newPost = await createSocialPost(trimmedMessage, 'viewer-me')
     router.push(`/dashboard/posts/${newPost.id}`)
   }
 
@@ -34,7 +33,7 @@ export default function NewPostPage() {
         </Link>
       </Button>
 
-      <form onSubmit={handleSubmit} className="rounded-2xl border bg-card p-4">
+      <form onSubmit={(event) => void handleSubmit(event)} className="rounded-2xl border bg-card p-4">
         <label htmlFor="new-post-message" className="sr-only">
           Message
         </label>

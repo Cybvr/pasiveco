@@ -1,18 +1,36 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getSocialCategories, getSocialProfiles } from '@/lib/social-data'
+import { getSocialCategories, getSocialProfiles, type SocialProfile } from '@/lib/social-data'
 
 export default function DiscoveryPage() {
   const [activeCategory, setActiveCategory] = useState('All')
-  const creators = useMemo(() => getSocialProfiles().filter((profile) => profile.id !== 'viewer-me'), [])
-  const categories = useMemo(() => ['All', ...getSocialCategories()], [])
+  const [creators, setCreators] = useState<SocialProfile[]>([])
+  const [categories, setCategories] = useState<string[]>(['All'])
 
-  const filteredCreators = creators.filter(
-    (creator) => activeCategory === 'All' || creator.category === activeCategory,
+  useEffect(() => {
+    let active = true
+
+    const loadDiscovery = async () => {
+      const [profiles, categoryList] = await Promise.all([getSocialProfiles(), getSocialCategories()])
+      if (!active) return
+      setCreators(profiles.filter((profile) => profile.id !== 'viewer-me'))
+      setCategories(['All', ...categoryList])
+    }
+
+    void loadDiscovery()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const filteredCreators = useMemo(
+    () => creators.filter((creator) => activeCategory === 'All' || creator.category === activeCategory),
+    [activeCategory, creators],
   )
 
   return (

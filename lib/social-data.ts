@@ -1,4 +1,17 @@
 import { discoverUsers } from '@/app/data/deluserData'
+import { db } from '@/lib/firebase'
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore'
 
 export interface SocialLinkItem {
   id: string
@@ -63,8 +76,36 @@ export interface SocialThread {
   messages: SocialMessage[]
 }
 
+export interface SocialThreadWithParticipant extends SocialThread {
+  participant: SocialProfile
+  lastMessage: SocialMessage
+}
+
+interface SocialPostDocument {
+  authorId: string
+  message: string
+  createdAt: string
+  category: string
+  baseLikeCount: number
+  likedByUserIds?: string[]
+  comments?: SocialComment[]
+}
+
+interface SocialThreadDocument {
+  participantId: string
+  messages?: SocialMessage[]
+}
+
+const SOCIAL_META_COLLECTION = 'socialMeta'
+const SOCIAL_META_DOCUMENT = 'default'
+const SOCIAL_PROFILES_COLLECTION = 'socialProfiles'
+const SOCIAL_POSTS_COLLECTION = 'socialPosts'
+const SOCIAL_THREADS_COLLECTION = 'socialThreads'
+const SOCIAL_SEED_VERSION = 1
+const viewerProfileId = 'viewer-me'
+
 const viewerProfile: SocialProfile = {
-  id: 'viewer-me',
+  id: viewerProfileId,
   name: 'You',
   handle: '@you',
   username: 'you',
@@ -173,7 +214,7 @@ const basePostMeta: Record<string, { likeCount: number; comments: SocialComment[
   'ava-brooks-post-2': { likeCount: 86, comments: [] },
   'jordan-lee-post-1': { likeCount: 98, comments: [{ id: 'comment-2', authorId: 'c5', authorName: 'Ananya Patel', authorHandle: '@ananyadaily', authorImage: 'https://i.pravatar.cc/200?img=32', message: 'Volume and consistency is the whole formula honestly.', createdAt: '2025-03-16T08:45:00.000Z' }] },
   'jordan-lee-post-2': { likeCount: 72, comments: [] },
-  'sofia-kim-post-1': { likeCount: 111, comments: [{ id: 'comment-3', authorId: 'viewer-me', authorName: 'You', authorHandle: '@you', authorImage: viewerProfile.image, message: 'Love lighter routines for everyday camera days.', createdAt: '2025-03-15T17:05:00.000Z' }] },
+  'sofia-kim-post-1': { likeCount: 111, comments: [{ id: 'comment-3', authorId: viewerProfileId, authorName: 'You', authorHandle: '@you', authorImage: viewerProfile.image, message: 'Love lighter routines for everyday camera days.', createdAt: '2025-03-15T17:05:00.000Z' }] },
   'sofia-kim-post-2': { likeCount: 91, comments: [] },
   'marcus-hill-post-1': { likeCount: 77, comments: [] },
   'marcus-hill-post-2': { likeCount: 68, comments: [] },
@@ -189,7 +230,7 @@ const baseThreads: SocialThread[] = [
     participantId: 'c1',
     messages: [
       { id: 'msg-c1-1', senderId: 'c1', text: 'Want to swap creator rates for a spring campaign?', createdAt: '2025-03-16T11:18:00.000Z' },
-      { id: 'msg-c1-2', senderId: 'viewer-me', text: 'Yes, send your brief and deliverables.', createdAt: '2025-03-16T11:22:00.000Z' },
+      { id: 'msg-c1-2', senderId: viewerProfileId, text: 'Yes, send your brief and deliverables.', createdAt: '2025-03-16T11:22:00.000Z' },
     ],
   },
   {
@@ -197,7 +238,7 @@ const baseThreads: SocialThread[] = [
     participantId: 'c5',
     messages: [
       { id: 'msg-c5-1', senderId: 'c5', text: 'Your latest post would fit our cozy-home roundup.', createdAt: '2025-03-15T19:04:00.000Z' },
-      { id: 'msg-c5-2', senderId: 'viewer-me', text: 'I am in. Happy to share a few images too.', createdAt: '2025-03-15T19:20:00.000Z' },
+      { id: 'msg-c5-2', senderId: viewerProfileId, text: 'I am in. Happy to share a few images too.', createdAt: '2025-03-15T19:20:00.000Z' },
     ],
   },
   {
@@ -209,194 +250,276 @@ const baseThreads: SocialThread[] = [
   },
 ]
 
-const customPostsStorageKey = 'pasiveco-social-posts'
-const socialStateStorageKey = 'pasiveco-social-state'
+let seedPromise: Promise<void> | null = null
 
-interface SocialState {
-  likesByPostId: Record<string, boolean>
-  commentsByPostId: Record<string, SocialComment[]>
-  threadsByParticipantId: Record<string, SocialMessage[]>
+function profileCollection() {
+  return collection(db, SOCIAL_PROFILES_COLLECTION)
 }
 
-function getState(): SocialState {
-  if (typeof window === 'undefined') {
-    return { likesByPostId: {}, commentsByPostId: {}, threadsByParticipantId: {} }
-  }
-
-  try {
-    const stored = window.localStorage.getItem(socialStateStorageKey)
-    if (!stored) return { likesByPostId: {}, commentsByPostId: {}, threadsByParticipantId: {} }
-    return { likesByPostId: {}, commentsByPostId: {}, threadsByParticipantId: {}, ...JSON.parse(stored) }
-  } catch {
-    return { likesByPostId: {}, commentsByPostId: {}, threadsByParticipantId: {} }
-  }
+function postsCollection() {
+  return collection(db, SOCIAL_POSTS_COLLECTION)
 }
 
-function saveState(state: SocialState) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(socialStateStorageKey, JSON.stringify(state))
+function threadsCollection() {
+  return collection(db, SOCIAL_THREADS_COLLECTION)
 }
 
-export function getSocialProfiles() {
-  return [viewerProfile, ...baseProfiles]
+function socialMetaRef() {
+  return doc(db, SOCIAL_META_COLLECTION, SOCIAL_META_DOCUMENT)
 }
 
-export function getSocialProfileById(profileId: string) {
-  return getSocialProfiles().find((profile) => profile.id === profileId)
+function normalizeComments(comments?: SocialComment[]) {
+  return Array.isArray(comments)
+    ? [...comments].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    : []
 }
 
-export function getSocialProfileByUsername(username: string) {
-  return getSocialProfiles().find((profile) => profile.username === username || profile.handle.replace(/^@/, '') === username)
-}
+function hydrateSocialPost(postId: string, data: SocialPostDocument, currentViewerId = viewerProfileId): SocialPost {
+  const likedByUserIds = Array.isArray(data.likedByUserIds) ? data.likedByUserIds : []
+  const comments = normalizeComments(data.comments)
 
-export function getSocialCategories() {
-  return Array.from(new Set(baseProfiles.map((profile) => profile.category)))
-}
-
-function getCustomPosts(): Array<Omit<SocialPost, 'likeCount' | 'commentCount' | 'likedByMe' | 'comments'>> {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const stored = window.localStorage.getItem(customPostsStorageKey)
-    const parsed = stored ? JSON.parse(stored) : []
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
+  return {
+    id: postId,
+    authorId: data.authorId,
+    message: data.message,
+    createdAt: data.createdAt,
+    category: data.category,
+    likeCount: (data.baseLikeCount || 0) + likedByUserIds.length,
+    commentCount: comments.length,
+    likedByMe: likedByUserIds.includes(currentViewerId),
+    comments,
   }
 }
 
-export function createSocialPost(message: string, authorId: string) {
-  const newPost = {
-    id: `post-${Date.now()}`,
-    authorId,
-    message,
-    createdAt: new Date().toISOString(),
-    category: getSocialProfileById(authorId)?.category || 'Creator',
+async function seedSocialData() {
+  const metaSnapshot = await getDoc(socialMetaRef())
+  if (metaSnapshot.exists() && metaSnapshot.data()?.seedVersion === SOCIAL_SEED_VERSION) {
+    return
   }
 
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(customPostsStorageKey, JSON.stringify([newPost, ...getCustomPosts()]))
+  const batch = writeBatch(db)
+
+  for (const profile of [viewerProfile, ...baseProfiles]) {
+    batch.set(doc(db, SOCIAL_PROFILES_COLLECTION, profile.id), profile, { merge: true })
   }
 
-  return newPost
-}
-
-export function getSocialPosts() {
-  const state = getState()
-  const basePosts = baseProfiles.flatMap((profile) => {
+  for (const profile of baseProfiles) {
     const sourceUser = discoverUsers.find((user) => user.id === profile.id)
-    return (sourceUser?.posts || []).map((post) => {
+    for (const post of sourceUser?.posts || []) {
       const meta = basePostMeta[post.id] || { likeCount: 0, comments: [] }
-      const extraComments = state.commentsByPostId[post.id] || []
-      const likedByMe = Boolean(state.likesByPostId[post.id])
-      const comments = [...meta.comments, ...extraComments].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
-
-      return {
-        id: post.id,
+      batch.set(doc(db, SOCIAL_POSTS_COLLECTION, post.id), {
         authorId: profile.id,
         message: post.message,
         createdAt: post.createdAt,
         category: profile.category,
-        likeCount: meta.likeCount + (likedByMe ? 1 : 0),
-        commentCount: comments.length,
-        likedByMe,
-        comments,
-      }
-    })
-  })
-
-  const customPosts = getCustomPosts().map((post) => {
-    const comments = state.commentsByPostId[post.id] || []
-    const likedByMe = Boolean(state.likesByPostId[post.id])
-    return {
-      ...post,
-      likeCount: likedByMe ? 1 : 0,
-      commentCount: comments.length,
-      likedByMe,
-      comments,
+        baseLikeCount: meta.likeCount,
+        likedByUserIds: [],
+        comments: meta.comments,
+      })
     }
-  })
-
-  return [...customPosts, ...basePosts].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  )
-}
-
-export function getSocialPostById(postId: string) {
-  return getSocialPosts().find((post) => post.id === postId)
-}
-
-export function togglePostLike(postId: string) {
-  const state = getState()
-  state.likesByPostId[postId] = !state.likesByPostId[postId]
-  saveState(state)
-  return getSocialPostById(postId)
-}
-
-export function addPostComment(postId: string, message: string, authorId = viewerProfile.id) {
-  const author = getSocialProfileById(authorId) || viewerProfile
-  const state = getState()
-  const nextComment: SocialComment = {
-    id: `comment-${Date.now()}`,
-    authorId: author.id,
-    authorName: author.name,
-    authorHandle: author.handle,
-    authorImage: author.image,
-    message,
-    createdAt: new Date().toISOString(),
   }
 
-  state.commentsByPostId[postId] = [...(state.commentsByPostId[postId] || []), nextComment]
-  saveState(state)
-  return getSocialPostById(postId)
+  for (const thread of baseThreads) {
+    batch.set(doc(db, SOCIAL_THREADS_COLLECTION, thread.id), thread, { merge: true })
+  }
+
+  batch.set(socialMetaRef(), {
+    seedVersion: SOCIAL_SEED_VERSION,
+    seededAt: serverTimestamp(),
+  }, { merge: true })
+
+  await batch.commit()
 }
 
-export function getMessageThreads() {
-  const state = getState()
+export async function seedSocialDataIfNeeded() {
+  if (!seedPromise) {
+    seedPromise = seedSocialData().catch((error) => {
+      seedPromise = null
+      throw error
+    })
+  }
 
-  return baseThreads
-    .map((thread) => {
-      const participant = getSocialProfileById(thread.participantId)
-      const storedMessages = state.threadsByParticipantId[thread.participantId] || []
-      const messages = [...thread.messages, ...storedMessages].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
+  return seedPromise
+}
+
+export async function getSocialProfiles() {
+  await seedSocialDataIfNeeded()
+  const snapshot = await getDocs(query(profileCollection(), orderBy('name', 'asc')))
+  const profiles = snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as SocialProfile))
+  const viewer = profiles.find((profile) => profile.id === viewerProfileId)
+  const others = profiles.filter((profile) => profile.id !== viewerProfileId)
+  return viewer ? [viewer, ...others] : others
+}
+
+export async function getSocialProfileById(profileId: string) {
+  await seedSocialDataIfNeeded()
+  const snapshot = await getDoc(doc(db, SOCIAL_PROFILES_COLLECTION, profileId))
+  return snapshot.exists() ? ({ id: snapshot.id, ...snapshot.data() } as SocialProfile) : undefined
+}
+
+export async function getSocialProfileByUsername(username: string) {
+  const normalizedUsername = username.replace(/^@/, '')
+  const profiles = await getSocialProfiles()
+  return profiles.find((profile) => profile.username === normalizedUsername || profile.handle.replace(/^@/, '') === normalizedUsername)
+}
+
+export async function getSocialCategories() {
+  const profiles = await getSocialProfiles()
+  return Array.from(new Set(profiles.filter((profile) => profile.id !== viewerProfileId).map((profile) => profile.category)))
+}
+
+export async function createSocialPost(message: string, authorId: string) {
+  await seedSocialDataIfNeeded()
+  const author = await getSocialProfileById(authorId)
+  const newPost: SocialPostDocument = {
+    authorId,
+    message,
+    createdAt: new Date().toISOString(),
+    category: author?.category || 'Creator',
+    baseLikeCount: 0,
+    likedByUserIds: [],
+    comments: [],
+  }
+
+  const postId = `post-${Date.now()}`
+  await setDoc(doc(db, SOCIAL_POSTS_COLLECTION, postId), newPost)
+  return hydrateSocialPost(postId, newPost)
+}
+
+export async function getSocialPosts(currentViewerId = viewerProfileId) {
+  await seedSocialDataIfNeeded()
+  const snapshot = await getDocs(query(postsCollection(), orderBy('createdAt', 'desc')))
+  return snapshot.docs.map((item) => hydrateSocialPost(item.id, item.data() as SocialPostDocument, currentViewerId))
+}
+
+export async function getSocialPostById(postId: string, currentViewerId = viewerProfileId) {
+  await seedSocialDataIfNeeded()
+  const snapshot = await getDoc(doc(db, SOCIAL_POSTS_COLLECTION, postId))
+  return snapshot.exists() ? hydrateSocialPost(snapshot.id, snapshot.data() as SocialPostDocument, currentViewerId) : undefined
+}
+
+export async function togglePostLike(postId: string, currentViewerId = viewerProfileId) {
+  await seedSocialDataIfNeeded()
+
+  return runTransaction(db, async (transaction) => {
+    const postRef = doc(db, SOCIAL_POSTS_COLLECTION, postId)
+    const snapshot = await transaction.get(postRef)
+
+    if (!snapshot.exists()) {
+      return undefined
+    }
+
+    const data = snapshot.data() as SocialPostDocument
+    const likedByUserIds = Array.isArray(data.likedByUserIds) ? [...data.likedByUserIds] : []
+    const currentIndex = likedByUserIds.indexOf(currentViewerId)
+
+    if (currentIndex >= 0) {
+      likedByUserIds.splice(currentIndex, 1)
+    } else {
+      likedByUserIds.push(currentViewerId)
+    }
+
+    transaction.update(postRef, { likedByUserIds })
+
+    return hydrateSocialPost(snapshot.id, { ...data, likedByUserIds }, currentViewerId)
+  })
+}
+
+export async function addPostComment(postId: string, message: string, authorId = viewerProfileId) {
+  await seedSocialDataIfNeeded()
+  const author = (await getSocialProfileById(authorId)) || viewerProfile
+
+  return runTransaction(db, async (transaction) => {
+    const postRef = doc(db, SOCIAL_POSTS_COLLECTION, postId)
+    const snapshot = await transaction.get(postRef)
+
+    if (!snapshot.exists()) {
+      return undefined
+    }
+
+    const data = snapshot.data() as SocialPostDocument
+    const nextComment: SocialComment = {
+      id: `comment-${Date.now()}`,
+      authorId: author.id,
+      authorName: author.name,
+      authorHandle: author.handle,
+      authorImage: author.image,
+      message,
+      createdAt: new Date().toISOString(),
+    }
+
+    const comments = [...normalizeComments(data.comments), nextComment]
+    transaction.update(postRef, { comments })
+
+    return hydrateSocialPost(snapshot.id, { ...data, comments })
+  })
+}
+
+export async function getMessageThreads(): Promise<SocialThreadWithParticipant[]> {
+  await seedSocialDataIfNeeded()
+  const [threadSnapshot, profiles] = await Promise.all([
+    getDocs(threadsCollection()),
+    getSocialProfiles(),
+  ])
+  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]))
+
+  return threadSnapshot.docs
+    .map<SocialThreadWithParticipant | null>((item) => {
+      const data = item.data() as SocialThreadDocument
+      const participant = profileMap.get(data.participantId)
+      const messages = Array.isArray(data.messages)
+        ? [...data.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        : []
       const lastMessage = messages[messages.length - 1]
 
-      return participant
-        ? {
-            ...thread,
-            participant,
-            messages,
-            lastMessage,
-          }
-        : null
+      if (!participant || !lastMessage) {
+        return null
+      }
+
+      return {
+        id: item.id,
+        participantId: data.participantId,
+        participant,
+        messages,
+        lastMessage,
+      }
     })
-    .filter(Boolean)
-    .sort((a, b) => new Date(b!.lastMessage.createdAt).getTime() - new Date(a!.lastMessage.createdAt).getTime())
+    .filter((thread): thread is SocialThreadWithParticipant => Boolean(thread))
+    .sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime())
 }
 
-export function getThreadForProfile(profileId: string) {
-  return getMessageThreads().find((thread) => thread?.participantId === profileId) || null
+export async function getThreadForProfile(profileId: string) {
+  const threads = await getMessageThreads()
+  return threads.find((thread) => thread?.participantId === profileId) || null
 }
 
-export function sendMessage(profileId: string, text: string) {
+export async function sendMessage(profileId: string, text: string) {
+  await seedSocialDataIfNeeded()
   const trimmedText = text.trim()
   if (!trimmedText) return getThreadForProfile(profileId)
 
-  const state = getState()
-  const nextMessage: SocialMessage = {
-    id: `message-${Date.now()}`,
-    senderId: viewerProfile.id,
-    text: trimmedText,
-    createdAt: new Date().toISOString(),
-  }
+  return runTransaction(db, async (transaction) => {
+    const threadRef = doc(db, SOCIAL_THREADS_COLLECTION, `thread-${profileId}`)
+    const snapshot = await transaction.get(threadRef)
+    const data = snapshot.exists()
+      ? (snapshot.data() as SocialThreadDocument)
+      : { participantId: profileId, messages: [] }
 
-  state.threadsByParticipantId[profileId] = [...(state.threadsByParticipantId[profileId] || []), nextMessage]
-  saveState(state)
-  return getThreadForProfile(profileId)
+    const nextMessage: SocialMessage = {
+      id: `message-${Date.now()}`,
+      senderId: viewerProfileId,
+      text: trimmedText,
+      createdAt: new Date().toISOString(),
+    }
+
+    const messages = [...(Array.isArray(data.messages) ? data.messages : []), nextMessage]
+    transaction.set(threadRef, {
+      participantId: profileId,
+      messages,
+    }, { merge: true })
+
+    return null
+  }).then(() => getThreadForProfile(profileId))
 }
 
 export function formatSocialDate(dateValue: string, options?: Intl.DateTimeFormatOptions) {

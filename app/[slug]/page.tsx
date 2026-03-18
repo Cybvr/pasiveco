@@ -8,6 +8,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   const [slug, setSlug] = useState<string>('');
   const [profileData, setProfileData] = useState<any>(null);
   const [profileOwnerId, setProfileOwnerId] = useState<string | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,26 +17,22 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
       const resolvedParams = await params;
       const slug = resolvedParams.slug;
       
-      console.log('Slug:', slug);
-      
       setSlug(slug);
 
-      // Check if the slug indicates a product route
       if (slug?.startsWith('product/')) {
         const productId = slug.split('/')[1];
-        // Render the ProductPage component directly if it's a product route
-        // This assumes ProductPage is designed to handle a productId prop or fetch data internally
-        // For simplicity, we'll just redirect here, but a more integrated solution would involve conditional rendering
         window.location.href = `/product/${productId}`;
         return;
       }
 
       try {
-        console.log('Searching for username:', slug);
-        const firebaseProfile = await getUserProfileByUsername(slug);
+        const [firebaseProfile, socialProfile, socialPosts] = await Promise.all([
+          getUserProfileByUsername(slug),
+          getSocialProfileByUsername(slug),
+          getSocialPosts(),
+        ]);
 
         if (firebaseProfile) {
-          console.log('Found profile:', firebaseProfile);
           setProfileData({
             username: firebaseProfile.username,
             displayName: firebaseProfile.displayName,
@@ -47,17 +44,37 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
             appearance: firebaseProfile.appearance
           });
           setProfileOwnerId(firebaseProfile.userId);
+          setPosts(socialProfile ? socialPosts.filter((post) => post.authorId === socialProfile.id) : []);
           setError(null);
-        } else {
-          console.log('No profile found for username:', slug);
-          setProfileData(null);
-          setProfileOwnerId(null);
-          setError('Profile not found');
+          return;
         }
+
+        if (socialProfile) {
+          setProfileData({
+            username: socialProfile.username,
+            displayName: socialProfile.name,
+            bio: socialProfile.bio,
+            profilePicture: socialProfile.image,
+            bannerImage: null,
+            links: socialProfile.links || [],
+            socialLinks: [],
+            appearance: undefined,
+          });
+          setProfileOwnerId(socialProfile.id);
+          setPosts(socialPosts.filter((post) => post.authorId === socialProfile.id));
+          setError(null);
+          return;
+        }
+
+        setProfileData(null);
+        setProfileOwnerId(null);
+        setPosts([]);
+        setError('Profile not found');
       } catch (error) {
         console.error('Error fetching profile:', error);
         setProfileData(null);
         setProfileOwnerId(null);
+        setPosts([]);
         setError(error instanceof Error ? error.message : 'Failed to load profile');
       } finally {
         setLoading(false);
@@ -68,8 +85,6 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
   }, [params]);
 
   const links = profileData?.links || [];
-  const socialProfile = slug ? getSocialProfileByUsername(slug) : null;
-  const posts = socialProfile ? getSocialPosts().filter((post) => post.authorId === socialProfile.id) : [];
 
   if (loading) {
     return (

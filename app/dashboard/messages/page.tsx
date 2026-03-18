@@ -8,20 +8,36 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { formatSocialDate, getMessageThreads, sendMessage } from '@/lib/social-data'
+import { formatSocialDate, getMessageThreads, sendMessage, type SocialThreadWithParticipant } from '@/lib/social-data'
 
 export default function MessagesPage() {
   const searchParams = useSearchParams()
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState('')
-  const [threads, setThreads] = useState(() => getMessageThreads())
+  const [threads, setThreads] = useState<SocialThreadWithParticipant[]>([])
+  const [loading, setLoading] = useState(true)
   const requestedUser = searchParams.get('user')
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(requestedUser)
 
   useEffect(() => {
-    const nextThreads = getMessageThreads()
-    setThreads(nextThreads)
-    setSelectedThreadId(requestedUser || nextThreads[0]?.participantId || null)
+    let active = true
+
+    const loadThreads = async () => {
+      try {
+        const nextThreads = await getMessageThreads()
+        if (!active) return
+        setThreads(nextThreads)
+        setSelectedThreadId(requestedUser || nextThreads[0]?.participantId || null)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void loadThreads()
+
+    return () => {
+      active = false
+    }
   }, [requestedUser])
 
   const filteredThreads = useMemo(
@@ -35,14 +51,19 @@ export default function MessagesPage() {
 
   const activeThread = filteredThreads.find((thread) => thread?.participantId === selectedThreadId) || filteredThreads[0] || null
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!activeThread || !draft.trim()) return
 
-    const updatedThread = sendMessage(activeThread.participantId, draft)
+    const updatedThread = await sendMessage(activeThread.participantId, draft)
     setDraft('')
-    setThreads(getMessageThreads())
+    const nextThreads = await getMessageThreads()
+    setThreads(nextThreads)
     setSelectedThreadId(updatedThread?.participantId || activeThread.participantId)
+  }
+
+  if (loading) {
+    return <div className="rounded-2xl border bg-card p-4 text-sm text-muted-foreground">Loading messages...</div>
   }
 
   return (
@@ -57,19 +78,19 @@ export default function MessagesPage() {
           </CardHeader>
           <CardContent className="space-y-2 px-2 pb-2 sm:px-6 sm:pb-6">
             {filteredThreads.map((thread) => (
-              <button key={thread!.id} onClick={() => setSelectedThreadId(thread!.participantId)} className={`flex w-full items-start gap-2 rounded-lg border p-2.5 text-left hover:bg-accent/40 sm:gap-3 sm:p-3 ${selectedThreadId === thread!.participantId ? 'border-primary bg-accent/40' : ''}`}>
+              <button key={thread.id} onClick={() => setSelectedThreadId(thread.participantId)} className={`flex w-full items-start gap-2 rounded-lg border p-2.5 text-left hover:bg-accent/40 sm:gap-3 sm:p-3 ${selectedThreadId === thread.participantId ? 'border-primary bg-accent/40' : ''}`}>
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={thread!.participant.image} alt={thread!.participant.name} />
-                  <AvatarFallback>{thread!.participant.name.slice(0, 1)}</AvatarFallback>
+                  <AvatarImage src={thread.participant.image} alt={thread.participant.name} />
+                  <AvatarFallback>{thread.participant.name.slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium">{thread!.participant.name}</p>
-                    <span className="text-xs text-muted-foreground">{formatSocialDate(thread!.lastMessage.createdAt, { month: 'short', day: 'numeric' })}</span>
+                    <p className="truncate text-sm font-medium">{thread.participant.name}</p>
+                    <span className="text-xs text-muted-foreground">{formatSocialDate(thread.lastMessage.createdAt, { month: 'short', day: 'numeric' })}</span>
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">{thread!.lastMessage.text}</p>
+                  <p className="truncate text-xs text-muted-foreground">{thread.lastMessage.text}</p>
                 </div>
-                {thread!.messages.some((message) => message.senderId !== 'viewer-me') && <Badge variant="default">Live</Badge>}
+                {thread.messages.some((message) => message.senderId !== 'viewer-me') && <Badge variant="default">Live</Badge>}
               </button>
             ))}
           </CardContent>
@@ -86,7 +107,7 @@ export default function MessagesPage() {
               </div>
             ))}
             <div className="pt-2">
-              <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <form onSubmit={(event) => void handleSubmit(event)} className="flex items-center gap-2">
                 <Input placeholder="Type your message..." value={draft} onChange={(event) => setDraft(event.target.value)} />
                 <Button size="icon" aria-label="Send message" type="submit" disabled={!activeThread || !draft.trim()}>
                   <Send className="h-4 w-4" />
