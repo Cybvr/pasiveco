@@ -1,31 +1,59 @@
 'use client'
 
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { discoverUsers } from '@/app/data/deluserData'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getSocialCategories, getSocialProfiles } from '@/lib/social-data'
 
 export default function DiscoveryPage() {
+  const [activeCategory, setActiveCategory] = useState('All')
+  const creators = useMemo(() => getSocialProfiles().filter((profile) => profile.id !== 'viewer-me'), [])
+  const categories = useMemo(() => ['All', ...getSocialCategories()], [])
+
+  const filteredCreators = creators.filter(
+    (creator) => activeCategory === 'All' || creator.category === activeCategory,
+  )
+
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Discovery</h2>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-        {discoverUsers.map((creator) => (
-          <article key={creator.id} className="rounded-xl border bg-card p-3 sm:p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={creator.image} alt={creator.name} />
-                <AvatarFallback>{creator.name.slice(0, 1)}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{creator.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{creator.handle}</p>
+      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
+        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-xl bg-transparent p-0">
+          {categories.map((category) => (
+            <TabsTrigger key={category} value={category} className="rounded-full border px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              {category}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredCreators.map((creator) => (
+          <Link
+            key={creator.id}
+            href={`/dashboard/users/${creator.id}`}
+            className="rounded-xl border bg-card p-4 transition-colors hover:bg-accent/40"
+          >
+            <article className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={creator.image} alt={creator.name} />
+                  <AvatarFallback>{creator.name.slice(0, 1)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{creator.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{creator.handle}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <Badge variant="secondary" className="text-[11px] sm:text-xs">{creator.niche}</Badge>
-              <span className="text-[11px] text-muted-foreground sm:text-xs">{creator.posts.length} posts</span>
-            </div>
-          </article>
+
+              <p className="line-clamp-2 text-sm text-muted-foreground">{creator.bio}</p>
+
+              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span>{creator.location}</span>
+                <span>{creator.links.length} links · {creator.shop.length} offers</span>
+              </div>
+            </article>
+          </Link>
         ))}
       </div>
     </div>
