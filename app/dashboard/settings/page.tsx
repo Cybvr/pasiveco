@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins } from 'lucide-react'
+import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette } from 'lucide-react'
 import { getUserProfile } from "@/services/userProfilesService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -27,6 +27,7 @@ import { toast } from "@/hooks/use-toast"
 
 const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Account', icon: User },
+  { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },

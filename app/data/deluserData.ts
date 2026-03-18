@@ -102,9 +102,9 @@ export interface UsageStats {
 export const discoverUsers: DiscoverUserData[] = [
   {
     id: 'c1',
-    name: 'Ava Brooks',
+    name: 'Lin Xia',
     niche: 'Fashion',
-    handle: '@avabrooks',
+    handle: '@linxia',
     image: 'https://i.pravatar.cc/200?img=5',
     posts: [
       {
@@ -121,9 +121,9 @@ export const discoverUsers: DiscoverUserData[] = [
   },
   {
     id: 'c2',
-    name: 'Jordan Lee',
+    name: 'Amara Okafor',
     niche: 'Fitness',
-    handle: '@jordanfit',
+    handle: '@amaramoves',
     image: 'https://i.pravatar.cc/200?img=13',
     posts: [
       {
@@ -140,9 +140,9 @@ export const discoverUsers: DiscoverUserData[] = [
   },
   {
     id: 'c3',
-    name: 'Sofia Kim',
+    name: 'Sofía Ramírez',
     niche: 'Beauty',
-    handle: '@sofiaskins',
+    handle: '@sofiaramirez',
     image: 'https://i.pravatar.cc/200?img=47',
     posts: [
       {
@@ -159,9 +159,9 @@ export const discoverUsers: DiscoverUserData[] = [
   },
   {
     id: 'c4',
-    name: 'Marcus Hill',
+    name: 'Ingrid Solberg',
     niche: 'Tech',
-    handle: '@marcustech',
+    handle: '@ingridsolberg',
     image: 'https://i.pravatar.cc/200?img=18',
     posts: [
       {
@@ -178,9 +178,9 @@ export const discoverUsers: DiscoverUserData[] = [
   },
   {
     id: 'c5',
-    name: 'Emily Stone',
+    name: 'Ananya Patel',
     niche: 'Lifestyle',
-    handle: '@emilydaily',
+    handle: '@ananyadaily',
     image: 'https://i.pravatar.cc/200?img=32',
     posts: [
       {
@@ -197,9 +197,9 @@ export const discoverUsers: DiscoverUserData[] = [
   },
   {
     id: 'c6',
-    name: 'Noah Park',
+    name: 'Chinedu Adeyemi',
     niche: 'Travel',
-    handle: '@parktravels',
+    handle: '@chinedutravel',
     image: 'https://i.pravatar.cc/200?img=67',
     posts: [
       {
@@ -219,16 +219,16 @@ export const discoverUsers: DiscoverUserData[] = [
 // Mock data for development
 export const mockUserData: UserData = {
   id: 'user123',
-  email: 'john.doe@example.com',
-  firstName: 'John',
-  lastName: 'Doe',
-  displayName: 'John Doe',
+  email: 'lin.xia@example.com',
+  firstName: 'Lin',
+  lastName: 'Xia',
+  displayName: 'Lin Xia',
   profilePicture: null,
   phone: '+1-555-0123',
   company: 'Tech Startup Inc.',
-  website: 'https://johndoe.com',
+  website: 'https://linxia.com',
   bio: 'Full-stack developer and tech enthusiast',
-  location: 'San Francisco, CA',
+  location: 'Shanghai, China',
   timezone: 'America/Los_Angeles',
   language: 'en',
   emailVerified: true,
@@ -289,7 +289,7 @@ export const mockActivityLog: ActivityLog[] = [
     description: 'Signed in to account',
     timestamp: new Date('2024-12-20T10:30:00'),
     ipAddress: '192.168.1.1',
-    location: 'San Francisco, CA',
+    location: 'Shanghai, China',
   },
   {
     id: '2',
@@ -297,7 +297,7 @@ export const mockActivityLog: ActivityLog[] = [
     description: 'Updated profile information',
     timestamp: new Date('2024-12-19T15:45:00'),
     ipAddress: '192.168.1.1',
-    location: 'San Francisco, CA',
+    location: 'Shanghai, China',
   },
   {
     id: '3',
@@ -305,7 +305,7 @@ export const mockActivityLog: ActivityLog[] = [
     description: 'Created new QR code for website',
     timestamp: new Date('2024-12-18T09:15:00'),
     ipAddress: '192.168.1.1',
-    location: 'San Francisco, CA',
+    location: 'Shanghai, China',
   },
   {
     id: '4',
@@ -313,7 +313,7 @@ export const mockActivityLog: ActivityLog[] = [
     description: 'Changed account password',
     timestamp: new Date('2024-12-17T14:20:00'),
     ipAddress: '192.168.1.1',
-    location: 'San Francisco, CA',
+    location: 'Shanghai, China',
   },
   {
     id: '5',
@@ -321,7 +321,7 @@ export const mockActivityLog: ActivityLog[] = [
     description: 'Upgraded to Pro plan',
     timestamp: new Date('2024-12-15T11:00:00'),
     ipAddress: '192.168.1.1',
-    location: 'San Francisco, CA',
+    location: 'Shanghai, China',
   },
 ]
 
