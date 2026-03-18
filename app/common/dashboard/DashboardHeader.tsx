@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Bell, ChevronRight, Coins, Compass, MessageSquare, UserCircle2 } from 'lucide-react'
+import { Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, UserCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getUserProfile } from '@/services/userProfilesService'
 
@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/discovery': 'Discovery',
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
+  '/dashboard/posts/new': 'New Post',
 }
 
 const quickLinks = [
@@ -32,6 +33,7 @@ export default function DashboardHeader() {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useAuth()
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [profilePicture, setProfilePicture] = useState<string>('')
   const [displayName, setDisplayName] = useState<string>('Creator')
 
@@ -53,6 +55,7 @@ export default function DashboardHeader() {
   const currentTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
+    if (pathname.startsWith('/dashboard/posts/')) return 'Post'
 
     const segments = pathname.split('/').filter(Boolean)
     const last = segments[segments.length - 1] || 'dashboard'
@@ -62,10 +65,15 @@ export default function DashboardHeader() {
       .join(' ')
   }, [pathname])
 
+  const handleNavigate = (href: string) => {
+    setIsSheetOpen(false)
+    router.push(href)
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4 md:px-8">
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <button type="button" aria-label="Open profile menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
               <Avatar className="h-9 w-9 border">
@@ -79,12 +87,16 @@ export default function DashboardHeader() {
               <SheetTitle>Account</SheetTitle>
             </SheetHeader>
             <div className="mt-6 space-y-2">
+              <Button className="w-full justify-start gap-3" onClick={() => handleNavigate('/dashboard/posts/new')}>
+                <Plus className="h-4 w-4" />
+                <span>New Post</span>
+              </Button>
               {quickLinks.map((item) => (
                 <Button
                   key={item.href}
                   variant="ghost"
                   className="w-full justify-start gap-3"
-                  onClick={() => router.push(item.href)}
+                  onClick={() => handleNavigate(item.href)}
                 >
                   <item.icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.label}</span>
