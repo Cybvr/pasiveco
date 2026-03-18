@@ -47,7 +47,7 @@ function ProductCreator() {
   }, [user])
 
   const tabs = [
-    { key: "manage", label: "Products" },
+    { key: "manage", label: "All" },
     { key: "explore", label: "Explore" },
   ]
 
@@ -55,12 +55,6 @@ function ProductCreator() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Products</h1>
-        </div>
-      </div>
-      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList>
           {tabs.map((tab) => (

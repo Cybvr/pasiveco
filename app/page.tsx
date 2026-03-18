@@ -105,20 +105,20 @@ const Marquee = () => (
 );
 
 const FeatureCard = ({ title, subtitle, description, icon: Icon, image, reverse = false }: any) => (
-  <section className={`py-24 px-6 ${reverse ? 'bg-muted/30' : 'bg-background'}`}>
+  <section className={`px-6 py-20 lg:py-24 ${reverse ? 'bg-muted/30' : 'bg-background'}`}>
     <div className={`max-w-7xl mx-auto flex flex-col ${reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-16`}>
       <div className="lg:w-1/2 space-y-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary sm:text-sm">
           <Icon className="w-4 h-4" />
           {subtitle}
         </div>
-        <h2 className="text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+        <h2 className="text-3xl font-bold tracking-tight leading-tight sm:text-4xl lg:text-5xl">
           {title}
         </h2>
-        <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
+        <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
           {description}
         </p>
-        <Button size="lg" className="rounded-full px-8 py-6 text-lg">
+        <Button size="lg" className="h-auto rounded-full px-8 py-5 text-base sm:text-lg">
           Get started for free
         </Button>
       </div>
@@ -153,23 +153,23 @@ export default function LandingPage() {
       <Header isMenuOpen={false} setIsMenuOpen={() => {}} />
       
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32 px-6 overflow-hidden">
+      <section className="relative overflow-hidden px-6 pb-24 pt-16 sm:pt-20">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 opacity-30 select-none pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse delay-700" />
         </div>
         
         <div className="max-w-7xl mx-auto text-center space-y-8">
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase italic text-foreground">
+          <h1 className="text-4xl font-black uppercase italic leading-[0.95] tracking-tight text-foreground sm:text-5xl lg:text-7xl xl:text-[5.5rem]">
             All you need to <br />
             power your <br />
             <span className="text-primary">creator growth</span>
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto font-medium">
+          <p className="mx-auto max-w-3xl text-base font-medium text-muted-foreground sm:text-lg lg:text-xl">
             One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place.
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <Button size="lg" className="rounded-full px-10 py-8 text-xl font-bold shadow-2xl shadow-primary/20 hover:shadow-primary/40 transition-all h-auto">
+            <Button size="lg" className="h-auto rounded-full px-8 py-5 text-base font-bold shadow-2xl shadow-primary/20 transition-all hover:shadow-primary/40 sm:px-10 sm:py-6 sm:text-lg">
               Start for free
             </Button>
           </div>
@@ -179,11 +179,11 @@ export default function LandingPage() {
       <Marquee />
 
       {/* One and Done Section */}
-      <section className="py-24 px-6 bg-foreground text-background">
+      <section className="bg-foreground px-6 py-20 text-background lg:py-24">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
-            <h2 className="text-6xl font-bold tracking-tight">One and Done</h2>
-            <p className="text-2xl opacity-80 leading-relaxed">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">One and Done</h2>
+            <p className="text-base leading-relaxed opacity-80 sm:text-lg lg:text-xl">
               One supercharged creator hub to manage everything. Scale your business and own your data with your sales, marketing, and brand deals in one place.
             </p>
             <Button variant="outline" size="lg" className="rounded-full border-background text-background hover:bg-background hover:text-foreground">
@@ -239,8 +239,8 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-muted/30">
         <div className="max-w-5xl mx-auto text-center space-y-12">
           <div className="space-y-4">
-            <h2 className="text-4xl md:text-5xl font-bold">Turn your inbox into brand deals</h2>
-            <p className="text-xl text-muted-foreground">We integrate with your emails and workflow to help you find the best brands, negotiate high rates, and reply with winning pitches in seconds.</p>
+            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl">Turn your inbox into brand deals</h2>
+            <p className="text-base text-muted-foreground sm:text-lg">We integrate with your emails and workflow to help you find the best brands, negotiate high rates, and reply with winning pitches in seconds.</p>
           </div>
           <div className="bg-card rounded-3xl p-8 shadow-xl border border-border overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-500">
             <div className="space-y-4">
@@ -277,8 +277,8 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center rotate-3">
                 <Bot className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h2 className="text-5xl font-bold tracking-tight">AI that Helps You Work Smarter</h2>
-              <p className="text-xl text-muted-foreground">An AI learning engine that gets smarter the more you use it—by building promotional emails, writing copy, and generating data insights.</p>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">AI that Helps You Work Smarter</h2>
+              <p className="text-base text-muted-foreground sm:text-lg">An AI learning engine that gets smarter the more you use it—by building promotional emails, writing copy, and generating data insights.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {AI_TOOLS.map((tool, i) => (
                   <div key={i} className="flex items-center gap-2 font-medium">
@@ -307,8 +307,8 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-muted/30 overflow-hidden">
         <div className="max-w-7xl mx-auto text-center space-y-16">
           <div className="space-y-4">
-            <h2 className="text-5xl font-bold">Become the next big thing with Pasive</h2>
-            <p className="text-xl text-muted-foreground">Wherever you are in your creator journey, Pasive has the tools you need to level up and grow your income.</p>
+            <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl">Become the next big thing with Pasive</h2>
+            <p className="text-base text-muted-foreground sm:text-lg">Wherever you are in your creator journey, Pasive has the tools you need to level up and grow your income.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
              {[Smartphone, Shield, Zap, TrendingUp, Mail, Globe].map((Icon, i) => (
@@ -324,14 +324,14 @@ export default function LandingPage() {
       {/* Testimonials */}
       <section className="py-24 px-6 bg-background">
         <div className="max-w-7xl mx-auto space-y-16">
-          <h2 className="text-5xl font-bold text-center">The most ambitious creators love Pasive.</h2>
+          <h2 className="text-center text-3xl font-bold sm:text-4xl lg:text-5xl">The most ambitious creators love Pasive.</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {TESTIMONIALS.map((t, i) => (
               <div key={i} className="p-10 bg-muted/30 rounded-[2.5rem] space-y-6 relative group hover:bg-muted/50 transition-colors">
                 <div className="flex text-yellow-500 gap-1">
                   {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                 </div>
-                <p className="text-xl leading-relaxed italic">"{t.quote}"</p>
+                <p className="text-lg leading-relaxed italic sm:text-xl">"{t.quote}"</p>
                 <div className="flex items-center gap-4 pt-4">
                   <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center font-bold text-primary italic">
                     {t.author[0]}
@@ -350,16 +350,16 @@ export default function LandingPage() {
       {/* Pricing Teaser */}
       <section className="py-24 px-6 bg-foreground text-background text-center">
         <div className="max-w-3xl mx-auto space-y-8">
-          <h2 className="text-5xl font-bold">Get the best bang for your buck on the internet</h2>
-          <p className="text-xl opacity-80">Join over 100,000+ creators who trust Pasive with their business.</p>
+          <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl">Get the best bang for your buck on the internet</h2>
+          <p className="text-base opacity-80 sm:text-lg">Join over 100,000+ creators who trust Pasive with their business.</p>
           <div className="flex items-center justify-center gap-8 py-8">
              <div className="space-y-2">
-               <div className="text-4xl font-bold">$0</div>
+               <div className="text-3xl font-bold sm:text-4xl">$0</div>
                <div className="uppercase tracking-widest text-xs opacity-60">Free Forever</div>
              </div>
              <div className="w-px h-16 bg-background/20" />
              <div className="space-y-2">
-               <div className="text-4xl font-bold">$30<span className="text-xl opacity-60">/mo</span></div>
+               <div className="text-3xl font-bold sm:text-4xl">$30<span className="text-lg opacity-60 sm:text-xl">/mo</span></div>
                <div className="uppercase tracking-widest text-xs opacity-60">Creator Plus</div>
              </div>
           </div>
