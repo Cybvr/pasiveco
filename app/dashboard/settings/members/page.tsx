@@ -12,9 +12,12 @@ interface Member {
 }
 
 export default function MembersSettings() {
-  const [members, setMembers] = useState<Member[]>([
-    { id: '1', name: 'John Doe', email: 'john@pasive.co', role: 'Admin' },
-    { id: '2', name: 'Jane Smith', email: 'jane@pasive.co', role: 'Editor' },
+  const [members] = useState<Member[]>([
+    { id: '1', name: 'Lin Xia', email: 'lin@pasive.co', role: 'Admin' },
+    { id: '2', name: 'Chinedu Adeyemi', email: 'chinedu@pasive.co', role: 'Editor' },
+    { id: '3', name: 'Sofía Ramírez', email: 'sofia@pasive.co', role: 'Viewer' },
+    { id: '4', name: 'Ingrid Solberg', email: 'ingrid@pasive.co', role: 'Editor' },
+    { id: '5', name: 'Ananya Patel', email: 'ananya@pasive.co', role: 'Viewer' },
   ])
 
   const [newMemberEmail, setNewMemberEmail] = useState('')

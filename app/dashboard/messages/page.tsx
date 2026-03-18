@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Search, Send } from 'lucide-react'
 
 const inbox = [
-  { id: 'm1', name: 'Maya Thompson', avatar: 'https://i.pravatar.cc/100?img=32', preview: 'Can we lock in a sponsored reel for next Thursday?', time: '2m ago', unread: true },
-  { id: 'm2', name: 'Derek from HypeFuel', avatar: 'https://i.pravatar.cc/100?img=12', preview: 'Draft contract sent. Let me know if you want edits.', time: '1h ago', unread: true },
-  { id: 'm3', name: 'Nina Patel', avatar: 'https://i.pravatar.cc/100?img=49', preview: 'Loved your latest post. Looking to collab in April.', time: 'Yesterday', unread: false },
+  { id: 'm1', name: 'Lin Xia', avatar: 'https://i.pravatar.cc/100?img=32', preview: 'Can we lock in a sponsored reel for next Thursday?', time: '2m ago', unread: true },
+  { id: 'm2', name: 'Chinedu Adeyemi', avatar: 'https://i.pravatar.cc/100?img=12', preview: 'Draft contract sent. Let me know if you want edits.', time: '1h ago', unread: true },
+  { id: 'm3', name: 'Sofía Ramírez', avatar: 'https://i.pravatar.cc/100?img=49', preview: 'Loved your latest post. Looking to collab in April.', time: 'Yesterday', unread: false },
 ]
 
 const activeThread = [
@@ -51,7 +51,7 @@ export default function MessagesPage() {
         </Card>
         <Card className="min-h-[420px]">
           <CardHeader className="px-3 pt-3 sm:px-6 sm:pt-6">
-            <CardTitle className="text-base">Maya Thompson</CardTitle>
+            <CardTitle className="text-base">Ananya Patel</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 px-3 pb-3 sm:px-6 sm:pb-6">
             {activeThread.map((message, idx) => (

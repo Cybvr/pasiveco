@@ -2,30 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Compass, Home, User } from 'lucide-react'
+import { Bell, Compass, Home, Package, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  {
-    href: '/dashboard',
-    icon: Home,
-    label: 'Home',
-  },
-  {
-    href: '/dashboard/discovery',
-    icon: Compass,
-    label: 'Discover',
-  },
-  {
-    href: '/dashboard/notifications',
-    icon: Bell,
-    label: 'Alerts',
-  },
-  {
-    href: '/dashboard/settings',
-    icon: User,
-    label: 'Profile',
-  },
+  { href: '/dashboard', icon: Home, label: 'Home' },
+  { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
+  { href: '/dashboard/products', icon: Package, label: 'Products' },
+  { href: '/dashboard/notifications', icon: Bell, label: 'Alerts' },
+  { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
 
 export default function MobileBottomNav() {
@@ -37,7 +22,7 @@ export default function MobileBottomNav() {
         <div className="flex items-center justify-around px-2 py-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
 
             return (
               <Link
