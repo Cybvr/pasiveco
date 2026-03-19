@@ -66,10 +66,12 @@ const sortProfilesByRecentUpdate = (profiles: UserProfile[]) =>
       return updatedDiff;
     }
 
-    return a.displayName.localeCompare(b.displayName);
+    return (a.displayName || a.username || a.slug || '').localeCompare(b.displayName || b.username || b.slug || '');
   });
 
 const sanitizeUsername = (username?: string | null) => (username || '').replace(/^@/, '').trim();
+const hasDiscoverableIdentity = (profile: UserProfile) =>
+  Boolean(profile.userId && (sanitizeUsername(profile.username) || profile.displayName?.trim() || profile.slug?.trim()));
 
 export const createUserProfile = async (profileData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>) => {
   try {
@@ -109,21 +111,15 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
 
 export const getPublicUserProfiles = async (): Promise<UserProfile[]> => {
   try {
-    const snapshot = await getDocs(query(userProfilesCollection, where('isPublic', '==', true)));
-    const profiles = snapshot.docs
-      .map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile))
-      .filter((profile) => Boolean(profile.userId && sanitizeUsername(profile.username)));
-
-    return sortProfilesByRecentUpdate(profiles);
-  } catch (error) {
-    console.warn('Falling back to all user_profiles query:', error);
-
     const snapshot = await getDocs(userProfilesCollection);
     const profiles = snapshot.docs
       .map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile))
-      .filter((profile) => profile.isPublic !== false && Boolean(profile.userId && sanitizeUsername(profile.username)));
+      .filter((profile) => profile.isPublic !== false && hasDiscoverableIdentity(profile));
 
     return sortProfilesByRecentUpdate(profiles);
+  } catch (error) {
+    console.error('Error fetching public user profiles:', error);
+    throw error;
   }
 };
 
