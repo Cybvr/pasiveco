@@ -1,19 +1,28 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { ArrowLeft, MessageCircle } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Link as LinkIcon, MessageCircle } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { formatSocialDate, getSocialPosts, getSocialProfileById, type SocialPost, type SocialProfile } from '@/lib/social-data'
+import { getUserProfile, type UserProfile } from '@/services/userProfilesService'
+
+const normalizeHandle = (username?: string) => {
+  const cleanUsername = (username || '').replace(/^@/, '').trim()
+  return cleanUsername ? `@${cleanUsername}` : '@user'
+}
+
+const sourceLabel = (profile: UserProfile | null) => {
+  const cleanedSource = profile?.source?.trim()
+  return cleanedSource || 'Pasive creator'
+}
 
 export default function DashboardUserProfilePage() {
   const params = useParams<{ id: string }>()
-  const [posts, setPosts] = useState<SocialPost[]>([])
-  const [profile, setProfile] = useState<SocialProfile | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -23,13 +32,12 @@ export default function DashboardUserProfilePage() {
       if (!params?.id) return
 
       try {
-        const [profileData, postData] = await Promise.all([
-          getSocialProfileById(params.id),
-          getSocialPosts(),
-        ])
+        const profileData = await getUserProfile(params.id)
         if (!active) return
         setProfile(profileData || null)
-        setPosts(postData.filter((post) => post.authorId === params.id))
+      } catch (error) {
+        console.error('Failed to load dashboard profile:', error)
+        if (active) setProfile(null)
       } finally {
         if (active) setLoading(false)
       }
@@ -42,6 +50,16 @@ export default function DashboardUserProfilePage() {
     }
   }, [params])
 
+  const activeLinks = useMemo(
+    () => profile?.links.filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
+    [profile],
+  )
+
+  const activeSocialLinks = useMemo(
+    () => profile?.socialLinks.filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
+    [profile],
+  )
+
   if (loading) {
     return <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Loading user...</div>
   }
@@ -49,6 +67,9 @@ export default function DashboardUserProfilePage() {
   if (!profile) {
     return <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">User not found.</div>
   }
+
+  const displayName = profile.displayName || normalizeHandle(profile.username)
+  const handle = normalizeHandle(profile.username)
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -60,61 +81,89 @@ export default function DashboardUserProfilePage() {
       </Button>
 
       <Card className="overflow-hidden rounded-3xl">
+        {profile.bannerImage ? (
+          <div
+            className="h-36 w-full bg-cover bg-center"
+            style={{ backgroundImage: `url(${profile.bannerImage})` }}
+            aria-hidden="true"
+          />
+        ) : null}
         <CardContent className="space-y-6 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border">
-                <AvatarImage src={profile.image} alt={profile.name} />
-                <AvatarFallback>{profile.name.slice(0, 1)}</AvatarFallback>
+                <AvatarImage src={profile.profilePicture || ''} alt={displayName} />
+                <AvatarFallback>{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-xl font-semibold">{profile.name}</h1>
-                <p className="text-sm text-muted-foreground">{profile.handle} · {profile.category}</p>
-                <p className="text-sm text-muted-foreground">{profile.location}</p>
+                <h1 className="text-xl font-semibold">{displayName}</h1>
+                <p className="text-sm text-muted-foreground">{handle} · {sourceLabel(profile)}</p>
+                <p className="text-sm text-muted-foreground">/{profile.slug || profile.username}</p>
               </div>
             </div>
             <Button asChild>
-              <Link href={`/dashboard/messages?user=${profile.id}`}>
+              <Link href={`/${profile.username.replace(/^@/, '')}`}>
                 <MessageCircle className="h-4 w-4" />
-                Message
+                Open bio page
               </Link>
             </Button>
           </div>
 
-          <p className="text-sm leading-6 text-muted-foreground">{profile.bio}</p>
+          <p className="text-sm leading-6 text-muted-foreground">{profile.bio?.trim() || 'No bio added yet.'}</p>
+
+          <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+            <div className="rounded-2xl border p-4">
+              <p className="text-xs uppercase tracking-wide">Public links</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{activeLinks.length}</p>
+            </div>
+            <div className="rounded-2xl border p-4">
+              <p className="text-xs uppercase tracking-wide">Social profiles</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{activeSocialLinks.length}</p>
+            </div>
+            <div className="rounded-2xl border p-4">
+              <p className="text-xs uppercase tracking-wide">Visibility</p>
+              <p className="mt-2 text-2xl font-semibold text-foreground">{profile.isPublic === false ? 'Private' : 'Public'}</p>
+            </div>
+          </div>
 
           <Tabs defaultValue="links" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="links">Links</TabsTrigger>
-              <TabsTrigger value="shop">Shop</TabsTrigger>
-              <TabsTrigger value="posts">Posts</TabsTrigger>
+              <TabsTrigger value="socials">Socials</TabsTrigger>
             </TabsList>
             <TabsContent value="links" className="mt-4 space-y-3">
-              {profile.links.map((link) => (
-                <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="block rounded-2xl border p-4 hover:bg-accent/40">
-                  <p className="text-sm font-medium">{link.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{link.description}</p>
-                </a>
-              ))}
+              {activeLinks.length > 0 ? (
+                activeLinks.map((link) => (
+                  <a key={link.id} href={link.url} target="_blank" rel="noreferrer" className="block rounded-2xl border p-4 hover:bg-accent/40">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">{link.title}</p>
+                        {link.description ? <p className="text-sm text-muted-foreground">{link.description}</p> : null}
+                      </div>
+                      <LinkIcon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <div className="rounded-2xl border p-4 text-sm text-muted-foreground">No public links yet.</div>
+              )}
             </TabsContent>
-            <TabsContent value="shop" className="mt-4 space-y-3">
-              {profile.shop.map((item) => (
-                <a key={item.id} href={item.url} target="_blank" rel="noreferrer" className="block rounded-2xl border p-4 hover:bg-accent/40">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{item.name}</p>
-                    <span className="text-sm font-semibold">{item.price}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-                </a>
-              ))}
-            </TabsContent>
-            <TabsContent value="posts" className="mt-4 space-y-3">
-              {posts.map((post) => (
-                <Link key={post.id} href={`/dashboard/posts/${post.id}`} className="block rounded-2xl border p-4 hover:bg-accent/40">
-                  <p className="text-sm leading-6 text-foreground">{post.message}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{formatSocialDate(post.createdAt)} · {post.likeCount} likes · {post.commentCount} comments</p>
-                </Link>
-              ))}
+            <TabsContent value="socials" className="mt-4 space-y-3">
+              {activeSocialLinks.length > 0 ? (
+                activeSocialLinks.map((item) => (
+                  <a key={item.id} href={item.url} target="_blank" rel="noreferrer" className="block rounded-2xl border p-4 hover:bg-accent/40">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium">{item.platform}</p>
+                        <p className="text-sm text-muted-foreground">{item.url}</p>
+                      </div>
+                      <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </div>
+                  </a>
+                ))
+              ) : (
+                <div className="rounded-2xl border p-4 text-sm text-muted-foreground">No connected social profiles yet.</div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
