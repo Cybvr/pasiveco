@@ -132,7 +132,7 @@ export default function AccountSettings() {
     if (!user?.uid) return
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      const userId = firebaseProfile?.id || user.uid
+      const userId = user.id || user.uid
       await updateUser(userId, {
         email: user.email || userData.email,
         displayName,
