@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { getUser, updateUser, type User } from "@/services/userService"
-import { getUserSettings, updateUserSettings } from "@/services/userSettingsService"
+import { getUserCategories } from "@/services/categoryService"
 import { useAuth } from "@/hooks/useAuth"
-import md5 from 'md5'
+import { getDisplayAvatar } from '@/lib/avatar'
 import { Shield } from 'lucide-react'
 
 interface UserData {
@@ -26,6 +26,7 @@ interface UserData {
   location?: string
   timezone: string
   bio?: string
+  category: string
   twoFactorEnabled: boolean
 }
 
@@ -36,9 +37,11 @@ export default function AccountSettings() {
     lastName: "",
     email: "user@example.com",
     timezone: "America/New_York",
+    category: '',
     twoFactorEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
+  const [categories, setCategories] = useState<string[]>([])
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -48,40 +51,45 @@ export default function AccountSettings() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (user?.uid) {
-        try {
-          const profile = await getUser(user.uid)
-          if (profile) {
-            setFirebaseProfile(profile)
-            setUserData(prev => ({
-              ...prev,
-              displayName: profile.displayName || prev.displayName,
-              firstName: profile.displayName?.split(' ')[0] || prev.firstName,
-              lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
-              email: user.email || prev.email,
-              bio: profile.bio || prev.bio,
-              profilePicture: profile.profilePicture || prev.profilePicture,
-            }))
-          }
-        } catch (error) {
-          console.error("Error loading profile:", error)
+      if (!user?.uid) {
+        return
+      }
+
+      try {
+        const [profile, categoryList] = await Promise.all([
+          getUser(user.uid),
+          getUserCategories(),
+        ])
+
+        setCategories(categoryList.map((item) => item.name))
+
+        if (profile) {
+          setFirebaseProfile(profile)
+          setUserData(prev => ({
+            ...prev,
+            displayName: profile.displayName || prev.displayName,
+            firstName: profile.displayName?.split(' ')[0] || prev.firstName,
+            lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
+            email: user.email || prev.email,
+            bio: profile.bio || prev.bio,
+            category: profile.category || prev.category,
+            profilePicture: profile.profilePicture || prev.profilePicture,
+          }))
         }
+      } catch (error) {
+        console.error("Error loading profile:", error)
       }
     }
 
-    loadProfile()
+    void loadProfile()
   }, [user])
 
-  const getGravatarUrl = (email: string) => {
-    const hash = md5(email.trim().toLowerCase())
-    return `https://www.gravatar.com/avatar/${hash}?d=mp&s=200`
-  }
-
-  const getProfilePicture = () => {
-    if (userData.profilePicture) return userData.profilePicture
-    if (firebaseProfile?.profilePicture) return firebaseProfile.profilePicture
-    return getGravatarUrl(userData.email)
-  }
+  const getProfilePicture = () =>
+    getDisplayAvatar({
+      image: userData.profilePicture || firebaseProfile?.profilePicture || user?.photoURL || '',
+      displayName: userData.displayName,
+      handle: firebaseProfile?.username || userData.email,
+    })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -126,8 +134,11 @@ export default function AccountSettings() {
       await updateUser(firebaseProfile.id!, {
         displayName,
         bio: userData.bio || "",
+        category: userData.category || '',
+        profilePicture: userData.profilePicture || firebaseProfile.profilePicture || '',
       })
 
+      setFirebaseProfile(prev => prev ? ({ ...prev, displayName, bio: userData.bio || '', category: userData.category || '', profilePicture: userData.profilePicture || prev.profilePicture }) : prev)
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -207,12 +218,10 @@ export default function AccountSettings() {
 
   return (
     <div className="space-y-2">
-
-      {/* Profile Information */}
       <div className="bg-card rounded-lg overflow-hidden">
         <div className="p-4">
           <h2 className="text-lg font-semibold">Profile Information</h2>
-          <p className="text-sm text-muted-foreground">Update your personal details and contact information.</p>
+          <p className="text-sm text-muted-foreground">Update your personal details, category, and contact information.</p>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex justify-center mb-4">
@@ -220,7 +229,7 @@ export default function AccountSettings() {
               <Avatar className="w-20 h-20 border-2 border-gray-200">
                 <AvatarImage src={getProfilePicture()} alt={userData.displayName} />
                 <AvatarFallback className="text-lg">
-                  {userData.firstName[0]}{userData.lastName[0]}
+                  {(userData.firstName[0] || 'U')}{(userData.lastName[0] || '')}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -286,6 +295,19 @@ export default function AccountSettings() {
                 <SelectItem value="UTC">UTC</SelectItem>
               </SelectContent>
             </Select>
+            <div className="md:col-span-2">
+              <Select value={userData.category || 'unselected'} onValueChange={(value) => setUserData(prev => ({ ...prev, category: value === 'unselected' ? '' : value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unselected">No category selected</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Textarea
@@ -304,6 +326,8 @@ export default function AccountSettings() {
                 firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
                 lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
                 bio: firebaseProfile.bio || prev.bio,
+                category: firebaseProfile.category || '',
+                profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
               }))
             }
           }}>Cancel</Button>
@@ -311,7 +335,6 @@ export default function AccountSettings() {
         </div>
       </div>
 
-      {/* Security Settings */}
       <div className="bg-card rounded-lg overflow-hidden">
         <div className="p-4">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
@@ -321,7 +344,7 @@ export default function AccountSettings() {
           <p className="text-sm text-muted-foreground">Manage your password and security preferences.</p>
         </div>
         <div className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm text-muted-foreground">Two-Factor Authentication</p>
               <p className="text-xs text-muted-foreground">Add an extra layer of security to your account</p>
@@ -360,7 +383,6 @@ export default function AccountSettings() {
 
       <Separator className="my-4" />
 
-      {/* Danger Zone */}
       <div className="border border-red-200 bg-card rounded-lg overflow-hidden">
         <div className="p-4">
           <h2 className="text-lg font-semibold text-red-600">Danger Zone</h2>

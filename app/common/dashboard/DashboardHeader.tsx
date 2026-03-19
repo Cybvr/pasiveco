@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, UserCircle2 } from 'lucide-react'
+import { ArrowLeft, Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, Save, UserCircle2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { getUser } from '@/services/userService'
+import { getDisplayAvatar } from '@/lib/avatar'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
@@ -23,7 +24,7 @@ const pageTitles: Record<string, string> = {
 
 const quickLinks = [
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/edit', label: 'My Page', icon: UserCircle2 },
+  { href: '/dashboard/edit', label: 'My Profile', icon: UserCircle2 },
   { href: '/dashboard/discovery', label: 'Discovery', icon: Compass },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
@@ -42,7 +43,7 @@ export default function DashboardHeader() {
       if (!user?.uid) return
       try {
         const profile = await getUser(user.uid)
-        setProfilePicture(profile?.profilePicture || user.photoURL || '')
+        setProfilePicture(getDisplayAvatar({ image: profile?.profilePicture || user.photoURL || '', displayName: profile?.displayName || user.displayName || 'Creator', handle: profile?.username || user.email || 'creator' }))
         setDisplayName(profile?.displayName || user.displayName || 'Creator')
       } catch (error) {
         console.error('Error loading user profile for header:', error)
@@ -70,7 +71,13 @@ export default function DashboardHeader() {
     router.push(href)
   }
 
-  const showBackButton = pathname === '/dashboard/posts/new'
+  const showBackButton = pathname === '/dashboard/posts/new' || pathname === '/dashboard/edit'
+  const showSaveButton = pathname === '/dashboard/edit'
+
+  const handleSaveEditProfile = () => {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(new CustomEvent('dashboard:save-edit-profile'))
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -91,16 +98,22 @@ export default function DashboardHeader() {
           <h1 className="truncate text-base font-semibold tracking-tight">{currentTitle}</h1>
         </div>
 
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <button type="button" aria-label="Open profile menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-              <Avatar className="h-9 w-9 border">
-                <AvatarImage src={profilePicture} alt={displayName} />
-                <AvatarFallback>{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[72%] max-w-[280px]">
+        {showSaveButton ? (
+          <Button type="button" size="sm" className="gap-2" onClick={handleSaveEditProfile}>
+            <Save className="h-4 w-4" />
+            Save
+          </Button>
+        ) : (
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <button type="button" aria-label="Open profile menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <Avatar className="h-9 w-9 border">
+                  <AvatarImage src={profilePicture} alt={displayName} />
+                  <AvatarFallback>{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[72%] max-w-[280px]">
             <SheetHeader>
               <SheetTitle>Account</SheetTitle>
             </SheetHeader>
@@ -122,8 +135,9 @@ export default function DashboardHeader() {
                 </Button>
               ))}
             </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
     </header>
   )

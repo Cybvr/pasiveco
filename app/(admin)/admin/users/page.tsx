@@ -78,7 +78,7 @@ const UserFormModal = ({
   onSubmit 
 }: UserFormModalProps) => (
   <Dialog open={isOpen} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>{isCreate ? 'Create New User' : 'Edit User'}</DialogTitle>
         <DialogDescription>
@@ -688,16 +688,16 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Users ({users.length})</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-64"
+              className="pl-8 w-full sm:w-64"
             />
           </div>
           <input
@@ -747,7 +747,67 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         onSubmit={handleUpdate}
       />
 
-      <div className="rounded-md border">
+      <div className="space-y-3 md:hidden">
+        {sortedUsers.map((user) => (
+          <div key={user.id} className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-medium truncate">{user.displayName || 'No name'}</p>
+                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                <p className="text-sm text-muted-foreground">@{user.username?.replace('@', '') || 'n-a'}</p>
+              </div>
+              <Badge variant={user.isActive ? 'default' : 'secondary'}>
+                {user.isActive ? 'Active' : 'Inactive'}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'moderator' ? 'secondary' : 'default'}>{user.role}</Badge>
+              <Badge variant="outline">Joined {formatDate(user.createdAt)}</Badge>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Admin</span>
+                <Switch
+                  checked={user.isAdmin || false}
+                  onCheckedChange={(checked) => toggleAdminStatus(user, checked)}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" onClick={() => openEditModal(user)}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the user
+                        and their profile data.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(user)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden rounded-md border overflow-x-auto md:block">
         <Table>
           <TableHeader>
             <TableRow>

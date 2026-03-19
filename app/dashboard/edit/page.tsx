@@ -5,7 +5,6 @@ import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Ch
 import { getUser, updateUser, type User as AppUser } from "@/services/userService";
 import { getUserProducts, type Product } from "@/services/productsService";
 import { useAuth } from "@/hooks/useAuth";
-import BioMode from "@/app/common/dashboard/BioMode";
 import ShareModal from "@/app/common/dashboard/ShareModal";
 import Watermark from "@/app/common/dashboard/Watermark";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +55,17 @@ function Page() {
       ? `${window.location.origin}/${profileData.username}`
       : `https://pasive.co/${profileData.username}`;
 
+  useEffect(() => {
+    const handleSaveRequest = () => {
+      void saveProfile();
+    };
+
+    window.addEventListener("dashboard:save-edit-profile", handleSaveRequest as EventListener);
+
+    return () => {
+      window.removeEventListener("dashboard:save-edit-profile", handleSaveRequest as EventListener);
+    };
+  }, [userProfile, profileData, links, socialLinks]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -445,22 +455,6 @@ function Page() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="border-b px-4 py-3 md:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold">Edit your page</h2>
-            <p className="text-sm text-muted-foreground">Update your profile, links, and products without nested panels.</p>
-          </div>
-          <button
-            onClick={() => window.open(profileUrl, "_blank")}
-            className="flex items-center text-[13px] font-semibold rounded-lg border border-border px-4 py-2 hover:bg-accent transition-all duration-200"
-          >
-            View public page
-            <ExternalLink className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-        </div>
-      </div>
-
       <main className="flex-1 overflow-y-auto bg-muted/20 px-4 py-4 md:px-6 md:py-6">
         <div className="mx-auto flex w-full max-w-2xl justify-center">
           <div className="w-full rounded-2xl border border-border bg-card p-2 shadow-lg">
@@ -529,14 +523,26 @@ function Page() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      <button
-                        onClick={() => setIsShareModalOpen(true)}
-                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <Share2
-                          className={`w-4 h-4 ${profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground"}`}
-                        />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setIsShareModalOpen(true)}
+                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                          aria-label="Share page"
+                        >
+                          <Share2
+                            className={`w-4 h-4 ${profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground"}`}
+                          />
+                        </button>
+                        <button
+                          onClick={() => window.open(profileUrl, "_blank")}
+                          className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                          aria-label="View public page"
+                        >
+                          <ExternalLink
+                            className={`w-4 h-4 ${profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground"}`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -787,10 +793,6 @@ function Page() {
           </div>
         </div>
       </main>
-
-      <div className="shrink-0">
-        <BioMode saveProfile={saveProfile} />
-      </div>
     </div>
   );
 }

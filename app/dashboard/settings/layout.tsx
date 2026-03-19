@@ -17,7 +17,7 @@ import { auth } from '@/lib/firebase'
 import { toast } from "@/hooks/use-toast"
 
 const settingsLinks = [
-  { href: '/dashboard/settings/account', label: 'My Account', icon: User },
+  { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },

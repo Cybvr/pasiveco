@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/useAuth'
 import { createSocialPost } from '@/lib/social-data'
+import { toast } from '@/hooks/use-toast'
 import { getUser } from '@/services/userService'
 
 export default function NewPostPage() {
@@ -38,11 +39,21 @@ export default function NewPostPage() {
     event.preventDefault()
 
     const trimmedMessage = message.trim()
-    if (!trimmedMessage) return
+    if (!trimmedMessage || !user?.uid) return
 
-    setIsSubmitting(true)
-    const newPost = await createSocialPost(trimmedMessage, 'viewer-me')
-    router.push(`/dashboard/posts/${newPost.id}`)
+    try {
+      setIsSubmitting(true)
+      const newPost = await createSocialPost(trimmedMessage, user.uid)
+      router.push(`/dashboard/posts/${newPost.id}`)
+    } catch (error) {
+      console.error('Error creating post:', error)
+      toast({
+        title: 'Unable to publish post',
+        description: 'Please try again.',
+        variant: 'destructive',
+      })
+      setIsSubmitting(false)
+    }
   }
 
   return (
