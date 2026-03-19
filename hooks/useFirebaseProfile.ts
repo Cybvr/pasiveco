@@ -1,16 +1,11 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from './useAuth'
-import { 
-  getUserProfile, 
-  updateUserProfile, 
-  createUserProfile, 
-  UserProfile 
-} from '@/services/userService'
+import { getUser, updateUser, type User } from '@/services/userService'
 
 export const useFirebaseProfile = () => {
   const { user } = useAuth()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,12 +18,10 @@ export const useFirebaseProfile = () => {
 
       try {
         setLoading(true)
-        let userProfile = await getUserProfile(user.uid)
-        
+        let userProfile = await getUser(user.uid)
+
         if (!userProfile) {
-          // Create new profile if doesn't exist
-          const profileId = await createUserProfile({
-            userId: user.uid,
+          await updateUser(user.uid, {
             username: user.email?.split('@')[0] || 'user',
             displayName: user.displayName || 'Your Name',
             bio: 'Your bio here',
@@ -36,12 +29,11 @@ export const useFirebaseProfile = () => {
             links: [],
             socialLinks: [],
             theme: 'default',
-            isPublic: true
+            isPublic: true,
           })
-          
-          userProfile = await getUserProfile(user.uid)
+          userProfile = await getUser(user.uid)
         }
-        
+
         setProfile(userProfile)
         setError(null)
       } catch (err) {
@@ -52,14 +44,14 @@ export const useFirebaseProfile = () => {
       }
     }
 
-    loadProfile()
+    void loadProfile()
   }, [user])
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: Partial<User>) => {
     if (!profile || !user) return
 
     try {
-      await updateUserProfile(profile.id!, updates)
+      await updateUser(profile.id || user.uid, updates)
       setProfile({ ...profile, ...updates })
       setError(null)
     } catch (err) {
@@ -76,7 +68,7 @@ export const useFirebaseProfile = () => {
     updateProfile,
     refreshProfile: () => {
       if (user) {
-        getUserProfile(user.uid).then(setProfile)
+        getUser(user.uid).then(setProfile)
       }
     }
   }

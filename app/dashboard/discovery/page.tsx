@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
-import { getAllUserProfiles, type UserProfile } from '@/services/userProfilesService'
+import { getPublicUsers, type User } from '@/services/userService'
 
 interface DiscoveryProfile {
   id: string
@@ -16,8 +16,8 @@ interface DiscoveryProfile {
 
 const sanitizeHandle = (username?: string) => username?.replace(/^@/, '').trim() || ''
 
-const toDiscoveryProfile = (profile: UserProfile): DiscoveryProfile => ({
-  id: profile.userId,
+const toDiscoveryProfile = (profile: User): DiscoveryProfile => ({
+  id: profile.userId || profile.id || '',
   name: profile.displayName?.trim() || '',
   handle: sanitizeHandle(profile.username),
   bio: profile.bio?.trim() || '',
@@ -33,7 +33,7 @@ export default function DiscoveryPage() {
 
     const loadDiscovery = async () => {
       try {
-        const profiles = await getAllUserProfiles()
+        const profiles = await getPublicUsers()
         if (!active) return
 
         setCreators(profiles.map(toDiscoveryProfile))

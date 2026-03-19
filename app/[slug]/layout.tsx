@@ -1,7 +1,7 @@
 
 import { Metadata } from 'next'
 import Watermark from '@/app/common/dashboard/Watermark'
-import { getUserProfileByUsername } from '@/services/userProfilesService'
+import { getUserByUsername } from '@/services/userService'
 
 interface SlugLayoutProps {
   children: React.ReactNode
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const slug = resolvedParams.slug
     
     // Try to get the user profile
-    const profile = await getUserProfileByUsername(slug)
+    const profile = await getUserByUsername(slug)
     
     if (profile) {
       const title = `${profile.displayName} (@${profile.username}) | Pasive`

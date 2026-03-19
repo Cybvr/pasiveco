@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { getProduct, Product } from '@/services/productsService';
-import { getUserProfile } from '@/services/userProfilesService';
+import { getUser } from '@/services/userService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           setProduct(productData);
           
           // Get seller info
-          const sellerProfile = await getUserProfile(productData.userId);
+          const sellerProfile = await getUser(productData.userId);
           setSeller(sellerProfile);
         }
       } catch (error) {

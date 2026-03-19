@@ -19,7 +19,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -44,13 +43,9 @@ import {
 } from "@/components/ui/select"
 import { Trash2, Edit, Plus, Search, Upload } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
-import { getUserProfile, updateUserProfile, deleteUserProfile, createUserProfile, type UserProfile } from "@/services/userProfilesService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
-interface UserWithProfile extends User {
-  profile?: UserProfile | null;
-}
 
 interface UserFormData {
   email: string;
@@ -198,8 +193,8 @@ const UserFormModal = ({
 )
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserWithProfile[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<UserWithProfile[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [isImporting, setIsImporting] = useState(false)
   const [csvFileName, setCsvFileName] = useState("")
@@ -210,7 +205,7 @@ export default function UsersPage() {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<UserWithProfile | null>(null)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   // Form states
   const [formData, setFormData] = useState<UserFormData>({
@@ -236,7 +231,7 @@ export default function UsersPage() {
     const filtered = users.filter(user =>
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.profile?.username?.toLowerCase().includes(searchTerm.toLowerCase())
+user.username?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredUsers(filtered)
   }, [users, searchTerm])
@@ -245,20 +240,7 @@ export default function UsersPage() {
     try {
       setLoading(true)
       const usersData = await getAllUsers()
-
-      // Fetch profiles for each user
-      const usersWithProfiles = await Promise.all(
-        usersData.map(async (user) => {
-          try {
-            const profile = await getUserProfile(user.id!)
-            return { ...user, profile }
-          } catch (error) {
-            return { ...user, profile: undefined }
-          }
-        })
-      )
-
-      setUsers(usersWithProfiles)
+      setUsers(usersData)
     } catch (error) {
       console.error('Error fetching users:', error)
       toast({
@@ -310,7 +292,7 @@ export default function UsersPage() {
     })
   }
 
-  const openEditModal = (user: UserWithProfile) => {
+  const openEditModal = (user: User) => {
     setSelectedUser(user)
     setFormData({
       email: user.email,
@@ -318,10 +300,10 @@ export default function UsersPage() {
       role: user.role,
       isActive: user.isActive,
       isAdmin: user.isAdmin || false,
-      username: user.profile?.username || '',
-      bio: user.profile?.bio || '',
-      profilePicture: user.profile?.profilePicture || '',
-      isPublic: user.profile?.isPublic ?? true
+      username: user.username || '',
+      bio: user.bio || '',
+      profilePicture: user.profilePicture || '',
+      isPublic: user.isPublic ?? true
     })
     setIsEditModalOpen(true)
   }
@@ -363,24 +345,18 @@ export default function UsersPage() {
         role: formData.role,
         metadata: {
           signUpMethod: 'email'
-        }
+        },
+        username: formData.username.trim(),
+        bio: formData.bio.trim(),
+        profilePicture: formData.profilePicture.trim(),
+        slug: createProfileSlug(formData.username || formData.displayName),
+        isPublic: formData.isPublic,
+        links: [],
+        socialLinks: [],
+        theme: 'default'
       })
 
-      // Create user profile if username is provided
-      if (formData.username) {
-        await createUserProfile({
-          userId: userId,
-          username: formData.username,
-          displayName: formData.displayName,
-          bio: formData.bio,
-          profilePicture: formData.profilePicture,
-          slug: createProfileSlug(formData.username || formData.displayName),
-          isPublic: formData.isPublic,
-          links: [],
-          socialLinks: [],
-          theme: 'default'
-        })
-      }
+
 
       toast({
         title: "Success",
@@ -410,32 +386,15 @@ export default function UsersPage() {
         displayName: formData.displayName,
         role: formData.role,
         isActive: formData.isActive,
-        isAdmin: formData.isAdmin
+        isAdmin: formData.isAdmin,
+        username: formData.username.trim(),
+        bio: formData.bio.trim(),
+        profilePicture: formData.profilePicture.trim(),
+        slug: createProfileSlug(formData.username || formData.displayName),
+        isPublic: formData.isPublic
       })
 
-      // Update or create profile
-      if (selectedUser.profile?.id) {
-        await updateUserProfile(selectedUser.profile.id, {
-          username: formData.username,
-          displayName: formData.displayName,
-          bio: formData.bio,
-          profilePicture: formData.profilePicture,
-          isPublic: formData.isPublic
-        })
-      } else if (formData.username) {
-        await createUserProfile({
-          userId: selectedUser.id,
-          username: formData.username,
-          displayName: formData.displayName,
-          bio: formData.bio,
-          profilePicture: formData.profilePicture,
-          slug: createProfileSlug(formData.username || formData.displayName),
-          isPublic: formData.isPublic,
-          links: [],
-          socialLinks: [],
-          theme: 'default'
-        })
-      }
+
 
       toast({
         title: "Success",
@@ -456,14 +415,8 @@ export default function UsersPage() {
     }
   }
 
-  const handleDelete = async (user: UserWithProfile) => {
+  const handleDelete = async (user: User) => {
     try {
-      // Delete user profile first if it exists
-      if (user.profile?.id) {
-        await deleteUserProfile(user.profile.id)
-      }
-
-      // Delete user
       await deleteUser(user.id!)
 
       toast({
@@ -482,7 +435,7 @@ export default function UsersPage() {
     }
   }
 
-  const toggleAdminStatus = async (user: UserWithProfile, isAdmin: boolean) => {
+  const toggleAdminStatus = async (user: User, isAdmin: boolean) => {
     try {
       await updateUser(user.id!, { isAdmin })
       setUsers(users.map(u => 
@@ -673,23 +626,18 @@ export default function UsersPage() {
             role: row.role,
             metadata: {
               signUpMethod: 'email'
-            }
+            },
+            username: row.username.trim(),
+            bio: row.bio?.trim() || '',
+            profilePicture: row.profilePicture?.trim() || '',
+            slug: createProfileSlug(row.username || row.displayName),
+            isPublic: row.isPublic,
+            links: [],
+            socialLinks: [],
+            theme: 'default'
           })
 
-          if (row.username?.trim()) {
-            await createUserProfile({
-              userId,
-              username: row.username.trim(),
-              displayName: row.displayName.trim(),
-              bio: row.bio?.trim() || '',
-              profilePicture: row.profilePicture?.trim() || '',
-              slug: createProfileSlug(row.username || row.displayName),
-              isPublic: row.isPublic,
-              links: [],
-              socialLinks: [],
-              theme: 'default'
-            })
-          }
+
 
           createdCount += 1
         } catch (error) {
@@ -829,9 +777,9 @@ export default function UsersPage() {
               <TableRow key={user.id}>
                 <TableCell className="text-xs">
                   <div className="flex items-center space-x-2">
-                    {user.profile?.profilePicture && (
+                    {user.profilePicture && (
                       <img 
-                        src={user.profile.profilePicture} 
+                        src={user.profilePicture}
                         alt={user.displayName || 'User'} 
                         className="w-6 h-6 rounded-full"
                       />
@@ -840,16 +788,16 @@ export default function UsersPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-xs">{user.email}</TableCell>
-                <TableCell className="text-xs">{user.profile?.username || 'N/A'}</TableCell>
+                <TableCell className="text-xs">{user.username || 'N/A'}</TableCell>
                 <TableCell className="text-xs">
-                  {user.profile?.username ? (
+                  {user.username ? (
                     <a 
-                      href={`/${user.profile.username.replace('@', '')}`} 
+                      href={`/${user.username.replace('@', '')}`}
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 hover:underline"
                     >
-                      /{user.profile.username.replace('@', '')}
+                      /{user.username.replace('@', '')}
                     </a>
                   ) : (
                     'N/A'

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import BioPagePreview from '@/app/common/dashboard/BioPagePreview';
 import { getSocialPosts, getSocialProfileByUsername } from '@/lib/social-data';
-import { getUserProfileByUsername } from '@/services/userProfilesService';
+import { getUserByUsername } from '@/services/userService';
 
 export default function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>('');
@@ -27,7 +27,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
 
       try {
         const [firebaseProfile, socialProfile, socialPosts] = await Promise.all([
-          getUserProfileByUsername(slug),
+          getUserByUsername(slug),
           getSocialProfileByUsername(slug),
           getSocialPosts(),
         ]);
@@ -43,7 +43,7 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
             socialLinks: firebaseProfile.socialLinks || [],
             appearance: firebaseProfile.appearance
           });
-          setProfileOwnerId(firebaseProfile.userId);
+          setProfileOwnerId(firebaseProfile.userId || firebaseProfile.id || null);
           setPosts(socialProfile ? socialPosts.filter((post) => post.authorId === socialProfile.id) : []);
           setError(null);
           return;
