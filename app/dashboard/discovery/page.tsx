@@ -25,6 +25,7 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
   const cleanHandle = sanitizeHandle(profile.username || profile.slug || profile.email?.split('@')[0])
   const displayName = profile.displayName?.trim() || cleanHandle || 'User'
   const userId = profile.userId || profile.id || ''
+  const publicPath = cleanHandle ? `/${cleanHandle}` : '/'
 
   return {
     id: userId,
@@ -37,7 +38,7 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
       handle: cleanHandle || profile.email || profile.id || 'user',
     }),
     category: profile.category?.trim() || 'User',
-    href: userId ? `/dashboard/users/${userId}` : '/',
+    href: publicPath,
   }
 }
 
