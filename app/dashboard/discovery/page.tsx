@@ -14,9 +14,11 @@ interface DiscoveryProfile {
   handle: string
   image: string
   href: string
+  category: string
 }
 
 const sanitizeHandle = (username?: string) => username?.replace(/^@/, '').trim() || ''
+const sanitizeCategory = (category?: string) => category?.trim() || ''
 
 const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
   const cleanHandle = sanitizeHandle(profile.username || profile.slug || profile.email?.split('@')[0])
@@ -34,12 +36,14 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
       handle: cleanHandle || profile.email || profile.id || 'user',
     }),
     href: publicPath,
+    category: sanitizeCategory(profile.category),
   }
 }
 
 export default function DiscoveryPage() {
   const [users, setUsers] = useState<DiscoveryProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState('all')
 
   useEffect(() => {
     let active = true
@@ -64,6 +68,29 @@ export default function DiscoveryPage() {
     }
   }, [])
 
+  const categoryOptions = useMemo(() => {
+    const counts = users.reduce<Record<string, number>>((accumulator, user) => {
+      if (!user.category) {
+        return accumulator
+      }
+
+      accumulator[user.category] = (accumulator[user.category] || 0) + 1
+      return accumulator
+    }, {})
+
+    return Object.entries(counts)
+      .sort(([categoryA], [categoryB]) => categoryA.localeCompare(categoryB))
+      .map(([category, count]) => ({ value: category, label: `${category} (${count})` }))
+  }, [users])
+
+  const filteredUsers = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return users
+    }
+
+    return users.filter((user) => user.category === selectedCategory)
+  }, [selectedCategory, users])
+
   const allTabLabel = useMemo(() => `All (${users.length})`, [users.length])
 
   if (loading) {
@@ -76,16 +103,21 @@ export default function DiscoveryPage() {
     </div>
   ) : (
     <div className="space-y-4">
-      <Tabs value="all" className="w-full">
-        <TabsList className="inline-flex h-auto rounded-2xl border bg-card p-1">
+      <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+        <TabsList className="inline-flex h-auto flex-wrap rounded-2xl border bg-card p-1">
           <TabsTrigger value="all" className="rounded-xl px-4 py-2 text-sm font-medium">
             {allTabLabel}
           </TabsTrigger>
+          {categoryOptions.map((category) => (
+            <TabsTrigger key={category.value} value={category.value} className="rounded-xl px-4 py-2 text-sm font-medium">
+              {category.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-        {users.map((user) => (
+        {filteredUsers.map((user) => (
           <Link
             key={user.id}
             href={user.href}
