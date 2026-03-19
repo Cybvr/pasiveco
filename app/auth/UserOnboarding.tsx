@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { X } from 'lucide-react'
 import { db } from '@/lib/firebase'
-import { collection, addDoc } from 'firebase/firestore'
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -25,19 +25,21 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId }) => {
   const handleNext = () => setCurrentSlide(currentSlide + 1)
   const handleBack = () => setCurrentSlide(currentSlide - 1)
   const handleSubmit = async () => {
-    const userData = {
+    const onboarding = {
       companySize,
       industry: industry === 'other' ? customIndustry : industry,
       goal: goal === 'other' ? customGoal : goal,
-      referralSource
+      referralSource,
+      completedAt: new Date().toISOString(),
+      status: 'completed',
     }
-    console.log(userData)
-    // Save to Firestore
-    await addDoc(collection(db, 'company'), { 
-      ...userData, 
-      userId,
-      createdAt: new Date()
-    })
+
+    await setDoc(doc(db, 'users', userId), {
+      onboarding,
+      onboardingCompleted: true,
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+
     onComplete()
   }
 

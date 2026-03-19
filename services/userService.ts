@@ -11,6 +11,7 @@ import {
   where,
   orderBy,
   Timestamp,
+  setDoc,
 } from 'firebase/firestore';
 
 export interface UserLink {
@@ -180,11 +181,12 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
 export const updateUser = async (userId: string, updates: Partial<User>) => {
   try {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
+    await setDoc(userRef, {
       ...updates,
+      userId,
       username: updates.username !== undefined ? sanitizeUsername(updates.username) : updates.username,
       updatedAt: Timestamp.now(),
-    });
+    }, { merge: true });
   } catch (error) {
     console.error('Error updating user:', error);
     throw error;

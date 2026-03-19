@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { getUser, updateUser, type User } from "@/services/userService"
-import { getUserCategories } from "@/services/categoryService"
+import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Shield } from 'lucide-react'
@@ -21,10 +21,6 @@ interface UserData {
   email: string
   profilePicture?: string
   phone?: string
-  company?: string
-  website?: string
-  location?: string
-  timezone: string
   bio?: string
   category: string
   twoFactorEnabled: boolean
@@ -36,12 +32,11 @@ export default function AccountSettings() {
     firstName: "User",
     lastName: "",
     email: "user@example.com",
-    timezone: "America/New_York",
     category: '',
     twoFactorEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -56,12 +51,12 @@ export default function AccountSettings() {
       }
 
       try {
-        const [profile, categoryList] = await Promise.all([
-          getUser(user.uid),
-          getUserCategories(),
-        ])
+        const profile = await getUser(user.uid)
 
-        setCategories(categoryList.map((item) => item.name))
+        setUserData(prev => ({
+          ...prev,
+          email: user.email || prev.email,
+        }))
 
         if (profile) {
           setFirebaseProfile(profile)
@@ -71,13 +66,35 @@ export default function AccountSettings() {
             firstName: profile.displayName?.split(' ')[0] || prev.firstName,
             lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
+            phone: profile.phoneNumber || prev.phone,
             bio: profile.bio || prev.bio,
             category: profile.category || prev.category,
             profilePicture: profile.profilePicture || prev.profilePicture,
           }))
+        } else {
+          setFirebaseProfile({
+            id: user.uid,
+            userId: user.uid,
+            email: user.email || '',
+            emailVerified: user.emailVerified,
+            createdAt: new Date() as unknown as User['createdAt'],
+            updatedAt: new Date() as unknown as User['updatedAt'],
+            isActive: true,
+            role: 'user',
+          })
         }
       } catch (error) {
         console.error("Error loading profile:", error)
+      }
+
+      try {
+        const categoryList = await getUserCategories()
+        if (categoryList.length > 0) {
+          setCategories(categoryList.map((item) => item.name))
+        }
+      } catch (error) {
+        console.error("Error loading categories:", error)
+        setCategories(DEFAULT_USER_CATEGORIES)
       }
     }
 
@@ -128,17 +145,34 @@ export default function AccountSettings() {
       })
       return
     }
-    if (!user?.uid || !firebaseProfile) return
+    if (!user?.uid) return
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      await updateUser(firebaseProfile.id!, {
+      await updateUser(user.uid, {
         displayName,
+        phoneNumber: userData.phone || '',
         bio: userData.bio || "",
         category: userData.category || '',
-        profilePicture: userData.profilePicture || firebaseProfile.profilePicture || '',
+        profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
       })
 
-      setFirebaseProfile(prev => prev ? ({ ...prev, displayName, bio: userData.bio || '', category: userData.category || '', profilePicture: userData.profilePicture || prev.profilePicture }) : prev)
+      setFirebaseProfile(prev => ({
+        ...(prev || {
+          id: user.uid,
+          userId: user.uid,
+          email: user.email || '',
+          emailVerified: user.emailVerified,
+          createdAt: new Date() as unknown as User['createdAt'],
+          updatedAt: new Date() as unknown as User['updatedAt'],
+          isActive: true,
+          role: 'user',
+        }),
+        displayName,
+        phoneNumber: userData.phone || '',
+        bio: userData.bio || '',
+        category: userData.category || '',
+        profilePicture: userData.profilePicture || prev?.profilePicture || '',
+      }))
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -221,7 +255,7 @@ export default function AccountSettings() {
       <div className="bg-card rounded-lg overflow-hidden">
         <div className="p-4">
           <h2 className="text-lg font-semibold">Profile Information</h2>
-          <p className="text-sm text-muted-foreground">Update your personal details, category, and contact information.</p>
+          <p className="text-sm text-muted-foreground">Update your personal details and choose the category that best fits your profile.</p>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex justify-center mb-4">
@@ -268,33 +302,6 @@ export default function AccountSettings() {
               value={userData.phone || ''}
               onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
             />
-            <Input
-              placeholder="Company"
-              value={userData.company || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
-            />
-            <Input
-              placeholder="Website"
-              value={userData.website || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, website: e.target.value }))}
-            />
-            <Input
-              placeholder="Location"
-              value={userData.location || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, location: e.target.value }))}
-            />
-            <Select value={userData.timezone} onValueChange={(value) => setUserData(prev => ({ ...prev, timezone: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                <SelectItem value="America/Chicago">Central Time</SelectItem>
-                <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                <SelectItem value="UTC">UTC</SelectItem>
-              </SelectContent>
-            </Select>
             <div className="md:col-span-2">
               <Select value={userData.category || 'unselected'} onValueChange={(value) => setUserData(prev => ({ ...prev, category: value === 'unselected' ? '' : value }))}>
                 <SelectTrigger>
@@ -325,6 +332,7 @@ export default function AccountSettings() {
                 displayName: firebaseProfile.displayName || prev.displayName,
                 firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
                 lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
+                phone: firebaseProfile.phoneNumber || prev.phone,
                 bio: firebaseProfile.bio || prev.bio,
                 category: firebaseProfile.category || '',
                 profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
