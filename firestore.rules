@@ -1,21 +1,36 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDocPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(userDocPath()) &&
+        get(userDocPath()).data.isAdmin == true;
+    }
+
+    function isContentManager() {
+      return isSignedIn() &&
+        (request.auth.uid == 'mdBW2iIUy2diyIrnK55s' || isAdmin());
+    }
+
     // Users collection - allow read/write for own data, read/write/create for admins
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow read, write, create: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read, write, create: if isAdmin();
     }
     
     // QR codes collection - allow read/write for owner, read for admins
     match /qr_codes/{qrCodeId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
     }
     
     // User profiles collection
@@ -23,42 +38,34 @@ service cloud.firestore {
       // Allow public read access for public profiles
       allow read: if true; // Allow all reads for public bio pages
       // Allow if document ID matches user ID
-      allow write: if request.auth != null && request.auth.uid == profileId;
+      allow write: if isSignedIn() && request.auth.uid == profileId;
       // Allow if userId field matches authenticated user
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
       // Allow creation if userId field matches authenticated user
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
       // Temporarily allow demo data creation
       allow create: if request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s';
       // Allow admin access
-      allow read, write, create: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read, write, create: if isAdmin();
     }
     
     // Analytics collection - allow read/write for owner, read for admins
     match /analytics/{analyticsId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
     }
     
     // Blog posts - allow read for everyone, write for admins
     match /blog_posts/{postId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
-      // Temporarily allow create without auth for migration
-      allow create: if true;
+      allow create, update, delete: if isContentManager();
     }
     
     // Features - allow read for everyone, write for admins
     match /features/{featureId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+      allow write: if isAdmin();
       // Temporarily allow create without auth for migration
       allow create: if true;
     }
@@ -66,8 +73,7 @@ service cloud.firestore {
     // Solutions - allow read for everyone, write for admins
     match /solutions/{solutionId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow write: if isAdmin();
       // Temporarily allow create without auth for migration
       allow create: if true;
     }
@@ -75,31 +81,29 @@ service cloud.firestore {
     // Products - allow public read, write for owner, read for admins
     match /products/{productId} {
       allow read: if true; // Allow public read access
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
       // Temporarily allow demo data creation
       allow create: if request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s';
-      allow read: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow read: if isAdmin();
     }
     
     // Templates - allow read for everyone
     match /templates/{templateId} {
       allow read: if true;
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
     }
     
     // Scans tracking
     match /scans/{scanId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn();
       allow create: if true; // Allow anonymous scan tracking
     }
 
     // Clicks tracking
     match /clicks/{clickId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isSignedIn();
       allow create: if true; // Allow anonymous click tracking
     }
     
