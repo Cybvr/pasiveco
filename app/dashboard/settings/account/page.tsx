@@ -21,7 +21,6 @@ interface UserData {
   email: string
   profilePicture?: string
   phone?: string
-  company?: string
   bio?: string
   category: string
   twoFactorEnabled: boolean
@@ -63,6 +62,7 @@ export default function AccountSettings() {
             lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
             bio: profile.bio || prev.bio,
+            phone: profile.phoneNumber || prev.phone,
             category: profile.category || prev.category,
             profilePicture: profile.profilePicture || prev.profilePicture,
           }))
@@ -79,10 +79,6 @@ export default function AccountSettings() {
       } catch (error) {
         console.error("Error loading categories:", error)
         setCategories(DEFAULT_USER_CATEGORIES)
-        toast({
-          title: "Categories unavailable",
-          description: "Showing the default category list while categories finish syncing.",
-        })
       }
     }
 
@@ -133,17 +129,23 @@ export default function AccountSettings() {
       })
       return
     }
-    if (!user?.uid || !firebaseProfile) return
+    if (!user?.uid) return
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      await updateUser(firebaseProfile.id!, {
+      const userId = firebaseProfile?.id || user.uid
+      await updateUser(userId, {
+        email: user.email || userData.email,
         displayName,
         bio: userData.bio || "",
+        phoneNumber: userData.phone || '',
         category: userData.category || '',
-        profilePicture: userData.profilePicture || firebaseProfile.profilePicture || '',
+        profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
       })
 
-      setFirebaseProfile(prev => prev ? ({ ...prev, displayName, bio: userData.bio || '', category: userData.category || '', profilePicture: userData.profilePicture || prev.profilePicture }) : prev)
+      const updatedProfile = await getUser(userId)
+      if (updatedProfile) {
+        setFirebaseProfile(updatedProfile)
+      }
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
@@ -273,11 +275,6 @@ export default function AccountSettings() {
               value={userData.phone || ''}
               onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
             />
-            <Input
-              placeholder="Company"
-              value={userData.company || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
-            />
             <div className="md:col-span-2">
               <Select value={userData.category || 'unselected'} onValueChange={(value) => setUserData(prev => ({ ...prev, category: value === 'unselected' ? '' : value }))}>
                 <SelectTrigger>
@@ -309,6 +306,7 @@ export default function AccountSettings() {
                 firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
                 lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
                 bio: firebaseProfile.bio || prev.bio,
+                phone: firebaseProfile.phoneNumber || prev.phone,
                 category: firebaseProfile.category || '',
                 profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
               }))
