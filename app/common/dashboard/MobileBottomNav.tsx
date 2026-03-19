@@ -22,7 +22,9 @@ export default function MobileBottomNav() {
         <div className="flex items-center justify-around px-2 py-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+            const isActive = item.href === '/dashboard'
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`)
 
             return (
               <Link

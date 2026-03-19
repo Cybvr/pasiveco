@@ -70,6 +70,8 @@ export default function DashboardPostPage() {
     if (updatedPost) setPost(updatedPost)
   }
 
+  const authorHref = `/${author.username || author.handle.replace(/^@/, '')}`
+
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <Button asChild variant="ghost" className="w-fit px-0 hover:bg-transparent">
@@ -81,14 +83,20 @@ export default function DashboardPostPage() {
 
       <article className="rounded-2xl border bg-card p-5">
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11 border">
-            <AvatarImage src={author.image} alt={author.name} />
-            <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
-          </Avatar>
+          <Link href={authorHref} className="rounded-full">
+            <Avatar className="h-11 w-11 border transition-opacity hover:opacity-90">
+              <AvatarImage src={author.image} alt={author.name} />
+              <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="text-sm font-semibold">{author.name}</p>
-              <span className="text-xs text-muted-foreground">{author.handle}</span>
+              <Link href={authorHref} className="text-sm font-semibold hover:underline">
+                {author.name}
+              </Link>
+              <Link href={authorHref} className="text-xs text-muted-foreground hover:underline">
+                {author.handle}
+              </Link>
             </div>
             <p className="text-xs text-muted-foreground">{formatSocialDate(post.createdAt)}</p>
           </div>

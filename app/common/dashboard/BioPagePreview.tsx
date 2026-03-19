@@ -52,9 +52,10 @@ interface BioPagePreviewProps {
   links: CustomLink[]
   profileOwnerId?: string
   posts?: PublicPost[]
+  emptyStateMessage?: string
 }
 
-const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId, posts = [] }) => {
+const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId, posts = [], emptyStateMessage }) => {
   const { user } = useAuth()
   const [isPageModalOpen, setIsPageModalOpen] = React.useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
@@ -82,6 +83,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
 
   const socialLinksToDisplay = profileData.socialLinks || []
   const activeProducts = products.filter(product => product.status === 'active')
+  const emptyMessage = emptyStateMessage || 'No content available yet.'
 
   return (
     <div className="rounded-lg overflow-hidden p-2 min-h-[500px]">
@@ -117,7 +119,9 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
             </div>
             <div>
               <h2 className="text-xl font-semibold text-foreground">@{profileData.username?.startsWith('@') ? profileData.username.substring(1) : profileData.username}</h2>
-              <p className="text-muted-foreground text-sm mt-2">{profileData.bio}</p>
+              {profileData.bio ? (
+                <p className="text-muted-foreground text-sm mt-2">{profileData.bio}</p>
+              ) : null}
               {socialLinksToDisplay.filter(link => link.active).length > 0 && (
                 <div className="flex justify-center gap-3 mt-4">
                   {socialLinksToDisplay.filter(link => link.active).map((social) => (
@@ -150,6 +154,11 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                       <span className="font-medium">{link.title}</span>
                     </a>
                   ))}
+                  {links.filter((link) => link.active).length === 0 && (
+                    <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                      {emptyMessage}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 
@@ -193,7 +202,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4 text-muted-foreground text-sm">No products available</div>
+                    <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{emptyMessage}</div>
                   )}
                 </div>
               </TabsContent>
@@ -215,7 +224,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                     ))
                   ) : (
                     <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                      No posts yet.
+                      {emptyMessage}
                     </div>
                   )}
                 </div>

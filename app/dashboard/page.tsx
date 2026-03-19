@@ -6,7 +6,7 @@ import { Heart, MessageCircle, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { FeedSkeleton } from '@/app/common/dashboard/SocialLoading'
-import { getSocialPosts, getSocialProfiles, formatSocialDate, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
+import { formatSocialRelativeTime, getSocialPosts, getSocialProfiles, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
 export default function DashboardHomePage() {
   const [posts, setPosts] = useState<SocialPost[]>([])
@@ -65,27 +65,25 @@ export default function DashboardHomePage() {
           <Link
             key={post.id}
             href={`/dashboard/posts/${post.id}`}
-            className="block rounded-2xl border bg-card p-4 transition-colors hover:bg-accent/40"
+            className="block rounded-2xl border bg-card p-3 transition-colors hover:bg-accent/40"
           >
-            <article className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-11 w-11 border">
+            <article className="space-y-2.5">
+              <div className="flex items-center gap-2.5">
+                <Avatar className="h-10 w-10 border">
                   <AvatarImage src={author.image} alt={author.name} />
                   <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <p className="text-sm font-semibold">{author.name}</p>
-                    <span className="text-xs text-muted-foreground">{author.handle}</span>
+                    <p className="text-sm font-semibold">{author.handle}</p>
                     <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">{formatSocialDate(post.createdAt)}</span>
+                    <span className="text-xs text-muted-foreground">{formatSocialRelativeTime(post.createdAt)}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{author.category}</p>
                 </div>
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{post.message}</p>
+              <p className="whitespace-pre-wrap text-sm leading-5 text-foreground">{post.message}</p>
 
-              <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 pt-0.5 text-xs text-muted-foreground">
                 <Button
                   type="button"
                   variant="ghost"
