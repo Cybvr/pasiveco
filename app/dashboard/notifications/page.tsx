@@ -1,39 +1,39 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, CreditCard, Megaphone, MessageSquare } from 'lucide-react'
+import { Bell, MessageSquare, Rss, UserPlus } from 'lucide-react'
 
 const notifications = [
   {
     id: 'n1',
-    icon: MessageSquare,
-    title: 'New brand inquiry from Prism Labs',
-    body: 'They requested your media kit and rates for a short-form campaign.',
+    icon: Bell,
+    title: 'A creator you follow published a new post',
+    body: 'Lin Xia shared a new post in your feed about her spring capsule picks.',
     time: '5 minutes ago',
     status: 'new',
   },
   {
     id: 'n2',
-    icon: CreditCard,
-    title: 'Payout completed',
-    body: '$420.00 was transferred to your connected bank account.',
-    time: '2 hours ago',
-    status: 'done',
+    icon: UserPlus,
+    title: 'You have a new subscriber',
+    body: 'Jordan Miles subscribed to your page and can now get your latest updates.',
+    time: '22 minutes ago',
+    status: 'new',
   },
   {
     id: 'n3',
-    icon: Megaphone,
-    title: 'Campaign deadline reminder',
-    body: 'Your deliverables for HypeFuel are due tomorrow at 5:00 PM.',
-    time: 'Yesterday',
+    icon: MessageSquare,
+    title: 'You received a new message',
+    body: 'Amara Okafor sent you a message asking about your current rates and availability.',
+    time: '1 hour ago',
     status: 'new',
   },
   {
     id: 'n4',
-    icon: CheckCircle2,
-    title: 'Profile update approved',
-    body: 'Your updated bio and social links are now live on your page.',
-    time: '2 days ago',
+    icon: Rss,
+    title: 'New Pasive blog update',
+    body: 'Pasive published a new blog post with platform updates, creator tips, and product news.',
+    time: 'Yesterday',
     status: 'done',
   },
 ]

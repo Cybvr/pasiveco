@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { auth } from '@/lib/firebase'
 import { toast } from "@/hooks/use-toast"
+import { SettingsSkeleton } from '@/app/common/dashboard/SocialLoading'
 
 
 
@@ -51,6 +52,7 @@ interface UserData {
 }
 
 export default function GeneralSettings() {
+  const [loadingProfile, setLoadingProfile] = useState(true)
   const [userData, setUserData] = useState<UserData>({
     displayName: "User",
     firstName: "User",
@@ -67,26 +69,31 @@ export default function GeneralSettings() {
 
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (user?.uid) {
-        try {
-          const firebaseProfile = await getUserProfile(user.uid)
-          if (firebaseProfile) {
-            setFirebaseProfile(firebaseProfile)
-            setUserData(prev => ({
-              ...prev,
-              displayName: firebaseProfile.displayName,
-              firstName: firebaseProfile.displayName.split(' ')[0] || prev.firstName,
-              lastName: firebaseProfile.displayName.split(' ').slice(1).join(' ') || prev.lastName,
-              email: user.email || prev.email,
-            }))
-          }
-        } catch (error) {
-          console.error("Error loading profile:", error)
+      if (!user?.uid) {
+        setLoadingProfile(false)
+        return
+      }
+
+      try {
+        const firebaseProfile = await getUserProfile(user.uid)
+        if (firebaseProfile) {
+          setFirebaseProfile(firebaseProfile)
+          setUserData(prev => ({
+            ...prev,
+            displayName: firebaseProfile.displayName,
+            firstName: firebaseProfile.displayName.split(' ')[0] || prev.firstName,
+            lastName: firebaseProfile.displayName.split(' ').slice(1).join(' ') || prev.lastName,
+            email: user.email || prev.email,
+          }))
         }
+      } catch (error) {
+        console.error("Error loading profile:", error)
+      } finally {
+        setLoadingProfile(false)
       }
     }
 
-    loadUserProfile()
+    void loadUserProfile()
   }, [user])
 
   const getGravatarUrl = (email: string) => {
@@ -101,6 +108,10 @@ export default function GeneralSettings() {
   }
 
 
+
+  if (loadingProfile) {
+    return <SettingsSkeleton />
+  }
 
   const handleLogout = async () => {
     try {

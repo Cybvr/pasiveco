@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Heart, MessageCircle, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { FeedSkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getSocialPosts, getSocialProfiles, formatSocialDate, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
 export default function DashboardHomePage() {
@@ -27,7 +28,7 @@ export default function DashboardHomePage() {
       }
     }
 
-    loadFeed()
+    void loadFeed()
 
     return () => {
       active = false
@@ -47,7 +48,7 @@ export default function DashboardHomePage() {
   }
 
   if (loading) {
-    return <div className="mx-auto max-w-2xl rounded-2xl border bg-card p-4 text-sm text-muted-foreground">Loading feed...</div>
+    return <FeedSkeleton />
   }
 
   if (!hasPosts) {
