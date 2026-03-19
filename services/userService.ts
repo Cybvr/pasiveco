@@ -182,11 +182,13 @@ export const updateUser = async (userId: string, updates: Partial<User>) => {
   try {
     const userRef = doc(db, 'users', userId);
     const existingUser = await getDoc(userRef);
-    const normalizedUpdates = {
-      ...updates,
-      username: updates.username !== undefined ? sanitizeUsername(updates.username) : updates.username,
-      updatedAt: Timestamp.now(),
-    };
+    const normalizedUpdates = Object.fromEntries(
+      Object.entries({
+        ...updates,
+        username: updates.username !== undefined ? sanitizeUsername(updates.username) : undefined,
+        updatedAt: Timestamp.now(),
+      }).filter(([_, value]) => value !== undefined)
+    );
 
     if (!existingUser.exists()) {
       await setDoc(userRef, {
