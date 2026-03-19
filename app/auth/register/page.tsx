@@ -43,10 +43,22 @@ export default function Register() {
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         email: email,
         createdAt: new Date(),
+        updatedAt: new Date(),
         plan: 'free',
         displayName: '',
         phoneNumber: '',
-        avatar: ''
+        avatar: '',
+        profilePicture: '',
+        emailVerified: false,
+        isActive: true,
+        isAdmin: false,
+        role: 'user',
+        username: email.split('@')[0],
+        bio: '',
+        slug: email.split('@')[0],
+        isPublic: true,
+        links: [],
+        socialLinks: []
       })
       router.push('/dashboard')
     } catch (error) {

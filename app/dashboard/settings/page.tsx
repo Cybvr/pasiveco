@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, User, CreditCard, Gift, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette } from 'lucide-react'
-import { getUserProfile } from "@/services/userProfilesService"
+import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
 import {
@@ -63,7 +63,7 @@ export default function GeneralSettings() {
     createdAt: new Date(),
     lastLoginAt: new Date(),
   })
-  const [firebaseProfile, setFirebaseProfile] = useState(null)
+  const [firebaseProfile, setFirebaseProfile] = useState<AppUser | null>(null)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -75,14 +75,14 @@ export default function GeneralSettings() {
       }
 
       try {
-        const firebaseProfile = await getUserProfile(user.uid)
+        const firebaseProfile = await getUser(user.uid)
         if (firebaseProfile) {
           setFirebaseProfile(firebaseProfile)
           setUserData(prev => ({
             ...prev,
-            displayName: firebaseProfile.displayName,
-            firstName: firebaseProfile.displayName.split(' ')[0] || prev.firstName,
-            lastName: firebaseProfile.displayName.split(' ').slice(1).join(' ') || prev.lastName,
+            displayName: firebaseProfile.displayName || prev.displayName,
+            firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
+            lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
           }))
         }

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/useAuth'
 import { createSocialPost } from '@/lib/social-data'
-import { getUserProfile } from '@/services/userProfilesService'
+import { getUser } from '@/services/userService'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -23,7 +23,7 @@ export default function NewPostPage() {
       if (!user?.uid) return
 
       try {
-        const profile = await getUserProfile(user.uid)
+        const profile = await getUser(user.uid)
         setProfilePicture(profile?.profilePicture || user.photoURL || '')
         setDisplayName(profile?.displayName || user.displayName || 'You')
       } catch (error) {

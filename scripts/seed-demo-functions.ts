@@ -1,14 +1,18 @@
-
 import { db } from '../lib/firebase';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { UserProfile } from '../services/userProfilesService';
+import { User } from '../services/userService';
 import { Product } from '../services/productsService';
 
 const DEMO_USER_ID = 'mdBW2iIUy2diyIrnK55s';
 
-export const createDemoUserProfile = async (): Promise<void> => {
-  const demoProfile: Omit<UserProfile, 'id'> = {
-    userId: DEMO_USER_ID,
+export const createDemoUser = async (): Promise<void> => {
+  const demoUser: Omit<User, 'id' | 'userId'> = {
+    email: 'demo@pasive.co',
+    emailVerified: true,
+    isActive: true,
+    isAdmin: false,
+    role: 'user',
+    metadata: { signUpMethod: 'email' },
     username: 'demo-fintech-user',
     displayName: 'Demo Fintech User',
     bio: 'Fintech enthusiast, app developer, and payment systems expert. Building the future of digital finance.',
@@ -79,15 +83,16 @@ export const createDemoUserProfile = async (): Promise<void> => {
       buttonColor: '#1a73e8',
       textColor: '#202124'
     },
+    slug: 'demo-fintech-user',
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now()
   };
 
   try {
-    await setDoc(doc(db, 'user_profiles', 'demo-fintech-profile'), demoProfile);
-    console.log('✅ Demo user profile created successfully');
+    await setDoc(doc(db, 'users', DEMO_USER_ID), demoUser, { merge: true });
+    console.log('✅ Demo user created successfully');
   } catch (error) {
-    console.error('❌ Error creating demo user profile:', error);
+    console.error('❌ Error creating demo user:', error);
     throw error;
   }
 };
@@ -208,19 +213,18 @@ export const createDemoProducts = async (): Promise<void> => {
 
 export const seedAllDemoData = async (): Promise<void> => {
   console.log('🌱 Starting complete demo data seeding...');
-  
+
   try {
-    await createDemoUserProfile();
+    await createDemoUser();
     await createDemoProducts();
-    
+
     console.log('🎉 Complete demo data seeding finished successfully!');
     console.log(`📋 Summary for user ${DEMO_USER_ID}:`);
-    console.log('   - ✅ User profile with 4 featured links');
+    console.log('   - ✅ User document with 4 featured links');
     console.log('   - ✅ 3 fintech products created');
     console.log('   - ✅ Social media links configured');
-    console.log('   - ✅ Professional appearance settings applied');
   } catch (error) {
-    console.error('❌ Error in complete demo data seeding:', error);
+    console.error('❌ Error seeding demo data:', error);
     throw error;
   }
 };

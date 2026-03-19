@@ -182,10 +182,17 @@ async function seedDemoData() {
   try {
     console.log('🌱 Starting demo data seeding...');
     
-    // Create user profile with the userId as document ID to match security rules
-    console.log('📝 Creating demo user profile...');
-    await setDoc(doc(db, 'user_profiles', DEMO_USER_ID), demoProfile);
-    console.log('✅ Demo user profile created successfully');
+    console.log('📝 Creating demo user document...');
+    await setDoc(doc(db, 'users', DEMO_USER_ID), {
+      email: 'demo@pasive.co',
+      emailVerified: true,
+      isActive: true,
+      isAdmin: false,
+      role: 'user',
+      metadata: { signUpMethod: 'email' },
+      ...demoProfile,
+    }, { merge: true });
+    console.log('✅ Demo user document created successfully');
     
     // Create products
     console.log('📦 Creating demo products...');
@@ -199,7 +206,7 @@ async function seedDemoData() {
     console.log('🎉 Demo data seeding completed successfully!');
     console.log(`📋 Summary:`);
     console.log(`   - User ID: ${DEMO_USER_ID}`);
-    console.log(`   - Profile created with username: ${demoProfile.username}`);
+    console.log(`   - User created with username: ${demoProfile.username}`);
     console.log(`   - ${demoProfile.links.length} links added`);
     console.log(`   - ${demoProducts.length} products created`);
     

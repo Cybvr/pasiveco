@@ -28,21 +28,21 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, Shield } from 'lucide-react'
-import { getUserProfile, type UserProfile } from '@/services/userProfilesService'
+import { User as UserIcon, Settings, LogOut, Shield } from 'lucide-react'
+import { getUser, type User as AppUser } from '@/services/userService'
 import { useEffect } from 'react'
 
 export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const { user } = useAuth()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profile, setProfile] = useState<AppUser | null>(null)
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (user?.uid) {
         try {
-          const fetchedProfile = await getUserProfile(user.uid)
+          const fetchedProfile = await getUser(user.uid)
           setProfile(fetchedProfile)
         } catch (error) {
           console.error('Error fetching profile for UserMenu:', error)
@@ -113,7 +113,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings/account')}>
-            <User className="mr-2 h-4 w-4" />
+            <UserIcon className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>

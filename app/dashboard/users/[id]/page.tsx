@@ -8,21 +8,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getUserProfile, type UserProfile } from '@/services/userProfilesService'
+import { getUser, type User } from '@/services/userService'
 
 const normalizeHandle = (username?: string) => {
   const cleanUsername = (username || '').replace(/^@/, '').trim()
   return cleanUsername ? `@${cleanUsername}` : '@user'
 }
 
-const sourceLabel = (profile: UserProfile | null) => {
+const sourceLabel = (profile: User | null) => {
   const cleanedSource = profile?.source?.trim()
   return cleanedSource || 'Pasive creator'
 }
 
-export default function DashboardUserProfilePage() {
+export default function DashboardUserPage() {
   const params = useParams<{ id: string }>()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function DashboardUserProfilePage() {
       if (!params?.id) return
 
       try {
-        const profileData = await getUserProfile(params.id)
+        const profileData = await getUser(params.id)
         if (!active) return
         setProfile(profileData || null)
       } catch (error) {
@@ -51,12 +51,12 @@ export default function DashboardUserProfilePage() {
   }, [params])
 
   const activeLinks = useMemo(
-    () => profile?.links.filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
+    () => (profile?.links || []).filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
     [profile],
   )
 
   const activeSocialLinks = useMemo(
-    () => profile?.socialLinks.filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
+    () => (profile?.socialLinks || []).filter((link) => link.active !== false && Boolean(link.url?.trim())) || [],
     [profile],
   )
 
@@ -102,7 +102,7 @@ export default function DashboardUserProfilePage() {
               </div>
             </div>
             <Button asChild>
-              <Link href={`/${profile.username.replace(/^@/, '')}`}>
+              <Link href={`/${(profile.username || "user").replace(/^@/, '')}`}>
                 <MessageCircle className="h-4 w-4" />
                 Open bio page
               </Link>

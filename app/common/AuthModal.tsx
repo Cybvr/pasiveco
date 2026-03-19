@@ -53,8 +53,19 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
           displayName: result.user.displayName,
           photoURL: result.user.photoURL,
           createdAt: new Date(),
+          updatedAt: new Date(),
           plan: 'free',
-          isAdmin: false
+          isAdmin: false,
+          emailVerified: result.user.emailVerified,
+          isActive: true,
+          role: 'user',
+          username: (result.user.email || '').split('@')[0],
+          bio: '',
+          profilePicture: result.user.photoURL || '',
+          slug: (result.user.email || '').split('@')[0],
+          isPublic: true,
+          links: [],
+          socialLinks: []
         })
       }
       
@@ -110,11 +121,22 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         email: email,
         createdAt: new Date(),
+        updatedAt: new Date(),
         plan: 'free',
         displayName: '',
         phoneNumber: '',
         photoURL: '',
-        isAdmin: false
+        profilePicture: '',
+        isAdmin: false,
+        emailVerified: false,
+        isActive: true,
+        role: 'user',
+        username: email.split('@')[0],
+        bio: '',
+        slug: email.split('@')[0],
+        isPublic: true,
+        links: [],
+        socialLinks: []
       })
       
       onClose()

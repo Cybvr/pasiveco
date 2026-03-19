@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { getUserProfile } from '@/services/userProfilesService'
+import { getUser } from '@/services/userService'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
@@ -41,7 +41,7 @@ export default function DashboardHeader() {
     const loadProfile = async () => {
       if (!user?.uid) return
       try {
-        const profile = await getUserProfile(user.uid)
+        const profile = await getUser(user.uid)
         setProfilePicture(profile?.profilePicture || user.photoURL || '')
         setDisplayName(profile?.displayName || user.displayName || 'Creator')
       } catch (error) {

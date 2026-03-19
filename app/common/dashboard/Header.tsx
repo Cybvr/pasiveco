@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Crown, Share2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserProfile } from '@/services/userProfilesService';
+import { getUser } from '@/services/userService';
 
 const Header: React.FC = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -16,7 +16,7 @@ const Header: React.FC = () => {
     const fetchUserProfile = async () => {
       if (user?.uid) {
         try {
-          const profile = await getUserProfile(user.uid);
+          const profile = await getUser(user.uid);
           setUserProfile(profile);
         } catch (error) {
           console.error('Error fetching user profile:', error);

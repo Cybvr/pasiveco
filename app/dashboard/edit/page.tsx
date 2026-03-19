@@ -1,13 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X } from "lucide-react";
-import {
-  getUserProfile,
-  createUserProfile,
-  updateUserProfile,
-  type UserProfile,
-} from "@/services/userProfilesService";
+import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X } from "lucide-react";
+import { getUser, updateUser, type User as AppUser } from "@/services/userService";
 import { getUserProducts, type Product } from "@/services/productsService";
 import { useAuth } from "@/hooks/useAuth";
 import BioMode from "@/app/common/dashboard/BioMode";
@@ -37,7 +32,7 @@ function Page() {
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
 
   const [profileData, setProfileData] = useState<
-    Partial<UserProfile> & {
+    Partial<AppUser> & {
       username: string;
       slug: string;
       displayName: string;
@@ -53,7 +48,7 @@ function Page() {
     bannerImage: null,
     slug: "username",
   });
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<AppUser | null>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
   const profileUrl =
@@ -67,7 +62,7 @@ function Page() {
       if (!user) return;
       setLoading(true);
       try {
-        let profile = await getUserProfile(user.uid);
+        let profile = await getUser(user.uid);
         if (!profile) {
           const defaultLinks = [
             {
@@ -163,7 +158,7 @@ function Page() {
             },
           ];
 
-          await createUserProfile({
+          await updateUser(user.uid, {
             userId: user.uid,
             username: user.email?.split("@")[0] || "user",
             displayName: user.displayName || "Your Name",
@@ -174,18 +169,18 @@ function Page() {
             isPublic: true,
             slug: user.email?.split("@")[0] || "user",
           });
-          profile = await getUserProfile(user.uid);
+          profile = await getUser(user.uid);
         }
         if (profile) {
           setUserProfile(profile);
           setProfileData((prev) => ({
             ...prev,
-            username: profile.username,
-            displayName: profile.displayName,
+            username: profile.username || "user",
+            displayName: profile.displayName || "Your Name",
             bio: profile.bio || "Building something amazing ✨",
-            profilePicture: profile.profilePicture,
+            profilePicture: profile.profilePicture || "/images/dud.png",
             bannerImage: profile.bannerImage || null,
-            slug: profile.slug || profile.username,
+            slug: profile.slug || profile.username || "user",
           }));
 
           const defaultLinks = [
@@ -319,7 +314,7 @@ function Page() {
   const saveProfile = async () => {
     if (!user || !userProfile) return;
     try {
-      await updateUserProfile(userProfile.id!, {
+      await updateUser(userProfile.id!, {
         username: profileData.username,
         displayName: profileData.displayName,
         bio: profileData.bio,
@@ -507,7 +502,7 @@ function Page() {
                                   {profileData.profilePicture ? (
                                     <img src={profileData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                                   ) : (
-                                    <User className="w-5 h-5 text-muted-foreground" />
+                                    <UserIcon className="w-5 h-5 text-muted-foreground" />
                                   )}
                                 </div>
                                 <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -573,7 +568,7 @@ function Page() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <User className="w-8 h-8 text-muted-foreground" />
+                            <UserIcon className="w-8 h-8 text-muted-foreground" />
                           </div>
                         )}
                       </div>

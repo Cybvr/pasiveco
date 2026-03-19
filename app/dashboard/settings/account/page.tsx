@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { getUserProfile, updateUserProfile } from "@/services/userProfilesService"
+import { getUser, updateUser, type User } from "@/services/userService"
 import { getUserSettings, updateUserSettings } from "@/services/userSettingsService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -42,7 +42,7 @@ export default function AccountSettings() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [firebaseProfile, setFirebaseProfile] = useState(null)
+  const [firebaseProfile, setFirebaseProfile] = useState<User | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuth()
 
@@ -50,14 +50,14 @@ export default function AccountSettings() {
     const loadProfile = async () => {
       if (user?.uid) {
         try {
-          const profile = await getUserProfile(user.uid)
+          const profile = await getUser(user.uid)
           if (profile) {
             setFirebaseProfile(profile)
             setUserData(prev => ({
               ...prev,
-              displayName: profile.displayName,
-              firstName: profile.displayName.split(' ')[0] || prev.firstName,
-              lastName: profile.displayName.split(' ').slice(1).join(' ') || prev.lastName,
+              displayName: profile.displayName || prev.displayName,
+              firstName: profile.displayName?.split(' ')[0] || prev.firstName,
+              lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
               email: user.email || prev.email,
               bio: profile.bio || prev.bio,
               profilePicture: profile.profilePicture || prev.profilePicture,
@@ -123,7 +123,7 @@ export default function AccountSettings() {
     if (!user?.uid || !firebaseProfile) return
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      await updateUserProfile(firebaseProfile.id, {
+      await updateUser(firebaseProfile.id!, {
         displayName,
         bio: userData.bio || "",
       })
@@ -300,9 +300,9 @@ export default function AccountSettings() {
             if (firebaseProfile) {
               setUserData(prev => ({
                 ...prev,
-                displayName: firebaseProfile.displayName,
-                firstName: firebaseProfile.displayName.split(' ')[0] || prev.firstName,
-                lastName: firebaseProfile.displayName.split(' ').slice(1).join(' ') || prev.lastName,
+                displayName: firebaseProfile.displayName || prev.displayName,
+                firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
+                lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
                 bio: firebaseProfile.bio || prev.bio,
               }))
             }
