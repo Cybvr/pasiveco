@@ -18,6 +18,7 @@ interface UserData {
   displayName: string
   firstName: string
   lastName: string
+  username: string
   email: string
   profilePicture?: string
   phone?: string
@@ -31,6 +32,7 @@ export default function AccountSettings() {
     displayName: "User",
     firstName: "User",
     lastName: "",
+    username: '',
     email: "user@example.com",
     category: '',
     twoFactorEnabled: false,
@@ -58,6 +60,7 @@ export default function AccountSettings() {
             firstName: profile.displayName?.split(' ')[0] || prev.firstName,
             lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
+            username: profile.username || prev.username,
             bio: profile.bio || prev.bio,
             phone: profile.phoneNumber || prev.phone,
             category: profile.category || prev.category,
@@ -86,7 +89,7 @@ export default function AccountSettings() {
     getDisplayAvatar({
       image: userData.profilePicture || firebaseProfile?.profilePicture || user?.photoURL || '',
       displayName: userData.displayName,
-      handle: firebaseProfile?.username || userData.email,
+      handle: userData.username || firebaseProfile?.username || userData.email,
     })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,6 +126,7 @@ export default function AccountSettings() {
       await updateUser(user.uid, {
         email: user.email || userData.email,
         displayName,
+        username: userData.username,
         bio: userData.bio || "",
         phoneNumber: userData.phone || '',
         category: userData.category || '',
@@ -217,6 +221,11 @@ export default function AccountSettings() {
               onChange={(e) => setUserData(prev => ({ ...prev, lastName: e.target.value }))}
             />
             <Input
+              placeholder="Username"
+              value={userData.username}
+              onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
+            />
+            <Input
               placeholder="Email address"
               type="email"
               value={userData.email}
@@ -257,6 +266,7 @@ export default function AccountSettings() {
                 displayName: firebaseProfile.displayName || prev.displayName,
                 firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
                 lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
+                username: firebaseProfile.username || prev.username,
                 bio: firebaseProfile.bio || prev.bio,
                 phone: firebaseProfile.phoneNumber || prev.phone,
                 category: firebaseProfile.category || '',
