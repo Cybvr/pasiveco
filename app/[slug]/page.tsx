@@ -99,15 +99,21 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
 
   if (error) {
     return (
-      <div className="min-h-screen p-2 bg-background flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center">
-          <p className="text-red-500 mb-2">Error: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="text-primary hover:underline"
-          >
-            Try again
-          </button>
+      <div className="min-h-screen p-2 bg-background">
+        <div className="max-w-md mx-auto">
+          <BioPagePreview
+            profileData={{
+              username: slug || 'user',
+              displayName: '',
+              bio: '',
+              profilePicture: null,
+              bannerImage: null,
+              socialLinks: [],
+            }}
+            links={[]}
+            posts={[]}
+            emptyStateMessage={error === 'Profile not found' ? 'User not found.' : error}
+          />
         </div>
       </div>
     );
@@ -115,9 +121,21 @@ export default function SlugPage({ params }: { params: Promise<{ slug: string }>
 
   if (!profileData) {
     return (
-      <div className="min-h-screen p-2 bg-background flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center">
-          <p className="text-muted-foreground">Profile not found</p>
+      <div className="min-h-screen p-2 bg-background">
+        <div className="max-w-md mx-auto">
+          <BioPagePreview
+            profileData={{
+              username: slug || 'user',
+              displayName: '',
+              bio: '',
+              profilePicture: null,
+              bannerImage: null,
+              socialLinks: [],
+            }}
+            links={[]}
+            posts={[]}
+            emptyStateMessage="User not found."
+          />
         </div>
       </div>
     );

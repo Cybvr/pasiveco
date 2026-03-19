@@ -565,3 +565,41 @@ export function formatSocialDate(dateValue: string, options?: Intl.DateTimeForma
     minute: '2-digit',
   }).format(new Date(dateValue))
 }
+
+export function formatSocialRelativeTime(dateValue: string) {
+  const target = new Date(dateValue)
+  const now = new Date()
+
+  if (Number.isNaN(target.getTime())) {
+    return ''
+  }
+
+  const diffInSeconds = Math.round((target.getTime() - now.getTime()) / 1000)
+  const absSeconds = Math.abs(diffInSeconds)
+
+  if (absSeconds < 30) {
+    return 'now'
+  }
+
+  if (absSeconds < 60) {
+    return diffInSeconds < 0 ? `${absSeconds}s ago` : `in ${absSeconds}s`
+  }
+
+  const thresholds = [
+    { limit: 60 * 60, unit: 'minute', seconds: 60 },
+    { limit: 60 * 60 * 24, unit: 'hour', seconds: 60 * 60 },
+    { limit: 60 * 60 * 24 * 7, unit: 'day', seconds: 60 * 60 * 24 },
+    { limit: 60 * 60 * 24 * 30, unit: 'week', seconds: 60 * 60 * 24 * 7 },
+    { limit: 60 * 60 * 24 * 365, unit: 'month', seconds: 60 * 60 * 24 * 30 },
+  ] as const
+
+  const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+
+  for (const threshold of thresholds) {
+    if (absSeconds < threshold.limit) {
+      return formatter.format(Math.round(diffInSeconds / threshold.seconds), threshold.unit)
+    }
+  }
+
+  return formatter.format(Math.round(diffInSeconds / (60 * 60 * 24 * 365)), 'year')
+}
