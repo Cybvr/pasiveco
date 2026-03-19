@@ -15,7 +15,7 @@ export interface UserCategory {
   slug: string
 }
 
-const DEFAULT_CATEGORY_NAMES = [
+export const DEFAULT_USER_CATEGORIES = [
   'Arts',
   'Beauty',
   'Business',
@@ -52,7 +52,7 @@ async function seedCategoriesIfNeeded() {
 
   const batch = writeBatch(db)
 
-  for (const name of DEFAULT_CATEGORY_NAMES) {
+  for (const name of DEFAULT_USER_CATEGORIES) {
     const slug = createSlug(name)
     batch.set(doc(db, 'categories', slug), {
       name,

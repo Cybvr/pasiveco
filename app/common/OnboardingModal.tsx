@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
 import { db } from "@/lib/firebase"
-import { doc, updateDoc } from "firebase/firestore"
+import { doc, serverTimestamp, setDoc } from "firebase/firestore"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { updateUser } from "@/services/userService"
@@ -48,16 +48,21 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) =>
 
     setIsSaving(true)
     try {
-      // 1. Update general user document (metadata)
       const userRef = doc(db, "users", user.uid)
-      await updateDoc(userRef, {
+      const completedAt = new Date().toISOString()
+
+      await setDoc(userRef, {
+        email: user.email || "",
+        displayName: user.displayName || "",
+        photoURL: user.photoURL || "",
         onboarding: {
           ...formData,
-          completedAt: new Date().toISOString(),
+          completedAt,
           status: 'completed'
         },
-        onboardingCompleted: true
-      })
+        onboardingCompleted: true,
+        updatedAt: serverTimestamp(),
+      }, { merge: true })
 
       await updateUser(user.uid, {
         gender: formData.gender,

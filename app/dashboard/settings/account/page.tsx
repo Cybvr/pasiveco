@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { getUser, updateUser, type User } from "@/services/userService"
-import { getUserCategories } from "@/services/categoryService"
+import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Shield } from 'lucide-react'
@@ -22,9 +22,6 @@ interface UserData {
   profilePicture?: string
   phone?: string
   company?: string
-  website?: string
-  location?: string
-  timezone: string
   bio?: string
   category: string
   twoFactorEnabled: boolean
@@ -36,12 +33,11 @@ export default function AccountSettings() {
     firstName: "User",
     lastName: "",
     email: "user@example.com",
-    timezone: "America/New_York",
     category: '',
     twoFactorEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -56,12 +52,7 @@ export default function AccountSettings() {
       }
 
       try {
-        const [profile, categoryList] = await Promise.all([
-          getUser(user.uid),
-          getUserCategories(),
-        ])
-
-        setCategories(categoryList.map((item) => item.name))
+        const profile = await getUser(user.uid)
 
         if (profile) {
           setFirebaseProfile(profile)
@@ -78,6 +69,20 @@ export default function AccountSettings() {
         }
       } catch (error) {
         console.error("Error loading profile:", error)
+      }
+
+      try {
+        const categoryList = await getUserCategories()
+        if (categoryList.length > 0) {
+          setCategories(categoryList.map((item) => item.name))
+        }
+      } catch (error) {
+        console.error("Error loading categories:", error)
+        setCategories(DEFAULT_USER_CATEGORIES)
+        toast({
+          title: "Categories unavailable",
+          description: "Showing the default category list while categories finish syncing.",
+        })
       }
     }
 
@@ -221,7 +226,7 @@ export default function AccountSettings() {
       <div className="bg-card rounded-lg overflow-hidden">
         <div className="p-4">
           <h2 className="text-lg font-semibold">Profile Information</h2>
-          <p className="text-sm text-muted-foreground">Update your personal details, category, and contact information.</p>
+          <p className="text-sm text-muted-foreground">Update your personal details and choose the category that best fits your profile.</p>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex justify-center mb-4">
@@ -273,28 +278,6 @@ export default function AccountSettings() {
               value={userData.company || ''}
               onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
             />
-            <Input
-              placeholder="Website"
-              value={userData.website || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, website: e.target.value }))}
-            />
-            <Input
-              placeholder="Location"
-              value={userData.location || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, location: e.target.value }))}
-            />
-            <Select value={userData.timezone} onValueChange={(value) => setUserData(prev => ({ ...prev, timezone: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                <SelectItem value="America/Chicago">Central Time</SelectItem>
-                <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                <SelectItem value="UTC">UTC</SelectItem>
-              </SelectContent>
-            </Select>
             <div className="md:col-span-2">
               <Select value={userData.category || 'unselected'} onValueChange={(value) => setUserData(prev => ({ ...prev, category: value === 'unselected' ? '' : value }))}>
                 <SelectTrigger>
