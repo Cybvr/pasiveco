@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { ArrowLeft, Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, UserCircle2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, UserCircle2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { getUserProfile } from '@/services/userProfilesService'
 
@@ -49,7 +49,7 @@ export default function DashboardHeader() {
       }
     }
 
-    loadProfile()
+    void loadProfile()
   }, [user])
 
   const currentTitle = useMemo(() => {
@@ -70,9 +70,27 @@ export default function DashboardHeader() {
     router.push(href)
   }
 
+  const showBackButton = pathname === '/dashboard/posts/new'
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-3 px-4 md:px-8">
+      <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between gap-3 px-4 md:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          {showBackButton ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+              onClick={() => router.back()}
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          ) : null}
+          <h1 className="truncate text-base font-semibold tracking-tight">{currentTitle}</h1>
+        </div>
+
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild>
             <button type="button" aria-label="Open profile menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
@@ -106,7 +124,6 @@ export default function DashboardHeader() {
             </div>
           </SheetContent>
         </Sheet>
-        <h1 className="text-base font-semibold tracking-tight">{currentTitle}</h1>
       </div>
     </header>
   )

@@ -4,21 +4,27 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getSocialCategories, getSocialProfiles, type SocialProfile } from '@/lib/social-data'
 
 export default function DiscoveryPage() {
   const [activeCategory, setActiveCategory] = useState('All')
   const [creators, setCreators] = useState<SocialProfile[]>([])
   const [categories, setCategories] = useState<string[]>(['All'])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
 
     const loadDiscovery = async () => {
-      const [profiles, categoryList] = await Promise.all([getSocialProfiles(), getSocialCategories()])
-      if (!active) return
-      setCreators(profiles.filter((profile) => profile.id !== 'viewer-me'))
-      setCategories(['All', ...categoryList])
+      try {
+        const [profiles, categoryList] = await Promise.all([getSocialProfiles(), getSocialCategories()])
+        if (!active) return
+        setCreators(profiles.filter((profile) => profile.id !== 'viewer-me'))
+        setCategories(['All', ...categoryList])
+      } finally {
+        if (active) setLoading(false)
+      }
     }
 
     void loadDiscovery()
@@ -33,12 +39,20 @@ export default function DiscoveryPage() {
     [activeCategory, creators],
   )
 
+  if (loading) {
+    return <DiscoverySkeleton />
+  }
+
   return (
     <div className="space-y-4">
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-xl bg-transparent p-0">
+        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-xl border-0 bg-transparent p-0">
           {categories.map((category) => (
-            <TabsTrigger key={category} value={category} className="rounded-full border px-4 py-2 data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger
+              key={category}
+              value={category}
+              className="rounded-full border px-4 py-2 after:hidden data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
               {category}
             </TabsTrigger>
           ))}
