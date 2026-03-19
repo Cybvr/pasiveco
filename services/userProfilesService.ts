@@ -4,14 +4,11 @@ import {
   doc,
   addDoc,
   updateDoc,
-  getDoc,
   getDocs,
   deleteDoc,
   query,
   where,
-  orderBy,
   Timestamp,
-  setDoc
 } from 'firebase/firestore';
 
 export interface UserProfile {
@@ -58,17 +55,33 @@ export interface UserProfile {
   updatedAt: Timestamp;
 }
 
+const userProfilesCollection = collection(db, 'user_profiles');
+
+const toMillis = (value?: Timestamp | null) => (value instanceof Timestamp ? value.toMillis() : 0);
+
+const sortProfilesByRecentUpdate = (profiles: UserProfile[]) =>
+  [...profiles].sort((a, b) => {
+    const updatedDiff = toMillis(b.updatedAt) - toMillis(a.updatedAt);
+    if (updatedDiff !== 0) {
+      return updatedDiff;
+    }
+
+    return a.displayName.localeCompare(b.displayName);
+  });
+
+const sanitizeUsername = (username?: string | null) => (username || '').replace(/^@/, '').trim();
+
 export const createUserProfile = async (profileData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>) => {
   try {
     const cleanedProfileData = {
       ...profileData,
-      isPublic: profileData.isPublic !== undefined ? profileData.isPublic : true, // Default to public
+      isPublic: profileData.isPublic !== undefined ? profileData.isPublic : true,
     };
 
-    const docRef = await addDoc(collection(db, 'user_profiles'), {
+    const docRef = await addDoc(userProfilesCollection, {
       ...cleanedProfileData,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
+      updatedAt: Timestamp.now(),
     });
     return docRef.id;
   } catch (error) {
@@ -79,39 +92,53 @@ export const createUserProfile = async (profileData: Omit<UserProfile, 'id' | 'c
 
 export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
-    const q = query(collection(db, 'user_profiles'), where('userId', '==', userId));
+    const q = query(userProfilesCollection, where('userId', '==', userId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
       return null;
     }
 
-    const doc = querySnapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as UserProfile;
+    const profileDoc = querySnapshot.docs[0];
+    return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     throw error;
   }
 };
 
+export const getPublicUserProfiles = async (): Promise<UserProfile[]> => {
+  try {
+    const snapshot = await getDocs(query(userProfilesCollection, where('isPublic', '==', true)));
+    const profiles = snapshot.docs
+      .map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile))
+      .filter((profile) => Boolean(profile.userId && sanitizeUsername(profile.username)));
+
+    return sortProfilesByRecentUpdate(profiles);
+  } catch (error) {
+    console.warn('Falling back to all user_profiles query:', error);
+
+    const snapshot = await getDocs(userProfilesCollection);
+    const profiles = snapshot.docs
+      .map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile))
+      .filter((profile) => profile.isPublic !== false && Boolean(profile.userId && sanitizeUsername(profile.username)));
+
+    return sortProfilesByRecentUpdate(profiles);
+  }
+};
+
 export const getUserProfileByUsername = async (username: string): Promise<UserProfile | null> => {
   try {
-    console.log('Searching for profile with username:', username);
-    const profilesRef = collection(db, 'user_profiles');
-    const q = query(profilesRef, where('username', '==', username));
+    const normalizedUsername = sanitizeUsername(username);
+    const q = query(userProfilesCollection, where('username', '==', normalizedUsername));
     const querySnapshot = await getDocs(q);
 
-    console.log('Query results:', querySnapshot.size, 'documents found');
-    
     if (querySnapshot.empty) {
-      console.log('No profile found for username:', username);
       return null;
     }
 
-    const doc = querySnapshot.docs[0];
-    const profileData = { id: doc.id, ...doc.data() } as UserProfile;
-    console.log('Found profile:', profileData);
-    return profileData;
+    const profileDoc = querySnapshot.docs[0];
+    return { id: profileDoc.id, ...profileDoc.data() } as UserProfile;
   } catch (error) {
     console.error('Error fetching user profile by username:', error);
     throw error;
@@ -124,7 +151,7 @@ export const updateUserProfile = async (profileId: string, updates: Partial<User
 
     await updateDoc(profileRef, {
       ...updates,
-      updatedAt: Timestamp.now()
+      updatedAt: Timestamp.now(),
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

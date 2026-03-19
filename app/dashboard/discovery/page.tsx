@@ -5,11 +5,43 @@ import { useEffect, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
-import { getSocialCategories, getSocialProfiles, type SocialProfile } from '@/lib/social-data'
+import { getPublicUserProfiles, type UserProfile } from '@/services/userProfilesService'
+
+interface DiscoveryProfile {
+  id: string
+  name: string
+  handle: string
+  category: string
+  bio: string
+  image: string
+  linkCount: number
+  socialCount: number
+}
+
+const normalizeHandle = (username: string) => {
+  const cleanUsername = username.replace(/^@/, '').trim()
+  return cleanUsername ? `@${cleanUsername}` : '@user'
+}
+
+const formatCategory = (source?: string) => {
+  const cleanedSource = source?.trim()
+  return cleanedSource ? cleanedSource : 'Creators'
+}
+
+const toDiscoveryProfile = (profile: UserProfile): DiscoveryProfile => ({
+  id: profile.userId,
+  name: profile.displayName || normalizeHandle(profile.username),
+  handle: normalizeHandle(profile.username),
+  category: formatCategory(profile.source),
+  bio: profile.bio?.trim() || 'No bio added yet.',
+  image: profile.profilePicture || '',
+  linkCount: profile.links.filter((link) => link.active !== false).length,
+  socialCount: profile.socialLinks.filter((link) => link.active !== false && Boolean(link.url?.trim())).length,
+})
 
 export default function DiscoveryPage() {
   const [activeCategory, setActiveCategory] = useState('All')
-  const [creators, setCreators] = useState<SocialProfile[]>([])
+  const [creators, setCreators] = useState<DiscoveryProfile[]>([])
   const [categories, setCategories] = useState<string[]>(['All'])
   const [loading, setLoading] = useState(true)
 
@@ -18,10 +50,20 @@ export default function DiscoveryPage() {
 
     const loadDiscovery = async () => {
       try {
-        const [profiles, categoryList] = await Promise.all([getSocialProfiles(), getSocialCategories()])
+        const profiles = await getPublicUserProfiles()
         if (!active) return
-        setCreators(profiles.filter((profile) => profile.id !== 'viewer-me'))
-        setCategories(['All', ...categoryList])
+
+        const discoveryProfiles = profiles.map(toDiscoveryProfile)
+        const nextCategories = Array.from(new Set(discoveryProfiles.map((profile) => profile.category)))
+
+        setCreators(discoveryProfiles)
+        setCategories(['All', ...nextCategories])
+      } catch (error) {
+        console.error('Failed to load discovery profiles:', error)
+        if (active) {
+          setCreators([])
+          setCategories(['All'])
+        }
       } finally {
         if (active) setLoading(false)
       }
@@ -59,35 +101,41 @@ export default function DiscoveryPage() {
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredCreators.map((creator) => (
-          <Link
-            key={creator.id}
-            href={`/dashboard/users/${creator.id}`}
-            className="rounded-xl border bg-card p-4 transition-colors hover:bg-accent/40"
-          >
-            <article className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={creator.image} alt={creator.name} />
-                  <AvatarFallback>{creator.name.slice(0, 1)}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{creator.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{creator.handle}</p>
+      {filteredCreators.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredCreators.map((creator) => (
+            <Link
+              key={creator.id}
+              href={`/dashboard/users/${creator.id}`}
+              className="rounded-xl border bg-card p-4 transition-colors hover:bg-accent/40"
+            >
+              <article className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={creator.image} alt={creator.name} />
+                    <AvatarFallback>{creator.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{creator.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{creator.handle}</p>
+                  </div>
                 </div>
-              </div>
 
-              <p className="line-clamp-2 text-sm text-muted-foreground">{creator.bio}</p>
+                <p className="line-clamp-2 text-sm text-muted-foreground">{creator.bio}</p>
 
-              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span>{creator.location}</span>
-                <span>{creator.links.length} links · {creator.shop.length} offers</span>
-              </div>
-            </article>
-          </Link>
-        ))}
-      </div>
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span>{creator.category}</span>
+                  <span>{creator.linkCount} links · {creator.socialCount} socials</span>
+                </div>
+              </article>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">
+          No public creator profiles yet.
+        </div>
+      )}
     </div>
   )
 }
