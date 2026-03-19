@@ -109,14 +109,23 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
   }
 };
 
-export const getPublicUserProfiles = async (): Promise<UserProfile[]> => {
+export const getAllUserProfiles = async (): Promise<UserProfile[]> => {
   try {
     const snapshot = await getDocs(userProfilesCollection);
-    const profiles = snapshot.docs
-      .map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile))
-      .filter((profile) => profile.isPublic !== false && hasDiscoverableIdentity(profile));
+    const profiles = snapshot.docs.map((profileDoc) => ({ id: profileDoc.id, ...profileDoc.data() } as UserProfile));
 
     return sortProfilesByRecentUpdate(profiles);
+  } catch (error) {
+    console.error('Error fetching user profiles:', error);
+    throw error;
+  }
+};
+
+export const getPublicUserProfiles = async (): Promise<UserProfile[]> => {
+  try {
+    const profiles = await getAllUserProfiles();
+
+    return profiles.filter((profile) => profile.isPublic !== false && hasDiscoverableIdentity(profile));
   } catch (error) {
     console.error('Error fetching public user profiles:', error);
     throw error;
