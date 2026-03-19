@@ -18,11 +18,10 @@ import {
 export interface AnalyticsEvent {
   id?: string;
   userId: string;
-  eventType: 'page_view' | 'link_click' | 'qr_scan' | 'profile_visit' | 'product_view';
+  eventType: 'page_view' | 'link_click' | 'profile_visit' | 'product_view';
   eventData: {
     url?: string;
     linkId?: string;
-    qrCodeId?: string;
     productId?: string;
     referrer?: string;
     userAgent?: string;
@@ -38,7 +37,6 @@ export interface AnalyticsEvent {
 export interface AnalyticsStats {
   totalViews: number;
   totalClicks: number;
-  totalScans: number;
   uniqueVisitors: number;
   topCountries: Array<{ country: string; count: number }>;
   topDevices: Array<{ device: string; count: number }>;
@@ -80,8 +78,6 @@ export const getUserAnalytics = async (userId: string, timeRange: '7d' | '30d' |
     // Calculate stats
     const totalViews = events.filter(e => e.eventType === 'page_view').length;
     const totalClicks = events.filter(e => e.eventType === 'link_click').length;
-    const totalScans = events.filter(e => e.eventType === 'qr_scan').length;
-    
     const uniqueVisitors = new Set(events.map(e => e.sessionId)).size;
     
     // Top countries
@@ -111,7 +107,6 @@ export const getUserAnalytics = async (userId: string, timeRange: '7d' | '30d' |
     return {
       totalViews,
       totalClicks,
-      totalScans,
       uniqueVisitors,
       topCountries,
       topDevices,

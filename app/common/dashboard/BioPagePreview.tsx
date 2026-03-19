@@ -227,7 +227,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
         </CardContent>
       </Card>
       <MiniPageModal isOpen={isPageModalOpen} onClose={() => setIsPageModalOpen(false)} />
-      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
+      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} profileData={{ username: profileData.username }} />
     </div>
   )
 }

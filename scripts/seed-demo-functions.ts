@@ -17,7 +17,6 @@ export const createDemoUser = async (): Promise<void> => {
     displayName: 'Demo Fintech User',
     bio: 'Fintech enthusiast, app developer, and payment systems expert. Building the future of digital finance.',
     profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b742?w=150&h=150&fit=crop&crop=face',
-    isPublic: true,
     links: [
       {
         id: '1',

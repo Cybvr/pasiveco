@@ -5,7 +5,7 @@ import DashboardClientLayout from './dashclient'
 
 export const metadata: Metadata = {
   title: 'Dashboard | Pasive',
-  description: 'Manage your QR codes and view analytics in the Pasive dashboard.',
+  description: 'Manage your profile, feed, products, and analytics in the Pasive dashboard.',
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

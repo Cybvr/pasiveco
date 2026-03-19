@@ -63,7 +63,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
           bio: '',
           profilePicture: result.user.photoURL || '',
           slug: (result.user.email || '').split('@')[0],
-          isPublic: true,
           links: [],
           socialLinks: []
         })
@@ -134,7 +133,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
         username: email.split('@')[0],
         bio: '',
         slug: email.split('@')[0],
-        isPublic: true,
         links: [],
         socialLinks: []
       })

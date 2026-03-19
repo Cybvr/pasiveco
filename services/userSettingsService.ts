@@ -23,11 +23,9 @@ export interface UserSettings {
     sms: boolean;
     marketing: boolean;
     analytics: boolean;
-    qrScans: boolean;
     profileViews: boolean;
   };
   privacy: {
-    profilePublic: boolean;
     showAnalytics: boolean;
     allowIndexing: boolean;
     showVisitorData: boolean;
@@ -85,11 +83,9 @@ export const createUserSettings = async (userId: string, settings: Partial<UserS
         sms: false,
         marketing: false,
         analytics: true,
-        qrScans: true,
         profileViews: true
       },
       privacy: {
-        profilePublic: true,
         showAnalytics: true,
         allowIndexing: true,
         showVisitorData: false

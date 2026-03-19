@@ -27,7 +27,6 @@ const demoProfile = {
   displayName: 'Fintech Demo User',
   bio: 'Passionate about fintech innovation and helping others succeed in the digital economy.',
   profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b13c?w=150&h=150&fit=crop&crop=face',
-  isPublic: true,
   links: [
     {
       id: '1',

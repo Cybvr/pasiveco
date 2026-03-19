@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import Link from 'next/link'
-import { HomeIcon, QrCodeIcon, ChartBarIcon, QuestionMarkCircleIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { HomeIcon, ChartBarIcon, QuestionMarkCircleIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -83,8 +83,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 <MobileMenuLink href="/dashboard" icon={HomeIcon} text="Home" onClick={closeMenu} />
-                <MobileMenuLink href="/dashboard/qr-codes" icon={QrCodeIcon} text="My Codes" onClick={closeMenu} />
-                <MobileMenuLink href="/dashboard/qr-codes/new" icon={PlusIcon} text="New QR Code" onClick={closeMenu} />
                 <MobileMenuLink href="/dashboard/analytics" icon={ChartBarIcon} text="Analytics" onClick={closeMenu} />
                 <MobileMenuLink href="/support" icon={QuestionMarkCircleIcon} text="Support" onClick={closeMenu} />
                 <MobileMenuLink href="/dashboard/settings/account" icon={Cog6ToothIcon} text="Settings" onClick={closeMenu} />
