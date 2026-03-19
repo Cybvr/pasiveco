@@ -56,6 +56,7 @@ export interface User {
   profilePicture?: string | null;
   bannerImage?: string | null;
   slug?: string;
+  category?: string;
   isPublic?: boolean;
   links?: UserLink[];
   socialLinks?: UserSocialLink[];

@@ -1,4 +1,6 @@
 import { discoverUsers } from '@/app/data/deluserData'
+import { getDisplayAvatar } from '@/lib/avatar'
+import { getUser } from '@/services/userService'
 import { db } from '@/lib/firebase'
 import {
   collection,
@@ -368,9 +370,42 @@ export async function getSocialCategories() {
   return Array.from(new Set(profiles.filter((profile) => profile.id !== viewerProfileId).map((profile) => profile.category)))
 }
 
+async function ensureAuthorProfile(authorId: string) {
+  const existingProfile = await getSocialProfileById(authorId)
+  if (existingProfile) {
+    return existingProfile
+  }
+
+  const appUser = await getUser(authorId)
+  if (!appUser) {
+    return null
+  }
+
+  const username = (appUser.username || appUser.slug || appUser.email.split('@')[0] || authorId).replace(/^@/, '').trim()
+  const profile: SocialProfile = {
+    id: authorId,
+    name: appUser.displayName || username || 'You',
+    handle: `@${username || 'you'}`,
+    username: username || 'you',
+    image: getDisplayAvatar({
+      image: appUser.profilePicture || appUser.photoURL || '',
+      displayName: appUser.displayName || username || 'You',
+      handle: username || authorId,
+    }),
+    category: appUser.category || 'Creator',
+    bio: appUser.bio || 'Sharing updates with the community.',
+    location: 'Remote',
+    links: [],
+    shop: [],
+  }
+
+  await setDoc(doc(db, SOCIAL_PROFILES_COLLECTION, profile.id), profile, { merge: true })
+  return profile
+}
+
 export async function createSocialPost(message: string, authorId: string) {
   await seedSocialDataIfNeeded()
-  const author = await getSocialProfileById(authorId)
+  const author = await ensureAuthorProfile(authorId)
   const newPost: SocialPostDocument = {
     authorId,
     message,
@@ -383,7 +418,7 @@ export async function createSocialPost(message: string, authorId: string) {
 
   const postId = `post-${Date.now()}`
   await setDoc(doc(db, SOCIAL_POSTS_COLLECTION, postId), newPost)
-  return hydrateSocialPost(postId, newPost)
+  return hydrateSocialPost(postId, newPost, authorId)
 }
 
 export async function getSocialPosts(currentViewerId = viewerProfileId) {

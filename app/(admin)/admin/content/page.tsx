@@ -17,15 +17,17 @@ export default function ContentManagementPage() {
   })
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Content Management</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Content Management</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="inline-flex min-w-max">
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="solutions">Solutions</TabsTrigger>
           <TabsTrigger value="blog">Blog Posts</TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         <TabsContent value="features" className="space-y-4">
           <FeaturesTab editor={editor} />

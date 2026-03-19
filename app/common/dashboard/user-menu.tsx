@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { User as UserIcon, Settings, LogOut, Shield } from 'lucide-react'
 import { getUser, type User as AppUser } from '@/services/userService'
+import { getDisplayAvatar } from '@/lib/avatar'
 import { useEffect } from 'react'
 
 export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
@@ -81,7 +82,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
               "transition-all duration-300",
               isCollapsed ? "h-10 w-10 rounded-xl" : "h-9 w-9 rounded-lg"
             )}>
-              <AvatarImage src={profile?.profilePicture || user.photoURL || ''} alt={displayName} />
+              <AvatarImage src={getDisplayAvatar({ image: profile?.profilePicture || user.photoURL || '', displayName, handle: profile?.username || user.email || displayName })} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {displayName.charAt(0)}
               </AvatarFallback>
