@@ -46,13 +46,10 @@ export default function AccountSettings() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!user?.uid) {
-        return
-      }
+      if (!user?.uid) return
 
       try {
         const profile = await getUser(user.uid)
-
         if (profile) {
           setFirebaseProfile(profile)
           setUserData(prev => ({
@@ -100,17 +97,10 @@ export default function AccountSettings() {
       await new Promise(resolve => setTimeout(resolve, 1000))
       const mockUrl = URL.createObjectURL(file)
       setUserData(prev => ({ ...prev, profilePicture: mockUrl }))
-      toast({
-        title: "Success",
-        description: "Profile picture updated",
-      })
+      toast({ title: "Success", description: "Profile picture updated" })
     } catch (error) {
       console.error("Error uploading profile picture:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update profile picture",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Failed to update profile picture", variant: "destructive" })
     } finally {
       setUploading(false)
     }
@@ -122,18 +112,15 @@ export default function AccountSettings() {
 
   const handleUpdateProfile = async () => {
     if (!userData.firstName.trim()) {
-      toast({
-        title: "Error",
-        description: "First name cannot be empty",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "First name cannot be empty", variant: "destructive" })
       return
     }
     if (!user?.uid) return
+
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      const userId = user.id || user.uid
-      await updateUser(userId, {
+      console.error("SAVING WITH ID:", user.uid, "AUTH UID:", user.uid)
+      await updateUser(user.uid, {
         email: user.email || userData.email,
         displayName,
         bio: userData.bio || "",
@@ -142,84 +129,49 @@ export default function AccountSettings() {
         profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
       })
 
-      const updatedProfile = await getUser(userId)
+      const updatedProfile = await getUser(user.uid)
       if (updatedProfile) {
         setFirebaseProfile(updatedProfile)
       }
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      })
+      toast({ title: "Profile updated", description: "Your profile has been updated successfully." })
     } catch (error) {
       console.error("Error updating profile", error)
-      toast({
-        title: "Update failed",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Update failed", description: "Failed to update profile. Please try again.", variant: "destructive" })
     }
   }
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentPassword) {
-      toast({
-        title: "Error",
-        description: "Current password is required",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Current password is required", variant: "destructive" })
       return
     }
     if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "New passwords do not match", variant: "destructive" })
       return
     }
     if (newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Password must be at least 6 characters long", variant: "destructive" })
       return
     }
     try {
-      toast({
-        title: "Password updated",
-        description: "Your password has been updated.",
-      })
+      toast({ title: "Password updated", description: "Your password has been updated." })
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (error) {
       console.error("Error updating password", error)
-      toast({
-        title: "Error",
-        description: "Failed to update password. Please try again.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Failed to update password. Please try again.", variant: "destructive" })
     }
   }
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      return
-    }
+    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return
     try {
-      toast({
-        title: "Account deleted",
-        description: "Your account has been successfully deleted.",
-      })
+      toast({ title: "Account deleted", description: "Your account has been successfully deleted." })
     } catch (error) {
       console.error("Error deleting user", error)
-      toast({
-        title: "Error",
-        description: "Failed to delete account.",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" })
     }
   }
 
