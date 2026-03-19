@@ -176,7 +176,6 @@ function Page() {
             profilePicture: user.photoURL || "/images/dud.png",
             links: defaultLinks,
             socialLinks: defaultSocialLinks,
-            isPublic: true,
             slug: user.email?.split("@")[0] || "user",
           });
           profile = await getUser(user.uid);

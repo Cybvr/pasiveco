@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { Home, Users, BarChart2, Settings, QrCode, File, FileText } from 'lucide-react'
+import { Home, Users, BarChart2, Settings, File, FileText } from 'lucide-react'
 import Image from 'next/image'
 
 const navigation = [
   { name: 'Admin Home', href: '/admin', icon: Home },
-  { name: 'QRT Home', href: '/dashboard/', icon: QrCode },
+  { name: 'Dashboard Home', href: '/dashboard/', icon: Home },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Documents', href: '/admin/cabinet', icon: File },
   { name: 'Content', href: '/admin/content', icon: FileText },

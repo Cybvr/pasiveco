@@ -57,7 +57,6 @@ export interface User {
   bannerImage?: string | null;
   slug?: string;
   category?: string;
-  isPublic?: boolean;
   links?: UserLink[];
   socialLinks?: UserSocialLink[];
   theme?: string;
@@ -85,7 +84,6 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     id: userId,
     userId,
     username: sanitizeUsername(user.username),
-    isPublic: user.isPublic !== false,
     profilePicture: user.profilePicture ?? user.photoURL ?? null,
     links: Array.isArray(user.links) ? user.links : [],
     socialLinks: Array.isArray(user.socialLinks) ? user.socialLinks : [],
@@ -113,7 +111,6 @@ export const createUser = async (userData: Omit<User, 'id' | 'userId' | 'created
       ...userData,
       username: sanitizeUsername(userData.username),
       slug: userData.slug || sanitizeUsername(userData.username) || '',
-      isPublic: userData.isPublic !== undefined ? userData.isPublic : true,
       links: userData.links || [],
       socialLinks: userData.socialLinks || [],
     };
@@ -243,9 +240,9 @@ export const getAllUsers = async (): Promise<User[]> => {
 export const getPublicUsers = async (): Promise<User[]> => {
   try {
     const users = await getAllUsers();
-    return sortUsersByRecentUpdate(users.filter((user) => user.isPublic !== false && hasDiscoverableIdentity(user)));
+    return sortUsersByRecentUpdate(users.filter(hasDiscoverableIdentity));
   } catch (error) {
-    console.error('Error fetching public users:', error);
+    console.error('Error fetching discoverable users:', error);
     throw error;
   }
 };

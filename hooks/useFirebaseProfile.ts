@@ -29,7 +29,6 @@ export const useFirebaseProfile = () => {
             links: [],
             socialLinks: [],
             theme: 'default',
-            isPublic: true,
           })
           userProfile = await getUser(user.uid)
         }

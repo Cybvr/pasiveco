@@ -56,7 +56,6 @@ export default function Register() {
         username: email.split('@')[0],
         bio: '',
         slug: email.split('@')[0],
-        isPublic: true,
         links: [],
         socialLinks: []
       })

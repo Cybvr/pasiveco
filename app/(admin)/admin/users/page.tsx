@@ -56,7 +56,6 @@ interface UserFormData {
   username: string;
   bio: string;
   profilePicture: string;
-  isPublic: boolean;
 }
 
 interface UserFormModalProps {
@@ -163,16 +162,6 @@ const UserFormModal = ({
           </div>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">Public Profile</Label>
-          <div className="col-span-3 flex items-center space-x-2">
-            <Switch
-              checked={formData.isPublic}
-              onCheckedChange={(checked) => onFormChange('isPublic', checked)}
-            />
-            <span className="text-sm">{formData.isPublic ? 'Public' : 'Private'}</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
           <Label className="text-right">Admin</Label>
           <div className="col-span-3 flex items-center space-x-2">
             <Switch
@@ -217,7 +206,6 @@ export default function UsersPage() {
     username: '',
     bio: '',
     profilePicture: '',
-    isPublic: true
   })
 
   const { toast } = useToast()
@@ -288,7 +276,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       username: '',
       bio: '',
       profilePicture: '',
-      isPublic: true
     })
   }
 
@@ -303,7 +290,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       username: user.username || '',
       bio: user.bio || '',
       profilePicture: user.profilePicture || '',
-      isPublic: user.isPublic ?? true
     })
     setIsEditModalOpen(true)
   }
@@ -350,7 +336,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
         slug: createProfileSlug(formData.username || formData.displayName),
-        isPublic: formData.isPublic,
         links: [],
         socialLinks: [],
         theme: 'default'
@@ -391,7 +376,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
         slug: createProfileSlug(formData.username || formData.displayName),
-        isPublic: formData.isPublic
       })
 
 
@@ -577,7 +561,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         role: (record.role || 'user') as UserFormData['role'],
         isActive: parseBooleanValue(record.isactive, true),
         isAdmin: parseBooleanValue(record.isadmin, false),
-        isPublic: parseBooleanValue(record.ispublic, true),
       }
     })
   }
@@ -631,7 +614,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
             bio: row.bio?.trim() || '',
             profilePicture: row.profilePicture?.trim() || '',
             slug: createProfileSlug(row.username || row.displayName),
-            isPublic: row.isPublic,
             links: [],
             socialLinks: [],
             theme: 'default'
@@ -723,7 +705,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       </div>
 
       <p className="text-sm text-muted-foreground">
-        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>, and <code>isPublic</code>.
+        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>.
         {csvFileName ? ` Last selected: ${csvFileName}.` : ''}
       </p>
 

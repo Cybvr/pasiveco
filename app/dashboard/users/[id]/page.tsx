@@ -68,6 +68,7 @@ export default function DashboardUserPage() {
     return <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">User not found.</div>
   }
 
+  const username = (profile.username || profile.slug || 'user').replace(/^@/, '')
   const displayName = profile.displayName || normalizeHandle(profile.username)
   const handle = normalizeHandle(profile.username)
 
@@ -98,11 +99,11 @@ export default function DashboardUserPage() {
               <div>
                 <h1 className="text-xl font-semibold">{displayName}</h1>
                 <p className="text-sm text-muted-foreground">{handle} · {sourceLabel(profile)}</p>
-                <p className="text-sm text-muted-foreground">/{profile.slug || profile.username}</p>
+                <p className="text-sm text-muted-foreground">/{username}</p>
               </div>
             </div>
             <Button asChild>
-              <Link href={`/${(profile.username || "user").replace(/^@/, '')}`}>
+              <Link href={`/${username}`}>
                 <MessageCircle className="h-4 w-4" />
                 Open bio page
               </Link>
@@ -111,18 +112,14 @@ export default function DashboardUserPage() {
 
           <p className="text-sm leading-6 text-muted-foreground">{profile.bio?.trim() || 'No bio added yet.'}</p>
 
-          <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+          <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
             <div className="rounded-2xl border p-4">
-              <p className="text-xs uppercase tracking-wide">Public links</p>
+              <p className="text-xs uppercase tracking-wide">Links</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">{activeLinks.length}</p>
             </div>
             <div className="rounded-2xl border p-4">
               <p className="text-xs uppercase tracking-wide">Social profiles</p>
               <p className="mt-2 text-2xl font-semibold text-foreground">{activeSocialLinks.length}</p>
-            </div>
-            <div className="rounded-2xl border p-4">
-              <p className="text-xs uppercase tracking-wide">Visibility</p>
-              <p className="mt-2 text-2xl font-semibold text-foreground">{profile.isPublic === false ? 'Private' : 'Public'}</p>
             </div>
           </div>
 
@@ -145,7 +142,7 @@ export default function DashboardUserPage() {
                   </a>
                 ))
               ) : (
-                <div className="rounded-2xl border p-4 text-sm text-muted-foreground">No public links yet.</div>
+                <div className="rounded-2xl border p-4 text-sm text-muted-foreground">No links yet.</div>
               )}
             </TabsContent>
             <TabsContent value="socials" className="mt-4 space-y-3">

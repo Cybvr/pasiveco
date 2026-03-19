@@ -20,79 +20,73 @@ service cloud.firestore {
         (request.auth.uid == 'mdBW2iIUy2diyIrnK55s' || isAdmin());
     }
 
-    // Users collection - public reads for public profiles, owners/admins can manage full records
     match /users/{userId} {
-      allow read: if resource.data.isPublic == true || (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      allow read: if true;
       allow create: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
       allow update, delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
     }
-    
-    // QR codes collection - allow read/write for owner, read for admins
-    match /qr_codes/{qrCodeId} {
-      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow read: if isAdmin();
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+
+    match /socialMeta/{documentId} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
-    
-    // Analytics collection - allow read/write for owner, read for admins
+
+    match /socialProfiles/{profileId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /socialPosts/{postId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /socialThreads/{threadId} {
+      allow read, write: if isSignedIn();
+    }
+
     match /analytics/{analyticsId} {
       allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
       allow read: if isAdmin();
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
     }
-    
-    // Blog posts - allow read for everyone, write for admins
+
     match /blog_posts/{postId} {
       allow read: if true;
       allow create, update, delete: if isContentManager();
     }
-    
-    // Features - allow read for everyone, write for admins
+
     match /features/{featureId} {
       allow read: if true;
       allow write: if isAdmin();
-      // Temporarily allow create without auth for migration
       allow create: if true;
     }
-    
-    // Solutions - allow read for everyone, write for admins
+
     match /solutions/{solutionId} {
       allow read: if true;
       allow write: if isAdmin();
-      // Temporarily allow create without auth for migration
       allow create: if true;
     }
-    
-    // Products - allow public read, write for owner, read for admins
+
     match /products/{productId} {
-      allow read: if true; // Allow public read access
+      allow read: if true;
       allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      // Temporarily allow demo data creation
       allow create: if request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s';
       allow read: if isAdmin();
     }
-    
-    // Templates - allow read for everyone
+
     match /templates/{templateId} {
       allow read: if true;
       allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
     }
-    
-    // Scans tracking
-    match /scans/{scanId} {
-      allow read, write: if isSignedIn();
-      allow create: if true; // Allow anonymous scan tracking
-    }
 
-    // Clicks tracking
     match /clicks/{clickId} {
       allow read, write: if isSignedIn();
-      allow create: if true; // Allow anonymous click tracking
+      allow create: if true;
     }
-    
-    // Default deny rule for any other documents
+
     match /{document=**} {
       allow read, write: if false;
     }

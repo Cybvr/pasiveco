@@ -54,7 +54,6 @@ async function migrateUserProfilesToUsers() {
       profilePicture: profile.profilePicture ?? existingUser.profilePicture ?? existingUser.photoURL ?? null,
       bannerImage: profile.bannerImage ?? null,
       slug: profile.slug || (profile.username || '').replace(/^@/, '').trim(),
-      isPublic: profile.isPublic !== false,
       links: Array.isArray(profile.links) ? profile.links : [],
       socialLinks: Array.isArray(profile.socialLinks) ? profile.socialLinks : [],
       theme: profile.theme || existingUser.theme || 'default',
