@@ -5,6 +5,7 @@ import {
   addDoc,
   updateDoc,
   getDoc,
+  setDoc,
   getDocs,
   deleteDoc,
   query,
@@ -180,11 +181,26 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
 export const updateUser = async (userId: string, updates: Partial<User>) => {
   try {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, {
+    const existingUser = await getDoc(userRef);
+    const normalizedUpdates = {
       ...updates,
       username: updates.username !== undefined ? sanitizeUsername(updates.username) : updates.username,
       updatedAt: Timestamp.now(),
-    });
+    };
+
+    if (!existingUser.exists()) {
+      await setDoc(userRef, {
+        email: updates.email || '',
+        emailVerified: false,
+        isActive: true,
+        role: 'user',
+        createdAt: Timestamp.now(),
+        ...normalizedUpdates,
+      }, { merge: true });
+      return;
+    }
+
+    await updateDoc(userRef, normalizedUpdates);
   } catch (error) {
     console.error('Error updating user:', error);
     throw error;
