@@ -14,12 +14,10 @@ interface DiscoveryProfile {
   category: string
   bio: string
   image: string
-  linkCount: number
-  socialCount: number
 }
 
-const normalizeHandle = (username: string) => {
-  const cleanUsername = username.replace(/^@/, '').trim()
+const normalizeHandle = (username?: string, fallback?: string) => {
+  const cleanUsername = username?.replace(/^@/, '').trim() || fallback?.trim() || 'user'
   return cleanUsername ? `@${cleanUsername}` : '@user'
 }
 
@@ -30,13 +28,11 @@ const formatCategory = (source?: string) => {
 
 const toDiscoveryProfile = (profile: UserProfile): DiscoveryProfile => ({
   id: profile.userId,
-  name: profile.displayName || normalizeHandle(profile.username),
-  handle: normalizeHandle(profile.username),
+  name: profile.displayName?.trim() || normalizeHandle(profile.username, profile.slug),
+  handle: normalizeHandle(profile.username, profile.slug || profile.displayName),
   category: formatCategory(profile.source),
   bio: profile.bio?.trim() || 'No bio added yet.',
   image: profile.profilePicture || '',
-  linkCount: profile.links.filter((link) => link.active !== false).length,
-  socialCount: profile.socialLinks.filter((link) => link.active !== false && Boolean(link.url?.trim())).length,
 })
 
 export default function DiscoveryPage() {
@@ -95,14 +91,14 @@ export default function DiscoveryPage() {
               value={category}
               className="rounded-full border px-4 py-2 after:hidden data-[state=active]:border-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              {category}
+              {category === 'All' ? `All (${creators.length})` : category}
             </TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
 
       {filteredCreators.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
           {filteredCreators.map((creator) => (
             <Link
               key={creator.id}
@@ -111,7 +107,7 @@ export default function DiscoveryPage() {
             >
               <article className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-12 w-12 shrink-0">
                     <AvatarImage src={creator.image} alt={creator.name} />
                     <AvatarFallback>{creator.name.slice(0, 1).toUpperCase()}</AvatarFallback>
                   </Avatar>
@@ -122,11 +118,6 @@ export default function DiscoveryPage() {
                 </div>
 
                 <p className="line-clamp-2 text-sm text-muted-foreground">{creator.bio}</p>
-
-                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span>{creator.category}</span>
-                  <span>{creator.linkCount} links · {creator.socialCount} socials</span>
-                </div>
               </article>
             </Link>
           ))}
