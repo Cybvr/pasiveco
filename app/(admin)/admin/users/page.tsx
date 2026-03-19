@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   Table,
   TableBody,
@@ -42,14 +42,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
 import { getUserProfile, updateUserProfile, deleteUserProfile, createUserProfile, type UserProfile } from "@/services/userProfilesService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
 interface UserWithProfile extends User {
-  profile?: UserProfile;
+  profile?: UserProfile | null;
 }
 
 interface UserFormData {
@@ -201,8 +201,11 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserWithProfile[]>([])
   const [filteredUsers, setFilteredUsers] = useState<UserWithProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [isImporting, setIsImporting] = useState(false)
+  const [csvFileName, setCsvFileName] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' })
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -371,6 +374,7 @@ export default function UsersPage() {
           displayName: formData.displayName,
           bio: formData.bio,
           profilePicture: formData.profilePicture,
+          slug: createProfileSlug(formData.username || formData.displayName),
           isPublic: formData.isPublic,
           links: [],
           socialLinks: [],
@@ -425,6 +429,7 @@ export default function UsersPage() {
           displayName: formData.displayName,
           bio: formData.bio,
           profilePicture: formData.profilePicture,
+          slug: createProfileSlug(formData.username || formData.displayName),
           isPublic: formData.isPublic,
           links: [],
           socialLinks: [],
@@ -509,6 +514,226 @@ export default function UsersPage() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  const parseBooleanValue = (value: string | undefined, fallback: boolean) => {
+    if (value === undefined || value === null || value.trim() === '') {
+      return fallback
+    }
+
+    const normalizedValue = value.trim().toLowerCase()
+
+    if (['true', '1', 'yes', 'y'].includes(normalizedValue)) {
+      return true
+    }
+
+    if (['false', '0', 'no', 'n'].includes(normalizedValue)) {
+      return false
+    }
+
+    return fallback
+  }
+
+  const normalizeCsvHeader = (value: string) =>
+    value.trim().toLowerCase().replace(/[\s-]+/g, '')
+
+  const createProfileSlug = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+  const parseCsvText = (csvText: string) => {
+    const rows: string[][] = []
+    let currentValue = ''
+    let currentRow: string[] = []
+    let isInQuotes = false
+
+    for (let index = 0; index < csvText.length; index += 1) {
+      const character = csvText[index]
+      const nextCharacter = csvText[index + 1]
+
+      if (character === '"') {
+        if (isInQuotes && nextCharacter === '"') {
+          currentValue += '"'
+          index += 1
+        } else {
+          isInQuotes = !isInQuotes
+        }
+        continue
+      }
+
+      if (character === ',' && !isInQuotes) {
+        currentRow.push(currentValue.trim())
+        currentValue = ''
+        continue
+      }
+
+      if ((character === '\n' || character === '\r') && !isInQuotes) {
+        if (character === '\r' && nextCharacter === '\n') {
+          index += 1
+        }
+
+        currentRow.push(currentValue.trim())
+        const hasValues = currentRow.some((value) => value !== '')
+        if (hasValues) {
+          rows.push(currentRow)
+        }
+
+        currentValue = ''
+        currentRow = []
+        continue
+      }
+
+      currentValue += character
+    }
+
+    if (currentValue !== '' || currentRow.length > 0) {
+      currentRow.push(currentValue.trim())
+      const hasValues = currentRow.some((value) => value !== '')
+      if (hasValues) {
+        rows.push(currentRow)
+      }
+    }
+
+    if (rows.length < 2) {
+      throw new Error('CSV must include a header row and at least one data row.')
+    }
+
+    const headers = rows[0].map(normalizeCsvHeader)
+    const requiredHeaders = ['email', 'displayname']
+    const missingHeaders = requiredHeaders.filter((header) => !headers.includes(header))
+
+    if (missingHeaders.length > 0) {
+      throw new Error(`Missing required CSV columns: ${missingHeaders.join(', ')}`)
+    }
+
+    return rows.slice(1).map((row, rowIndex) => {
+      const record = headers.reduce<Record<string, string>>((accumulator, header, headerIndex) => {
+        accumulator[header] = row[headerIndex]?.trim() ?? ''
+        return accumulator
+      }, {})
+
+      return {
+        rowNumber: rowIndex + 2,
+        email: record.email,
+        displayName: record.displayname,
+        username: record.username,
+        bio: record.bio,
+        profilePicture: record.profilepicture || record.avatarurl,
+        role: (record.role || 'user') as UserFormData['role'],
+        isActive: parseBooleanValue(record.isactive, true),
+        isAdmin: parseBooleanValue(record.isadmin, false),
+        isPublic: parseBooleanValue(record.ispublic, true),
+      }
+    })
+  }
+
+  const handleCsvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    setCsvFileName(file.name)
+
+    try {
+      setIsImporting(true)
+      const csvText = await file.text()
+      const parsedRows = parseCsvText(csvText)
+
+      const failures: Array<{ rowNumber: number; reason: string }> = []
+      let createdCount = 0
+
+      for (const row of parsedRows) {
+        if (!row.email.trim() || !row.displayName.trim()) {
+          failures.push({
+            rowNumber: row.rowNumber,
+            reason: 'Email and displayName are required.',
+          })
+          continue
+        }
+
+        if (!['user', 'admin', 'moderator'].includes(row.role)) {
+          failures.push({
+            rowNumber: row.rowNumber,
+            reason: `Unsupported role "${row.role}".`,
+          })
+          continue
+        }
+
+        try {
+          const userId = await createUser({
+            email: row.email.trim(),
+            displayName: row.displayName.trim(),
+            emailVerified: false,
+            isActive: row.isActive,
+            isAdmin: row.isAdmin,
+            role: row.role,
+            metadata: {
+              signUpMethod: 'email'
+            }
+          })
+
+          if (row.username?.trim()) {
+            await createUserProfile({
+              userId,
+              username: row.username.trim(),
+              displayName: row.displayName.trim(),
+              bio: row.bio?.trim() || '',
+              profilePicture: row.profilePicture?.trim() || '',
+              slug: createProfileSlug(row.username || row.displayName),
+              isPublic: row.isPublic,
+              links: [],
+              socialLinks: [],
+              theme: 'default'
+            })
+          }
+
+          createdCount += 1
+        } catch (error) {
+          failures.push({
+            rowNumber: row.rowNumber,
+            reason: error instanceof Error ? error.message : 'Unknown import error.',
+          })
+        }
+      }
+
+      if (createdCount > 0) {
+        await fetchUsers()
+      }
+
+      if (failures.length === 0) {
+        toast({
+          title: "Import complete",
+          description: `Created ${createdCount} users from ${file.name}.`,
+        })
+      } else {
+        const failureSummary = failures
+          .slice(0, 3)
+          .map((failure) => `Row ${failure.rowNumber}: ${failure.reason}`)
+          .join(' ')
+
+        toast({
+          title: createdCount > 0 ? "Import completed with issues" : "Import failed",
+          description: `${createdCount} created, ${failures.length} failed. ${failureSummary}`,
+          variant: failures.length === parsedRows.length ? "destructive" : undefined,
+        })
+      }
+    } catch (error) {
+      console.error('Error importing CSV users:', error)
+      toast({
+        title: "Import error",
+        description: error instanceof Error ? error.message : "Failed to import CSV users",
+        variant: "destructive",
+      })
+    } finally {
+      setIsImporting(false)
+      event.target.value = ''
+    }
+  }
+
   if (loading) {
     return <div className="p-8">Loading users...</div>
   }
@@ -527,12 +752,32 @@ export default function UsersPage() {
               className="pl-8 w-64"
             />
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleCsvUpload}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isImporting}
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isImporting ? 'Importing CSV...' : 'Import CSV'}
+          </Button>
           <Button onClick={openCreateModal}>
             <Plus className="h-4 w-4 mr-2" />
             Add User
           </Button>
         </div>
       </div>
+
+      <p className="text-sm text-muted-foreground">
+        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>, and <code>isPublic</code>.
+        {csvFileName ? ` Last selected: ${csvFileName}.` : ''}
+      </p>
 
       {/* Create Modal */}
       <UserFormModal 
