@@ -10,7 +10,8 @@
     "build": "next build --webpack",
     "start": "next start --port 3000 --hostname 0.0.0.0",
     "lint": "next lint",
-    "migrate-features": "node scripts/migrate-features.js"
+    "migrate-features": "node scripts/migrate-features.js",
+    "migrate-social-data": "node scripts/migrate-social-data.js"
   },
   "dependencies": {
     "@geist-ui/core": "^2.3.8",

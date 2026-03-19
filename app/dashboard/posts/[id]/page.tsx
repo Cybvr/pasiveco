@@ -7,19 +7,44 @@ import { ArrowLeft, Heart, MessageCircle, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { addPostComment, formatSocialDate, getSocialPostById, getSocialProfileById, togglePostLike, type SocialPost } from '@/lib/social-data'
+import { addPostComment, formatSocialDate, getSocialPostById, getSocialProfileById, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
 export default function DashboardPostPage() {
   const params = useParams<{ id: string }>()
   const [post, setPost] = useState<SocialPost | null>(null)
+  const [author, setAuthor] = useState<SocialProfile | null>(null)
   const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!params?.id) return
-    setPost(getSocialPostById(params.id) || null)
+    let active = true
+
+    const loadPost = async () => {
+      if (!params?.id) return
+
+      try {
+        const nextPost = await getSocialPostById(params.id)
+        const nextAuthor = nextPost ? await getSocialProfileById(nextPost.authorId) : undefined
+        if (!active) return
+        setPost(nextPost || null)
+        setAuthor(nextAuthor || null)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void loadPost()
+
+    return () => {
+      active = false
+    }
   }, [params])
 
-  if (!post) {
+  if (loading) {
+    return <div className="mx-auto max-w-2xl rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Loading post...</div>
+  }
+
+  if (!post || !author) {
     return (
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
         <Button asChild variant="ghost" className="w-fit px-0 hover:bg-transparent">
@@ -33,18 +58,15 @@ export default function DashboardPostPage() {
     )
   }
 
-  const author = getSocialProfileById(post.authorId)
-  if (!author) return null
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const updatedPost = addPostComment(post.id, comment)
+    const updatedPost = await addPostComment(post.id, comment)
     setComment('')
     if (updatedPost) setPost(updatedPost)
   }
 
-  const handleLike = () => {
-    const updatedPost = togglePostLike(post.id)
+  const handleLike = async () => {
+    const updatedPost = await togglePostLike(post.id)
     if (updatedPost) setPost(updatedPost)
   }
 
@@ -75,7 +97,7 @@ export default function DashboardPostPage() {
         <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-foreground">{post.message}</p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2 border-y py-3 text-xs text-muted-foreground">
-          <Button type="button" variant="ghost" size="sm" className={`h-8 gap-1.5 px-2 ${post.likedByMe ? 'text-primary' : ''}`} onClick={handleLike}>
+          <Button type="button" variant="ghost" size="sm" className={`h-8 gap-1.5 px-2 ${post.likedByMe ? 'text-primary' : ''}`} onClick={() => void handleLike()}>
             <Heart className={`h-4 w-4 ${post.likedByMe ? 'fill-current' : ''}`} />
             {post.likeCount}
           </Button>
@@ -92,7 +114,7 @@ export default function DashboardPostPage() {
         </div>
 
         <div className="mt-4 space-y-4">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <form onSubmit={(event) => void handleSubmit(event)} className="flex items-center gap-2">
             <Input value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Add a comment..." />
             <Button type="submit" disabled={!comment.trim()}>Comment</Button>
           </form>

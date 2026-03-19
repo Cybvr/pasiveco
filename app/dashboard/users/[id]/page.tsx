@@ -8,18 +8,43 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { formatSocialDate, getSocialPostById, getSocialPosts, getSocialProfileById, type SocialPost } from '@/lib/social-data'
+import { formatSocialDate, getSocialPosts, getSocialProfileById, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
 export default function DashboardUserProfilePage() {
   const params = useParams<{ id: string }>()
   const [posts, setPosts] = useState<SocialPost[]>([])
+  const [profile, setProfile] = useState<SocialProfile | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!params?.id) return
-    setPosts(getSocialPosts().filter((post) => post.authorId === params.id))
+    let active = true
+
+    const loadProfile = async () => {
+      if (!params?.id) return
+
+      try {
+        const [profileData, postData] = await Promise.all([
+          getSocialProfileById(params.id),
+          getSocialPosts(),
+        ])
+        if (!active) return
+        setProfile(profileData || null)
+        setPosts(postData.filter((post) => post.authorId === params.id))
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void loadProfile()
+
+    return () => {
+      active = false
+    }
   }, [params])
 
-  const profile = params?.id ? getSocialProfileById(params.id) : null
+  if (loading) {
+    return <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Loading user...</div>
+  }
 
   if (!profile) {
     return <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">User not found.</div>
@@ -87,7 +112,7 @@ export default function DashboardUserProfilePage() {
               {posts.map((post) => (
                 <Link key={post.id} href={`/dashboard/posts/${post.id}`} className="block rounded-2xl border p-4 hover:bg-accent/40">
                   <p className="text-sm leading-6 text-foreground">{post.message}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{formatSocialDate(getSocialPostById(post.id)?.createdAt || post.createdAt)} · {post.likeCount} likes · {post.commentCount} comments</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{formatSocialDate(post.createdAt)} · {post.likeCount} likes · {post.commentCount} comments</p>
                 </Link>
               ))}
             </TabsContent>

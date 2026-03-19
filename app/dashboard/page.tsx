@@ -1,33 +1,63 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Heart, MessageCircle, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { formatSocialDate, getSocialPostById, getSocialPosts, getSocialProfileById, togglePostLike, type SocialPost } from '@/lib/social-data'
+import { getSocialPosts, getSocialProfiles, formatSocialDate, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
 export default function DashboardHomePage() {
   const [posts, setPosts] = useState<SocialPost[]>([])
+  const [profiles, setProfiles] = useState<Record<string, SocialProfile>>({})
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setPosts(getSocialPosts())
+    let active = true
+
+    const loadFeed = async () => {
+      try {
+        const [postsData, profilesData] = await Promise.all([getSocialPosts(), getSocialProfiles()])
+        if (!active) return
+
+        setPosts(postsData)
+        setProfiles(Object.fromEntries(profilesData.map((profile) => [profile.id, profile])))
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadFeed()
+
+    return () => {
+      active = false
+    }
   }, [])
 
-  const handleLike = (event: React.MouseEvent<HTMLButtonElement>, postId: string) => {
+  const hasPosts = useMemo(() => posts.length > 0, [posts])
+
+  const handleLike = async (event: React.MouseEvent<HTMLButtonElement>, postId: string) => {
     event.preventDefault()
     event.stopPropagation()
-    const updatedPost = togglePostLike(postId)
+    const updatedPost = await togglePostLike(postId)
     if (!updatedPost) return
     setPosts((currentPosts) =>
       currentPosts.map((post) => (post.id === postId ? updatedPost : post)),
     )
   }
 
+  if (loading) {
+    return <div className="mx-auto max-w-2xl rounded-2xl border bg-card p-4 text-sm text-muted-foreground">Loading feed...</div>
+  }
+
+  if (!hasPosts) {
+    return <div className="mx-auto max-w-2xl rounded-2xl border bg-card p-4 text-sm text-muted-foreground">No posts found.</div>
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-3">
       {posts.map((post) => {
-        const author = getSocialProfileById(post.authorId)
+        const author = profiles[post.authorId]
         if (!author) return null
 
         return (
@@ -60,10 +90,10 @@ export default function DashboardHomePage() {
                   variant="ghost"
                   size="sm"
                   className={`h-8 gap-1.5 px-2 ${post.likedByMe ? 'text-primary' : ''}`}
-                  onClick={(event) => handleLike(event, post.id)}
+                  onClick={(event) => void handleLike(event, post.id)}
                 >
                   <Heart className={`h-4 w-4 ${post.likedByMe ? 'fill-current' : ''}`} />
-                  {getSocialPostById(post.id)?.likeCount ?? post.likeCount}
+                  {post.likeCount}
                 </Button>
                 <span className="inline-flex items-center gap-1.5 px-2">
                   <MessageCircle className="h-4 w-4" />
