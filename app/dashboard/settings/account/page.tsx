@@ -136,7 +136,7 @@ export default function AccountSettings() {
       toast({ title: "Profile updated", description: "Your profile has been updated successfully." })
     } catch (error) {
       console.error("Error updating profile", error)
-      toast({ title: "Update failed", description: "Failed to update profile. Please try again.", variant: "destructive" })
+      toast({ title: "Update failed", description: String(error), variant: "destructive" })
     }
   }
 
