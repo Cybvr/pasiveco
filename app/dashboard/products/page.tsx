@@ -2,11 +2,13 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getUserProducts } from '@/services/productsService'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
+import { getBankingDetails } from '@/services/bankingDetailsService'
 import { Plus } from 'lucide-react'
 
 import ExploreTab from './ExploreTab'
@@ -18,22 +20,29 @@ import ManageTab from './ManageTab'
 function ProductCreator() {
   const [activeTab, setActiveTab] = useState("manage")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [hasBankingDetails, setHasBankingDetails] = useState(false)
   const [selectedCategory] = useState(null)
   const [myProducts, setMyProducts] = useState([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
   const { user } = useAuth()
+  const searchParams = useSearchParams()
 
   const loadMyProducts = async () => {
     if (!user) {
       setMyProducts([])
+      setHasBankingDetails(false)
       setIsLoadingProducts(false)
       return
     }
 
     setIsLoadingProducts(true)
     try {
-      const products = await getUserProducts(user.uid)
+      const [products, bankingDetails] = await Promise.all([
+        getUserProducts(user.uid),
+        getBankingDetails(user.uid),
+      ])
       setMyProducts(products)
+      setHasBankingDetails(Boolean(bankingDetails))
     } catch (error) {
       console.error('Error fetching products:', error)
       toast.error('Failed to fetch products')
@@ -45,6 +54,13 @@ function ProductCreator() {
   useEffect(() => {
     loadMyProducts()
   }, [user])
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setIsCreateModalOpen(true)
+      setActiveTab('manage')
+    }
+  }, [searchParams])
 
   const tabs = [
     { key: "manage", label: "All" },
@@ -76,6 +92,7 @@ function ProductCreator() {
             isLoading={isLoadingProducts}
             onProductsChanged={loadMyProducts}
             onCreateNew={() => setIsCreateModalOpen(true)}
+            hasBankingDetails={hasBankingDetails}
           />
         )}
       </div>
