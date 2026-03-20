@@ -19,8 +19,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { deleteProduct, updateProduct } from '@/services/productsService'
 import { toast } from 'sonner'
+import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 
-function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew }) {
+function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, hasBankingDetails = false }) {
   const [editingProduct, setEditingProduct] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState({})
@@ -175,11 +176,11 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       </div>
 
       {!isLoading && products.length === 0 && (
-        <div className="text-center py-10">
-          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No products yet</h3>
-          <p className="text-muted-foreground">Create your first product to get started</p>
-        </div>
+        <NoProductsSection
+          showBankingDetailsAction={!hasBankingDetails}
+          onAddProduct={onCreateNew}
+          className="border-dashed shadow-none"
+        />
       )}
 
       {showEditModal && (
