@@ -1,17 +1,27 @@
-
 "use client";
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, ExternalLink, Package, ShieldCheck, Truck, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { getProduct, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Package, ExternalLink, ArrowLeft, User } from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
+
+const formatPrice = (amount: number, currency: string) => {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'NGN',
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+};
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const [productId, setProductId] = useState<string>('');
+  const [productId, setProductId] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
   const [seller, setSeller] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +33,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
       try {
         const productData = await getProduct(resolvedParams.id);
+
         if (productData) {
           setProduct(productData);
-          
-          // Get seller info
           const sellerProfile = await getUser(productData.userId);
           setSeller(sellerProfile);
         }
@@ -42,137 +51,131 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="text-center">
-          <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
-          <p className="text-muted-foreground mb-4">This product may have been removed or doesn't exist.</p>
+          <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
+          <h1 className="mb-2 text-2xl font-semibold">Product not found</h1>
+          <p className="mb-5 text-muted-foreground">This listing is unavailable.</p>
           <Link href="/">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
+            <Button variant="outline">Back home</Button>
           </Link>
         </div>
       </div>
     );
   }
 
+  const sellerHref = seller?.username ? `/${seller.username.replace('@', '')}` : '/';
+  const checkoutHref = `/product/${product.id || productId}/checkout`;
+  const formattedPrice = formatPrice(product.price, product.currency || 'NGN');
+  const hasDirectLink = Boolean(product.url);
+  const hasPaystack = Boolean((product as any).paymentIntegration?.paystack?.enabled);
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Link>
-        </div>
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
+        <Link
+          href={sellerHref}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div className="space-y-4">
-            <div className="aspect-square bg-muted rounded-lg overflow-hidden">
-              {product.thumbnail ? (
-                <img 
-                  src={product.thumbnail} 
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="w-16 h-16 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Product Details */}
-          <div className="space-y-6">
-            <div>
-              <Badge variant="secondary" className="mb-2">{product.category}</Badge>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <p className="text-2xl font-bold text-primary">
-                {product.currency === 'USD' ? '$' : product.currency}{product.price}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
-            </div>
-
-            {product.tags && product.tags.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-2">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline">{tag}</Badge>
-                  ))}
-                </div>
+        <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <div className="overflow-hidden rounded-2xl border bg-muted/30">
+            {product.thumbnail ? (
+              <img
+                src={product.thumbnail}
+                alt={product.name}
+                className="aspect-[4/5] w-full object-cover"
+              />
+            ) : (
+              <div className="flex aspect-[4/5] items-center justify-center bg-muted">
+                <Package className="h-14 w-14 text-muted-foreground" />
               </div>
             )}
+          </div>
 
-            {/* Seller Info */}
+          <div className="space-y-6">
+            <div className="space-y-3 border-b pb-6">
+              <Badge variant="secondary" className="w-fit">{product.category}</Badge>
+              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{product.name}</h1>
+              <div className="text-3xl font-semibold text-foreground">{formattedPrice}</div>
+              <p className="max-w-xl text-base leading-7 text-muted-foreground">{product.description}</p>
+            </div>
+
             {seller && (
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-3">Sold by</h3>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                      {seller.profilePicture ? (
-                        <img 
-                          src={seller.profilePicture} 
-                          alt={seller.username}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium">{seller.displayName || seller.username}</p>
-                      <Link href={`/${seller.username?.replace('@', '')}`} className="text-sm text-primary hover:underline">
-                        View profile
-                      </Link>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Purchase Button */}
-            <div className="space-y-3">
-              {product.url && product.url !== '' ? (
-                <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
-                  <Button className="w-full" size="lg">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Get This Product
-                  </Button>
-                </a>
-              ) : (
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <p className="text-muted-foreground mb-2">Contact seller for availability</p>
-                  {seller && (
-                    <Link href={`/${seller.username?.replace('@', '')}`}>
-                      <Button variant="outline" size="sm">
-                        View Seller Profile
-                      </Button>
-                    </Link>
+              <section className="flex items-center gap-3 border-b pb-6">
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-muted">
+                  {seller.profilePicture ? (
+                    <img src={seller.profilePicture} alt={seller.username} className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
+                <div className="min-w-0">
+                  <p className="font-medium">{seller.displayName || seller.username}</p>
+                  <p className="text-sm text-muted-foreground">Seller</p>
+                </div>
+              </section>
+            )}
+
+            {product.tags?.length > 0 && (
+              <section className="flex flex-wrap gap-2 border-b pb-6">
+                {product.tags.map((tag, index) => (
+                  <Badge key={`${tag}-${index}`} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
+              </section>
+            )}
+
+            <section className="grid gap-3 border-b pb-6 text-sm text-muted-foreground sm:grid-cols-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-foreground" />
+                Secure payment
+              </div>
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-foreground" />
+                Instant checkout
+              </div>
+              <div className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-foreground" />
+                Order confirmation
+              </div>
+            </section>
+
+            <section className="space-y-3">
+              {hasDirectLink ? (
+                <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
+                  <Button className="h-12 w-full" size="lg">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Get product
+                  </Button>
+                </a>
+              ) : hasPaystack ? (
+                <Link href={checkoutHref} className="block">
+                  <Button className="h-12 w-full" size="lg">
+                    Continue to checkout
+                  </Button>
+                </Link>
+              ) : (
+                <Button className="h-12 w-full" size="lg" variant="outline" disabled>
+                  Unavailable for purchase
+                </Button>
               )}
-            </div>
+            </section>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
