@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Video, Image, Calendar, Package, Eye, Upload, Download, GraduationCap } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Video, Image as ImageIcon, Calendar, Package, Upload, Download, GraduationCap, BadgeDollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createProduct } from '@/services/productsService'
@@ -178,132 +177,149 @@ function CreateTab({ user, selectedCategory, onProductCreated }) {
   const currentType = getProductTypeInfo(productType) || productTypes[0]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
-          <currentType.icon className="h-4 w-4 text-primary" />
+    <div className="space-y-4">
+      <div className="flex items-start gap-3 border-b border-border/60 pb-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
+          <currentType.icon className="h-4 w-4 text-foreground" />
         </div>
-        <div>
-          <h2 className="text-lg font-semibold">New</h2>
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold tracking-tight">Product details</h2>
+          <p className="text-sm text-muted-foreground">Create a clean, compact product listing with the essentials.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader className="px-4 py-3 border-b">
-              <CardTitle className="text-sm font-semibold">Product Details</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Product Name *</label>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="space-y-4">
+          <section className="rounded-lg border border-border/60 bg-background">
+            <div className="grid gap-4 p-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Product Name *</label>
                 <input
                   type="text"
                   placeholder="Enter product name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1.5">Product Type</label>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Product Type</label>
                 <Select value={productType} onValueChange={setProductType}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10">
                     <SelectValue placeholder="Select product type" />
                   </SelectTrigger>
                   <SelectContent>
-                  {productTypes.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
+                    {productTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">The form updates automatically based on this selection.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1.5">Description</label>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Price</label>
+                <div className="relative">
+                  <BadgeDollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={formData.price === 0 ? '' : formData.price}
+                    onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
+                    className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Description</label>
                 <textarea
                   placeholder="Describe your product..."
                   rows={4}
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                  className="w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
                 />
               </div>
 
               {productType === "link" && (
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5">External URL</label>
+                <div className="sm:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">External URL</label>
                   <input
                     type="url"
                     placeholder="https://example.com"
                     value={formData.url}
                     onChange={(e) => handleInputChange('url', e.target.value)}
-                    className="w-full p-2.5 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
               )}
+            </div>
+          </section>
 
-              {productType !== "link" && productType !== "services" && (
+          {productType !== "link" && productType !== "services" && (
+            <section className="rounded-lg border border-dashed border-border/70 bg-muted/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Upload className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5">Upload Files</label>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">Drag & drop your files here</p>
-                    <Button variant="outline" size="sm">
-                      Choose Files
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Product Image</label>
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 text-center">
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Product Preview" className="max-h-40 w-auto mx-auto mb-2 rounded" />
-                  ) : (
-                    <Image className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                  )}
-                  <p className="text-xs text-muted-foreground mb-2">{imageFile ? 'Change Image' : 'Upload product image'}</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                    id="imageUpload"
-                  />
-                  <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => document.getElementById('imageUpload').click()}>
-                    Choose Image
-                  </Button>
+                  <p className="text-sm font-medium">Upload Files</p>
+                  <p className="text-xs text-muted-foreground">Drag and drop your files here, or choose them manually.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <Button variant="outline" size="sm">
+                Choose Files
+              </Button>
+            </section>
+          )}
+
+          <section className="rounded-lg border border-dashed border-border/70 bg-muted/20 p-4">
+            <label className="mb-3 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Product Image</label>
+            <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border/80 bg-background px-4 py-6 text-center">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Product Preview" className="max-h-36 w-auto rounded-md object-contain" />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{imageFile ? 'Change Image' : 'Upload product image'}</p>
+                <p className="text-xs text-muted-foreground">PNG or JPG works best for product covers.</p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+                id="imageUpload"
+              />
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => document.getElementById('imageUpload').click()}>
+                Choose Image
+              </Button>
+            </div>
+          </section>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Actions */}
-          <div className="space-y-3">
-            <Button 
-              className="w-full gap-2" 
+        <aside className="h-fit rounded-lg border border-border/60 bg-muted/20 p-3">
+          <div className="space-y-1 border-b border-border/60 pb-3">
+            <p className="text-sm font-medium">Ready to publish?</p>
+            <p className="text-xs text-muted-foreground">Save your product once the title and price are set.</p>
+          </div>
+          <div className="pt-3">
+            <Button
+              className="w-full gap-2"
               onClick={handleCreateProduct}
               disabled={loading || !formData.name.trim()}
             >
-              <Package className="w-4 h-4" />
-              {loading ? 'Creating...' : 'New'}
-            </Button>
-            <Button variant="outline" className="w-full gap-2">
-              <Eye className="w-4 h-4" />
-              Preview
+              <Package className="h-4 w-4" />
+              {loading ? 'Saving...' : 'Save'}
             </Button>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   )

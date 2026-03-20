@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette, HelpCircle, LifeBuoy } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette, HelpCircle } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -34,8 +34,7 @@ const settingsLinks = [
   { href: '/dashboard/settings/banking-details', label: 'Banking Details', icon: Wallet },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
-  { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
-  { href: '/dashboard/help', label: 'Support', icon: LifeBuoy },
+  { href: '/dashboard/help', label: 'Help & Support', icon: HelpCircle },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]
 interface UserData {
