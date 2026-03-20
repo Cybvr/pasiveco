@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getUserProducts } from '@/services/productsService'
+import { getUserProducts, type Product } from '@/services/productsService'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { getBankingDetails } from '@/services/bankingDetailsService'
@@ -22,7 +22,7 @@ function ProductCreator() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [hasBankingDetails, setHasBankingDetails] = useState(false)
   const [selectedCategory] = useState(null)
-  const [myProducts, setMyProducts] = useState([])
+  const [myProducts, setMyProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
   const { user } = useAuth()
   const searchParams = useSearchParams()
@@ -109,6 +109,7 @@ function ProductCreator() {
           <CreateTab
             user={user}
             selectedCategory={selectedCategory}
+            existingProducts={myProducts}
             onProductCreated={() => {
               setIsCreateModalOpen(false)
               setActiveTab('manage')

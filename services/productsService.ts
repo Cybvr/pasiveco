@@ -14,6 +14,39 @@ import {
   Timestamp
 } from 'firebase/firestore';
 
+export interface ProductLesson {
+  title: string;
+  content?: string;
+  videoUrl?: string;
+}
+
+export interface ProductAvailabilitySlot {
+  day: string;
+  start: string;
+  end: string;
+}
+
+export interface ProductDetails {
+  eventDateTime?: string;
+  eventLocation?: string;
+  quantityAvailable?: number;
+  lessons?: ProductLesson[];
+  dripSchedule?: string;
+  enrollmentLimit?: number | null;
+  fileName?: string;
+  fileUrl?: string;
+  billingInterval?: 'monthly' | 'yearly';
+  perks?: string[];
+  sessionLength?: number;
+  availability?: ProductAvailabilitySlot[];
+  videoLink?: string;
+  includedProducts?: Array<{
+    id: string;
+    name: string;
+  }>;
+  deliveryMode?: 'silent_email' | 'silent_qr_email';
+}
+
 export interface Product {
   id?: string;
   userId: string;
@@ -27,6 +60,7 @@ export interface Product {
   thumbnail: string;
   status: 'active' | 'inactive' | 'draft';
   tags: string[];
+  details?: ProductDetails;
   inventory: {
     quantity: number;
     trackInventory: boolean;
@@ -44,6 +78,12 @@ export interface Product {
     title: string;
     description: string;
     keywords: string[];
+  };
+  paymentIntegration?: {
+    paystack?: {
+      enabled: boolean;
+      publicKey: string;
+    };
   };
   createdAt: Timestamp;
   updatedAt: Timestamp;

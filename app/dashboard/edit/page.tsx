@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X, Loader2 } from "lucide-react";
 import { getUser, updateUser, type User as AppUser } from "@/services/userService";
 import { getUserProducts, type Product } from "@/services/productsService";
+import { getProductTypeLabel } from "@/lib/productTypes";
 import { useAuth } from "@/hooks/useAuth";
 import ShareModal from "@/app/common/dashboard/ShareModal";
 import { Button } from "@/components/ui/button";
@@ -480,7 +481,7 @@ function Page() {
                         </span>
                       </div>
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{product.description}</p>
-                      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{product.category}</p>
+                      <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">{getProductTypeLabel(product.category)}</p>
                     </div>
                   </div>
                 </a>
