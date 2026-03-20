@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getUserProducts, Product } from '@/services/productsService'
+import { getProductTypeLabel } from '@/lib/productTypes'
 import { useAuth } from '@/hooks/useAuth'
 import MiniPageModal from "./MiniPageModal"
 import ShareModal from "./ShareModal"
@@ -185,7 +186,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                                 <h4 className="font-medium text-sm text-foreground">{product.name}</h4>
                                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                                  <Badge variant="secondary" className="text-xs">{getProductTypeLabel(product.category)}</Badge>
                                   <span className="font-bold text-sm text-foreground">
                                     {product.currency === 'USD' ? '$' : product.currency}{product.price}
                                   </span>

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Package, ShieldCheck, Truck, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ProductDetailsSummary from '@/components/products/ProductDetailsSummary';
 import { getProduct, Product } from '@/services/productsService';
+import { getProductTypeLabel } from '@/lib/productTypes';
 import { getUser } from '@/services/userService';
 
 const formatPrice = (amount: number, currency: string) => {
@@ -106,7 +108,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
           <div className="space-y-6">
             <div className="space-y-3 border-b pb-6">
-              <Badge variant="secondary" className="w-fit">{product.category}</Badge>
+              <Badge variant="secondary" className="w-fit">{getProductTypeLabel(product.category)}</Badge>
               <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{product.name}</h1>
               <div className="text-3xl font-semibold text-foreground">{formattedPrice}</div>
               <p className="max-w-xl text-base leading-7 text-muted-foreground">{product.description}</p>
@@ -137,6 +139,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 ))}
               </section>
             )}
+
+            <ProductDetailsSummary product={product} />
 
             <section className="grid gap-3 border-b pb-6 text-sm text-muted-foreground sm:grid-cols-3">
               <div className="flex items-center gap-2">
