@@ -98,13 +98,14 @@ function ProductCreator() {
       </div>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="max-w-3xl gap-0 overflow-hidden border-border/60 p-0 shadow-2xl">
+          <DialogHeader className="border-b border-border/60 px-4 py-3">
+            <DialogTitle className="flex items-center gap-2 text-base">
               <Plus className="h-4 w-4" />
               New Product
             </DialogTitle>
           </DialogHeader>
+          <div className="max-h-[80vh] overflow-y-auto px-4 py-3 sm:px-5 sm:py-4">
           <CreateTab
             user={user}
             selectedCategory={selectedCategory}
@@ -114,6 +115,7 @@ function ProductCreator() {
               loadMyProducts()
             }}
           />
+        </div>
         </DialogContent>
       </Dialog>
     </div>

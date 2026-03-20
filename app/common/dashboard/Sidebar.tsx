@@ -49,7 +49,7 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
     {
       href: '/dashboard/help',
       icon: LifeBuoy,
-      label: 'Help Docs',
+      label: 'Help & Support',
     },
   ]
 

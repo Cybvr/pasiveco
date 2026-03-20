@@ -17,7 +17,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/analytics': 'Analytics',
   '/dashboard/settings': 'Settings',
   '/dashboard/discovery': 'Discovery',
-  '/dashboard/help': 'Help Docs',
+  '/dashboard/help': 'Help & Support',
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
@@ -57,7 +57,7 @@ export default function DashboardHeader() {
   const currentTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
-    if (pathname.startsWith('/dashboard/help')) return 'Help Docs'
+    if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
 
     const segments = pathname.split('/').filter(Boolean)
@@ -146,7 +146,7 @@ export default function DashboardHeader() {
                     onClick={() => handleNavigate('/dashboard/help')}
                   >
                     <LifeBuoy className="h-4 w-4" />
-                    <span className="flex-1 text-left">Contact Support</span>
+                    <span className="flex-1 text-left">Help & Support</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </div>
