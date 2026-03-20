@@ -239,7 +239,7 @@ function Page() {
   const iconColor = profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground";
 
   return (
-    <div className="mx-auto w-full max-w-sm py-6">
+    <div className="mx-auto w-full max-w-sm px-4 pb-24 pt-6 sm:px-0 sm:pb-6">
 
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4">

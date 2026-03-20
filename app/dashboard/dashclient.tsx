@@ -47,10 +47,10 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
         <DashboardHeader />
-        <main className={cn("flex-1 min-h-0", pathname !== '/dashboard/edit' && "overflow-y-auto")}>
+        <main className="flex-1 min-h-0 overflow-y-auto">
           <div className={cn(
-            pathname !== '/dashboard/edit' && "p-4 md:p-8 max-w-[1600px] mx-auto",
-            pathname === '/dashboard/edit' && "h-full"
+            pathname !== '/dashboard/edit' && "mx-auto max-w-[1600px] p-4 md:p-8",
+            pathname === '/dashboard/edit' && "min-h-full"
           )}>
             {children}
           </div>
