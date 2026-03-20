@@ -7,6 +7,7 @@ import { getUserProducts, type Product } from "@/services/productsService";
 import { useAuth } from "@/hooks/useAuth";
 import ShareModal from "@/app/common/dashboard/ShareModal";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -383,76 +384,82 @@ function Page() {
         </div>
       </div>
 
-      {/* Links */}
-      <div className="space-y-2">
-        {links.map((link) => (
-          <div key={link.id} className="w-full rounded-lg border p-3 text-sm transition-colors hover:bg-muted/50">
-            {editingLinkId === link.id ? (
-              <div className="space-y-2">
-                <input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full rounded-md border px-2 py-1 text-sm"
-                  placeholder="Link title"
-                />
-                <input
-                  value={editUrl}
-                  onChange={(e) => setEditUrl(e.target.value)}
-                  className="w-full rounded-md border px-2 py-1 text-sm"
-                  placeholder="https://example.com"
-                />
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditingLinkId(null)}>Cancel</Button>
-                  <Button size="sm" onClick={() => handleSaveLink(link.id)}>
-                    <Check className="h-3.5 w-3.5 mr-1" /> Save
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-3">
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-w-0 flex-1 items-center gap-2"
-                >
-                  <img
-                    src={link.thumbnail}
-                    alt={link.title}
-                    className="h-4 w-4 shrink-0 object-contain"
-                    onError={(e) => { e.currentTarget.src = "/images/pages/website.svg"; }}
-                  />
-                  <span className="truncate font-medium">{link.title}</span>
-                </a>
-                <div className="flex shrink-0 items-center gap-0.5">
-                  <Button variant="ghost" size="sm" className="px-1.5 text-[10px] font-semibold" onClick={() => handleToggleLink(link.id)}>
-                    {link.active ? "ON" : "OFF"}
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditLink(link)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteLink(link.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        <Button variant="outline" className="w-full border-dashed" onClick={handleAddLink}>
-          <Plus className="h-4 w-4 mr-1.5" /> Add link
-        </Button>
-      </div>
+      <Tabs defaultValue="links" className="space-y-4">
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl border bg-muted/30 p-1">
+          <TabsTrigger value="links" className="rounded-lg px-3 py-2 text-sm font-medium">
+            Links ({links.length})
+          </TabsTrigger>
+          <TabsTrigger value="products" className="rounded-lg px-3 py-2 text-sm font-medium">
+            Products ({activeProducts.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Shop */}
-      {(loadingProducts || activeProducts.length > 0) && (
-        <div className="mt-6 space-y-3 border-t pt-4">
-          <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">Shop</p>
+        <TabsContent value="links" className="mt-0 space-y-2">
+          {links.map((link) => (
+            <div key={link.id} className="w-full rounded-lg border p-3 text-sm transition-colors hover:bg-muted/50">
+              {editingLinkId === link.id ? (
+                <div className="space-y-2">
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full rounded-md border px-2 py-1 text-sm"
+                    placeholder="Link title"
+                  />
+                  <input
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    className="w-full rounded-md border px-2 py-1 text-sm"
+                    placeholder="https://example.com"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditingLinkId(null)}>Cancel</Button>
+                    <Button size="sm" onClick={() => handleSaveLink(link.id)}>
+                      <Check className="h-3.5 w-3.5 mr-1" /> Save
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex min-w-0 flex-1 items-center gap-2"
+                  >
+                    <img
+                      src={link.thumbnail}
+                      alt={link.title}
+                      className="h-4 w-4 shrink-0 object-contain"
+                      onError={(e) => { e.currentTarget.src = "/images/pages/website.svg"; }}
+                    />
+                    <span className="truncate font-medium">{link.title}</span>
+                  </a>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button variant="ghost" size="sm" className="px-1.5 text-[10px] font-semibold" onClick={() => handleToggleLink(link.id)}>
+                      {link.active ? "ON" : "OFF"}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditLink(link)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteLink(link.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+          <Button variant="outline" className="w-full border-dashed" onClick={handleAddLink}>
+            <Plus className="h-4 w-4 mr-1.5" /> Add link
+          </Button>
+        </TabsContent>
+
+        <TabsContent value="products" className="mt-0 space-y-3">
           {loadingProducts ? (
-            <div className="flex justify-center py-4">
+            <div className="flex justify-center rounded-lg border py-8">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : (
+          ) : activeProducts.length > 0 ? (
             activeProducts.map((product) => (
               <div key={product.id}>
                 <a
@@ -484,9 +491,18 @@ function Page() {
                 )}
               </div>
             ))
+          ) : (
+            <div className="rounded-lg border border-dashed p-6 text-center">
+              <Package className="mx-auto h-8 w-8 text-muted-foreground" />
+              <p className="mt-3 text-sm font-medium">No active products yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Add products from your products dashboard to feature them here.</p>
+              <Button asChild variant="outline" className="mt-4">
+                <a href="/dashboard/products">Manage products</a>
+              </Button>
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       
 
