@@ -1,9 +1,6 @@
 
 "use client"
-import { EditorContent as TipTapEditorContent, useEditor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TiptapImage from '@tiptap/extension-image'
-import Dropcursor from '@tiptap/extension-dropcursor'
+import { EditorContent as TipTapEditorContent } from '@tiptap/react'
 import {
   Bold,
   Italic,
@@ -23,7 +20,7 @@ const EditorContent = ({ editor }) => {
   if (!editor) return null
 
   return (
-    <div className="border rounded-lg">
+    <div className="w-full min-w-0 overflow-hidden rounded-lg border">
       <div className="flex flex-wrap gap-1 p-1 border-b bg-muted/50">
         <Toggle
           size="sm"
@@ -111,7 +108,7 @@ const EditorContent = ({ editor }) => {
           <ImageIcon className="h-4 w-4" />
         </Toggle>
       </div>
-      <TipTapEditorContent editor={editor} className="prose max-w-none p-4" />
+      <TipTapEditorContent editor={editor} className="prose max-w-none break-words p-4 [&_img]:max-w-full [&_pre]:overflow-x-auto" />
     </div>
   )
 }

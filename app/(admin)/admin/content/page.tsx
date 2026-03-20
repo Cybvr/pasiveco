@@ -17,11 +17,11 @@ export default function ContentManagementPage() {
   })
 
   return (
-    <div className="space-y-4">
+    <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
       <h1 className="text-2xl font-bold">Content Management</h1>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <div className="overflow-x-auto pb-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0 space-y-4">
+        <div className="w-full overflow-x-auto pb-1">
           <TabsList className="inline-flex min-w-max">
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="solutions">Solutions</TabsTrigger>
