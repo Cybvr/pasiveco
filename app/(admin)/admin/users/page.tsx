@@ -43,9 +43,9 @@ import {
 } from "@/components/ui/select"
 import { Trash2, Edit, Plus, Search, Upload } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
+import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
-
 
 interface UserFormData {
   email: string;
@@ -56,6 +56,7 @@ interface UserFormData {
   username: string;
   bio: string;
   profilePicture: string;
+  category: string;
 }
 
 interface UserFormModalProps {
@@ -63,21 +64,22 @@ interface UserFormModalProps {
   onOpenChange: (open: boolean) => void;
   isCreate: boolean;
   formData: UserFormData;
+  categories: string[];
   onFormChange: (field: string, value: any) => void;
   onSubmit: () => void;
 }
 
-// Move the modal component outside to prevent recreation
-const UserFormModal = ({ 
-  isOpen, 
-  onOpenChange, 
-  isCreate, 
-  formData, 
-  onFormChange, 
-  onSubmit 
+const UserFormModal = ({
+  isOpen,
+  onOpenChange,
+  isCreate,
+  formData,
+  categories,
+  onFormChange,
+  onSubmit
 }: UserFormModalProps) => (
   <Dialog open={isOpen} onOpenChange={onOpenChange}>
-    <DialogContent className="w-[calc(100%-2rem)] sm:max-w-[425px]">
+    <DialogContent className="max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>{isCreate ? 'Create New User' : 'Edit User'}</DialogTitle>
         <DialogDescription>
@@ -85,43 +87,43 @@ const UserFormModal = ({
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="email" className="text-right">Email *</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="email" className="sm:text-right">Email *</Label>
           <Input
             id="email"
             value={formData.email}
             onChange={(e) => onFormChange('email', e.target.value)}
-            className="col-span-3"
+            className="sm:col-span-3"
             type="email"
             required
             placeholder="user@example.com"
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="displayName" className="text-right">Name *</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="displayName" className="sm:text-right">Name *</Label>
           <Input
             id="displayName"
             value={formData.displayName}
             onChange={(e) => onFormChange('displayName', e.target.value)}
-            className="col-span-3"
+            className="sm:col-span-3"
             required
             placeholder="User's full name"
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="username" className="text-right">Username</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="username" className="sm:text-right">Username</Label>
           <Input
             id="username"
             value={formData.username}
             onChange={(e) => onFormChange('username', e.target.value)}
-            className="col-span-3"
+            className="sm:col-span-3"
             placeholder="@username"
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="role" className="text-right">Role</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="role" className="sm:text-right">Role</Label>
           <Select value={formData.role} onValueChange={(value: any) => onFormChange('role', value)}>
-            <SelectTrigger className="col-span-3">
+            <SelectTrigger className="sm:col-span-3">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -131,29 +133,46 @@ const UserFormModal = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="bio" className="text-right">Bio</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="category" className="sm:text-right">Category</Label>
+          <Select
+            value={formData.category || 'unselected'}
+            onValueChange={(value) => onFormChange('category', value === 'unselected' ? '' : value)}
+          >
+            <SelectTrigger className="sm:col-span-3">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unselected">No category selected</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-start sm:gap-4">
+          <Label htmlFor="bio" className="sm:pt-2 sm:text-right">Bio</Label>
           <Textarea
             id="bio"
             value={formData.bio}
             onChange={(e) => onFormChange('bio', e.target.value)}
-            className="col-span-3"
+            className="sm:col-span-3"
             rows={3}
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="profilePicture" className="text-right">Avatar URL</Label>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="profilePicture" className="sm:text-right">Avatar URL</Label>
           <Input
             id="profilePicture"
             value={formData.profilePicture}
             onChange={(e) => onFormChange('profilePicture', e.target.value)}
-            className="col-span-3"
+            className="sm:col-span-3"
             type="url"
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">Status</Label>
-          <div className="col-span-3 flex items-center space-x-2">
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label className="sm:text-right">Status</Label>
+          <div className="flex items-center gap-2 sm:col-span-3">
             <Switch
               checked={formData.isActive}
               onCheckedChange={(checked) => onFormChange('isActive', checked)}
@@ -161,9 +180,9 @@ const UserFormModal = ({
             <span className="text-sm">{formData.isActive ? 'Active' : 'Inactive'}</span>
           </div>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right">Admin</Label>
-          <div className="col-span-3 flex items-center space-x-2">
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label className="sm:text-right">Admin</Label>
+          <div className="flex items-center gap-2 sm:col-span-3">
             <Switch
               checked={formData.isAdmin}
               onCheckedChange={(checked) => onFormChange('isAdmin', checked)}
@@ -173,7 +192,7 @@ const UserFormModal = ({
         </div>
       </div>
       <DialogFooter>
-        <Button type="submit" onClick={onSubmit}>
+        <Button type="submit" onClick={onSubmit} className="w-full sm:w-auto">
           {isCreate ? 'Create User' : 'Save Changes'}
         </Button>
       </DialogFooter>
@@ -189,14 +208,13 @@ export default function UsersPage() {
   const [csvFileName, setCsvFileName] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' })
+  const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-  // Form states
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
     displayName: '',
@@ -206,23 +224,36 @@ export default function UsersPage() {
     username: '',
     bio: '',
     profilePicture: '',
+    category: '',
   })
 
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchUsers()
+    void fetchUsers()
+    void loadCategories()
   }, [])
 
   useEffect(() => {
-    // Filter users based on search term
     const filtered = users.filter(user =>
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-user.username?.toLowerCase().includes(searchTerm.toLowerCase())
+      user.username?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredUsers(filtered)
   }, [users, searchTerm])
+
+  const loadCategories = async () => {
+    try {
+      const categoryList = await getUserCategories()
+      if (categoryList.length > 0) {
+        setCategories(categoryList.map((item) => item.name))
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error)
+      setCategories(DEFAULT_USER_CATEGORIES)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -276,6 +307,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       username: '',
       bio: '',
       profilePicture: '',
+      category: '',
     })
   }
 
@@ -290,6 +322,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       username: user.username || '',
       bio: user.bio || '',
       profilePicture: user.profilePicture || '',
+      category: user.category || '',
     })
     setIsEditModalOpen(true)
   }
@@ -301,7 +334,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
   const handleCreate = async () => {
-    // Validate required fields
     if (!formData.email.trim()) {
       toast({
         title: "Validation Error",
@@ -313,7 +345,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (!formData.displayName.trim()) {
       toast({
-        title: "Validation Error", 
+        title: "Validation Error",
         description: "Display name is required",
         variant: "destructive",
       })
@@ -321,8 +353,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
     }
 
     try {
-      // Create user
-      const userId = await createUser({
+      await createUser({
         email: formData.email.trim(),
         displayName: formData.displayName.trim(),
         emailVerified: false,
@@ -335,13 +366,12 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         username: formData.username.trim(),
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
+        category: formData.category,
         slug: createProfileSlug(formData.username || formData.displayName),
         links: [],
         socialLinks: [],
         theme: 'default'
       })
-
-
 
       toast({
         title: "Success",
@@ -350,7 +380,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
 
       setIsCreateModalOpen(false)
       resetForm()
-      fetchUsers()
+      void fetchUsers()
     } catch (error) {
       console.error('Error creating user:', error)
       toast({
@@ -365,7 +395,6 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
     if (!selectedUser?.id) return
 
     try {
-      // Update user
       await updateUser(selectedUser.id, {
         email: formData.email,
         displayName: formData.displayName,
@@ -375,10 +404,9 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         username: formData.username.trim(),
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
+        category: formData.category,
         slug: createProfileSlug(formData.username || formData.displayName),
       })
-
-
 
       toast({
         title: "Success",
@@ -388,7 +416,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
       setIsEditModalOpen(false)
       setSelectedUser(null)
       resetForm()
-      fetchUsers()
+      void fetchUsers()
     } catch (error) {
       console.error('Error updating user:', error)
       toast({
@@ -408,7 +436,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         description: "User deleted successfully",
       })
 
-      fetchUsers()
+      void fetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
       toast({
@@ -422,7 +450,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   const toggleAdminStatus = async (user: User, isAdmin: boolean) => {
     try {
       await updateUser(user.id!, { isAdmin })
-      setUsers(users.map(u => 
+      setUsers(users.map(u =>
         u.id === user.id ? { ...u, isAdmin } : u
       ))
 
@@ -558,6 +586,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         username: record.username,
         bio: record.bio,
         profilePicture: record.profilepicture || record.avatarurl,
+        category: record.category,
         role: (record.role || 'user') as UserFormData['role'],
         isActive: parseBooleanValue(record.isactive, true),
         isAdmin: parseBooleanValue(record.isadmin, false),
@@ -600,7 +629,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         }
 
         try {
-          const userId = await createUser({
+          await createUser({
             email: row.email.trim(),
             displayName: row.displayName.trim(),
             emailVerified: false,
@@ -613,13 +642,12 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
             username: row.username.trim(),
             bio: row.bio?.trim() || '',
             profilePicture: row.profilePicture?.trim() || '',
+            category: row.category?.trim() || '',
             slug: createProfileSlug(row.username || row.displayName),
             links: [],
             socialLinks: [],
             theme: 'default'
           })
-
-
 
           createdCount += 1
         } catch (error) {
@@ -669,17 +697,17 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Users ({users.length})</h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative">
+          <div className="relative min-w-0">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full sm:w-64"
+              className="w-full min-w-0 pl-8 sm:w-64"
             />
           </div>
           <input
@@ -693,49 +721,50 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={isImporting}
+            className="w-full sm:w-auto"
           >
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="mr-2 h-4 w-4" />
             {isImporting ? 'Importing CSV...' : 'Import CSV'}
           </Button>
-          <Button onClick={openCreateModal}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={openCreateModal} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
             Add User
           </Button>
         </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>.
+      <p className="break-words text-sm text-muted-foreground">
+        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>category</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>.
         {csvFileName ? ` Last selected: ${csvFileName}.` : ''}
       </p>
 
-      {/* Create Modal */}
-      <UserFormModal 
+      <UserFormModal
         isOpen={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
         isCreate={true}
         formData={formData}
+        categories={categories}
         onFormChange={handleFormChange}
         onSubmit={handleCreate}
       />
 
-      {/* Edit Modal */}
-      <UserFormModal 
+      <UserFormModal
         isOpen={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         isCreate={false}
         formData={formData}
+        categories={categories}
         onFormChange={handleFormChange}
         onSubmit={handleUpdate}
       />
 
       <div className="space-y-3 md:hidden">
         {sortedUsers.map((user) => (
-          <div key={user.id} className="rounded-lg border bg-card p-4 space-y-3">
+          <div key={user.id} className="space-y-3 rounded-lg border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium truncate">{user.displayName || 'No name'}</p>
-                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                <p className="truncate font-medium">{user.displayName || 'No name'}</p>
+                <p className="truncate text-sm text-muted-foreground">{user.email}</p>
                 <p className="text-sm text-muted-foreground">@{user.username?.replace('@', '') || 'n-a'}</p>
               </div>
               <Badge variant={user.isActive ? 'default' : 'secondary'}>
@@ -744,6 +773,7 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'moderator' ? 'secondary' : 'default'}>{user.role}</Badge>
+              {user.category ? <Badge variant="outline">{user.category}</Badge> : null}
               <Badge variant="outline">Joined {formatDate(user.createdAt)}</Badge>
             </div>
             <div className="flex items-center justify-between gap-3">
@@ -789,26 +819,27 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
         ))}
       </div>
 
-      <div className="hidden rounded-md border overflow-x-auto md:block">
+      <div className="hidden overflow-x-auto rounded-md border md:block">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-xs cursor-pointer" onClick={() => sortData('displayName')}>
+              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('displayName')}>
                 Name {sortConfig.key === 'displayName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead className="text-xs cursor-pointer" onClick={() => sortData('email')}>
+              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('email')}>
                 Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
               <TableHead className="text-xs">Username</TableHead>
+              <TableHead className="text-xs">Category</TableHead>
               <TableHead className="text-xs">Profile Link</TableHead>
-              <TableHead className="text-xs cursor-pointer" onClick={() => sortData('role')}>
+              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('role')}>
                 Role {sortConfig.key === 'role' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
               <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs cursor-pointer" onClick={() => sortData('createdAt')}>
+              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('createdAt')}>
                 Joined {sortConfig.key === 'createdAt' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead className="text-xs cursor-pointer" onClick={() => sortData('isAdmin')}>
+              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('isAdmin')}>
                 Admin {sortConfig.key === 'isAdmin' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
               <TableHead className="text-xs">Actions</TableHead>
@@ -820,10 +851,10 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
                 <TableCell className="text-xs">
                   <div className="flex items-center space-x-2">
                     {user.profilePicture && (
-                      <img 
+                      <img
                         src={user.profilePicture}
-                        alt={user.displayName || 'User'} 
-                        className="w-6 h-6 rounded-full"
+                        alt={user.displayName || 'User'}
+                        className="h-6 w-6 rounded-full"
                       />
                     )}
                     <span>{user.displayName || 'No name'}</span>
@@ -831,11 +862,12 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
                 </TableCell>
                 <TableCell className="text-xs">{user.email}</TableCell>
                 <TableCell className="text-xs">{user.username || 'N/A'}</TableCell>
+                <TableCell className="text-xs">{user.category || 'N/A'}</TableCell>
                 <TableCell className="text-xs">
                   {user.username ? (
-                    <a 
+                    <a
                       href={`/${user.username.replace('@', '')}`}
-                      target="_blank" 
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 hover:underline"
                     >
@@ -864,9 +896,9 @@ user.username?.toLowerCase().includes(searchTerm.toLowerCase())
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => openEditModal(user)}
                     >
                       <Edit className="h-4 w-4" />

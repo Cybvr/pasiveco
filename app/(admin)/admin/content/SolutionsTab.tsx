@@ -116,8 +116,8 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-      <div className="col-span-1 md:col-span-4 border rounded-lg p-4 mb-4 md:mb-0">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
         <h2 className="text-lg font-semibold mb-4">Solutions List</h2>
         <div className="space-y-4">
           <Button
@@ -136,7 +136,7 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
               <Card key={solution.id} className="p-3 hover:bg-accent">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                   <h3
-                    className="font-medium cursor-pointer"
+                    className="cursor-pointer break-words font-medium"
                     onClick={() => {
                       setCurrentSolution(null) // Reset first
                       setTimeout(() => setCurrentSolution(solution), 0) // Then set new item
@@ -166,7 +166,7 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
           </div>
         </div>
       </div>
-      <div className="col-span-1 md:col-span-8 border rounded-lg p-4">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-8">
         <h2 className="text-lg font-semibold mb-4">Edit Solution</h2>
         {currentSolution && (
           <div className="space-y-4">

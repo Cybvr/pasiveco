@@ -77,7 +77,7 @@ export default function AdminDashboard() {
   )
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6 overflow-x-hidden">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
         <p className="text-sm text-muted-foreground">
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
           <CardDescription>Latest accounts created on the platform.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="hidden md:block">
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow>
