@@ -36,7 +36,7 @@ export default function PayoutsPage() {
           <h1 className="text-xl font-semibold tracking-tight">Withdrawals</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/settings/payment-methods">
+          <Link href="/dashboard/settings/banking-details">
             <Button variant="outline">Banking details</Button>
           </Link>
           <Dialog>

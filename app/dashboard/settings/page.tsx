@@ -31,7 +31,7 @@ const settingsLinks = [
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/settings/payment-methods', label: 'Banking Details', icon: Wallet },
+  { href: '/dashboard/settings/banking-details', label: 'Banking Details', icon: Wallet },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
