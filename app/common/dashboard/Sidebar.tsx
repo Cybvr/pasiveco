@@ -8,7 +8,8 @@ import {
   Compass,
   PanelLeftClose,
   PanelLeftOpen,
-  Palette
+  Palette,
+  LifeBuoy
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -44,6 +45,16 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
     },
   ]
 
+  const bottomNavItems = [
+    {
+      href: '/dashboard/help',
+      icon: LifeBuoy,
+      label: 'Help Docs',
+    },
+  ]
+
+  const isItemActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+
   return (
     <div className="flex flex-col h-full bg-card">
       <div className={cn(
@@ -69,7 +80,33 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive = isItemActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={isCollapsed ? item.label : ""}
+                className={cn(
+                  "flex items-center text-[13px] font-medium rounded-lg transition-all duration-200",
+                  isCollapsed ? "justify-center p-2" : "px-2.5 py-2",
+                  isActive
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("h-4 w-4", !isCollapsed && "mr-2.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
+
+      <div className="border-t border-border/50 px-2.5 py-3">
+        <nav className="space-y-1">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon
+            const isActive = isItemActive(item.href)
             return (
               <Link
                 key={item.href}
