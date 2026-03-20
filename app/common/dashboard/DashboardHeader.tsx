@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/analytics': 'Analytics',
   '/dashboard/settings': 'Settings',
   '/dashboard/discovery': 'Discovery',
+  '/dashboard/help': 'Help Docs',
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
@@ -56,6 +57,7 @@ export default function DashboardHeader() {
   const currentTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
+    if (pathname.startsWith('/dashboard/help')) return 'Help Docs'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
 
     const segments = pathname.split('/').filter(Boolean)
