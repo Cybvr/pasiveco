@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ArrowLeft, ShieldCheck, Coins, Palette } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ArrowLeft, ShieldCheck, Coins, Palette, HelpCircle, LifeBuoy } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -24,6 +24,8 @@ const settingsLinks = [
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
+  { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
+  { href: '/dashboard/help', label: 'Support', icon: LifeBuoy },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]
 
@@ -67,7 +69,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         <nav className="space-y-1 w-full">
           {settingsLinks.map((link) => (
             <Button
-              key={link.href}
+              key={`${link.href}-${link.label}`}
               variant={isSettingsLinkActive(link.href) ? "secondary" : "ghost"}
               className="w-full justify-start px-2 gap-2"
               onClick={() => router.push(link.href)}
