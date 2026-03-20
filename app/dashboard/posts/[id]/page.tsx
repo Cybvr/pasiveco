@@ -5,7 +5,6 @@ import { FormEvent, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, Heart, MessageCircle, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { addPostComment, formatSocialDate, getSocialPostById, getSocialProfileById, togglePostLike, type SocialPost, type SocialProfile } from '@/lib/social-data'
 
@@ -18,10 +17,8 @@ export default function DashboardPostPage() {
 
   useEffect(() => {
     let active = true
-
     const loadPost = async () => {
       if (!params?.id) return
-
       try {
         const nextPost = await getSocialPostById(params.id)
         const nextAuthor = nextPost ? await getSocialProfileById(nextPost.authorId) : undefined
@@ -32,28 +29,22 @@ export default function DashboardPostPage() {
         if (active) setLoading(false)
       }
     }
-
     void loadPost()
-
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [params])
 
   if (loading) {
-    return <div className="mx-auto max-w-2xl rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Loading post...</div>
+    return <div className="mx-auto max-w-xl py-8 text-sm text-muted-foreground">Loading...</div>
   }
 
   if (!post || !author) {
     return (
-      <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <Button asChild variant="ghost" className="w-fit px-0 hover:bg-transparent">
-          <Link href="/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-        <div className="rounded-2xl border bg-card p-6 text-sm text-muted-foreground">Post not found.</div>
+      <div className="mx-auto max-w-xl space-y-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </Link>
+        <p className="text-sm text-muted-foreground">Post not found.</p>
       </div>
     )
   }
@@ -73,80 +64,100 @@ export default function DashboardPostPage() {
   const authorHref = `/${author.username || author.handle.replace(/^@/, '')}`
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <Button asChild variant="ghost" className="w-fit px-0 hover:bg-transparent">
-        <Link href="/dashboard">
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Link>
-      </Button>
+    <div className="mx-auto max-w-xl space-y-6 py-2">
 
-      <article className="rounded-2xl border bg-card p-5">
+      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back
+      </Link>
+
+      <article className="space-y-5">
+
+        {/* Author */}
         <div className="flex items-center gap-3">
-          <Link href={authorHref} className="rounded-full">
-            <Avatar className="h-11 w-11 border transition-opacity hover:opacity-90">
+          <Link href={authorHref}>
+            <Avatar className="h-10 w-10 transition-opacity hover:opacity-80">
               <AvatarImage src={author.image} alt={author.name} />
               <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
             </Avatar>
           </Link>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <Link href={authorHref} className="text-sm font-semibold hover:underline">
-                {author.name}
-              </Link>
-              <Link href={authorHref} className="text-xs text-muted-foreground hover:underline">
-                {author.handle}
-              </Link>
+            <div className="flex items-center gap-2">
+              <Link href={authorHref} className="text-sm font-medium hover:underline">{author.name}</Link>
+              <Link href={authorHref} className="text-xs text-muted-foreground hover:underline">{author.handle}</Link>
             </div>
             <p className="text-xs text-muted-foreground">{formatSocialDate(post.createdAt)}</p>
           </div>
         </div>
 
-        <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-foreground">{post.message}</p>
+        {/* Post body */}
+        <p className="whitespace-pre-wrap text-sm leading-7">{post.message}</p>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-y py-3 text-xs text-muted-foreground">
-          <Button type="button" variant="ghost" size="sm" className={`h-8 gap-1.5 px-2 ${post.likedByMe ? 'text-primary' : ''}`} onClick={() => void handleLike()}>
+        {/* Actions */}
+        <div className="flex items-center gap-1 border-y py-2.5 text-sm text-muted-foreground">
+          <button
+            type="button"
+            onClick={() => void handleLike()}
+            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors hover:text-foreground ${post.likedByMe ? 'text-primary' : ''}`}
+          >
             <Heart className={`h-4 w-4 ${post.likedByMe ? 'fill-current' : ''}`} />
             {post.likeCount}
-          </Button>
-          <span className="inline-flex items-center gap-1.5 px-2">
+          </button>
+
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5">
             <MessageCircle className="h-4 w-4" />
-            {post.commentCount} comments
+            {post.commentCount}
           </span>
-          <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5 px-2">
-            <Link href={`/dashboard/messages?user=${author.id}`}>
-              <Send className="h-4 w-4" />
-              Message {author.name.split(' ')[0]}
-            </Link>
-          </Button>
+
+          <Link
+            href={`/dashboard/messages?user=${author.id}`}
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 transition-colors hover:text-foreground"
+          >
+            <Send className="h-4 w-4" />
+            Message {author.name.split(' ')[0]}
+          </Link>
         </div>
 
-        <div className="mt-4 space-y-4">
-          <form onSubmit={(event) => void handleSubmit(event)} className="flex items-center gap-2">
-            <Input value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Add a comment..." />
-            <Button type="submit" disabled={!comment.trim()}>Comment</Button>
-          </form>
+        {/* Comment input */}
+        <form onSubmit={(event) => void handleSubmit(event)} className="flex items-center gap-2">
+          <Input
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Add a comment..."
+            className="h-9"
+          />
+          <button
+            type="submit"
+            disabled={!comment.trim()}
+            className="shrink-0 text-sm font-medium text-primary disabled:opacity-40 transition-opacity hover:opacity-70"
+          >
+            Post
+          </button>
+        </form>
 
-          <div className="space-y-3">
+        {/* Comments */}
+        {post.comments.length > 0 && (
+          <div className="divide-y">
             {post.comments.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 rounded-xl bg-muted/40 p-3">
-                <Avatar className="h-9 w-9">
+              <div key={item.id} className="flex items-start gap-3 py-4">
+                <Avatar className="h-8 w-8 shrink-0">
                   <AvatarImage src={item.authorImage} alt={item.authorName} />
                   <AvatarFallback>{item.authorName.slice(0, 1)}</AvatarFallback>
                 </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">{item.authorName}</span>
-                    <span className="text-muted-foreground">{item.authorHandle}</span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className="text-muted-foreground">{formatSocialDate(item.createdAt)}</span>
+                    <span>{item.authorHandle}</span>
+                    <span>·</span>
+                    <span>{formatSocialDate(item.createdAt)}</span>
                   </div>
-                  <p className="mt-1 text-sm text-foreground">{item.message}</p>
+                  <p className="text-sm leading-relaxed">{item.message}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
+
       </article>
     </div>
   )
