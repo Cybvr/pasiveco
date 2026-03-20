@@ -47,37 +47,37 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 
 const CREATORS = [
-  { name: "Chloe Shih", role: "Creator" },
-  { name: "Heather Gardner", role: "Comedy" },
-  { name: "Scott Ho", role: "Fitness" },
-  { name: "DJ Habibeats", role: "DJ" },
-  { name: "Elena Shinohara", role: "Gymnastics" },
-  { name: "Chipmunksoftiktok", role: "Chipmunks" },
-  { name: "Stream Elements", role: "Streaming" },
-  { name: "Mr TOV", role: "Creator" },
-  { name: "Andrea Botez", role: "Lifestyle" },
+  { name: "Chidi Okonkwo", role: "Comedy" },
+  { name: "Amaka Eze", role: "Lifestyle" },
+  { name: "Dami Adeyemi", role: "Fashion" },
+  { name: "DJ Obinna", role: "DJ" },
+  { name: "Ngozi Obi", role: "Fitness" },
+  { name: "DrFemi_Talks", role: "Health" },
+  { name: "Kemi Badmus", role: "Beauty" },
+  { name: "Segun Bello", role: "Entertainment" },
+  { name: "Fatima Aliyu", role: "Creator" },
 ];
 
 const TESTIMONIALS = [
   {
-    quote: "As a standup comedian, the best way to market is on social media. Pasive makes it easy for my fans to put in their email addresses and subscribe to my updates, and I create targeted promotional emails based on their city.",
-    author: "Ahmedlovesbread",
+    quote: "As a standup comedian, Pasive makes it easy for my fans to subscribe and I send targeted emails by city whenever I'm on tour. Nothing else comes close.",
+    author: "Chidi Okonkwo",
     role: "Comedian"
   },
   {
-    quote: "I've been able to build an email list using Pasive to create a community that is not reliant on social platforms.",
-    author: "Cesi",
-    role: "Gaming"
+    quote: "I've built an email list that's fully mine. No algorithm can take that away. Pasive made it simple from day one.",
+    author: "Ngozi Obi",
+    role: "Fitness Creator"
   },
   {
-    quote: "The Pasive Store has made it seamless for me to monetize and boosted my brand visibility.",
-    author: "Cleo Rualo",
-    role: "Career Coach"
+    quote: "The Pasive Store let me start selling my style guides immediately. Brand visibility went up and the checkout is seamless.",
+    author: "Dami Adeyemi",
+    role: "Fashion Creator"
   },
   {
-    quote: "Pasive is an amazing tool for all types of creators! The convenience of having everything in one platform has made it stand out for me.",
-    author: "DailyAlissa",
-    role: "Gaming creator"
+    quote: "Everything in one place — my store, brand deals, and email list. I don't know how I managed without it.",
+    author: "Amaka Eze",
+    role: "Lifestyle Creator"
   }
 ];
 
@@ -407,4 +407,3 @@ function Users(props: any) {
     </svg>
   )
 }
-
