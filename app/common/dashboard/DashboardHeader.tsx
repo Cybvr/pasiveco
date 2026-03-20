@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, Bell, ChevronRight, Coins, Compass, MessageSquare, Plus, Save, UserCircle2 } from 'lucide-react'
+import { ArrowLeft, Bell, ChevronRight, Coins, Compass, LifeBuoy, MessageSquare, Plus, Save, UserCircle2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -116,27 +116,41 @@ export default function DashboardHeader() {
               </button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[72%] max-w-[280px]">
-            <SheetHeader>
-              <SheetTitle>Account</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 space-y-2">
-              <Button className="w-full justify-start gap-3" onClick={() => handleNavigate('/dashboard/posts/new')}>
-                <Plus className="h-4 w-4" />
-                <span>New Post</span>
-              </Button>
-              {quickLinks.map((item) => (
-                <Button
-                  key={item.href}
-                  variant="ghost"
-                  className="w-full justify-start gap-3"
-                  onClick={() => handleNavigate(item.href)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="flex-1 text-left">{item.label}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              ))}
-            </div>
+              <SheetHeader>
+                <SheetTitle>Account</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 flex h-full flex-col">
+                <div className="space-y-2">
+                  <Button className="w-full justify-start gap-3" onClick={() => handleNavigate('/dashboard/posts/new')}>
+                    <Plus className="h-4 w-4" />
+                    <span>New Post</span>
+                  </Button>
+                  {quickLinks.map((item) => (
+                    <Button
+                      key={item.href}
+                      variant="ghost"
+                      className="w-full justify-start gap-3"
+                      onClick={() => handleNavigate(item.href)}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="flex-1 text-left">{item.label}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="mt-auto border-t pt-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3"
+                    onClick={() => handleNavigate('/dashboard/help')}
+                  >
+                    <LifeBuoy className="h-4 w-4" />
+                    <span className="flex-1 text-left">Contact Support</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         )}

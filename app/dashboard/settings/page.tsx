@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, BarChart, Wallet, ChevronRight, ShieldCheck, Coins, Palette, HelpCircle, LifeBuoy } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -34,6 +34,8 @@ const settingsLinks = [
   { href: '/dashboard/settings/payment-methods', label: 'Payment Methods', icon: Wallet },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
+  { href: '/dashboard/help', label: 'Help', icon: HelpCircle },
+  { href: '/dashboard/help', label: 'Support', icon: LifeBuoy },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]
 interface UserData {
@@ -151,7 +153,7 @@ export default function GeneralSettings() {
       <div className="md:hidden bg-background border rounded-lg p-2 space-y-1">
         {settingsLinks.map((link) => (
           <Button
-            key={link.href}
+            key={`${link.href}-${link.label}`}
             variant="ghost"
             className="w-full justify-start px-2 gap-2"
             onClick={() => router.push(link.href)}
