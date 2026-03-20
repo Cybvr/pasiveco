@@ -9,6 +9,8 @@ interface PaystackInitializeData {
     product_id: string;
     product_name: string;
     customer_name?: string;
+    customer_phone?: string;
+    order_note?: string;
   };
 }
 
@@ -16,9 +18,22 @@ interface PaystackResponse {
   status: boolean;
   message: string;
   data?: {
-    authorization_url: string;
-    access_code: string;
+    authorization_url?: string;
+    access_code?: string;
     reference: string;
+    amount?: number;
+    currency?: string;
+    status?: string;
+    customer?: {
+      email?: string;
+    };
+    metadata?: {
+      product_id?: string;
+      product_name?: string;
+      customer_name?: string;
+      customer_phone?: string;
+      order_note?: string;
+    };
   };
 }
 
@@ -84,22 +99,31 @@ export const initializePaystackPayment = (
   productId: string,
   productName: string,
   onSuccess: (reference: string) => void,
-  onClose: () => void
+  onClose: () => void,
+  options?: {
+    currency?: string;
+    customerName?: string;
+    customerPhone?: string;
+    orderNote?: string;
+  }
 ) => {
   const handler = (window as any).PaystackPop.setup({
     key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-    email: email,
-    amount: PaystackService.convertToKobo(amount),
-    currency: 'NGN',
+    email,
+    amount: PaystackService.convertToKobo(amount, options?.currency || 'NGN'),
+    currency: options?.currency || 'NGN',
     ref: PaystackService.generateReference(),
     metadata: {
       product_id: productId,
       product_name: productName,
+      customer_name: options?.customerName,
+      customer_phone: options?.customerPhone,
+      order_note: options?.orderNote,
     },
-    callback: function(response: any) {
+    callback(response: { reference: string }) {
       onSuccess(response.reference);
     },
-    onClose: function() {
+    onClose() {
       onClose();
     }
   });
