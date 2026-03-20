@@ -248,9 +248,9 @@ export default function LandingPage() {
               <p className="text-xs font-mono text-muted-foreground uppercase tracking-widest">Brand Deals Inbox</p>
             </div>
             {[
-              { brand: "OSEA", status: "Paid", type: "Affiliate", date: "10:04 AM" },
-              { brand: "Fenty Beauty", status: "Negotiating", type: "Paid", date: "Jan 31" },
-              { brand: "Lululemon", status: "Signed", type: "Paid", date: "Jan 28" },
+              { brand: "Rèmì Naturals", status: "Paid", type: "Affiliate", date: "10:04 AM" },
+              { brand: "ChiChi Foods", status: "Negotiating", type: "Paid", date: "Jan 31" },
+              { brand: "Adire Studio", status: "Signed", type: "Paid", date: "Jan 28" },
             ].map((deal, i) => (
               <div key={i} className="flex items-center justify-between px-4 py-3.5 border-b border-border/60 last:border-b-0 hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
