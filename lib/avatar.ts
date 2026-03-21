@@ -1,6 +1,13 @@
-export function getDicebearAvatar(seed: string, style: 'initials' | 'shapes' = 'initials') {
+import { createAvatar } from '@dicebear/core'
+import { glass } from '@dicebear/collection'
+
+export function getDicebearAvatar(seed: string) {
   const normalizedSeed = seed.trim() || 'pasive-user'
-  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(normalizedSeed)}`
+  const avatar = createAvatar(glass, {
+    seed: normalizedSeed,
+  })
+
+  return avatar.toDataUri()
 }
 
 export function getDisplayAvatar({

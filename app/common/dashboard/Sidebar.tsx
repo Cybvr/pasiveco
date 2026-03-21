@@ -9,50 +9,56 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Palette,
-  LifeBuoy
+  LifeBuoy,
+  LucideIcon,
+  Users,
+  FileText,
+  QrCode
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import UserMenu from './user-menu'
 
-export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean, onToggle: () => void }) {
+interface NavItem {
+  href: string
+  icon: LucideIcon
+  label: string
+}
+
+const DASHBOARD_NAV_ITEMS: NavItem[] = [
+  { href: '/dashboard', icon: Home, label: 'Home' },
+  { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
+  { href: '/dashboard/edit', icon: Palette, label: 'Customize' },
+  { href: '/dashboard/products', icon: Coins, label: 'Products' },
+  { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
+]
+
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { href: '/admin', icon: Home, label: 'Admin' },
+  { href: '/dashboard', icon: QrCode, label: 'Home' },
+  { href: '/admin/users', icon: Users, label: 'Users' },
+  { href: '/admin/content', icon: FileText, label: 'Content' },
+]
+
+const DEFAULT_BOTTOM_NAV_ITEMS: NavItem[] = [
+  { href: '/dashboard/help', icon: LifeBuoy, label: 'Help & Support' },
+]
+
+export default function Sidebar({ 
+  isCollapsed, 
+  onToggle,
+  navItems,
+  bottomNavItems = DEFAULT_BOTTOM_NAV_ITEMS,
+}: { 
+  isCollapsed: boolean, 
+  onToggle: () => void,
+  navItems?: NavItem[],
+  bottomNavItems?: NavItem[],
+}) {
   const pathname = usePathname()
-  const navItems = [
-    {
-      href: '/dashboard',
-      icon: Home,
-      label: 'Home',
-    },
-    {
-      href: '/dashboard/discovery',
-      icon: Compass,
-      label: 'Discovery',
-    },
-    {
-      href: '/dashboard/edit',
-      icon: Palette,
-      label: 'Customize',
-    },
-    {
-      href: '/dashboard/products',
-      icon: Coins,
-      label: 'Products',
-    },
-    {
-      href: '/dashboard/analytics',
-      icon: BarChart,
-      label: 'Analytics',
-    },
-  ]
-
-  const bottomNavItems = [
-    {
-      href: '/dashboard/help',
-      icon: LifeBuoy,
-      label: 'Help & Support',
-    },
-  ]
-
+  const isAdmin = pathname.startsWith('/admin')
+  
+  const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_NAV_ITEMS)
   const isItemActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
 
   return (
@@ -66,7 +72,10 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
             <div className="p-1.5 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
               <Image src="/images/monster.png" alt="Monster" width={24} height={24} />
             </div>
-            <h1 className="text-lg text-foreground font-black tracking-tighter">pasive</h1>
+            <div>
+              <h1 className="text-lg text-foreground font-black tracking-tighter leading-none">pasive</h1>
+              {isAdmin && <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Admin</p>}
+            </div>
           </Link>
         )}
         <button
@@ -78,7 +87,7 @@ export default function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolea
       </div>
       <div className="flex-1 overflow-y-auto py-4 px-2.5">
         <nav className="space-y-1">
-          {navItems.map((item) => {
+          {currentNavItems.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
             return (

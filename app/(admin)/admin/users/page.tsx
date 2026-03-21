@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
@@ -41,9 +42,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search, Upload } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, X, Settings2 } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
-import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
+import { DEFAULT_USER_CATEGORIES, getUserCategories, deleteUserCategory, ensureUserCategory, type UserCategory } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
@@ -67,6 +68,8 @@ interface UserFormModalProps {
   categories: string[];
   onFormChange: (field: string, value: any) => void;
   onSubmit: () => void;
+  isGeneratingBio?: boolean;
+  onGenerateBio?: () => void;
 }
 
 const UserFormModal = ({
@@ -76,7 +79,9 @@ const UserFormModal = ({
   formData,
   categories,
   onFormChange,
-  onSubmit
+  onSubmit,
+  isGeneratingBio = false,
+  onGenerateBio
 }: UserFormModalProps) => (
   <Dialog open={isOpen} onOpenChange={onOpenChange}>
     <DialogContent className="max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-[425px]">
@@ -151,13 +156,32 @@ const UserFormModal = ({
           </Select>
         </div>
         <div className="grid gap-2 sm:grid-cols-4 sm:items-start sm:gap-4">
-          <Label htmlFor="bio" className="sm:pt-2 sm:text-right">Bio</Label>
+          <div className="flex flex-col gap-1 sm:text-right">
+            <Label htmlFor="bio" className="sm:pt-2">Bio</Label>
+            {onGenerateBio && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onGenerateBio}
+                disabled={isGeneratingBio || (!formData.displayName && !formData.category)}
+                className="h-8 px-2 text-xs text-primary hover:text-primary/80"
+              >
+                {isGeneratingBio ? (
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1 h-3 w-3" />
+                )}
+                Autogen
+              </Button>
+            )}
+          </div>
           <Textarea
             id="bio"
             value={formData.bio}
             onChange={(e) => onFormChange('bio', e.target.value)}
             className="sm:col-span-3"
             rows={3}
+            placeholder={isGeneratingBio ? "Generating bio..." : "Tell us about this user..."}
           />
         </div>
         <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
@@ -199,21 +223,96 @@ const UserFormModal = ({
     </DialogContent>
   </Dialog>
 )
+interface CategoryManagerModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  categories: UserCategory[];
+  onAddCategory: (name: string) => Promise<void>;
+  onDeleteCategory: (slug: string) => Promise<void>;
+}
+
+const CategoryManagerModal = ({
+  isOpen,
+  onOpenChange,
+  categories,
+  onAddCategory,
+  onDeleteCategory
+}: CategoryManagerModalProps) => {
+  const [newCategory, setNewCategory] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleAdd = async () => {
+    if (!newCategory.trim()) return
+    setIsSubmitting(true)
+    try {
+      await onAddCategory(newCategory.trim())
+      setNewCategory("")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Manage User Categories</DialogTitle>
+          <DialogDescription>
+            Add or remove categories available for users.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="New category name"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
+            <Button size="sm" onClick={handleAdd} disabled={isSubmitting || !newCategory.trim()}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-2">
+            {categories.map((cat) => (
+              <Badge key={cat.slug} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
+                {cat.name}
+                <Button
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-4 w-4 p-0 hover:bg-transparent hover:text-destructive"
+                  onClick={() => onDeleteCategory(cat.slug)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [isImporting, setIsImporting] = useState(false)
+  const [isGeneratingBio, setIsGeneratingBio] = useState(false)
   const [csvFileName, setCsvFileName] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' })
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
+  const [fullCategories, setFullCategories] = useState<UserCategory[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false)
 
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
@@ -246,12 +345,72 @@ export default function UsersPage() {
   const loadCategories = async () => {
     try {
       const categoryList = await getUserCategories()
+      setFullCategories(categoryList)
       if (categoryList.length > 0) {
         setCategories(categoryList.map((item) => item.name))
       }
     } catch (error) {
       console.error('Error loading categories:', error)
       setCategories(DEFAULT_USER_CATEGORIES)
+    }
+  }
+
+  const handleAddCategory = async (name: string) => {
+    try {
+      await ensureUserCategory(name)
+      await loadCategories()
+      toast({ title: "Success", description: "Category added" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to add category", variant: "destructive" })
+    }
+  }
+
+  const handleDeleteCategory = async (slug: string) => {
+    try {
+      await deleteUserCategory(slug)
+      await loadCategories()
+      toast({ title: "Success", description: "Category removed" })
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to remove category", variant: "destructive" })
+    }
+  }
+
+  const handleGenerateBio = async () => {
+    if (!formData.displayName && !formData.category) {
+      toast({
+        title: "Information missing",
+        description: "Please provide a name or category first.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      setIsGeneratingBio(true)
+      const response = await fetch('/api/generate-bio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.displayName,
+          category: formData.category,
+          currentBio: formData.bio
+        })
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Generation failed")
+
+      setFormData(prev => ({ ...prev, bio: data.bio }))
+      toast({ title: "Bio generated", description: "AI bio has been created." })
+    } catch (error: any) {
+      console.error("Bio generation error:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Could not generate bio at this time.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsGeneratingBio(false)
     }
   }
 
@@ -270,6 +429,74 @@ export default function UsersPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleBulkAI = async () => {
+    if (selectedUserIds.size === 0) return
+    
+    setIsBulkProcessing(true)
+    toast({
+      title: "Bulk processing...",
+      description: `Processing ${selectedUserIds.size} users using AI. Please don't close this page.`,
+    })
+
+    const selectedUsers = users.filter(u => selectedUserIds.has(u.id!))
+    let successCount = 0
+    let failCount = 0
+
+    for (const user of selectedUsers) {
+      try {
+        const response = await fetch('/api/generate-bio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: user.displayName,
+            currentBio: user.bio,
+            categories: categories,
+            autoChooseCategory: true
+          })
+        })
+
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || "API error")
+
+        await updateUser(user.id!, {
+          bio: data.bio || user.bio,
+          category: data.category || user.category
+        })
+        successCount++
+      } catch (error) {
+        console.error(`Error processing user ${user.id}:`, error)
+        failCount++
+      }
+    }
+
+    await fetchUsers()
+    setSelectedUserIds(new Set())
+    setIsBulkProcessing(false)
+    
+    toast({
+      title: "Bulk processing complete",
+      description: `Successfully processed ${successCount} users. ${failCount > 0 ? `${failCount} failed.` : ''}`,
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedUserIds.size === filteredUsers.length) {
+      setSelectedUserIds(new Set())
+    } else {
+      setSelectedUserIds(new Set(filteredUsers.map(u => u.id!)))
+    }
+  }
+
+  const toggleSelectUser = (userId: string) => {
+    const newSelected = new Set(selectedUserIds)
+    if (newSelected.has(userId)) {
+      newSelected.delete(userId)
+    } else {
+      newSelected.add(userId)
+    }
+    setSelectedUserIds(newSelected)
   }
 
   const sortData = (key: string) => {
@@ -463,6 +690,26 @@ export default function UsersPage() {
       toast({
         title: "Error",
         description: "Failed to update admin status",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleInlineUpdate = async (userId: string, updates: Partial<User>) => {
+    try {
+      await updateUser(userId, updates)
+      setUsers(prevUsers => prevUsers.map(u => 
+        u.id === userId ? { ...u, ...updates } : u
+      ))
+      toast({
+        title: "Success",
+        description: "User updated",
+      })
+    } catch (error) {
+      console.error('Error in inline update:', error)
+      toast({
+        title: "Error",
+        description: "Update failed",
         variant: "destructive",
       })
     }
@@ -701,6 +948,25 @@ export default function UsersPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Users ({users.length})</h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {selectedUserIds.size > 0 && (
+            <div className="flex items-center gap-2 mr-4 pr-4 border-r">
+              <span className="text-xs font-medium whitespace-nowrap">{selectedUserIds.size} selected</span>
+              <Button 
+                size="sm" 
+                onClick={handleBulkAI} 
+                disabled={isBulkProcessing}
+                variant="outline"
+                className="h-8 border-primary text-primary hover:bg-primary hover:text-white"
+              >
+                {isBulkProcessing ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-3 w-3" />
+                )}
+                Auto Bio/Category
+              </Button>
+            </div>
+          )}
           <div className="relative min-w-0">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -726,6 +992,14 @@ export default function UsersPage() {
             <Upload className="mr-2 h-4 w-4" />
             {isImporting ? 'Importing CSV...' : 'Import CSV'}
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsCategoryModalOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            <Settings2 className="mr-2 h-4 w-4" />
+            Categories
+          </Button>
           <Button onClick={openCreateModal} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add User
@@ -733,10 +1007,13 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <p className="break-words text-sm text-muted-foreground">
-        CSV columns: <code>email</code>, <code>displayName</code>, optional <code>username</code>, <code>bio</code>, <code>profilePicture</code>, <code>category</code>, <code>role</code>, <code>isActive</code>, <code>isAdmin</code>.
-        {csvFileName ? ` Last selected: ${csvFileName}.` : ''}
-      </p>
+      <CategoryManagerModal
+        isOpen={isCategoryModalOpen}
+        onOpenChange={setIsCategoryModalOpen}
+        categories={fullCategories}
+        onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
+      />
 
       <UserFormModal
         isOpen={isCreateModalOpen}
@@ -746,6 +1023,8 @@ export default function UsersPage() {
         categories={categories}
         onFormChange={handleFormChange}
         onSubmit={handleCreate}
+        isGeneratingBio={isGeneratingBio}
+        onGenerateBio={handleGenerateBio}
       />
 
       <UserFormModal
@@ -756,16 +1035,25 @@ export default function UsersPage() {
         categories={categories}
         onFormChange={handleFormChange}
         onSubmit={handleUpdate}
+        isGeneratingBio={isGeneratingBio}
+        onGenerateBio={handleGenerateBio}
       />
 
       <div className="space-y-3 md:hidden">
         {sortedUsers.map((user) => (
           <div key={user.id} className="space-y-3 rounded-lg border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{user.displayName || 'No name'}</p>
-                <p className="truncate text-sm text-muted-foreground">{user.email}</p>
-                <p className="text-sm text-muted-foreground">@{user.username?.replace('@', '') || 'n-a'}</p>
+              <div className="flex gap-3 min-w-0">
+                <Checkbox 
+                  checked={selectedUserIds.has(user.id!)}
+                  onCheckedChange={() => toggleSelectUser(user.id!)}
+                  className="mt-1"
+                />
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{user.displayName || 'No name'}</p>
+                  <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-sm text-muted-foreground">@{user.username?.replace('@', '') || 'n-a'}</p>
+                </div>
               </div>
               <Badge variant={user.isActive ? 'default' : 'secondary'}>
                 {user.isActive ? 'Active' : 'Inactive'}
@@ -823,6 +1111,12 @@ export default function UsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox 
+                  checked={selectedUserIds.size === filteredUsers.length && filteredUsers.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead className="cursor-pointer text-xs" onClick={() => sortData('displayName')}>
                 Name {sortConfig.key === 'displayName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
@@ -831,11 +1125,8 @@ export default function UsersPage() {
               </TableHead>
               <TableHead className="text-xs">Username</TableHead>
               <TableHead className="text-xs">Category</TableHead>
+              <TableHead className="text-xs">Bio</TableHead>
               <TableHead className="text-xs">Profile Link</TableHead>
-              <TableHead className="cursor-pointer text-xs" onClick={() => sortData('role')}>
-                Role {sortConfig.key === 'role' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-              </TableHead>
-              <TableHead className="text-xs">Status</TableHead>
               <TableHead className="cursor-pointer text-xs" onClick={() => sortData('createdAt')}>
                 Joined {sortConfig.key === 'createdAt' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
               </TableHead>
@@ -848,6 +1139,12 @@ export default function UsersPage() {
           <TableBody>
             {sortedUsers.map((user) => (
               <TableRow key={user.id}>
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedUserIds.has(user.id!)}
+                    onCheckedChange={() => toggleSelectUser(user.id!)}
+                  />
+                </TableCell>
                 <TableCell className="text-xs">
                   <div className="flex items-center space-x-2">
                     {user.profilePicture && (
@@ -861,8 +1158,50 @@ export default function UsersPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-xs">{user.email}</TableCell>
-                <TableCell className="text-xs">{user.username || 'N/A'}</TableCell>
-                <TableCell className="text-xs">{user.category || 'N/A'}</TableCell>
+                <TableCell className="text-xs">
+                  <Input 
+                    defaultValue={user.username || ''}
+                    onBlur={(e) => {
+                      const newUsername = e.target.value.trim().replace(/^@/, '')
+                      if (newUsername !== (user.username || '').replace(/^@/, '')) {
+                        handleInlineUpdate(user.id!, { 
+                          username: newUsername ? `@${newUsername}` : '',
+                          slug: createProfileSlug(newUsername || user.displayName || '')
+                        })
+                      }
+                    }}
+                    className="h-8 w-[120px] text-[11px]"
+                    placeholder="@username"
+                  />
+                </TableCell>
+                <TableCell className="text-xs">
+                  <Select
+                    value={user.category || 'unselected'}
+                    onValueChange={(value) => handleInlineUpdate(user.id!, { category: value === 'unselected' ? '' : value })}
+                  >
+                    <SelectTrigger className="h-8 w-[140px] text-[11px]">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unselected">None</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell className="text-xs">
+                  <Input 
+                    defaultValue={user.bio || ''}
+                    onBlur={(e) => {
+                      if (e.target.value !== (user.bio || '')) {
+                        handleInlineUpdate(user.id!, { bio: e.target.value })
+                      }
+                    }}
+                    className="h-8 w-[200px] text-[11px]"
+                    placeholder="User bio..."
+                  />
+                </TableCell>
                 <TableCell className="text-xs">
                   {user.username ? (
                     <a
@@ -876,16 +1215,6 @@ export default function UsersPage() {
                   ) : (
                     'N/A'
                   )}
-                </TableCell>
-                <TableCell className="text-xs">
-                  <Badge variant={user.role === 'admin' ? 'destructive' : user.role === 'moderator' ? 'secondary' : 'default'}>
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-xs">
-                  <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                    {user.isActive ? 'Active' : 'Inactive'}
-                  </Badge>
                 </TableCell>
                 <TableCell className="text-xs">{formatDate(user.createdAt)}</TableCell>
                 <TableCell>

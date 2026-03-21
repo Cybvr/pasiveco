@@ -21,6 +21,9 @@ const pageTitles: Record<string, string> = {
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
+  '/admin': 'Admin Console',
+  '/admin/users': 'Manage Users',
+  '/admin/content': 'Content Management',
 }
 
 const quickLinks = [

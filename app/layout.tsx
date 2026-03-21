@@ -6,7 +6,6 @@ import ClientLayout from './ClientLayout';
 import { ThemeProvider } from "next-themes"
 import { Toaster } from "@/components/ui/toaster"
 import Script from 'next/script';
-import MobileFooter from '@/app/common/website/MobileFooter';
 import { headers } from 'next/headers';
 
 const geistSans = localFont({

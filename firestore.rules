@@ -10,14 +10,17 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() &&
-        exists(userDocPath()) &&
-        get(userDocPath()).data.isAdmin == true;
+      return isSignedIn() && (
+        (exists(userDocPath()) && get(userDocPath()).data.isAdmin == true) ||
+        request.auth.uid == 'mdBW2iIUy2diyIrnK55s'
+      );
     }
 
     function isContentManager() {
-      return isSignedIn() &&
-        (request.auth.uid == 'mdBW2iIUy2diyIrnK55s' || isAdmin());
+      return isSignedIn() && (
+        request.auth.uid == 'mdBW2iIUy2diyIrnK55s' ||
+        isAdmin()
+      );
     }
 
     match /users/{userId} {
@@ -46,9 +49,9 @@ service cloud.firestore {
     }
 
     match /analytics/{analyticsId} {
-      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow read: if isAdmin();
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == resource.data.userId);
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isAdmin();
     }
 
     match /blog_posts/{postId} {
@@ -70,25 +73,29 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if true;
-      allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      allow create: if request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s';
+      allow write: if (isSignedIn() && request.auth.uid == resource.data.userId) || isAdmin();
+      allow create: if (isSignedIn() && (request.auth.uid == request.resource.data.userId || request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s')) || isAdmin();
       allow read: if isAdmin();
     }
 
     match /templates/{templateId} {
       allow read: if true;
-      allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow read, write: if (isSignedIn() && request.auth.uid == resource.data.userId) || isAdmin();
+      allow create: if (isSignedIn() && request.auth.uid == request.resource.data.userId) || isAdmin();
     }
 
     match /clicks/{clickId} {
-      allow read, write: if isSignedIn();
-      allow create: if true;
+        allow read, write: if isSignedIn();
+        allow create: if true;
+    }
+
+    match /userSettings/{settingsId} {
+      allow read, write: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if (isSignedIn() && request.resource.data.userId == request.auth.uid) || isAdmin();
     }
 
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isAdmin();
     }
   }
 }

@@ -15,7 +15,10 @@
     "migrate-user-profiles": "node scripts/migrate-user-profiles-to-users.js"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.2",
     "@geist-ui/core": "^2.3.8",
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.1.2",
     "@hello-pangea/dnd": "^18.0.1",
     "@heroicons/react": "^2.1.5",

@@ -6,6 +6,7 @@ import {
   orderBy,
   query,
   setDoc,
+  deleteDoc,
   writeBatch,
 } from 'firebase/firestore'
 
@@ -90,4 +91,8 @@ export async function ensureUserCategory(name: string) {
   }, { merge: true })
 
   return { id: slug, name: trimmedName, slug }
+}
+
+export async function deleteUserCategory(slug: string) {
+  await deleteDoc(doc(db, 'categories', slug));
 }

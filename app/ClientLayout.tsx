@@ -4,7 +4,6 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import MobileFooter from '@/app/common/website/MobileFooter'
 
 export default function ClientLayout({
   children,
@@ -45,7 +44,7 @@ export default function ClientLayout({
   return (
     <AuthProvider>
       {children}
-      {!isSlugPage && !isDashboardRoute && <MobileFooter />}
+      {!isSlugPage && !isDashboardRoute}
       <Toaster />
       <Sonner />
     </AuthProvider>

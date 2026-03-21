@@ -6,6 +6,7 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 
 const navigation = [
   { name: "Admin", href: "/admin", icon: Home },
@@ -57,7 +58,7 @@ export default function AdminLayout({
           </nav>
         </aside>
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
           <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
             <div className="flex h-16 items-center justify-between px-4 md:px-6">
               <div className="flex items-center gap-3">
@@ -106,6 +107,9 @@ export default function AdminLayout({
           <main className="flex-1 overflow-x-hidden p-4 md:p-6">
             <div className="mx-auto w-full max-w-full min-w-0">{children}</div>
           </main>
+          
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav />
         </div>
       </div>
     </div>
