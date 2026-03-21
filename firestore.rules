@@ -96,8 +96,13 @@ service cloud.firestore {
 
     match /communities/{communityId} {
       allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (resource.data.creatorId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid || 
+        isAdmin() ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount', 'updatedAt']))
+      );
+      allow delete: if isSignedIn() && (resource.data.creatorId == request.auth.uid || isAdmin());
     }
 
     match /communityMembers/{memberId} {

@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Users, Shield, Calendar, Share, MoreVertical, LogOut, Check, Loader2, Info, Plus } from "lucide-react"
+import { ArrowLeft, Users, Shield, Share, MoreVertical, LogOut, Loader2, Plus, Globe, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/hooks/useAuth"
 import { getCommunity, isCommunityMember, joinCommunity, leaveCommunity } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { Skeleton } from "@/components/ui/skeleton"
-import { toast } from "sonner" // Assuming toast is available, if not I'll check components/ui
+import { cn } from "@/lib/utils"
 
 export default function CommunityDetailPage() {
   const { id } = useParams()
@@ -24,15 +24,14 @@ export default function CommunityDetailPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!id || typeof id !== 'string') return
+      if (!id || typeof id !== "string") return
       try {
         const data = await getCommunity(id)
         if (!data) {
-          router.push('/dashboard/communities')
+          router.push("/dashboard/communities")
           return
         }
         setCommunity(data)
-        
         if (user) {
           const member = await isCommunityMember(id, user.uid)
           setIsMember(member)
@@ -51,20 +50,16 @@ export default function CommunityDetailPage() {
     setActionLoading(true)
     try {
       if (isMember) {
-        // Confirm leave? Maybe just leave for now
         await leaveCommunity(community.id, user.uid)
         setIsMember(false)
-        setCommunity(prev => prev ? {...prev, memberCount: prev.memberCount - 1} : null)
-        // toast.success("Left community")
+        setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount - 1 } : null)
       } else {
         await joinCommunity(community.id, user.uid)
         setIsMember(true)
-        setCommunity(prev => prev ? {...prev, memberCount: prev.memberCount + 1} : null)
-        // toast.success("Joined community!")
+        setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount + 1 } : null)
       }
     } catch (error: any) {
       console.error("Error joining/leaving community:", error)
-      // toast.error(error.message || "Action failed")
     } finally {
       setActionLoading(false)
     }
@@ -72,16 +67,16 @@ export default function CommunityDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8 animate-pulse">
-        <Skeleton className="h-8 w-32" />
-        <div className="h-64 bg-muted rounded-3xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
-             <Skeleton className="h-40 w-full rounded-2xl" />
-             <Skeleton className="h-80 w-full rounded-2xl" />
+      <div className="space-y-6 max-w-7xl mx-auto px-4 py-8">
+        <Skeleton className="h-40 w-full rounded-none" />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3 space-y-4">
+            <Skeleton className="h-16 w-full rounded-none" />
+            <Skeleton className="h-96 w-full rounded-none" />
           </div>
           <div className="space-y-4">
-             <Skeleton className="h-60 w-full rounded-2xl" />
+            <Skeleton className="h-32 w-full rounded-none" />
+            <Skeleton className="h-48 w-full rounded-none" />
           </div>
         </div>
       </div>
@@ -93,204 +88,254 @@ export default function CommunityDetailPage() {
   const isCreator = user?.uid === community.creatorId
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between">
-        <Link href="/dashboard/communities" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Communities
-        </Link>
-        <div className="flex items-center gap-2">
-           <Button variant="outline" size="icon" className="rounded-full shadow-sm">
-             <Share className="w-4 h-4" />
-           </Button>
-           <Button variant="outline" size="icon" className="rounded-full shadow-sm">
-             <MoreVertical className="w-4 h-4" />
-           </Button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background pb-16">
+      {/* Header */}
+      <div className="bg-zinc-950 border-b border-zinc-800 text-zinc-100">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-6 pb-8">
+          <Link
+            href="/dashboard/communities"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest font-mono text-zinc-500 hover:text-zinc-300 transition-colors mb-6"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Communities
+          </Link>
 
-      <div className="relative group">
-        <div className="h-64 md:h-80 w-full bg-gradient-to-tr from-muted/50 to-primary/20 rounded-3xl overflow-hidden border border-border shadow-inner">
-          {community.bannerImage && (
-            <img src={community.bannerImage} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-1000" alt="" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent flex items-end p-8 md:p-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between w-full gap-6">
-              <div className="flex gap-6 items-center">
-                <div className="w-20 h-20 md:w-32 md:h-32 rounded-2xl md:rounded-[2rem] bg-card border-2 border-background shadow-xl flex items-center justify-center overflow-hidden shrink-0">
-                  {community.image ? (
-                    <img src={community.image} className="w-full h-full object-cover" alt="" />
-                  ) : (
-                    <Users className="w-10 h-10 md:w-16 md:h-16 text-primary/40" />
-                  )}
-                </div>
-                <div>
-                   <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground drop-shadow-sm">{community.name}</h1>
-                   <div className="flex items-center gap-4 mt-2 text-muted-foreground font-medium">
-                     <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> {community.memberCount} members</span>
-                     <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Since {community.createdAt.toDate().toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}</span>
-                   </div>
-                </div>
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center px-2 py-0.5 border border-zinc-800 text-[10px] uppercase tracking-widest text-zinc-500 bg-zinc-900/50">
+                {community.privacy}
               </div>
-              <div className="flex gap-3">
-                {isCreator ? (
-                  <Button className="rounded-full px-8 h-12 shadow-xl hover:scale-105 transition-transform" variant="secondary">
-                    Admin Tools
-                  </Button>
-                ) : (
-                  <Button 
-                    variant={isMember ? "outline" : "default"}
-                    className={`rounded-full px-8 h-12 shadow-xl hover:scale-105 transition-transform ${isMember ? 'bg-background hover:bg-muted' : ''}`}
-                    onClick={handleJoinLeave}
-                    disabled={actionLoading}
-                  >
-                    {actionLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : isMember ? (
-                      <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Joined
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Join Community
-                      </>
-                    )}
-                  </Button>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
+                {community.name}
+              </h1>
+              <p className="text-sm text-zinc-400 leading-relaxed max-w-xl">
+                {community.description}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-6 pt-2">
+                <div>
+                  <div className="text-lg font-bold text-primary tabular-nums">{community.memberCount}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">Members</div>
+                </div>
+                {community.isPaid && (
+                  <div>
+                    <div className="text-lg font-bold text-emerald-400">₦{community.price?.toLocaleString()}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">/ month</div>
+                  </div>
                 )}
+                <div>
+                  <div className="text-lg font-bold text-zinc-300">Mar 2026</div>
+                  <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">Founded</div>
+                </div>
+                {community.category && (
+                  <div>
+                    <div className="text-lg font-bold text-zinc-300">{community.category}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-zinc-500 mt-0.5">Category</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 w-full lg:w-auto lg:min-w-[200px]">
+              {isCreator ? (
+                <Button className="rounded-none h-10 px-6 text-sm font-semibold bg-primary text-primary-foreground">
+                  Admin Panel
+                </Button>
+              ) : (
+                <Button
+                  variant={isMember ? "outline" : "default"}
+                  className={cn(
+                    "rounded-none h-10 px-6 text-sm font-semibold transition-all",
+                    isMember
+                      ? "border-zinc-700 bg-transparent text-zinc-100 hover:bg-zinc-900"
+                      : "bg-primary text-primary-foreground"
+                  )}
+                  onClick={handleJoinLeave}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isMember ? (
+                    "Joined"
+                  ) : community.isPaid ? (
+                    `Join — ₦${community.price?.toLocaleString()}/mo`
+                  ) : (
+                    "Join Community"
+                  )}
+                </Button>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-none border-zinc-800 h-9 hover:bg-zinc-900 gap-1.5 text-xs text-zinc-400 hover:text-zinc-100"
+                >
+                  <Share className="w-3.5 h-3.5" /> Share
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-none border-zinc-800 w-9 h-9 hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 shrink-0"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <Tabs defaultValue="feed" className="w-full">
-            <TabsList className="bg-muted/50 p-1 rounded-xl mb-6">
-              <TabsTrigger value="feed" className="rounded-lg px-8 data-[state=active]:shadow-sm">Feed</TabsTrigger>
-              <TabsTrigger value="about" className="rounded-lg px-8 data-[state=active]:shadow-sm">About</TabsTrigger>
-              <TabsTrigger value="members" className="rounded-lg px-8 data-[state=active]:shadow-sm">Members</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="feed" className="space-y-6 pt-2">
-              {isMember ? (
-                <div className="text-center py-24 bg-muted/20 rounded-3xl border-2 border-dashed border-border/50">
-                  <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Info className="w-8 h-8 text-muted-foreground/50" />
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+          {/* Main content */}
+          <div className="lg:col-span-3">
+            <Tabs defaultValue="feed" className="w-full">
+              <TabsList className="bg-transparent border-b border-zinc-200 dark:border-zinc-800 w-full justify-start rounded-none h-auto p-0 mb-8 overflow-x-auto">
+                {["feed", "about", "members"].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-5 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-foreground transition-all capitalize"
+                  >
+                    {tab === "feed" ? "Feed" : tab === "about" ? "About" : "Members"}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="feed" className="focus-visible:outline-none">
+                {isMember ? (
+                  <div className="space-y-4">
+                    <div className="border border-dashed border-zinc-200 dark:border-zinc-800 p-8 text-center">
+                      <MessageSquare className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+                      <h3 className="text-sm font-semibold">Post to the community</h3>
+                      <p className="text-xs text-muted-foreground mt-1 mb-4">
+                        Start a conversation with members.
+                      </p>
+                      <Button className="rounded-none px-6 text-xs font-semibold" variant="outline">
+                        New Post <Plus className="w-3.5 h-3.5 ml-1.5" />
+                      </Button>
+                    </div>
+                    <div className="py-16 text-center border border-zinc-100 dark:border-zinc-900">
+                      <p className="text-zinc-400 font-mono text-[10px] uppercase tracking-widest">No activity yet</p>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold">No activity yet</h3>
-                  <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-                    This community is just getting started. Be the first to post something!
-                  </p>
-                  <Button className="mt-6 rounded-full px-8" variant="outline">
-                    Post to Community
-                  </Button>
+                ) : (
+                  <div className="relative py-16 px-8 text-center bg-zinc-950 text-zinc-100 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-50 pointer-events-none" />
+                    <div className="relative z-10 space-y-4">
+                      <Shield className="w-10 h-10 text-primary mx-auto opacity-60" />
+                      <h2 className="text-xl font-bold tracking-tight">Members only</h2>
+                      <p className="text-zinc-400 text-sm max-w-sm mx-auto leading-relaxed">
+                        Join this community to access the feed and engage with members.
+                      </p>
+                      <Button
+                        className="rounded-none h-10 px-8 text-sm font-semibold bg-primary text-primary-foreground"
+                        onClick={handleJoinLeave}
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join Community"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="about" className="focus-visible:outline-none animate-in fade-in duration-300">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <div className="text-[10px] uppercase tracking-widest text-primary font-bold">About</div>
+                    <h3 className="text-base font-bold tracking-tight">Mission</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{community.description}</p>
+                  </div>
+
+                  <div className="space-y-4 border-l border-zinc-200 dark:border-zinc-800 pl-8">
+                    <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Community Rules</div>
+                    <ul className="space-y-4">
+                      {[
+                        "Respect all members and their perspectives.",
+                        "No spam, solicitation, or self-promotion.",
+                        "Keep posts relevant to the community topic.",
+                      ].map((rule, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <span className="text-primary font-mono text-[10px] mt-0.5 shrink-0">0{i + 1}</span>
+                          <p className="text-sm text-zinc-400 leading-snug">{rule}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              ) : (
-                <Card className="border-none shadow-xl bg-gradient-to-b from-primary/5 to-transparent border border-primary/10 overflow-hidden text-center py-16 px-8 rounded-3xl">
-                  <Shield className="w-14 h-14 text-primary/40 mx-auto mb-6" />
-                  <CardTitle className="text-2xl mb-2">Member-Only Content</CardTitle>
-                  <CardDescription className="text-lg max-w-md mx-auto mb-8">
-                    Join this community to see the feed, participate in discussions, and connect with other members.
-                  </CardDescription>
-                  <Button className="rounded-full px-12 h-14 text-lg font-bold shadow-2xl hover:scale-105 transition-transform" onClick={handleJoinLeave}>
-                    Join this Community now
-                  </Button>
-                </Card>
-              )}
-            </TabsContent>
+              </TabsContent>
 
-            <TabsContent value="about" className="space-y-6 pt-4">
-               <div className="prose prose-zinc dark:prose-invert max-w-none">
-                 <h3 className="text-2xl font-bold">About {community.name}</h3>
-                 <p className="text-muted-foreground text-lg leading-relaxed">
-                   {community.description}
-                 </p>
-                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-6 bg-muted/30 rounded-2xl border border-border/50">
-                       <h4 className="font-bold flex items-center gap-2 mb-2"><Users className="w-4 h-4 text-primary" /> Community Rules</h4>
-                       <ul className="text-sm space-y-2 text-muted-foreground">
-                         <li>Be respectful to all members</li>
-                         <li>No spam or self-promotion</li>
-                         <li>Post relevant content only</li>
-                       </ul>
-                    </div>
-                    <div className="p-6 bg-muted/30 rounded-2xl border border-border/50">
-                       <h4 className="font-bold flex items-center gap-2 mb-2"><Shield className="w-4 h-4 text-primary" /> Privacy & Guidelines</h4>
-                       <p className="text-sm text-muted-foreground">
-                         This is a {community.privacy} community. All content shared here should align with the community's theme and purpose.
-                       </p>
-                    </div>
-                 </div>
-               </div>
-            </TabsContent>
+              <TabsContent value="members" className="focus-visible:outline-none">
+                <div className="py-16 text-center border border-zinc-200 dark:border-zinc-800">
+                  <Users className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+                  <h3 className="text-sm font-semibold">Member list is private</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Only admins can view the full registry.</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-            <TabsContent value="members" className="pt-4">
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-muted/10 rounded-3xl border border-border/30">
-                <Users className="w-12 h-12 text-muted-foreground/30 mb-4" />
-                <h3 className="text-lg font-medium">Members list is hidden</h3>
-                <p className="text-muted-foreground mt-1">Only admins can see the full list of members for privacy.</p>
+          {/* Sidebar */}
+          <aside className="space-y-8">
+            <div className="space-y-3">
+              <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-bold">Creator</div>
+              <div className="flex items-center gap-3 group">
+                <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 text-sm font-bold shrink-0 group-hover:border-primary transition-colors">
+                  {community.creatorName?.[0]}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">{community.creatorName}</div>
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Founder</div>
+                </div>
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
 
-        <div className="space-y-6">
-           <Card className="rounded-3xl border-border/50 shadow-lg overflow-hidden">
-             <CardHeader className="bg-muted/30 border-b border-border/50">
-               <CardTitle className="text-lg flex items-center gap-2">
-                 <Shield className="w-4 h-4 text-primary" />
-                 Moderation
-               </CardTitle>
-             </CardHeader>
-             <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                     C
-                   </div>
-                   <div>
-                     <p className="text-sm font-bold">Creator</p>
-                     <p className="text-xs text-muted-foreground">{community.creatorName}</p>
-                   </div>
-                </div>
-                <div className="pt-2">
-                   <p className="text-xs text-muted-foreground">
-                     The creator manages content and membership for this community.
-                   </p>
-                </div>
-             </CardContent>
-           </Card>
+            <div className="space-y-3 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-bold">Details</div>
+              <div className="space-y-2">
+                {[
+                  { label: "Visibility", value: community.privacy },
+                  { label: "Engagement", value: "Moderate" },
+                  { label: "Growth", value: "+12% / mo", accent: true },
+                ].map(({ label, value, accent }) => (
+                  <div
+                    key={label}
+                    className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-900 pb-2"
+                  >
+                    <span className="text-xs text-muted-foreground">{label}</span>
+                    <span className={cn("text-xs font-semibold uppercase", accent && "text-primary")}>{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-           <Card className="rounded-3xl border-border/50 shadow-lg overflow-hidden">
-              <CardHeader className="bg-muted/30 border-b border-border/50">
-                <CardTitle className="text-lg">Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                 <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                       <span className="text-sm text-muted-foreground">Active Members</span>
-                       <span className="font-bold">{community.memberCount}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                       <span className="text-sm text-muted-foreground">Posts / month</span>
-                       <span className="font-bold">0</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                       <span className="text-sm text-muted-foreground">Type</span>
-                       <span className="capitalize font-bold">{community.privacy}</span>
-                    </div>
-                 </div>
-              </CardContent>
-           </Card>
+            <div className="pt-4">
+              <Card className="rounded-none border-none bg-zinc-950 text-zinc-100 p-5 space-y-3 relative overflow-hidden">
+                <div className="absolute -top-3 -right-3 w-12 h-12 bg-primary/20 blur-xl pointer-events-none" />
+                <Globe className="w-5 h-5 text-primary opacity-60" />
+                <h4 className="text-sm font-semibold leading-snug">Support this community</h4>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Member contributions keep this community independent and growing.
+                </p>
+                <Button
+                  size="sm"
+                  className="w-full rounded-none bg-zinc-100 text-zinc-950 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-200 h-8"
+                >
+                  Learn More
+                </Button>
+              </Card>
+            </div>
 
-           {isMember && !isCreator && (
-              <Button variant="ghost" className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl" onClick={handleJoinLeave}>
-                <LogOut className="w-4 h-4 mr-2" />
+            {isMember && !isCreator && (
+              <Button
+                variant="ghost"
+                className="w-full text-zinc-500 hover:text-red-500 hover:bg-red-500/5 rounded-none font-mono text-[10px] uppercase tracking-widest h-8"
+                onClick={handleJoinLeave}
+              >
+                <LogOut className="w-3 h-3 mr-1.5" />
                 Leave Community
               </Button>
-           )}
+            )}
+          </aside>
         </div>
       </div>
     </div>

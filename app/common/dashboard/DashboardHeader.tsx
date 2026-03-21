@@ -21,6 +21,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
+  '/dashboard/communities': 'Communities',
+  '/dashboard/communities/create': 'Create Community',
   '/admin': 'Admin Console',
   '/admin/users': 'Manage Users',
   '/admin/content': 'Content Management',
@@ -62,6 +64,10 @@ export default function DashboardHeader() {
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
+    if (pathname.startsWith('/dashboard/communities/')) {
+        if (pathname === '/dashboard/communities/create') return 'Create Community'
+        return 'Community Details'
+    }
 
     const segments = pathname.split('/').filter(Boolean)
     const last = segments[segments.length - 1] || 'dashboard'

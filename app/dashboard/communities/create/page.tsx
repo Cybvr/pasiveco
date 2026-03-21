@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Switch } from "@/components/ui/switch"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
 import { createCommunity } from "@/services/communityService"
@@ -25,14 +26,24 @@ export default function CreateCommunityPage() {
     description: "",
     privacy: "public" as "public" | "private",
     category: "other",
+    price: 0,
+    isPaid: false,
     image: "",
     bannerImage: ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user) {
+      setError("You must be logged in to create a community.")
+      return
+    }
     
+    if (!formData.name.trim()) {
+      setError("Please fill in the community name.")
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -46,7 +57,12 @@ export default function CreateCommunityPage() {
       router.push(`/dashboard/communities/${communityId}`)
     } catch (err: any) {
       console.error("Error creating community:", err)
-      setError(err.message || "Failed to create community. Please try again.")
+      const isPermissionError = err.message?.toLowerCase().includes("permission") || 
+                               err.message?.toLowerCase().includes("insufficient")
+      
+      if (!isPermissionError) {
+        setError(err.message || "Failed to create community. Please try again.")
+      }
       setLoading(false)
     }
   }
@@ -60,7 +76,7 @@ export default function CreateCommunityPage() {
 
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Create Community</h1>
-        <p className="text-muted-foreground">Start a new space for your tribe.</p>
+        <p className="text-muted-foreground">Start a new space for your community.</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -87,7 +103,7 @@ export default function CreateCommunityPage() {
               <Label htmlFor="name">Community Name</Label>
               <Input 
                 id="name" 
-                placeholder="e.g. Creative Rebels Tribe" 
+                placeholder="e.g. Creative Rebels Community" 
                 maxLength={40}
                 required
                 className="rounded-xl h-12 text-lg focus-visible:ring-primary/20"
@@ -96,18 +112,6 @@ export default function CreateCommunityPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Short Description</Label>
-              <Textarea 
-                id="description" 
-                placeholder="What is this community about? Who is it for?" 
-                maxLength={200}
-                required
-                className="rounded-xl min-h-[100px] resize-none focus-visible:ring-primary/20"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-              />
-            </div>
 
             <div className="space-y-3 pt-2">
               <Label>Privacy</Label>
@@ -132,6 +136,37 @@ export default function CreateCommunityPage() {
                 </div>
               </RadioGroup>
             </div>
+
+            <div className="space-y-4 pt-6 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="isPaid" className="text-base font-semibold">Subscription Based</Label>
+                  <p className="text-sm text-muted-foreground">Charge members a monthly fee to access your community.</p>
+                </div>
+                <Switch 
+                  id="isPaid" 
+                  checked={formData.isPaid}
+                  onCheckedChange={(val) => setFormData({...formData, isPaid: val})}
+                />
+              </div>
+              
+              {formData.isPaid && (
+                <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Label htmlFor="price">Monthly Price (₦)</Label>
+                  <Input 
+                    id="price" 
+                    type="number"
+                    placeholder="e.g. 5000" 
+                    min="0"
+                    required={formData.isPaid}
+                    className="rounded-xl h-12 text-lg focus-visible:ring-primary/20"
+                    value={formData.price || ""}
+                    onChange={(e) => setFormData({...formData, price: Number(e.target.value)})}
+                  />
+                  <p className="text-xs text-muted-foreground">Recommended: ₦1,000 - ₦10,000 based on your content value.</p>
+                </div>
+              )}
+            </div>
           </CardContent>
           <CardFooter className="bg-muted/30 border-t border-border/50 py-6 px-8 flex justify-between items-center">
             <p className="text-xs text-muted-foreground max-w-[200px]">
@@ -139,8 +174,8 @@ export default function CreateCommunityPage() {
             </p>
             <Button 
               type="submit" 
-              disabled={loading || !formData.name || !formData.description}
-              className="rounded-full px-8 h-12 shadow-md hover:shadow-lg transition-all"
+              disabled={loading || !formData.name.trim() || !user}
+              className="rounded-full px-8 h-12 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

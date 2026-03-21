@@ -39,7 +39,7 @@ export default function CommunitiesPage() {
     fetchData()
   }, [user])
 
-  const filteredExplore = exploreCommunities.filter(c => 
+  const filteredExplore = exploreCommunities.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -95,8 +95,8 @@ export default function CommunitiesPage() {
           <h2 className="text-xl font-semibold">Explore Communities</h2>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search communities..." 
+            <Input
+              placeholder="Search communities..."
               className="pl-10 rounded-full focus-visible:ring-primary/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

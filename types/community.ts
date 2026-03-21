@@ -11,6 +11,9 @@ export interface Community {
   category?: string;
   privacy: 'public' | 'private';
   memberCount: number;
+  price?: number;
+  currency?: string;
+  isPaid?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   tags?: string[];
