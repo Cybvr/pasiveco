@@ -13,17 +13,22 @@ import {
   orderBy,
   Timestamp,
   increment,
+  limit,
   runTransaction
 } from 'firebase/firestore';
 import { Community, CommunityMember } from '@/types/community';
+import { slugify } from '@/utils/slugify';
 
 const communitiesCollection = collection(db, 'communities');
 const communityMembersCollection = collection(db, 'communityMembers');
 
 export const createCommunity = async (communityData: Omit<Community, 'id' | 'createdAt' | 'updatedAt' | 'memberCount'>) => {
   try {
+    const slug = `${slugify(communityData.name)}-${Math.random().toString(36).substring(2, 7)}`;
+    
     const docRef = await addDoc(communitiesCollection, {
       ...communityData,
+      slug,
       memberCount: 1, // Creator is the first member
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
@@ -156,3 +161,43 @@ export const getUserCommunities = async (userId: string): Promise<Community[]> =
     throw error;
   }
 };
+export const getCommunityBySlug = async (slug: string): Promise<Community | null> => {
+  try {
+    const q = query(communitiesCollection, where('slug', '==', slug), limit(1));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return { id: doc.id, ...doc.data() } as Community;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching community by slug:', error);
+    throw error;
+  }
+};
+
+export const updateCommunity = async (communityId: string, data: Partial<Omit<Community, 'id' | 'createdAt'>>) => {
+  try {
+    const communityRef = doc(db, 'communities', communityId);
+    await updateDoc(communityRef, { ...data, updatedAt: Timestamp.now() });
+  } catch (error) {
+    console.error('Error updating community:', error);
+    throw error;
+  }
+};
+
+export const deleteCommunity = async (communityId: string) => {
+  try {
+    // Delete community doc
+    await deleteDoc(doc(db, 'communities', communityId));
+    // Delete all member records for this community
+    const q = query(communityMembersCollection, where('communityId', '==', communityId));
+    const snap = await getDocs(q);
+    await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+  } catch (error) {
+    console.error('Error deleting community:', error);
+    throw error;
+  }
+};
+

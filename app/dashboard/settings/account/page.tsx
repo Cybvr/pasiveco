@@ -13,6 +13,16 @@ import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryS
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Shield, Sparkles, Loader2 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface UserData {
   displayName: string
@@ -47,6 +57,7 @@ export default function AccountSettings() {
   const [firebaseProfile, setFirebaseProfile] = useState<User | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuth()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -174,7 +185,6 @@ export default function AccountSettings() {
   }
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) return
     try {
       toast({ title: "Account deleted", description: "Your account has been successfully deleted." })
     } catch (error) {
@@ -390,9 +400,29 @@ export default function AccountSettings() {
           <p className="text-sm text-muted-foreground">Permanent actions that cannot be undone.</p>
         </div>
         <div className="p-4">
-          <Button variant="destructive" onClick={handleDeleteAccount}>Delete Account</Button>
+          <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>Delete Account</Button>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Your account and all associated data will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDeleteAccount}
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

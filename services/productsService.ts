@@ -14,6 +14,7 @@ import {
   limit,
   Timestamp
 } from 'firebase/firestore';
+import { slugify } from '@/utils/slugify';
 
 export interface ProductLesson {
   title: string;
@@ -86,6 +87,7 @@ export interface Product {
       publicKey: string;
     };
   };
+  slug: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -95,8 +97,11 @@ export const createProduct = async (productData: Omit<Product, 'id' | 'createdAt
     console.log('Creating product in Firebase:', productData.name);
     console.log('User ID:', productData.userId);
     
+    const slug = `${slugify(productData.name)}-${Math.random().toString(36).substring(2, 7)}`;
+    
     const docRef = await addDoc(collection(db, 'products'), {
       ...productData,
+      slug,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     });
@@ -202,6 +207,21 @@ export const getAllLatestProducts = async (limitCount = 10): Promise<Product[]> 
     })) as Product[];
   } catch (error) {
     console.error('Error fetching latest products:', error);
+    throw error;
+  }
+};
+export const getProductBySlug = async (slug: string): Promise<Product | null> => {
+  try {
+    const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return { id: doc.id, ...doc.data() } as Product;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching product by slug:', error);
     throw error;
   }
 };

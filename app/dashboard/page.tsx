@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { HomeSkeleton } from '@/app/common/dashboard/SocialLoading'
+import { getDicebearAvatar } from '@/lib/avatar'
 import DashboardDiscoverySections from './DashboardDiscoverySections'
 import { getUserProducts, type Product } from '@/services/productsService'
 import { getBankingDetails } from '@/services/bankingDetailsService'
@@ -77,7 +78,7 @@ export default function DashboardHomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-2.5">
+    <div className="space-y-6">
       <section className="space-y-3 py-1 -mx-1">
         <div className="flex items-center justify-between gap-3 px-1">
           <h2 className="text-lg font-extrabold tracking-tight text-foreground">Your products</h2>
@@ -95,21 +96,15 @@ export default function DashboardHomePage() {
                 <Link
                   key={product.id}
                   href="/dashboard/products"
-                  className="w-[120px]"
+                  className="w-[120px] group"
                 >
                   <div className="flex flex-col items-start gap-3">
-                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
-                      {product.thumbnail ? (
-                        <img
-                          src={product.thumbnail}
-                          alt={product.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
-                          <Package className="h-8 w-8 text-primary" />
-                        </div>
-                      )}
+                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
+                      <img
+                        src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
+                        alt={product.name}
+                        className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
                     </div>
                     <div className="w-full space-y-1 text-left">
                       <p className="line-clamp-2 text-[13px] font-bold leading-tight text-foreground">{product.name}</p>

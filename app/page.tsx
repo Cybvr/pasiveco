@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
+import AIOnboardingSticky from "@/app/common/website/AIOnboardingSticky"
 
 const TESTIMONIALS = [
   {
@@ -285,6 +286,7 @@ export default function LandingPage() {
         <div className="absolute bottom-10 right-20 w-60 h-60 bg-primary/20 rounded-none blur-[100px]" />
       </section>
 
+      <AIOnboardingSticky />
       <Footer />
     </div>
   )

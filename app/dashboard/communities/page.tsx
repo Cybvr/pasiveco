@@ -62,27 +62,24 @@ export default function CommunitiesPage() {
   }
 
   return (
-    <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Communities</h1>
-          <p className="text-muted-foreground mt-1">Join creators and fans in private spaces.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Communities</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Join creators and fans in private spaces.</p>
         </div>
         <Link href="/dashboard/communities/create">
-          <Button className="rounded-full px-6 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
-            <Plus className="w-4 h-4" />
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
             Create Community
           </Button>
         </Link>
       </div>
 
       {myCommunities.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            Your Communities
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">Your Communities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {myCommunities.map(community => (
               <CommunityCard key={community.id} community={community} isMember={true} />
             ))}
@@ -90,14 +87,14 @@ export default function CommunitiesPage() {
         </section>
       )}
 
-      <section className="space-y-6">
+      <section className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl font-semibold">Explore Communities</h2>
+          <h2 className="text-base font-semibold">Explore Communities</h2>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search communities..."
-              className="pl-10 rounded-full focus-visible:ring-primary/20"
+              className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -105,16 +102,16 @@ export default function CommunitiesPage() {
         </div>
 
         {filteredExplore.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredExplore.map(community => (
               <CommunityCard key={community.id} community={community} isMember={false} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed border-border/50">
-            <Users className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-            <h3 className="text-lg font-medium">No communities found</h3>
-            <p className="text-muted-foreground max-w-xs mx-auto mt-1">
+          <div className="text-center py-16 rounded-xl border border-dashed">
+            <Users className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+            <h3 className="text-sm font-medium">No communities found</h3>
+            <p className="text-muted-foreground text-sm max-w-xs mx-auto mt-1">
               {searchQuery ? `No results for "${searchQuery}". Try a different search.` : "Be the first to create a community!"}
             </p>
           </div>

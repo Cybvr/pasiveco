@@ -8,6 +8,9 @@ import { getPublicUsers, type User } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import CommunityDiscovery from './CommunityDiscovery'
+import { getAllLatestProducts, Product } from '@/services/productsService'
+import { Package } from 'lucide-react'
+import { getDicebearAvatar } from '@/lib/avatar'
 
 interface DiscoveryProfile {
   id: string
@@ -50,29 +53,29 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
 
 export default function DashboardDiscoverySections() {
   const [users, setUsers] = useState<DiscoveryProfile[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const loadUsers = async () => {
+    const loadDiscovery = async () => {
       try {
-        const profiles = await getPublicUsers()
+        const [profiles, latestProducts] = await Promise.all([
+          getPublicUsers(),
+          getAllLatestProducts(8)
+        ])
         setUsers(profiles.map(toDiscoveryProfile).filter((profile) => Boolean(profile.id)))
+        setProducts(latestProducts || [])
       } catch (error) {
-        console.error('Failed to load discovery profiles:', error)
+        console.error('Failed to load discovery data:', error)
       } finally {
         setLoading(false)
       }
     }
-    void loadUsers()
+    void loadDiscovery()
   }, [])
 
-  const popularThisWeek = useMemo(() => users.filter(u => u.isTrending).slice(0, 8), [users])
+  const popularProducts = useMemo(() => products.slice(0, 5), [products])
   const topCreators = useMemo(() => users.filter(u => u.isFeatured).slice(0, 8), [users])
-  const newCreators = useMemo(() => [...users].sort((a, b) => {
-    const timeA = a.createdAt?.toMillis?.() || 0
-    const timeB = b.createdAt?.toMillis?.() || 0
-    return timeB - timeA
-  }).slice(0, 8), [users])
 
   const topics = useMemo(() => {
     const categories = new Set(users.map(u => u.category).filter(Boolean))
@@ -102,19 +105,23 @@ export default function DashboardDiscoverySections() {
     return (
       <div className="space-y-3 py-2">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-extrabold tracking-tight text-foreground">{title}</h2>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">{title}</h2>
           <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
             View all
           </Link>
         </div>
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max space-x-5 pb-4">
+          <div className="flex w-max space-x-5 pb-4 px-1">
             {creators.map((creator) => (
-              <Link key={creator.id} href={creator.href} className="w-[120px]">
+              <Link key={creator.id} href={creator.href} className="w-[120px] group">
                 <div className="flex flex-col items-start gap-3">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
                     <Avatar className="h-full w-full rounded-none">
-                      <AvatarImage src={creator.image} alt={creator.handle} className="object-cover" />
+                      <AvatarImage 
+                        src={creator.image || getDicebearAvatar(creator.handle)} 
+                        alt={creator.handle} 
+                        className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                      />
                       <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </div>
@@ -137,14 +144,59 @@ export default function DashboardDiscoverySections() {
   }
 
   return (
-    <div className="space-y-2.5 -mx-1">
+    <div className="space-y-6 -mx-1">
       <CommunityDiscovery />
-      <Section title="Popular this week" creators={popularThisWeek} />
+      
+      {popularProducts.length > 0 && (
+        <div className="space-y-3 py-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Popular this week</h2>
+            <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max space-x-5 pb-4 px-1">
+              {popularProducts.map((product) => {
+                const creator = users.find((u) => u.id === product.userId)
+                const productSlug = product.slug
+                const productHref = creator?.handle ? `/${creator.handle}/product/${productSlug}` : `/product/${productSlug}`
+                
+                return (
+                  <Link key={product.id} href={productHref} className="w-[120px] group">
+                    <div className="flex flex-col items-start gap-3">
+                      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
+                        <img 
+                          src={product.thumbnail || getDicebearAvatar(product.id || product.name)} 
+                          alt={product.name} 
+                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => { e.currentTarget.src = getDicebearAvatar(product.id || product.name) }}
+                        />
+                      </div>
+                      <div className="w-full space-y-1 text-left">
+                        <p className="line-clamp-2 text-[13px] font-bold leading-tight text-foreground">{product.name}</p>
+                        <p className="truncate text-[11px] font-semibold text-foreground/80">
+                          {new Intl.NumberFormat(undefined, {
+                            style: 'currency',
+                            currency: product.currency || 'USD',
+                            maximumFractionDigits: 0,
+                          }).format(product.price || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+            <ScrollBar orientation="horizontal" className="hidden" />
+          </ScrollArea>
+        </div>
+      )}
       
       {topics.length > 0 && (
         <div className="space-y-3 py-1">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-lg font-extrabold tracking-tight text-foreground">Explore topics</h2>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">Explore topics</h2>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-3 pb-4">
@@ -175,7 +227,6 @@ export default function DashboardDiscoverySections() {
         </div>
       )}
 
-      <Section title="New creators" creators={newCreators} />
       <Section title="Top creators" creators={topCreators} />
     </div>
   )

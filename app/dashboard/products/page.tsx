@@ -17,8 +17,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency } from '@/utils/currency'
+import { slugify } from '@/utils/slugify'
 
-import ExploreTab from './ExploreTab'
 import CreateTab from './CreateTab'  
 import ManageTab from './ManageTab'
 
@@ -138,6 +138,7 @@ function ProductCreator() {
       await createProduct({
         userId: user.uid,
         name: selectedProduct.name,
+        slug: slugify(selectedProduct.name),
         description: selectedProduct.description,
         price: selectedProduct.price,
         currency: currency,
@@ -187,43 +188,20 @@ function ProductCreator() {
     }
   }, [searchParams])
 
-  const tabs = [
-    { key: "manage", label: "All" },
-    { key: "explore", label: "Explore" },
-  ]
-
-  
-
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.key} value={tab.key}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
       <div className="pt-2">
-        {activeTab === "explore" && (
-          <ExploreTab user={user} onProductsAdded={loadMyProducts} />
-        )}
-
-        {activeTab === "manage" && (
-          <ManageTab 
-            products={myProducts}
-            isLoading={isLoadingProducts}
-            onProductsChanged={loadMyProducts}
-            onCreateNew={() => {
-              setInitialProductData(null)
-              setIsCreateModalOpen(true)
-            }}
-            onGenAINew={() => setIsAIModalOpen(true)}
-            hasBankingDetails={hasBankingDetails}
-          />
-        )}
+        <ManageTab 
+          products={myProducts}
+          isLoading={isLoadingProducts}
+          onProductsChanged={loadMyProducts}
+          onCreateNew={() => {
+            setInitialProductData(null)
+            setIsCreateModalOpen(true)
+          }}
+          onGenAINew={() => setIsAIModalOpen(true)}
+          hasBankingDetails={hasBankingDetails}
+        />
       </div>
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -333,6 +311,7 @@ function ProductCreator() {
                 </div>
               </div>
             )}
+
 
             <div className="pt-2">
               <Button 

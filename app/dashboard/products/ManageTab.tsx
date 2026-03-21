@@ -8,35 +8,73 @@ import {
   Trash2,
   MoreVertical,
   Sparkles,
+  Eye,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { deleteProduct, updateProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
+import { getUser, type User as AppUser } from '@/services/userService'
 
 function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, hasBankingDetails = false }) {
+  const { user } = useAuth()
   const { currency } = useCurrency()
+  const [profile, setProfile] = useState<AppUser | null>(null)
+  
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      if (user?.uid) {
+        try {
+          const fetchedProfile = await getUser(user.uid)
+          setProfile(fetchedProfile)
+        } catch (error) {
+          console.error('Error fetching profile for ManageTab:', error)
+        }
+      }
+    }
+    fetchProfile()
+  }, [user])
+
+  const cleanHandle = (profile?.username || profile?.slug || (user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '') || 'user'
   const [editingProduct, setEditingProduct] = useState<any>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState<any>({
     name: '',
     description: '',
     price: 0,
-    status: 'draft'
+    status: 'draft',
+    slug: ''
   })
   const [loading, setLoading] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return
-
     try {
       await deleteProduct(productId)
       toast.success('Product deleted successfully!')
@@ -44,6 +82,8 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     } catch (error) {
       console.error('Error deleting product:', error)
       toast.error('Failed to delete product')
+    } finally {
+      setDeleteTargetId(null)
     }
   }
 
@@ -54,6 +94,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       description: product.description || '',
       price: product.price,
       status: product.status,
+      slug: product.slug || '',
     })
     setShowEditModal(true)
   }
@@ -66,11 +107,15 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
     setLoading(true)
     try {
+      const generatedSlug = editForm.name ? editForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Math.random().toString(36).substring(2, 7) : '';
+      const finalSlug = editForm.slug?.trim() || editingProduct.slug || generatedSlug;
+
       await updateProduct(editingProduct.id, {
         name: editForm.name,
         description: editForm.description,
         price: editForm.price,
         status: editForm.status,
+        slug: finalSlug,
       })
       toast.success('Product updated successfully!')
       closeEditModal()
@@ -83,11 +128,12 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     }
   }
 
-  const copyProductLink = async (productId) => {
-    const productUrl = `${window.location.origin}/product/${productId}`
+  const copyProductLink = async (product) => {
+    const productIdentifier = product.slug;
+    const productUrl = `${window.location.origin}/${cleanHandle}/product/${productIdentifier}`;
     try {
-      await navigator.clipboard.writeText(productUrl)
-      toast.success('Product link copied to clipboard!')
+      await navigator.clipboard.writeText(productUrl);
+      toast.success('Product link copied to clipboard!');
     } catch (error) {
       console.error('Failed to copy link:', error)
       toast.error('Failed to copy link')
@@ -101,6 +147,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   }
 
   return (
+    <>
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
@@ -129,8 +176,8 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
           ))
         ) : (
           products.map((product: any) => (
-            <div key={product.id} className="cursor-pointer p-3 space-y-3" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
-              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
+            <div key={product.id} className="cursor-pointer p-3 space-y-3 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
                 {product.thumbnail ? (
                   <img
                     src={product.thumbnail}
@@ -142,6 +189,11 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     <Package className="h-8 w-8 text-primary" />
                   </div>
                 )}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
+                  <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
+                    <Eye className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
 
               <div className="flex items-start justify-between gap-2">
@@ -159,7 +211,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                   </p>
                 </div>
 
-                <div className="shrink-0 -mr-1 -mt-1">
+                <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -177,11 +229,12 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                         <Settings className="mr-2 h-3.5 w-3.5" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product) }}>
                         <Copy className="mr-2 h-3.5 w-3.5" />
                         Copy
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); setDeleteTargetId(product.id) }}
+                        className="text-destructive focus:text-destructive">
                         <Trash2 className="mr-2 h-3.5 w-3.5" />
                         Delete
                       </DropdownMenuItem>
@@ -202,89 +255,100 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         />
       )}
 
-      {showEditModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Edit Product</h3>
-                <Button variant="ghost" size="sm" onClick={closeEditModal}>
-                  ×
-                </Button>
+      <Dialog open={showEditModal} onOpenChange={(open) => { if (!open) closeEditModal() }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="block text-xs font-semibold mb-1.5">Product Name</label>
+              <input
+                type="text"
+                placeholder="Enter product name"
+                value={editForm.name}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5">Slug (URL)</label>
+              <input
+                type="text"
+                placeholder={editForm.name ? editForm.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : "my-awesome-product"}
+                value={editForm.slug}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
+                className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5">Description</label>
+              <textarea
+                placeholder="Describe your product..."
+                rows={3}
+                value={editForm.description}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5">Price</label>
+              <div className="relative">
+                <div className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground font-bold text-[10px] flex items-center justify-center">
+                  {currency === 'NGN' ? '₦' : '$'}
+                </div>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  value={editForm.price}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  className="w-full pl-8 p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
               </div>
             </div>
-            <div className="p-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Product Name</label>
-                <input
-                  type="text"
-                  placeholder="Enter product name"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Description</label>
-                <textarea
-                  placeholder="Describe your product..."
-                  rows={3}
-                  value={editForm.description}
-                  onChange={(e) =>
-                    setEditForm((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Price</label>
-                <div className="relative">
-                  <div className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground font-bold text-[10px] flex items-center justify-center">
-                    {currency === 'NGN' ? '₦' : '$'}
-                  </div>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={editForm.price}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        price: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    className="w-full pl-8 p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5">Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
-                  className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button className="flex-1 h-8 text-xs" onClick={handleUpdateProduct} disabled={loading}>
-                  {loading ? 'Updating...' : 'Update Product'}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 h-8 text-xs"
-                  onClick={closeEditModal}
-                >
-                  Cancel
-                </Button>
-              </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5">Status</label>
+              <select
+                value={editForm.status}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, status: e.target.value }))}
+                className="w-full p-2.5 border rounded text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closeEditModal}>Cancel</Button>
+            <Button onClick={handleUpdateProduct} disabled={loading}>
+              {loading ? 'Updating...' : 'Update Product'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
+    <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete product?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This product will be permanently deleted.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => deleteTargetId && handleDeleteProduct(deleteTargetId)}
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }
 

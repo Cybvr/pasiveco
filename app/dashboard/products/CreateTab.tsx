@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,11 +12,13 @@ import { toast } from 'sonner'
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
 import { useCurrency } from '@/context/CurrencyContext'
+import { slugify } from '@/utils/slugify'
 
 type LessonForm = { title: string; content: string; videoUrl: string }
 type AvailabilityForm = { day: string; start: string; end: string }
 type CreateProductFormData = {
   name: string
+  slug: string
   description: string
   price: string
   currency: string
@@ -44,6 +46,7 @@ interface CreateTabProps {
 
 const DEFAULT_FORM_DATA: CreateProductFormData = {
   name: '',
+  slug: '',
   description: '',
   price: '',
   currency: 'NGN',
@@ -316,6 +319,7 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
         userId: currentUserId,
         name: formData.name.trim(),
+        slug: formData.slug.trim() || slugify(formData.name),
         description: formData.description.trim(),
         price: parseFloat(formData.price) || 0,
         currency: formData.currency,
@@ -373,6 +377,29 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
           />
+        </div>
+
+        <div>
+          <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Slug (URL) *</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleInputChange('slug', slugify(formData.name))}
+              className="px-2"
+              title="Auto-generate from Title"
+            >
+              <Wand2 className="h-4 w-4" />
+            </Button>
+            <Input
+              type="text"
+              placeholder={slugify(formData.name) || "my-awesome-product"}
+              value={formData.slug}
+              onChange={(e) => handleInputChange('slug', e.target.value)}
+              className="w-full"
+            />
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

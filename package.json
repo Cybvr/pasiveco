@@ -6,9 +6,9 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "next dev --webpack --port 3000 --hostname 0.0.0.0",
+    "dev": "next dev --webpack --port 3001 --hostname 0.0.0.0",
     "build": "next build --webpack",
-    "start": "next start --port 3000 --hostname 0.0.0.0",
+    "start": "next start --port 3001 --hostname 0.0.0.0",
     "lint": "next lint",
     "migrate-features": "node scripts/migrate-features.js",
     "migrate-social-data": "node scripts/migrate-social-data.js",
@@ -89,7 +89,7 @@
     "react-day-picker": "^9.0.8",
     "react-dom": "^19.2.4",
     "react-hook-form": "^7.52.2",
-    "react-icons": "^5.5.0",
+    "react-icons": "^5.6.0",
     "recharts": "^2.12.7",
     "sonner": "^1.7.4",
     "stream-browserify": "^3.0.0",

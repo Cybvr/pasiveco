@@ -25,6 +25,16 @@ export default function Register() {
   const router = useRouter()
 
   useEffect(() => {
+    const pendingDataRaw = localStorage.getItem("pending_onboarding_ai")
+    if (pendingDataRaw) {
+      const pendingData = JSON.parse(pendingDataRaw)
+      if (pendingData?.profile?.email) {
+        setEmail(pendingData.profile.email)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user && !window.location.search.includes('intentional=true')) {
         router.push('/dashboard')
@@ -39,13 +49,18 @@ export default function Register() {
     setError('')
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      const uid = userCredential.user.uid
+      
+      // Check for pending AI onboarding data
+      const pendingDataRaw = localStorage.getItem("pending_onboarding_ai")
+      const pendingData = pendingDataRaw ? JSON.parse(pendingDataRaw) : null
+
+      const userData = {
         email: email,
         createdAt: new Date(),
         updatedAt: new Date(),
         plan: 'free',
-        displayName: '',
+        displayName: pendingData?.profile?.name || '',
         phoneNumber: '',
         avatar: '',
         profilePicture: '',
@@ -54,11 +69,45 @@ export default function Register() {
         isAdmin: false,
         role: 'user',
         username: email.split('@')[0],
-        bio: '',
+        bio: pendingData?.profile?.bio || '',
         slug: email.split('@')[0],
+        brandPreferences: pendingData?.profile?.brandVoice || '',
+        category: pendingData?.profile?.category || '',
         links: [],
         socialLinks: []
-      })
+      }
+
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', uid), userData)
+
+      // Create AI products if any
+      if (pendingData?.products?.length) {
+        const { createProduct } = await import('@/services/productsService')
+        const { slugify } = await import('@/utils/slugify')
+        
+        for (const p of pendingData.products) {
+          try {
+            await createProduct({
+              userId: uid,
+              name: p.name,
+              slug: slugify(p.name),
+              description: p.description,
+              price: Number(p.price),
+              currency: 'NGN',
+              category: p.productType,
+              images: [],
+              thumbnail: '',
+              status: 'active',
+              tags: [],
+              details: { deliveryMode: 'silent_email' }
+            } as any)
+          } catch (err) {
+            console.error("Failed to create AI product:", err)
+          }
+        }
+      }
+
+      localStorage.removeItem("pending_onboarding_ai")
       router.push('/dashboard')
     } catch (error) {
       setError(error.message)
@@ -68,12 +117,72 @@ export default function Register() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider)
+      const userCredential = await signInWithPopup(auth, provider)
+      const uid = userCredential.user.uid
+      const email = userCredential.user.email || ""
+      
+      // For Google sign-in, check if user doc exists. 
+      // If NOT, we process the onboarding
+      const { getDoc, doc } = await import('firebase/firestore')
+      const docSnap = await getDoc(doc(db, 'users', uid))
+      
+      if (!docSnap.exists()) {
+         const pendingDataRaw = localStorage.getItem("pending_onboarding_ai")
+         const pendingData = pendingDataRaw ? JSON.parse(pendingDataRaw) : null
+         
+         const userData = {
+            email: email,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            plan: 'free',
+            displayName: userCredential.user.displayName || pendingData?.profile?.name || '',
+            phoneNumber: '',
+            avatar: userCredential.user.photoURL || '',
+            profilePicture: userCredential.user.photoURL || '',
+            emailVerified: true,
+            isActive: true,
+            isAdmin: false,
+            role: 'user',
+            username: email.split('@')[0] || uid.slice(0, 5),
+            bio: pendingData?.profile?.bio || '',
+            slug: email.split('@')[0] || uid.slice(0, 5),
+            brandPreferences: pendingData?.profile?.brandVoice || '',
+            category: pendingData?.profile?.category || '',
+            links: [],
+            socialLinks: []
+          }
+          
+          await setDoc(doc(db, 'users', uid), userData)
+          
+          if (pendingData?.products?.length) {
+            const { createProduct } = await import('@/services/productsService')
+            const { slugify } = await import('@/utils/slugify')
+            for (const p of pendingData.products) {
+              await createProduct({
+                userId: uid,
+                name: p.name,
+                slug: slugify(p.name),
+                description: p.description,
+                price: Number(p.price),
+                currency: 'NGN',
+                category: p.productType,
+                images: [],
+                thumbnail: '',
+                status: 'active',
+                tags: [],
+                details: { deliveryMode: 'silent_email' }
+              } as any)
+            }
+          }
+          localStorage.removeItem("pending_onboarding_ai")
+      }
+      
       router.push('/dashboard')
     } catch (error) {
       if (error.code === 'auth/popup-closed-by-user') {
         setError('Sign up was cancelled. Please try again.')
       } else {
+        console.error("Google sign in error:", error)
         setError('Unable to sign up. Please try again.')
       }
     }

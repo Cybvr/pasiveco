@@ -14,6 +14,7 @@ export interface Community {
   price?: number;
   currency?: string;
   isPaid?: boolean;
+  slug: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   tags?: string[];
