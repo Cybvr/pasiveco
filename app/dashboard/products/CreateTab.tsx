@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { CalendarClock, Image as ImageIcon, Layers3, Package, Plus, Trash2, Upload, Video } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +11,7 @@ import { getProductTypeLabel, PRODUCT_TYPE_OPTIONS, type ProductTypeId } from '@
 import { toast } from 'sonner'
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
+import { useCurrency } from '@/context/CurrencyContext'
 
 type LessonForm = { title: string; content: string; videoUrl: string }
 type AvailabilityForm = { day: string; start: string; end: string }
@@ -62,6 +63,7 @@ const DEFAULT_FORM_DATA: CreateProductFormData = {
 const DAYS: AvailabilityForm['day'][] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 function CreateTab({ user, selectedCategory, onProductCreated, existingProducts = [] }: CreateTabProps) {
+  const { currency } = useCurrency()
   const [productType, setProductType] = useState<ProductTypeId>(selectedCategory || 'digital-download')
   const [loading, setLoading] = useState(false)
   const [isPublished, setIsPublished] = useState(true)
@@ -69,6 +71,8 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState('')
   const [downloadFile, setDownloadFile] = useState<File | null>(null)
+  const [imageDragging, setImageDragging] = useState(false)
+  const [fileDragging, setFileDragging] = useState(false)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -78,7 +82,6 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
     }
   }, [selectedCategory])
 
-  const currentType = PRODUCT_TYPE_OPTIONS.find((type) => type.id === productType) || PRODUCT_TYPE_OPTIONS[0]
   const bundleCandidates = useMemo(
     () => existingProducts.filter((product): product is Product & { id: string } => Boolean(product?.id) && product.category !== 'bundle'),
     [existingProducts]
@@ -111,16 +114,32 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
     }
   }
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
+  const handleImageChange = (file: File) => {
     setImageFile(file)
     const reader = new FileReader()
     reader.onloadend = () => {
       setImagePreview(reader.result?.toString() || '')
     }
     reader.readAsDataURL(file)
+  }
+
+  const handleImageInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) handleImageChange(file)
+  }
+
+  const handleImageDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setImageDragging(false)
+    const file = event.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleImageChange(file)
+  }
+
+  const handleFileDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setFileDragging(false)
+    const file = event.dataTransfer.files?.[0]
+    if (file) setDownloadFile(file)
   }
 
   const handleInputChange = (field: keyof CreateProductFormData, value: CreateProductFormData[keyof CreateProductFormData]) => {
@@ -338,358 +357,338 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-3 border-b border-border/60 pb-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted">
-          <currentType.icon className="h-4 w-4 text-foreground" />
+    <div className="space-y-6">
+
+      {/* Core details */}
+      <div className="space-y-4">
+        <div>
+          <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Title *</Label>
+          <Input
+            type="text"
+            placeholder="Enter product title"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+          />
         </div>
-        <div className="space-y-1">
-          <h2 className="text-base font-semibold tracking-tight">Product details</h2>
-          <p className="text-sm text-muted-foreground">{currentType.description}. Configure the fields customers need before checkout.</p>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Product Type</Label>
+            <Select value={productType} onValueChange={(value) => setProductType(value as ProductTypeId)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select product type" />
+              </SelectTrigger>
+              <SelectContent>
+                {PRODUCT_TYPE_OPTIONS.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Price ({currency})</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={formData.price}
+              onChange={(e) => handleInputChange('price', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Description</Label>
+          <Textarea
+            placeholder="Describe what the customer gets..."
+            rows={3}
+            value={formData.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            className="resize-none"
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-        <div className="space-y-4">
-          <section className="rounded-lg border border-border/60 bg-background">
-            <div className="grid gap-4 p-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Title *</Label>
-                <Input
-                  type="text"
-                  placeholder="Enter product title"
-                  value={formData.name}
-                  onChange={(event) => handleInputChange('name', event.target.value)}
-                  className="border border-input bg-background"
-                />
+      {/* Cover image drop zone */}
+      <div>
+        <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Cover Image</Label>
+        <div
+          onClick={() => imageInputRef.current?.click()}
+          onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
+          onDragLeave={() => setImageDragging(false)}
+          onDrop={handleImageDrop}
+          className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors
+            ${imageDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
+        >
+          {imagePreview ? (
+            <>
+              <img src={imagePreview} alt="Cover preview" className="max-h-40 w-auto rounded-md object-contain" />
+              <p className="text-xs text-muted-foreground">Click or drop to replace</p>
+            </>
+          ) : (
+            <>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                <ImageIcon className="h-4 w-4 text-muted-foreground" />
               </div>
-
               <div>
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Product Type</Label>
-                <Select value={productType} onValueChange={(value) => setProductType(value as ProductTypeId)}>
-                  <SelectTrigger className="h-10 border border-input bg-background">
-                    <SelectValue placeholder="Select product type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_TYPE_OPTIONS.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p className="text-sm font-medium">Drop your image here</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">PNG or JPG — click to browse</p>
               </div>
+            </>
+          )}
+          <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageInputChange} className="hidden" id="imageUpload" />
+        </div>
+      </div>
 
-              <div>
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Price</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.price}
-                  onChange={(event) => handleInputChange('price', event.target.value)}
-                  className="border border-input bg-background"
-                />
-              </div>
+      {/* Type-specific sections */}
 
-              <div className="sm:col-span-2">
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Description</Label>
-                <Textarea
-                  placeholder="Describe what the customer gets..."
-                  rows={4}
-                  value={formData.description}
-                  onChange={(event) => handleInputChange('description', event.target.value)}
-                  className="min-h-[120px] resize-y"
-                />
-              </div>
+      {productType === 'tickets' && (
+        <div className="space-y-4 rounded-lg border border-border/60 p-4">
+          <div>
+            <p className="text-sm font-medium">Ticket settings</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">QR code delivery and purchase email happen automatically after checkout.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Event date + time</Label>
+              <Input type="datetime-local" value={formData.eventDateTime} onChange={(e) => handleInputChange('eventDateTime', e.target.value)} />
             </div>
-          </section>
-
-          <section className="rounded-lg border border-border/60 bg-background p-4">
-            <div className="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium">Publishing</p>
-                <p className="text-xs text-muted-foreground">Choose whether this product should go live now or stay in draft.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Draft</span>
-                <Switch checked={isPublished} onCheckedChange={setIsPublished} aria-label="Publish product" />
-                <span className="text-xs font-medium text-foreground">Publish</span>
-              </div>
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Quantity available</Label>
+              <Input type="number" min="0" placeholder="100" value={formData.quantityAvailable} onChange={(e) => handleInputChange('quantityAvailable', e.target.value)} />
             </div>
-          </section>
+            <div className="sm:col-span-2">
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Event location</Label>
+              <Input type="text" placeholder="Address or livestream link" value={formData.eventLocation} onChange={(e) => handleInputChange('eventLocation', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      )}
 
-          {productType === 'tickets' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
+      {productType === 'courses' && (
+        <div className="space-y-4 rounded-lg border border-border/60 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Course lessons</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Build an ordered lesson list with content and optional video links.</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={addLesson} className="gap-1.5 shrink-0">
+              <Plus className="h-3.5 w-3.5" />
+              Add lesson
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {formData.lessons.map((lesson, index) => (
+              <div key={`lesson-${index}`} className="space-y-3 border-l-2 border-border/60 pl-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium text-muted-foreground">Lesson {index + 1}</p>
+                  {formData.lessons.length > 1 && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(index)} className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+                <Input placeholder="Lesson title" value={lesson.title} onChange={(e) => handleLessonChange(index, 'title', e.target.value)} />
+                <Textarea placeholder="Lesson content" value={lesson.content} onChange={(e) => handleLessonChange(index, 'content', e.target.value)} className="min-h-[80px] resize-none" />
+                <div className="relative">
+                  <Video className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Optional video URL" value={lesson.videoUrl} onChange={(e) => handleLessonChange(index, 'videoUrl', e.target.value)} className="pl-9" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Drip schedule</Label>
+              <Input placeholder="e.g. Weekly unlock" value={formData.dripSchedule} onChange={(e) => handleInputChange('dripSchedule', e.target.value)} />
+            </div>
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Enrollment limit</Label>
+              <Input type="number" min="0" placeholder="Optional" value={formData.enrollmentLimit} onChange={(e) => handleInputChange('enrollmentLimit', e.target.value)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {productType === 'digital-download' && (
+        <div className="space-y-3 rounded-lg border border-border/60 p-4">
+          <div>
+            <p className="text-sm font-medium">Digital file delivery</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">The download link is sent silently by email after purchase.</p>
+          </div>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setFileDragging(true) }}
+            onDragLeave={() => setFileDragging(false)}
+            onDrop={handleFileDrop}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors
+              ${fileDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+              <UploadCloud className="h-4 w-4 text-muted-foreground" />
+            </div>
+            {downloadFile ? (
               <div>
-                <p className="text-sm font-medium">Ticket settings</p>
-                <p className="text-xs text-muted-foreground">QR code delivery and purchase email happen automatically after checkout.</p>
+                <p className="text-sm font-medium">{downloadFile.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Click or drop to replace</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Event date + time</Label>
-                  <Input type="datetime-local" value={formData.eventDateTime} onChange={(event) => handleInputChange('eventDateTime', event.target.value)} className="border border-input bg-background" />
-                </div>
-                <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Quantity available</Label>
-                  <Input type="number" min="0" placeholder="100" value={formData.quantityAvailable} onChange={(event) => handleInputChange('quantityAvailable', event.target.value)} className="border border-input bg-background" />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Event location</Label>
-                  <Input type="text" placeholder="Address or livestream link" value={formData.eventLocation} onChange={(event) => handleInputChange('eventLocation', event.target.value)} className="border border-input bg-background" />
-                </div>
-              </div>
-            </section>
-          )}
-
-          {productType === 'courses' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium">Course lessons</p>
-                  <p className="text-xs text-muted-foreground">Build an ordered lesson list with content and optional video links.</p>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={addLesson} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add lesson
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {formData.lessons.map((lesson, index) => (
-                  <div key={`lesson-${index}`} className="rounded-lg border border-border/60 p-3 space-y-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Lesson {index + 1}</p>
-                      {formData.lessons.length > 1 && (
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(index)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Input placeholder="Lesson title" value={lesson.title} onChange={(event) => handleLessonChange(index, 'title', event.target.value)} className="border border-input bg-background" />
-                    <Textarea placeholder="Lesson content" value={lesson.content} onChange={(event) => handleLessonChange(index, 'content', event.target.value)} className="min-h-[100px] resize-y" />
-                    <div className="relative">
-                      <Video className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Optional video URL" value={lesson.videoUrl} onChange={(event) => handleLessonChange(index, 'videoUrl', event.target.value)} className="border border-input bg-background pl-9" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Drip schedule</Label>
-                  <Input placeholder="e.g. Weekly unlock" value={formData.dripSchedule} onChange={(event) => handleInputChange('dripSchedule', event.target.value)} className="border border-input bg-background" />
-                </div>
-                <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Enrollment limit</Label>
-                  <Input type="number" min="0" placeholder="Optional" value={formData.enrollmentLimit} onChange={(event) => handleInputChange('enrollmentLimit', event.target.value)} className="border border-input bg-background" />
-                </div>
-              </div>
-            </section>
-          )}
-
-          {productType === 'digital-download' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
+            ) : (
               <div>
-                <p className="text-sm font-medium">Digital file delivery</p>
-                <p className="text-xs text-muted-foreground">The uploaded file is stored securely and the download link is sent silently by email after purchase.</p>
+                <p className="text-sm font-medium">Drop your file here</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">PDFs, ZIPs, templates, presets, and more — click to browse</p>
               </div>
-              <div className="rounded-lg border border-dashed border-border/70 bg-muted/20 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Upload className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Upload file</p>
-                    <p className="text-xs text-muted-foreground">PDFs, ZIPs, templates, presets, and other deliverables are supported.</p>
-                  </div>
-                </div>
-                <input ref={fileInputRef} type="file" onChange={(event) => setDownloadFile(event.target.files?.[0] || null)} className="hidden" id="productDownloadUpload" />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    Choose file
-                  </Button>
-                  <p className="text-xs text-muted-foreground">{downloadFile ? downloadFile.name : 'No file selected yet.'}</p>
-                </div>
-              </div>
-            </section>
-          )}
+            )}
+            <input ref={fileInputRef} type="file" onChange={(e) => setDownloadFile(e.target.files?.[0] || null)} className="hidden" id="productDownloadUpload" />
+          </div>
+        </div>
+      )}
 
-          {productType === 'membership' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
+      {productType === 'membership' && (
+        <div className="space-y-4 rounded-lg border border-border/60 p-4">
+          <div>
+            <p className="text-sm font-medium">Membership settings</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Define the recurring cadence and perks members receive.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Billing interval</Label>
+              <Select value={formData.billingInterval} onValueChange={(value) => handleInputChange('billingInterval', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select interval" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Perks list</Label>
+            <Textarea placeholder={'One perk per line\nExclusive posts\nCommunity access\nMonthly Q&A'} value={formData.perksText} onChange={(e) => handleInputChange('perksText', e.target.value)} className="min-h-[100px] resize-none" />
+          </div>
+        </div>
+      )}
+
+      {productType === 'booking' && (
+        <div className="space-y-4 rounded-lg border border-border/60 p-4">
+          <div>
+            <p className="text-sm font-medium">1:1 booking settings</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Set session length, the times you&apos;re available, and where the call should happen.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Session length (minutes)</Label>
+              <Input type="number" min="1" value={formData.sessionLength} onChange={(e) => handleInputChange('sessionLength', e.target.value)} />
+            </div>
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Video link</Label>
+              <Input type="url" placeholder="https://meet.google.com/..." value={formData.videoLink} onChange={(e) => handleInputChange('videoLink', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium">Membership settings</p>
-                <p className="text-xs text-muted-foreground">Define the recurring cadence and perks members receive.</p>
+                <p className="text-sm font-medium">Availability</p>
+                <p className="text-xs text-muted-foreground">Add the days and hours customers can book.</p>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <Button type="button" variant="outline" size="sm" onClick={addAvailabilitySlot} className="gap-1.5 shrink-0">
+                <Plus className="h-3.5 w-3.5" />
+                Add slot
+              </Button>
+            </div>
+
+            {formData.availability.map((slot, index) => (
+              <div key={`slot-${index}`} className="grid gap-3 border-l-2 border-border/60 pl-4 sm:grid-cols-[160px_1fr_1fr_auto] sm:items-end">
                 <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Billing interval</Label>
-                  <Select value={formData.billingInterval} onValueChange={(value) => handleInputChange('billingInterval', value)}>
-                    <SelectTrigger className="h-10 border border-input bg-background">
-                      <SelectValue placeholder="Select interval" />
+                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Day</Label>
+                  <Select value={slot.day} onValueChange={(value) => handleAvailabilityChange(index, 'day', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Day" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
+                      {DAYS.map((day) => (
+                        <SelectItem key={day} value={day}>{day.charAt(0).toUpperCase() + day.slice(1)}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div>
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Perks list</Label>
-                <Textarea placeholder={'One perk per line\nExclusive posts\nCommunity access\nMonthly Q&A'} value={formData.perksText} onChange={(event) => handleInputChange('perksText', event.target.value)} className="min-h-[120px] resize-y" />
-              </div>
-            </section>
-          )}
-
-          {productType === 'booking' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
-              <div>
-                <p className="text-sm font-medium">1:1 booking settings</p>
-                <p className="text-xs text-muted-foreground">Set session length, the times you&apos;re available, and where the call should happen.</p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Session length (minutes)</Label>
-                  <Input type="number" min="1" value={formData.sessionLength} onChange={(event) => handleInputChange('sessionLength', event.target.value)} className="border border-input bg-background" />
+                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Start</Label>
+                  <Input type="time" value={slot.start} onChange={(e) => handleAvailabilityChange(index, 'start', e.target.value)} />
                 </div>
                 <div>
-                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Video link</Label>
-                  <Input type="url" placeholder="https://meet.google.com/..." value={formData.videoLink} onChange={(event) => handleInputChange('videoLink', event.target.value)} className="border border-input bg-background" />
+                  <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">End</Label>
+                  <Input type="time" value={slot.end} onChange={(e) => handleAvailabilityChange(index, 'end', e.target.value)} />
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium">Availability</p>
-                    <p className="text-xs text-muted-foreground">Add the days and hours customers can book.</p>
-                  </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addAvailabilitySlot} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Add slot
+                {formData.availability.length > 1 && (
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeAvailabilitySlot(index)} className="h-10 w-10 text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                </div>
-
-                {formData.availability.map((slot, index) => (
-                  <div key={`slot-${index}`} className="grid gap-3 rounded-lg border border-border/60 p-3 sm:grid-cols-[160px_1fr_1fr_auto] sm:items-end">
-                    <div>
-                      <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Day</Label>
-                      <Select value={slot.day} onValueChange={(value) => handleAvailabilityChange(index, 'day', value)}>
-                        <SelectTrigger className="h-10 border border-input bg-background">
-                          <SelectValue placeholder="Day" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DAYS.map((day) => (
-                            <SelectItem key={day} value={day}>{day.charAt(0).toUpperCase() + day.slice(1)}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Start</Label>
-                      <Input type="time" value={slot.start} onChange={(event) => handleAvailabilityChange(index, 'start', event.target.value)} className="border border-input bg-background" />
-                    </div>
-                    <div>
-                      <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">End</Label>
-                      <Input type="time" value={slot.end} onChange={(event) => handleAvailabilityChange(index, 'end', event.target.value)} className="border border-input bg-background" />
-                    </div>
-                    {formData.availability.length > 1 && (
-                      <Button type="button" variant="ghost" size="icon" onClick={() => removeAvailabilitySlot(index)} className="h-10 w-10">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
+                )}
               </div>
-            </section>
-          )}
-
-          {productType === 'bundle' && (
-            <section className="rounded-lg border border-border/60 bg-background p-4 space-y-4">
-              <div>
-                <p className="text-sm font-medium">Bundle contents</p>
-                <p className="text-xs text-muted-foreground">Select existing products to include in this offer.</p>
-              </div>
-              {bundleCandidates.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border/70 bg-muted/20 p-4 text-sm text-muted-foreground">
-                  Add at least one other product first, then come back to create a bundle.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {bundleCandidates.map((product) => {
-                    const selected = formData.bundleProductIds.includes(product.id)
-                    return (
-                      <button
-                        key={product.id}
-                        type="button"
-                        onClick={() => toggleBundleProduct(product.id)}
-                        className={`flex w-full items-start justify-between rounded-lg border p-3 text-left transition ${selected ? 'border-primary bg-primary/5' : 'border-border/60 bg-background'}`}
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{getProductTypeLabel(product.category)}</p>
-                        </div>
-                        <div className={`mt-0.5 h-5 w-5 rounded-full border ${selected ? 'border-primary bg-primary' : 'border-border bg-background'}`} />
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </section>
-          )}
-
-          <section className="rounded-lg border border-dashed border-border/70 bg-muted/20 p-4">
-            <Label className="mb-3 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Cover image</Label>
-            <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-dashed border-border/80 bg-background px-4 py-6 text-center">
-              {imagePreview ? (
-                <img src={imagePreview} alt="Product Preview" className="max-h-36 w-auto rounded-md object-contain" />
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                </div>
-              )}
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{imageFile ? 'Change cover image' : 'Upload cover image'}</p>
-                <p className="text-xs text-muted-foreground">PNG or JPG works best for product covers.</p>
-              </div>
-              <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" id="imageUpload" />
-              <Button type="button" variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => imageInputRef.current?.click()}>
-                Choose image
-              </Button>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
+      )}
 
-        <aside className="h-fit rounded-lg border border-border/60 bg-muted/20 p-4 space-y-4">
-          <div className="space-y-1 border-b border-border/60 pb-3">
-            <p className="text-sm font-medium">{currentType.name}</p>
-            <p className="text-xs text-muted-foreground">{currentType.badge}</p>
+      {productType === 'bundle' && (
+        <div className="space-y-3 rounded-lg border border-border/60 p-4">
+          <div>
+            <p className="text-sm font-medium">Bundle contents</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Select existing products to include in this offer.</p>
           </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Package className="h-4 w-4" />
-              {isPublished ? 'Will publish immediately' : 'Saved as draft'}
+          {bundleCandidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Add at least one other product first, then come back to create a bundle.</p>
+          ) : (
+            <div className="space-y-1">
+              {bundleCandidates.map((product) => {
+                const selected = formData.bundleProductIds.includes(product.id)
+                return (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => toggleBundleProduct(product.id)}
+                    className={`flex w-full items-center justify-between rounded-md border px-3 py-2.5 text-left transition-colors ${selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'}`}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">{getProductTypeLabel(product.category)}</p>
+                    </div>
+                    <div className={`h-4 w-4 rounded-full border-2 transition-colors ${selected ? 'border-primary bg-primary' : 'border-muted-foreground/40'}`} />
+                  </button>
+                )
+              })}
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <CalendarClock className="h-4 w-4" />
-              Core fields wired for checkout and preview
-            </div>
-            {productType === 'bundle' && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Layers3 className="h-4 w-4" />
-                {formData.bundleProductIds.length} product{formData.bundleProductIds.length === 1 ? '' : 's'} selected
-              </div>
-            )}
-          </div>
+          )}
+        </div>
+      )}
 
-          <Button className="w-full gap-2" onClick={handleCreateProduct} disabled={loading || !formData.name.trim()}>
-            <Package className="h-4 w-4" />
-            {loading ? 'Saving...' : 'Save product'}
-          </Button>
-        </aside>
+      {/* Publishing toggle */}
+      <div className="flex items-center justify-between rounded-lg border border-border/60 px-4 py-3">
+        <div>
+          <p className="text-sm font-medium">Publishing</p>
+          <p className="text-xs text-muted-foreground">Go live now or save as draft.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Draft</span>
+          <Switch checked={isPublished} onCheckedChange={setIsPublished} aria-label="Publish product" />
+          <span className="text-xs font-medium">Live</span>
+        </div>
       </div>
+
+      {/* Submit */}
+      <Button className="w-full gap-2" onClick={handleCreateProduct} disabled={loading || !formData.name.trim()}>
+        <Package className="h-4 w-4" />
+        {loading ? 'Saving...' : 'Save product'}
+      </Button>
     </div>
   )
 }

@@ -6,10 +6,8 @@ import {
   Copy,
   Settings,
   Trash2,
-  DollarSign,
   MoreVertical,
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -20,8 +18,11 @@ import {
 import { deleteProduct, updateProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
+import { useCurrency } from '@/context/CurrencyContext'
+import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 
 function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, hasBankingDetails = false }) {
+  const { currency } = useCurrency()
   const [editingProduct, setEditingProduct] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editForm, setEditForm] = useState({})
@@ -106,72 +107,77 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {isLoading &&
           Array.from({ length: 6 }).map((_, index) => (
-            <Card key={`product-skeleton-${index}`}>
-              <CardContent className="p-3 space-y-3">
-                <Skeleton className="w-full aspect-square rounded-md" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/3" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={`product-skeleton-${index}`} className="p-3 space-y-3">
+              <Skeleton className="w-full aspect-square rounded-md" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/3" />
+              </div>
+            </div>
           ))}
 
         {!isLoading && products.map((product) => (
-          <Card key={product.id} className="cursor-pointer transition-colors hover:border-primary/40" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ' ) { event.preventDefault(); handleEditProduct(product) } }}>
-            <CardContent className="p-3 space-y-3">
-              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
-                {product.thumbnail ? (
-                  <img
-                    src={product.thumbnail}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Package className="h-8 w-8 text-primary" />
-                  </div>
-                )}
+          <div key={product.id} className="cursor-pointer p-3 space-y-3" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+            <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
+              {product.thumbnail ? (
+                <img
+                  src={product.thumbnail}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                  <Package className="h-8 w-8 text-primary" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
+                <p className="text-sm font-semibold text-green-600">
+                  {formatCurrency(
+                    (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                      ? product.price * EXCHANGE_RATE
+                      : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                        ? product.price / EXCHANGE_RATE
+                        : product.price,
+                    currency
+                  )}
+                </p>
               </div>
 
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                  <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                  <p className="text-sm font-semibold text-green-600">${product.price.toFixed(2)}</p>
-                </div>
-
-                <div className="shrink-0 -mr-1 -mt-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-7 w-7 rounded-full"
-                        aria-label="Product actions"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
-                        <Settings className="mr-2 h-3.5 w-3.5" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
-                        <Copy className="mr-2 h-3.5 w-3.5" />
-                        Copy
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+              <div className="shrink-0 -mr-1 -mt-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-7 w-7 rounded-full"
+                      aria-label="Product actions"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
+                      <Settings className="mr-2 h-3.5 w-3.5" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
+                      <Copy className="mr-2 h-3.5 w-3.5" />
+                      Copy
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -220,7 +226,9 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
               <div>
                 <label className="block text-xs font-semibold mb-1.5">Price</label>
                 <div className="relative">
-                  <DollarSign className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground font-bold text-[10px] flex items-center justify-center">
+                    {currency === 'NGN' ? '₦' : '$'}
+                  </div>
                   <input
                     type="number"
                     placeholder="0.00"

@@ -10,6 +10,9 @@ import { Label } from "@/components/ui/label";
 import { loadStripe } from '@stripe/stripe-js';
 import { toast } from "sonner";
 
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency } from "@/utils/currency";
+
 interface PricingPlansProps {
   onSelectPlan?: (planId: PlanId, billingPeriod: BillingPeriod) => void;
   currentPlan?: string;
@@ -28,6 +31,7 @@ export default function PricingPlans({
   showDowngradeOption = true
 }: PricingPlansProps) {
   const { user } = useAuth();
+  const { currency } = useCurrency();
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(defaultBillingPeriod);
   const annualDiscount = 20; // 20% discount for annual billing
   const plans = Object.entries(pricingPlans);
@@ -138,7 +142,7 @@ export default function PricingPlans({
             {/* Added spacing and consistent price display */}
             <div className="mb-8 flex items-baseline gap-1">
               <span className="text-5xl font-black italic tracking-tighter">
-                ${plan.type === 'free' ? '0' : getPlanPrice(planId as PlanId, billingPeriod).toLocaleString()}
+                {formatCurrency(getPlanPrice(planId as PlanId, billingPeriod, currency), currency)}
               </span>
               {plan.type !== 'free' && <span className="text-muted-foreground font-medium">/{billingPeriod === 'annual' ? 'yr' : 'mo'}</span>}
             </div>

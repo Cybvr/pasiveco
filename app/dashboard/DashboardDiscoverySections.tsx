@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getPublicUsers, type User } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
@@ -78,14 +78,30 @@ export default function DashboardDiscoverySections() {
     return Array.from(categories).sort().slice(0, 12)
   }, [users])
 
-  if (loading || users.length === 0) return null
+  const topicColors = [
+    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)',
+    'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+    'linear-gradient(135deg, #fd7043 0%, #ffb300 100%)',
+    'linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%)',
+    'linear-gradient(135deg, #fc5c7d 0%, #6a3093 100%)',
+    'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+  ]
+
+  if (loading) return <DiscoverySkeleton />
+  if (users.length === 0) return null
 
   const Section = ({ title, creators }: { title: string; creators: DiscoveryProfile[] }) => {
     if (creators.length === 0) return null
     return (
-      <div className="space-y-4 py-3">
+      <div className="space-y-3 py-2">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-lg font-extrabold tracking-tight text-foreground uppercase">{title}</h2>
+          <h2 className="text-lg font-extrabold tracking-tight text-foreground">{title}</h2>
           <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
             View all
           </Link>
@@ -93,9 +109,9 @@ export default function DashboardDiscoverySections() {
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-5 pb-4">
             {creators.map((creator) => (
-              <Link key={creator.id} href={creator.href} className="w-[120px] group transition-all">
+              <Link key={creator.id} href={creator.href} className="w-[120px]">
                 <div className="flex flex-col items-start gap-3">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-transform group-hover:scale-[1.03]">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
                     <Avatar className="h-full w-full rounded-none">
                       <AvatarImage src={creator.image} alt={creator.handle} className="object-cover" />
                       <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
@@ -120,21 +136,35 @@ export default function DashboardDiscoverySections() {
   }
 
   return (
-    <div className="space-y-6 -mx-1">
+    <div className="space-y-2.5 -mx-1">
       <Section title="Popular this week" creators={popularThisWeek} />
       
       {topics.length > 0 && (
-        <div className="space-y-4 py-3">
+        <div className="space-y-3 py-1">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-lg font-extrabold tracking-tight text-foreground uppercase">Explore Topics</h2>
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground">Explore topics</h2>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max space-x-2 pb-2">
-              {topics.map((topic) => (
-                <Link key={topic} href={`/dashboard/discovery?category=${encodeURIComponent(topic)}`}>
-                  <Badge variant="secondary" className="rounded-full px-4 py-1.5 text-[11px] font-semibold hover:bg-foreground hover:text-background transition-colors">
-                    {topic}
-                  </Badge>
+            <div className="flex w-max space-x-3 pb-4">
+              {topics.map((topic, i) => (
+                <Link
+                  key={topic}
+                  href={`/dashboard/discovery/${encodeURIComponent(topic)}`}
+                  className="block flex-shrink-0"
+                >
+                  <div
+                    style={{ background: topicColors[i % topicColors.length] }}
+                    className="relative w-[130px] h-[130px] rounded-2xl overflow-hidden"
+                  >
+                    {/* subtle noise/shimmer overlay */}
+                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")', backgroundSize: '20px 20px' }} />
+                    {/* title pinned to bottom-left */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <span className="text-white text-[13px] font-bold leading-tight drop-shadow-sm line-clamp-2">
+                        {topic}
+                      </span>
+                    </div>
+                  </div>
                 </Link>
               ))}
             </div>
@@ -143,10 +173,8 @@ export default function DashboardDiscoverySections() {
         </div>
       )}
 
-      <Section title="New Creators" creators={newCreators} />
-      <Section title="Top Creators" creators={topCreators} />
-      
-      <div className="h-px bg-border my-6" />
+      <Section title="New creators" creators={newCreators} />
+      <Section title="Top creators" creators={topCreators} />
     </div>
   )
 }

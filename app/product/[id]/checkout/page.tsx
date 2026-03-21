@@ -13,15 +13,25 @@ import { getUser } from '@/services/userService';
 import { initializePaystackPayment } from '@/services/paystackService';
 import { useAuth } from '@/hooks/useAuth';
 
-const formatPrice = (amount: number, currency: string) => {
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency";
+
+const formatPrice = (amount: number, productCurrency: string, userCurrency: string) => {
   try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'NGN',
-      maximumFractionDigits: 2,
-    }).format(amount);
+    let displayPrice = amount;
+    let displayCurrency = productCurrency as any;
+
+    if (productCurrency === 'NGN' && userCurrency === 'USD') {
+      displayPrice = amount / EXCHANGE_RATE;
+      displayCurrency = 'USD';
+    } else if (productCurrency === 'USD' && userCurrency === 'NGN') {
+      displayPrice = amount * EXCHANGE_RATE;
+      displayCurrency = 'NGN';
+    }
+
+    return formatCurrency(displayPrice, displayCurrency);
   } catch {
-    return `${currency} ${amount}`;
+    return `${productCurrency} ${amount}`;
   }
 };
 
@@ -67,10 +77,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string 
     resolveParams();
   }, [params]);
 
+  const { currency: userCurrency } = useCurrency();
   const formattedPrice = useMemo(() => {
     if (!product) return '';
-    return formatPrice(product.price, product.currency || 'NGN');
-  }, [product]);
+    return formatPrice(product.price, product.currency || 'NGN', userCurrency);
+  }, [product, userCurrency]);
 
   const handlePay = async () => {
     if (!product) return;

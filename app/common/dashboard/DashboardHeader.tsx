@@ -110,7 +110,7 @@ export default function DashboardHeader() {
           </Button>
         ) : (
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
+            <SheetTrigger asChild className="md:hidden">
               <button type="button" aria-label="Open profile menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                 <Avatar className="h-9 w-9 border">
                   <AvatarImage src={profilePicture} alt={displayName} />

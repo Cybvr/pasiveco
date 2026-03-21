@@ -59,7 +59,11 @@ export default function Sidebar({
   const isAdmin = pathname.startsWith('/admin')
   
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_NAV_ITEMS)
-  const isItemActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`)
+  const isItemActive = (href: string) => {
+    if (href === '/dashboard') return pathname === href
+    if (href === '/admin') return pathname === href
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
 
   return (
     <div className="flex flex-col h-full bg-card">

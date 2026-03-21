@@ -17,9 +17,24 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { transactions, walletStats } from "@/lib/wallet"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 
 export default function EarningsPage() {
   const router = useRouter()
+  const { currency } = useCurrency()
+
+  const formatEarnings = (amount: number | string) => {
+    if (typeof amount === 'string') return amount;
+    
+    // Assuming the base values in Dummy data are in USD
+    let displayAmount = amount;
+    if (currency === 'NGN') {
+      displayAmount = amount * EXCHANGE_RATE;
+    }
+    
+    return formatCurrency(displayAmount, currency);
+  };
 
   return (
     <div className="space-y-6">
@@ -41,7 +56,9 @@ export default function EarningsPage() {
         {walletStats.map((stat, idx) => (
           <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? "bg-muted/30" : ""}`}>
             <CardContent className="p-3 md:p-4">
-              <div className="text-lg md:text-2xl font-bold leading-tight break-words">{stat.value}</div>
+              <div className="text-lg md:text-2xl font-bold leading-tight break-words">
+                {formatEarnings(stat.value)}
+              </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-1">{stat.title}</p>
             </CardContent>
           </Card>
@@ -75,7 +92,9 @@ export default function EarningsPage() {
                   className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => router.push(`/dashboard/settings/earnings/${tx.id}`)}
                 >
-                  <TableCell className={tx.amount.startsWith("-") ? "text-red-500" : ""}>{tx.amount}</TableCell>
+                  <TableCell className={typeof tx.amount === 'number' && tx.amount < 0 ? "text-red-500" : ""}>
+                    {formatEarnings(tx.amount)}
+                  </TableCell>
                   <TableCell>{tx.date}</TableCell>
                 </TableRow>
               ))}

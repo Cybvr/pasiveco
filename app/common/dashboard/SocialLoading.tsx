@@ -1,5 +1,68 @@
 import { Skeleton } from '@/components/ui/skeleton'
 
+export function HomeSkeleton() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-2.5">
+      <div className="space-y-3 py-1 -mx-1">
+        <div className="flex items-center justify-between gap-3 px-1">
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-4 w-14" />
+        </div>
+        <div className="flex gap-5 overflow-hidden pb-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={`home-product-skeleton-${index}`} className="w-[120px] space-y-3">
+              <Skeleton className="aspect-square w-full rounded-2xl" />
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2.5 -mx-1">
+        {Array.from({ length: 3 }).map((_, sectionIndex) => (
+          <div key={`home-discovery-skeleton-${sectionIndex}`} className="space-y-3 py-1">
+            <div className="flex items-center justify-between gap-3 px-1">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-14" />
+            </div>
+            <div className="flex gap-5 overflow-hidden pb-4">
+              {Array.from({ length: 4 }).map((_, cardIndex) => (
+                <div key={`home-discovery-card-${sectionIndex}-${cardIndex}`} className="w-[120px] space-y-3">
+                  <Skeleton className="aspect-square w-full rounded-2xl" />
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {Array.from({ length: 2 }).map((_, index) => (
+        <div key={`home-feed-skeleton-${index}`} className="rounded-2xl border bg-card p-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-11 w-11 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-[88%]" />
+            <Skeleton className="h-4 w-[72%]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function FeedSkeleton() {
   return (
     <div className="mx-auto max-w-2xl space-y-3">

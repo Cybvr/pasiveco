@@ -32,6 +32,7 @@ export const pricingPlans = {
     name: 'Free Forever',
     description: 'Customizable link-in-bio and essential tools',
     price: 0,
+    priceUsd: 0,
     credits: 5,
     features: [
       "Customizable link-in-bio",
@@ -51,11 +52,13 @@ export const pricingPlans = {
     description: 'The most popular plan for ambitious creators',
     credits: 'Unlimited',
     annual: {
-      price: 300, // $300/year (about $25/month)
+      price: 300000, // ₦300,000/year
+      priceUsd: 300,   // $300/year
       stripePriceId: 'price_1RF4fVHfPlG49dwk9fdm70xg'
     },
     monthly: {
-      price: 30, // $30/month
+      price: 30000,  // ₦30,000/month
+      priceUsd: 30,    // $30/month
       stripePriceId: 'price_1RAT0fHfPlG49dwk4CcCpZBi'
     },
     features: [
@@ -74,10 +77,10 @@ export const pricingPlans = {
 export type PlanId = keyof typeof pricingPlans;
 export type BillingPeriod = 'monthly' | 'annual';
 
-export const getPlanPrice = (planId: PlanId, billingPeriod: BillingPeriod): number => {
+export const getPlanPrice = (planId: PlanId, billingPeriod: BillingPeriod, currency: 'NGN' | 'USD' = 'NGN'): number => {
   const plan = pricingPlans[planId];
   if (plan.type === 'free') return 0;
-  return plan[billingPeriod].price;
+  return currency === 'USD' ? plan[billingPeriod].priceUsd : plan[billingPeriod].price;
 };
 
 export const getPlanStripePriceId = (planId: PlanId, billingPeriod: BillingPeriod): string | null => {

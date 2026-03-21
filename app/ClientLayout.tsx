@@ -1,5 +1,6 @@
 "use client"
 import { AuthProvider } from '@/context/AuthContext'
+import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { useEffect } from 'react'
@@ -43,10 +44,12 @@ export default function ClientLayout({
 
   return (
     <AuthProvider>
-      {children}
-      {!isSlugPage && !isDashboardRoute}
-      <Toaster />
-      <Sonner />
+      <CurrencyProvider>
+        {children}
+        {!isSlugPage && !isDashboardRoute}
+        <Toaster />
+        <Sonner />
+      </CurrencyProvider>
     </AuthProvider>
   )
 }

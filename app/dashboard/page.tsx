@@ -2,14 +2,13 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { Heart, MessageCircle, Send } from 'lucide-react'
-
-import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
+import { Heart, Landmark, MessageCircle, Package, PackagePlus, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { FeedSkeleton } from '@/app/common/dashboard/SocialLoading'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { HomeSkeleton } from '@/app/common/dashboard/SocialLoading'
 import DashboardDiscoverySections from './DashboardDiscoverySections'
-import { getUserProducts } from '@/services/productsService'
+import { getUserProducts, type Product } from '@/services/productsService'
 import { getBankingDetails } from '@/services/bankingDetailsService'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -26,7 +25,7 @@ export default function DashboardHomePage() {
   const [posts, setPosts] = useState<SocialPost[]>([])
   const [profiles, setProfiles] = useState<Record<string, SocialProfile>>({})
   const [loading, setLoading] = useState(true)
-  const [hasProducts, setHasProducts] = useState(true)
+  const [products, setProducts] = useState<Product[]>([])
   const [hasBankingDetails, setHasBankingDetails] = useState(true)
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function DashboardHomePage() {
 
         setPosts(postsData)
         setProfiles(Object.fromEntries(profilesData.map((profile) => [profile.id, profile])))
-        setHasProducts(products.length > 0)
+        setProducts(products)
         setHasBankingDetails(Boolean(bankingDetails))
       } finally {
         if (active) setLoading(false)
@@ -60,6 +59,8 @@ export default function DashboardHomePage() {
   }, [user])
 
   const hasPosts = useMemo(() => posts.length > 0, [posts])
+  const hasProducts = useMemo(() => products.length > 0, [products])
+  const featuredProducts = useMemo(() => products.slice(0, 4), [products])
 
   const handleLike = async (event: React.MouseEvent<HTMLButtonElement>, postId: string) => {
     event.preventDefault()
@@ -72,19 +73,89 @@ export default function DashboardHomePage() {
   }
 
   if (loading) {
-    return <FeedSkeleton />
+    return <HomeSkeleton />
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {!hasProducts && (
-        <NoProductsSection showBankingDetailsAction={!hasBankingDetails} />
-      )}
+    <div className="mx-auto max-w-2xl space-y-2.5">
+      <section className="space-y-3 py-1 -mx-1">
+        <div className="flex items-center justify-between gap-3 px-1">
+          <h2 className="text-lg font-extrabold tracking-tight text-foreground">Your products</h2>
+          {hasProducts && (
+            <Link href="/dashboard/products" className="text-xs font-semibold text-primary hover:underline">
+              View all
+            </Link>
+          )}
+        </div>
+
+        {hasProducts ? (
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max space-x-5 pb-4">
+              {featuredProducts.map((product) => (
+                <Link
+                  key={product.id}
+                  href="/dashboard/products"
+                  className="w-[120px]"
+                >
+                  <div className="flex flex-col items-start gap-3">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+                          <Package className="h-8 w-8 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-full space-y-1 text-left">
+                      <p className="line-clamp-2 text-[13px] font-bold leading-tight text-foreground">{product.name}</p>
+                      <p className="truncate text-[11px] font-semibold text-foreground/80">
+                        {new Intl.NumberFormat(undefined, {
+                          style: 'currency',
+                          currency: product.currency || 'USD',
+                          maximumFractionDigits: 2,
+                        }).format(product.price || 0)}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" className="hidden" />
+          </ScrollArea>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2 px-1 pb-2">
+            <Button asChild size="sm" className="gap-1.5 rounded-full">
+              <Link href="/dashboard/products?new=1">
+                <PackagePlus className="h-3.5 w-3.5" />
+                Add product
+              </Link>
+            </Button>
+            {!hasBankingDetails && (
+              <Button asChild size="sm" variant="outline" className="gap-1.5 rounded-full">
+                <Link href="/dashboard/settings/banking-details">
+                  <Landmark className="h-3.5 w-3.5" />
+                  Add banking details
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
+      </section>
 
       <DashboardDiscoverySections />
 
       {hasPosts ? (
-        <div className="space-y-3">
+        <section className="space-y-3 py-1">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <h2 className="text-lg font-extrabold tracking-tight text-foreground">Post feed</h2>
+          </div>
+
+          <div className="space-y-3">
           {posts.map((post) => {
             const author = profiles[post.authorId]
             if (!author) return null
@@ -93,7 +164,7 @@ export default function DashboardHomePage() {
               <Link
                 key={post.id}
                 href={`/dashboard/posts/${post.id}`}
-                className="block rounded-2xl border bg-card p-3 transition-colors hover:bg-accent/40"
+                className="block rounded-2xl border bg-card p-3"
               >
                 <article className="space-y-2.5">
                   <div className="flex items-center gap-2.5">
@@ -135,7 +206,8 @@ export default function DashboardHomePage() {
               </Link>
             )
           })}
-        </div>
+          </div>
+        </section>
       ) : (
         <div className="rounded-2xl border bg-card p-4 text-sm text-muted-foreground">No posts found.</div>
       )}

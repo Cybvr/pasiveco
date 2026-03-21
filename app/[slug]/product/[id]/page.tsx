@@ -11,15 +11,25 @@ import { getProduct, Product } from '@/services/productsService';
 import { getProductTypeLabel } from '@/lib/productTypes';
 import { getUser } from '@/services/userService';
 
-const formatPrice = (amount: number, currency: string) => {
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency";
+
+const formatPrice = (amount: number, productCurrency: string, userCurrency: string) => {
   try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'NGN',
-      maximumFractionDigits: 2,
-    }).format(amount);
+    let displayPrice = amount;
+    let displayCurrency = productCurrency as any;
+
+    if (productCurrency === 'NGN' && userCurrency === 'USD') {
+      displayPrice = amount / EXCHANGE_RATE;
+      displayCurrency = 'USD';
+    } else if (productCurrency === 'USD' && userCurrency === 'NGN') {
+      displayPrice = amount * EXCHANGE_RATE;
+      displayCurrency = 'NGN';
+    }
+
+    return formatCurrency(displayPrice, displayCurrency);
   } catch {
-    return `${currency} ${amount}`;
+    return `${productCurrency} ${amount}`;
   }
 };
 
@@ -76,8 +86,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
     );
   }
 
+  const { currency: userCurrency } = useCurrency();
   const checkoutHref = `/${routeParams.slug}/product/${product.id || productId}/checkout`;
-  const formattedPrice = formatPrice(product.price, product.currency || 'NGN');
+  const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency);
   const hasDirectLink = Boolean(product.url);
   const hasPaystack = Boolean((product as any).paymentIntegration?.paystack?.enabled);
 

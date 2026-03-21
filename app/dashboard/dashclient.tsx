@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import OnboardingModal from "@/app/common/OnboardingModal"
 import { useAuth } from "@/hooks/useAuth"
 import { db } from "@/lib/firebase"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 import DashboardHeader from "@/app/common/dashboard/DashboardHeader"
 
@@ -18,13 +18,16 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   
 
   useEffect(() => {
+    const SESSION_KEY = 'onboarding_checked'
+    if (sessionStorage.getItem(SESSION_KEY)) return
+
     const checkOnboarding = async () => {
       if (user?.uid) {
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid))
           const userData = userDoc.data()
           const onboardingCompleted = Boolean(userData?.onboardingCompleted)
-
+          sessionStorage.setItem(SESSION_KEY, '1')
           setShowOnboarding(!onboardingCompleted)
         } catch (error) {
           console.error("Error checking onboarding status:", error)
@@ -33,6 +36,21 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     }
     checkOnboarding()
   }, [user])
+
+  const handleOnboardingClose = async () => {
+    setShowOnboarding(false)
+    // Persist the dismissal so the popup never reappears
+    if (user?.uid) {
+      try {
+        await setDoc(doc(db, "users", user.uid), {
+          onboardingCompleted: true,
+          updatedAt: serverTimestamp(),
+        }, { merge: true })
+      } catch (e) {
+        console.error("Failed to persist onboarding dismissal:", e)
+      }
+    }
+  }
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-background">
@@ -58,7 +76,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         <MobileBottomNav />
       </div>
       
-      <OnboardingModal isOpen={showOnboarding} onClose={() => setShowOnboarding(false)} />
+      <OnboardingModal isOpen={showOnboarding} onClose={handleOnboardingClose} />
     </div>
   )
 }

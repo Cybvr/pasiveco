@@ -11,6 +11,8 @@ import { useAuth } from '@/hooks/useAuth'
 import MiniPageModal from "./MiniPageModal"
 import ShareModal from "./ShareModal"
 import Watermark from "./Watermark"
+import { useCurrency } from "@/context/CurrencyContext"
+import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 
 interface SocialLink {
   id: string
@@ -58,6 +60,7 @@ interface BioPagePreviewProps {
 
 const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId, posts = [], emptyStateMessage }) => {
   const { user } = useAuth()
+  const { currency: userCurrency } = useCurrency()
   const [isPageModalOpen, setIsPageModalOpen] = React.useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
   const [products, setProducts] = React.useState<Product[]>([])
@@ -81,6 +84,24 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
 
     if (profileOwnerId || user?.uid) loadProducts()
   }, [user, profileOwnerId])
+
+  const formatProductPrice = (price: number, productCurrency: string) => {
+    let displayPrice = price;
+    let displayCurrency = productCurrency as any;
+
+    // If product is in NGN but user prefers USD, convert it
+    if (productCurrency === 'NGN' && userCurrency === 'USD') {
+      displayPrice = price / EXCHANGE_RATE;
+      displayCurrency = 'USD';
+    } 
+    // If product is in USD but user prefers NGN, convert it (optional, but keep consistent)
+    else if (productCurrency === 'USD' && userCurrency === 'NGN') {
+      displayPrice = price * EXCHANGE_RATE;
+      displayCurrency = 'NGN';
+    }
+
+    return formatCurrency(displayPrice, displayCurrency);
+  };
 
   const socialLinksToDisplay = profileData.socialLinks || []
   const activeProducts = products.filter(product => product.status === 'active')
@@ -188,7 +209,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
                                 <div className="flex items-center justify-between mt-2">
                                   <Badge variant="secondary" className="text-xs">{getProductTypeLabel(product.category)}</Badge>
                                   <span className="font-bold text-sm text-foreground">
-                                    {product.currency === 'USD' ? '$' : product.currency}{product.price}
+                                    {formatProductPrice(product.price, product.currency || 'NGN')}
                                   </span>
                                 </div>
                               </div>
