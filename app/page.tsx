@@ -112,28 +112,28 @@ const FEATURES = [
     title: "Make your brand unforgettable",
     body: "Build a fully customizable Link in Bio or full website to promote your links, products, email list, and all social platforms—in minutes.",
     icon: Palette,
-    image: "/images/artifacts/link_in_bio_design_1773559804736.png",
+    image: "/images/artifacts/african_creator_link_in_bio.png",
   },
   {
     label: "Audience Ownership",
     title: "Screw the algorithm. Market direct to fans.",
     body: "Stop renting your audience—own it. Build a subscriber list, send emails, and automate DMs to turn comments into cash and followers into fans.",
     icon: Mail,
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80",
+    image: "/images/artifacts/african_creator_audience.png",
   },
   {
     label: "Commerce",
-    title: "Sell your products & promote affiliate links",
+    title: "Sell your products online—stop overthinking!",
     body: "Sell digital products, courses, appointments, and link to affiliates, right from your Link in Bio. Drive more sales with native checkout and cash out in one day.",
     icon: DollarSign,
-    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80",
+    image: "https://images.unsplash.com/photo-1621335829175-95f437384d7c?w=800&q=80",
   },
   {
     label: "Brand Deals",
     title: "Build your dream brand partnerships",
     body: "Show brands where to spend their money: on you. Turn affiliate links into brand deals, pitch to brands directly, and use real-time media kits to land partnerships that pay.",
     icon: Briefcase,
-    image: "/images/artifacts/brand_deals_inbox_1773559825324.png",
+    image: "https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?w=800&q=80",
   },
 ]
 
@@ -160,7 +160,7 @@ export default function LandingPage() {
             Creator Platform
           </p>
           <h1 className="text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl lg:text-8xl max-w-4xl mb-8">
-            Everything you need to grow as a creator
+            Pasive | Make great stuff. Make great money.
           </h1>
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
             <div className="max-w-lg text-base text-muted-foreground leading-relaxed">
@@ -196,7 +196,7 @@ export default function LandingPage() {
             </div>
             <div className="relative overflow-hidden rounded-xl border border-border bg-muted/30">
               <img
-                src="/images/artifacts/creator_hub_dashboard_1773559784918.png"
+                src="https://images.unsplash.com/photo-1590650516494-0c8e4a4dd67e?w=1200&q=80"
                 alt="Pasive dashboard"
                 className="w-full h-auto block"
               />

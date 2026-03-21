@@ -72,6 +72,9 @@ export interface User {
   pageBackgroundType?: 'color' | 'image';
   pageBackgroundColor?: string;
   pageBackgroundImage?: string | null;
+  isFeatured?: boolean;
+  isTrending?: boolean;
+  tags?: string[];
 }
 
 const usersCollection = collection(db, 'users');
@@ -88,6 +91,9 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     profilePicture: user.profilePicture ?? user.photoURL ?? null,
     links: Array.isArray(user.links) ? user.links : [],
     socialLinks: Array.isArray(user.socialLinks) ? user.socialLinks : [],
+    isFeatured: Boolean(user.isFeatured),
+    isTrending: Boolean(user.isTrending),
+    tags: Array.isArray(user.tags) ? user.tags : [],
   };
 };
 

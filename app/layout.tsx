@@ -16,13 +16,13 @@ const geistSans = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pasive | Sell and share all you create in one place',
+    default: 'Pasive',
     template: '%s | Pasive',
   },
-  description: 'Pasive.',
+  description: 'Make great stuff. Make great money.',
   openGraph: {
-    title: 'Pasive',
-    description: 'Sell and share all you create in one place',
+    title: 'Pasive | Make great stuff. Make great money.',
+    description: 'Make great stuff. Make great money.',
     url: 'https://pasive.co',
     siteName: 'Pasive',
     images: [
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pasive',
-    description: 'Sell and share all you create in one place',
+    title: 'Pasive | Make great stuff. Make great money.',
+    description: 'Make great stuff. Make great money.',
     images: ['https://pasive.co/images/thumbnail.jpg'],
   },
   icons: {

@@ -58,6 +58,9 @@ interface UserFormData {
   bio: string;
   profilePicture: string;
   category: string;
+  isFeatured: boolean;
+  isTrending: boolean;
+  tags: string;
 }
 
 interface UserFormModalProps {
@@ -214,6 +217,36 @@ const UserFormModal = ({
             <span className="text-sm">{formData.isAdmin ? 'Admin' : 'Regular User'}</span>
           </div>
         </div>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label className="sm:text-right">Top Creator</Label>
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <Switch
+              checked={formData.isFeatured}
+              onCheckedChange={(checked) => onFormChange('isFeatured', checked)}
+            />
+            <span className="text-sm">{formData.isFeatured ? 'Yes' : 'No'}</span>
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label className="sm:text-right">Popular this week</Label>
+          <div className="flex items-center gap-2 sm:col-span-3">
+            <Switch
+              checked={formData.isTrending}
+              onCheckedChange={(checked) => onFormChange('isTrending', checked)}
+            />
+            <span className="text-sm">{formData.isTrending ? 'Yes' : 'No'}</span>
+          </div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
+          <Label htmlFor="tags" className="sm:text-right">Tags</Label>
+          <Input
+            id="tags"
+            value={formData.tags}
+            onChange={(e) => onFormChange('tags', e.target.value)}
+            className="sm:col-span-3"
+            placeholder="Comma separated tags"
+          />
+        </div>
       </div>
       <DialogFooter>
         <Button type="submit" onClick={onSubmit} className="w-full sm:w-auto">
@@ -324,6 +357,9 @@ export default function UsersPage() {
     bio: '',
     profilePicture: '',
     category: '',
+    isFeatured: false,
+    isTrending: false,
+    tags: '',
   })
 
   const { toast } = useToast()
@@ -535,6 +571,9 @@ export default function UsersPage() {
       bio: '',
       profilePicture: '',
       category: '',
+      isFeatured: false,
+      isTrending: false,
+      tags: '',
     })
   }
 
@@ -550,6 +589,9 @@ export default function UsersPage() {
       bio: user.bio || '',
       profilePicture: user.profilePicture || '',
       category: user.category || '',
+      isFeatured: user.isFeatured || false,
+      isTrending: user.isTrending || false,
+      tags: (user.tags || []).join(', '),
     })
     setIsEditModalOpen(true)
   }
@@ -597,7 +639,10 @@ export default function UsersPage() {
         slug: createProfileSlug(formData.username || formData.displayName),
         links: [],
         socialLinks: [],
-        theme: 'default'
+        theme: 'default',
+        isFeatured: formData.isFeatured,
+        isTrending: formData.isTrending,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
       })
 
       toast({
@@ -633,6 +678,9 @@ export default function UsersPage() {
         profilePicture: formData.profilePicture.trim(),
         category: formData.category,
         slug: createProfileSlug(formData.username || formData.displayName),
+        isFeatured: formData.isFeatured,
+        isTrending: formData.isTrending,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
       })
 
       toast({

@@ -8,6 +8,7 @@ import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { FeedSkeleton } from '@/app/common/dashboard/SocialLoading'
+import DashboardDiscoverySections from './DashboardDiscoverySections'
 import { getUserProducts } from '@/services/productsService'
 import { getBankingDetails } from '@/services/bankingDetailsService'
 import { useAuth } from '@/hooks/useAuth'
@@ -79,6 +80,8 @@ export default function DashboardHomePage() {
       {!hasProducts && (
         <NoProductsSection showBankingDetailsAction={!hasBankingDetails} />
       )}
+
+      <DashboardDiscoverySections />
 
       {hasPosts ? (
         <div className="space-y-3">

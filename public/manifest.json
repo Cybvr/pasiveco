@@ -1,8 +1,8 @@
 
 {
-  "name": "Pasive.co",
-  "short_name": "Pasive.co",
-  "description": "Create, customise, and track QR codes effortlessly",
+  "name": "Pasive",
+  "short_name": "Pasive",
+  "description": "Make great stuff. Make great money.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

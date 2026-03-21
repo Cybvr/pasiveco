@@ -17,7 +17,7 @@ export function CtaSection() {
           {/* Right side with paragraph */}
           <div className="lg:col-span-2 text-left self-center">
             <p className="text-lg text-primary-foreground">
-              Join thousands of businesses using Pasive to create engaging QR code experiences.
+              Join thousands of creators using Pasive to make great stuff and make great money.
             </p>
           </div>
         </div>

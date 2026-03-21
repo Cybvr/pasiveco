@@ -31,8 +31,8 @@ export default function NoProductsSection({
           <h2 className="text-2xl font-semibold tracking-tight">You don’t have any product yet</h2>
           <p className="text-sm leading-6 text-muted-foreground sm:text-base">
             Welcome to{' '}
-            <a href="http://Pasive.co" target="_blank" rel="noreferrer" className="font-medium text-foreground underline underline-offset-4">
-              Pasive.co
+            <a href="https://pasive.co" target="_blank" rel="noreferrer" className="font-medium text-foreground underline underline-offset-4">
+              Pasive
             </a>
             , your simple e-commerce tool to sell your content, products and services.
           </p>
