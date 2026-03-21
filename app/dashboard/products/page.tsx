@@ -48,10 +48,13 @@ function ProductCreator() {
   const [brandStyle, setBrandStyle] = useState<string>("")
   const [processingIdx, setProcessingIdx] = useState<number | null>(null)
   const [acceptedIndices, setAcceptedIndices] = useState<Set<number>>(new Set())
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
 
   const loadMyProducts = async () => {
+    // If auth is still loading, stay in loading state
+    if (authLoading) return
+
     if (!user) {
       setMyProducts([])
       setHasBankingDetails(false)
@@ -77,7 +80,7 @@ function ProductCreator() {
 
   useEffect(() => {
     loadMyProducts()
-  }, [user])
+  }, [user, authLoading])
 
   useEffect(() => {
     const fetchBrand = async () => {

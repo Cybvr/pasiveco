@@ -78,10 +78,10 @@ export default function DashboardHomePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-3 py-1 -mx-1">
+    <div className="space-y-3">
+      <section className="space-y-1.5 py-0">
         <div className="flex items-center justify-between gap-3 px-1">
-          <h2 className="text-lg font-extrabold tracking-tight text-foreground">Your products</h2>
+          <h2 className="text-sm font-semibold text-foreground">Your products</h2>
           {hasProducts && (
             <Link href="/dashboard/products" className="text-xs font-semibold text-primary hover:underline">
               View all
@@ -91,24 +91,24 @@ export default function DashboardHomePage() {
 
         {hasProducts ? (
           <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max space-x-5 pb-4">
+            <div className="flex w-max space-x-5 pb-4 px-1">
               {featuredProducts.map((product) => (
                 <Link
                   key={product.id}
                   href="/dashboard/products"
-                  className="w-[120px] group"
+                  className="w-[100px] group"
                 >
-                  <div className="flex flex-col items-start gap-3">
-                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
+                  <div className="flex flex-col items-start gap-1">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                       <img
                         src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
                         alt={product.name}
-                        className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="h-full w-full object-cover transition-transform duration-500"
                       />
                     </div>
-                    <div className="w-full space-y-1 text-left">
-                      <p className="line-clamp-2 text-[13px] font-bold leading-tight text-foreground">{product.name}</p>
-                      <p className="truncate text-[11px] font-semibold text-foreground/80">
+                    <div className="w-full space-y-0 text-left">
+                      <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-foreground">{product.name}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">
                         {new Intl.NumberFormat(undefined, {
                           style: 'currency',
                           currency: product.currency || 'USD',
@@ -145,12 +145,12 @@ export default function DashboardHomePage() {
       <DashboardDiscoverySections />
 
       {hasPosts ? (
-        <section className="space-y-3 py-1">
+        <section className="space-y-2 py-0">
           <div className="flex items-center justify-between gap-3 px-1">
-            <h2 className="text-lg font-extrabold tracking-tight text-foreground">Post feed</h2>
+            <h2 className="text-sm font-semibold text-foreground">Post feed</h2>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
           {posts.map((post) => {
             const author = profiles[post.authorId]
             if (!author) return null
@@ -159,11 +159,11 @@ export default function DashboardHomePage() {
               <Link
                 key={post.id}
                 href={`/dashboard/posts/${post.id}`}
-                className="block rounded-2xl border bg-card p-3"
+                className="block rounded-2xl border bg-card p-2.5"
               >
-                <article className="space-y-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar className="h-10 w-10 border">
+                <article className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 border">
                       <AvatarImage src={author.image} alt={author.name} />
                       <AvatarFallback>{author.name.slice(0, 1)}</AvatarFallback>
                     </Avatar>

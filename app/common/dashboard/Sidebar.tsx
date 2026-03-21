@@ -45,20 +45,20 @@ const DEFAULT_BOTTOM_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help & Support' },
 ]
 
-export default function Sidebar({ 
-  isCollapsed, 
+export default function Sidebar({
+  isCollapsed,
   onToggle,
   navItems,
   bottomNavItems = DEFAULT_BOTTOM_NAV_ITEMS,
-}: { 
-  isCollapsed: boolean, 
+}: {
+  isCollapsed: boolean,
   onToggle: () => void,
   navItems?: NavItem[],
   bottomNavItems?: NavItem[],
 }) {
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
-  
+
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_NAV_ITEMS)
   const isItemActive = (href: string) => {
     if (href === '/dashboard') return pathname === href

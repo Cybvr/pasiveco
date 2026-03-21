@@ -47,9 +47,12 @@ export default function CreateCommunityPage() {
     setLoading(true)
     setError(null)
 
+    const slug = formData.name.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')
+    
     try {
       const communityId = await createCommunity({
         ...formData,
+        slug,
         creatorId: user.uid,
         creatorName: user.displayName || "Unknown Creator",
         tags: []
@@ -69,10 +72,6 @@ export default function CreateCommunityPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <Link href="/dashboard/communities" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Communities
-      </Link>
 
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Create Community</h1>

@@ -124,12 +124,12 @@ export default function CommunitiesPage() {
 function CommunityCard({ community, isMember }: { community: Community, isMember: boolean }) {
   return (
     <Link href={`/dashboard/communities/${community.id}`}>
-      <Card className="h-full group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border/50 overflow-hidden">
+      <Card className="h-full border-border/50 overflow-hidden">
         <div className="h-24 bg-gradient-to-br from-primary/20 to-primary/5 relative">
           {community.bannerImage && (
             <img src={community.bannerImage} className="w-full h-full object-cover" alt="" />
           )}
-          <div className="absolute -bottom-6 left-6 p-1 bg-background rounded-xl border border-border shadow-sm group-hover:scale-110 transition-transform">
+          <div className="absolute -bottom-6 left-6 p-1 bg-background rounded-xl border border-border shadow-sm">
             <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
               {community.image ? (
                 <img src={community.image} className="w-full h-full object-cover" alt="" />
@@ -143,7 +143,7 @@ function CommunityCard({ community, isMember }: { community: Community, isMember
           <div className="flex justify-between items-start gap-2">
             <CardTitle className="text-xl line-clamp-1">{community.name}</CardTitle>
             {isMember && (
-              <span className="text-[10px] uppercase tracking-wider font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <span className="text-base uppercase tracking-wider font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                 Member
               </span>
             )}
@@ -154,7 +154,7 @@ function CommunityCard({ community, isMember }: { community: Community, isMember
         </CardHeader>
         <CardFooter className="pt-0 flex justify-between items-center text-sm text-muted-foreground border-t border-border/30 mt-4 h-12">
           <span>{community.memberCount} {community.memberCount === 1 ? 'member' : 'members'}</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-4 h-4" />
         </CardFooter>
       </Card>
     </Link>

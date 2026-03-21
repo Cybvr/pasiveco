@@ -11,7 +11,8 @@ import {
   Eye,
   Image as ImageIcon,
   UploadCloud,
-  Wand2
+  Wand2,
+  Loader2
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -43,16 +44,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { deleteProduct, updateProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
@@ -97,19 +88,28 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const [imageDragging, setImageDragging] = useState(false)
   const imageInputRef = React.useRef<HTMLInputElement | null>(null)
   const [loading, setLoading] = useState(false)
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
 
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      await deleteProduct(productId)
-      toast.success('Product deleted successfully!')
-      onProductsChanged()
-    } catch (error) {
-      console.error('Error deleting product:', error)
-      toast.error('Failed to delete product')
-    } finally {
-      setDeleteTargetId(null)
-    }
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    toast(`Delete "${productName}"?`, {
+      description: 'This cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await deleteProduct(productId)
+            toast.success('Product deleted.')
+            onProductsChanged()
+          } catch (error) {
+            console.error('Error deleting product:', error)
+            toast.error('Failed to delete product')
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+    })
   }
 
   const handleEditProduct = (product) => {
@@ -289,27 +289,35 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
                 <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="icon"
                         variant="secondary"
                         className="h-7 w-7 rounded-full"
                         aria-label="Product actions"
-                        onClick={(event) => event.stopPropagation()}
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onSelect={(event) => { 
+                        event.preventDefault(); 
+                        handleEditProduct(product);
+                      }}>
                         <Settings className="mr-2 h-3.5 w-3.5" />
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product) }}>
+                      <DropdownMenuItem onSelect={(event) => { 
+                        event.preventDefault(); 
+                        copyProductLink(product);
+                      }}>
                         <Copy className="mr-2 h-3.5 w-3.5" />
                         Copy
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); setDeleteTargetId(product.id) }}
+                      <DropdownMenuItem onSelect={(event) => { 
+                        event.preventDefault(); 
+                        handleDeleteProduct(product.id, product.name);
+                      }}
                         className="text-destructive focus:text-destructive">
                         <Trash2 className="mr-2 h-3.5 w-3.5" />
                         Delete
@@ -398,24 +406,12 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Short Link (Slug)</Label>
-                <div className="flex gap-2">
-                   <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setEditForm(prev => ({ ...prev, slug: slugify(prev.name) }))}
-                    className="h-11 w-11 shrink-0 rounded-xl"
-                    title="Auto-generate"
-                  >
-                    <Wand2 className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    type="text"
-                    value={editForm.slug}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
-                    className="h-11 rounded-xl"
-                  />
-                </div>
+                <Input
+                  type="text"
+                  value={editForm.slug}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
+                  className="h-11 rounded-xl"
+                />
               </div>
             </div>
 
@@ -488,26 +484,6 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         </DialogContent>
       </Dialog>
     </div>
-
-    <AlertDialog open={!!deleteTargetId} onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete product?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This product will be permanently deleted.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={() => deleteTargetId && handleDeleteProduct(deleteTargetId)}
-          >
-            Delete
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
     </>
   )
 }

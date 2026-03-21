@@ -33,9 +33,9 @@ export default function CommunityDiscovery() {
   if (loading) return null // Hide while loading to avoid layout shift
 
   return (
-    <section className="space-y-3 py-2 -mx-1">
+    <section className="space-y-1.5 py-0">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-foreground">
           Trending Communities
         </h2>
         <Link href="/dashboard/communities" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
@@ -45,21 +45,21 @@ export default function CommunityDiscovery() {
 
       {communities.length > 0 ? (
         <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max space-x-4 pb-4 px-1">
+          <div className="flex w-max space-x-5 pb-4 px-1">
             {communities.slice(0, 8).map((community) => (
               <Link key={community.id} href={`/dashboard/communities/${community.slug || community.id}`} className="w-[100px] block group">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 bg-muted group-hover:ring-primary/30 transition-all">
-                    <img 
-                      src={community.image || getDicebearAvatar(community.id || community.name)} 
-                      alt={community.name} 
-                      className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                <div className="flex flex-col items-start gap-1">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 bg-muted transition-all">
+                    <img
+                      src={community.image || getDicebearAvatar(community.id || community.name)}
+                      alt={community.name}
+                      className="h-full w-full object-cover transition-transform duration-500"
                       onError={(e) => { e.currentTarget.src = getDicebearAvatar(community.id || community.name) }}
                     />
                   </div>
-                  <div className="w-full text-center">
-                    <p className="truncate text-[11px] font-bold text-foreground leading-tight">{community.name}</p>
-                    <p className="text-[9px] text-muted-foreground font-medium">{community.memberCount} members</p>
+                  <div className="w-full text-left">
+                    <p className="line-clamp-2 text-[13px] font-semibold text-foreground leading-tight">{community.name}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">{community.memberCount} members</p>
                   </div>
                 </div>
               </Link>

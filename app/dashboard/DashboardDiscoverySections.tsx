@@ -103,9 +103,9 @@ export default function DashboardDiscoverySections() {
   const Section = ({ title, creators }: { title: string; creators: DiscoveryProfile[] }) => {
     if (creators.length === 0) return null
     return (
-      <div className="space-y-3 py-2">
+      <div className="space-y-1.5 py-0">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-xl font-bold tracking-tight text-foreground">{title}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
           <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
             View all
           </Link>
@@ -113,22 +113,22 @@ export default function DashboardDiscoverySections() {
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-5 pb-4 px-1">
             {creators.map((creator) => (
-              <Link key={creator.id} href={creator.href} className="w-[120px] group">
-                <div className="flex flex-col items-start gap-3">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
+              <Link key={creator.id} href={creator.href} className="w-[100px] group">
+                <div className="flex flex-col items-start gap-1">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                     <Avatar className="h-full w-full rounded-none">
                       <AvatarImage 
                         src={creator.image || getDicebearAvatar(creator.handle)} 
                         alt={creator.handle} 
-                        className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                        className="object-cover transition-transform duration-500" 
                       />
                       <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </div>
-                  <div className="text-left w-full space-y-1">
-                    <p className="truncate text-[13px] font-bold text-foreground leading-tight">@{creator.handle}</p>
+                  <div className="text-left w-full space-y-0">
+                    <p className="truncate text-[13px] font-semibold text-foreground leading-tight">@{creator.handle}</p>
                     {creator.bio && (
-                      <p className="line-clamp-2 text-[11px] leading-relaxed text-muted-foreground/70 whitespace-normal">
+                      <p className="line-clamp-1 text-[11px] text-muted-foreground whitespace-normal">
                         {creator.bio}
                       </p>
                     )}
@@ -144,13 +144,13 @@ export default function DashboardDiscoverySections() {
   }
 
   return (
-    <div className="space-y-6 -mx-1">
+    <div className="space-y-2 -mx-1">
       <CommunityDiscovery />
       
       {popularProducts.length > 0 && (
-        <div className="space-y-3 py-2">
+        <div className="space-y-1.5 py-0">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xl font-bold tracking-tight text-foreground">Popular this week</h2>
+            <h2 className="text-sm font-semibold text-foreground">Popular this week</h2>
             <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
               View all
             </Link>
@@ -163,19 +163,19 @@ export default function DashboardDiscoverySections() {
                 const productHref = creator?.handle ? `/${creator.handle}/product/${productSlug}` : `/product/${productSlug}`
                 
                 return (
-                  <Link key={product.id} href={productHref} className="w-[120px] group">
-                    <div className="flex flex-col items-start gap-3">
-                      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 group-hover:ring-primary/30 transition-all">
+                  <Link key={product.id} href={productHref} className="w-[100px] group">
+                    <div className="flex flex-col items-start gap-1">
+                      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                         <img 
                           src={product.thumbnail || getDicebearAvatar(product.id || product.name)} 
                           alt={product.name} 
-                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          className="h-full w-full object-cover transition-transform duration-500"
                           onError={(e) => { e.currentTarget.src = getDicebearAvatar(product.id || product.name) }}
                         />
                       </div>
-                      <div className="w-full space-y-1 text-left">
-                        <p className="line-clamp-2 text-[13px] font-bold leading-tight text-foreground">{product.name}</p>
-                        <p className="truncate text-[11px] font-semibold text-foreground/80">
+                      <div className="w-full space-y-0 text-left">
+                        <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-foreground">{product.name}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">
                           {new Intl.NumberFormat(undefined, {
                             style: 'currency',
                             currency: product.currency || 'USD',
@@ -194,9 +194,9 @@ export default function DashboardDiscoverySections() {
       )}
       
       {topics.length > 0 && (
-        <div className="space-y-3 py-1">
+        <div className="space-y-1.5 py-0">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-xl font-bold tracking-tight text-foreground">Explore topics</h2>
+            <h2 className="text-sm font-semibold text-foreground">Explore topics</h2>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-3 pb-4">

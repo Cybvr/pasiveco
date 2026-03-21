@@ -83,7 +83,9 @@ export default function DashboardHeader() {
     router.push(href)
   }
 
-  const showBackButton = pathname === '/dashboard/posts/new' || pathname === '/dashboard/edit'
+  const showBackButton = pathname === '/dashboard/posts/new' || 
+                         pathname === '/dashboard/edit' || 
+                         (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
   const showSaveButton = pathname === '/dashboard/edit'
 
   const handleSaveEditProfile = () => {
