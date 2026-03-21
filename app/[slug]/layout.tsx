@@ -1,6 +1,5 @@
 
 import { Metadata } from 'next'
-import Watermark from '@/app/common/dashboard/Watermark'
 import { getUserByUsername } from '@/services/userService'
 
 interface SlugLayoutProps {
@@ -58,10 +57,5 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default function SlugLayout({ children }: SlugLayoutProps) {
-  return (
-    <>
-      {children}
-      <Watermark />
-    </>
-  )
+  return children
 }

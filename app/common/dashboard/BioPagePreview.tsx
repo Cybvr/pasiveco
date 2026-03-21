@@ -10,7 +10,6 @@ import { getProductTypeLabel } from '@/lib/productTypes'
 import { useAuth } from '@/hooks/useAuth'
 import MiniPageModal from "./MiniPageModal"
 import ShareModal from "./ShareModal"
-import Watermark from "./Watermark"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 
@@ -253,8 +252,6 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
               </TabsContent>
             </Tabs>
           </div>
-
-          <Watermark />
         </CardContent>
       </Card>
       <MiniPageModal isOpen={isPageModalOpen} onClose={() => setIsPageModalOpen(false)} />

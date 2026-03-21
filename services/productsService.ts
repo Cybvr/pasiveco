@@ -11,6 +11,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   Timestamp
 } from 'firebase/firestore';
 
@@ -181,6 +182,26 @@ export const getProductsByCategory = async (category: string): Promise<Product[]
     })) as Product[];
   } catch (error) {
     console.error('Error fetching products by category:', error);
+    throw error;
+  }
+};
+
+export const getAllLatestProducts = async (limitCount = 10): Promise<Product[]> => {
+  try {
+    const q = query(
+      collection(db, 'products'),
+      where('status', '==', 'active'),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Product[];
+  } catch (error) {
+    console.error('Error fetching latest products:', error);
     throw error;
   }
 };

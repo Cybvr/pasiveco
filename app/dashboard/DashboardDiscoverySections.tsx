@@ -7,6 +7,7 @@ import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getPublicUsers, type User } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import CommunityDiscovery from './CommunityDiscovery'
 
 interface DiscoveryProfile {
   id: string
@@ -137,6 +138,7 @@ export default function DashboardDiscoverySections() {
 
   return (
     <div className="space-y-2.5 -mx-1">
+      <CommunityDiscovery />
       <Section title="Popular this week" creators={popularThisWeek} />
       
       {topics.length > 0 && (
