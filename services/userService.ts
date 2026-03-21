@@ -75,6 +75,7 @@ export interface User {
   isFeatured?: boolean;
   isTrending?: boolean;
   tags?: string[];
+  brandPreferences?: string;
 }
 
 const usersCollection = collection(db, 'users');
@@ -94,6 +95,7 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     isFeatured: Boolean(user.isFeatured),
     isTrending: Boolean(user.isTrending),
     tags: Array.isArray(user.tags) ? user.tags : [],
+    brandPreferences: user.brandPreferences || '',
   };
 };
 

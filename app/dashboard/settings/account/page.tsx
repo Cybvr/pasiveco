@@ -12,7 +12,7 @@ import { getUser, updateUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
-import { Shield } from 'lucide-react'
+import { Shield, Sparkles, Loader2 } from 'lucide-react'
 
 interface UserData {
   displayName: string
@@ -24,6 +24,7 @@ interface UserData {
   phone?: string
   bio?: string
   category: string
+  brandPreferences?: string
   twoFactorEnabled: boolean
 }
 
@@ -38,6 +39,7 @@ export default function AccountSettings() {
     twoFactorEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
+  const [isResearching, setIsResearching] = useState(false)
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -64,6 +66,7 @@ export default function AccountSettings() {
             bio: profile.bio || prev.bio,
             phone: profile.phoneNumber || prev.phone,
             category: profile.category || prev.category,
+            brandPreferences: profile.brandPreferences || prev.brandPreferences || '',
             profilePicture: profile.profilePicture || prev.profilePicture,
           }))
         }
@@ -130,6 +133,7 @@ export default function AccountSettings() {
         bio: userData.bio || "",
         phoneNumber: userData.phone || '',
         category: userData.category || '',
+        brandPreferences: userData.brandPreferences || '',
         profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
       })
 
@@ -176,6 +180,32 @@ export default function AccountSettings() {
     } catch (error) {
       console.error("Error deleting user", error)
       toast({ title: "Error", description: "Failed to delete account.", variant: "destructive" })
+    }
+  }
+
+  const handleResearchBrand = async () => {
+    setIsResearching(true)
+    try {
+      const res = await fetch('/api/research-brand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          creatorName: `${userData.firstName} ${userData.lastName}`.trim(),
+          username: userData.username,
+          bio: userData.bio,
+          category: userData.category,
+        }),
+      })
+
+      if (!res.ok) throw new Error("Failed to research brand")
+      const data = await res.json()
+      setUserData(prev => ({ ...prev, brandPreferences: data.brandPreferences }))
+      toast({ title: "Success", description: "Brand preferences generated with AI!" })
+    } catch (error) {
+      console.error(error)
+      toast({ title: "AI Research Failed", description: "We couldn't research your brand at this time.", variant: "destructive" })
+    } finally {
+      setIsResearching(false)
     }
   }
 
@@ -257,6 +287,33 @@ export default function AccountSettings() {
             onChange={(e) => setUserData(prev => ({ ...prev, bio: e.target.value }))}
             rows={3}
           />
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Brand Preferences & Style</label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleResearchBrand}
+                disabled={isResearching || !userData.firstName}
+                className="h-7 gap-1.5 text-[10px] text-primary hover:text-primary hover:bg-primary/10"
+              >
+                {isResearching ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3 w-3" />
+                )}
+                {isResearching ? 'Searching...' : 'Create with AI'}
+              </Button>
+            </div>
+            <Textarea
+              placeholder="Describe your brand voice, style, and niche. E.g., 'Modern, minimalist, and focused on tech tutorials' or 'Bold, colorful, and energetic voice for fitness content'."
+              value={userData.brandPreferences || ''}
+              onChange={(e) => setUserData(prev => ({ ...prev, brandPreferences: e.target.value }))}
+              rows={3}
+            />
+            <p className="text-[10px] text-muted-foreground">Tell us about your brand and what it&apos;s about.</p>
+          </div>
         </div>
         <div className="p-4 flex justify-end space-x-2">
           <Button type="button" variant="outline" onClick={() => {
@@ -270,6 +327,7 @@ export default function AccountSettings() {
                 bio: firebaseProfile.bio || prev.bio,
                 phone: firebaseProfile.phoneNumber || prev.phone,
                 category: firebaseProfile.category || '',
+                brandPreferences: firebaseProfile.brandPreferences || '',
                 profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
               }))
             }

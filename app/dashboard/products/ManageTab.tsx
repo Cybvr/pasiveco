@@ -7,6 +7,7 @@ import {
   Settings,
   Trash2,
   MoreVertical,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,14 +22,19 @@ import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 
-function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, hasBankingDetails = false }) {
+function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, hasBankingDetails = false }) {
   const { currency } = useCurrency()
-  const [editingProduct, setEditingProduct] = useState(null)
+  const [editingProduct, setEditingProduct] = useState<any>(null)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [editForm, setEditForm] = useState({})
+  const [editForm, setEditForm] = useState<any>({
+    name: '',
+    description: '',
+    price: 0,
+    status: 'draft'
+  })
   const [loading, setLoading] = useState(false)
 
-  const handleDeleteProduct = async (productId) => {
+  const handleDeleteProduct = async (productId: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return
 
     try {
@@ -98,14 +104,20 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
-        <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
-          <Plus className="w-3.5 h-3.5" />
-          New
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={onGenAINew} className="h-8 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
+            <Sparkles className="w-3.5 h-3.5" />
+            Gen AI
+          </Button>
+          <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
+            <Plus className="w-3.5 h-3.5" />
+            New
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {isLoading &&
+        {isLoading ? (
           Array.from({ length: 6 }).map((_, index) => (
             <div key={`product-skeleton-${index}`} className="p-3 space-y-3">
               <Skeleton className="w-full aspect-square rounded-md" />
@@ -114,71 +126,72 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                 <Skeleton className="h-4 w-1/3" />
               </div>
             </div>
-          ))}
+          ))
+        ) : (
+          products.map((product: any) => (
+            <div key={product.id} className="cursor-pointer p-3 space-y-3" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
+                {product.thumbnail ? (
+                  <img
+                    src={product.thumbnail}
+                    alt={product.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Package className="h-8 w-8 text-primary" />
+                  </div>
+                )}
+              </div>
 
-        {!isLoading && products.map((product) => (
-          <div key={product.id} className="cursor-pointer p-3 space-y-3" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
-            <div className="w-full aspect-square rounded-md overflow-hidden bg-muted">
-              {product.thumbnail ? (
-                <img
-                  src={product.thumbnail}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                  <Package className="h-8 w-8 text-primary" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 min-w-0">
+                  <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                  <p className="text-sm font-semibold text-green-600">
+                    {formatCurrency(
+                      (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                        ? product.price * EXCHANGE_RATE
+                        : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                          ? product.price / EXCHANGE_RATE
+                          : product.price,
+                      currency
+                    )}
+                  </p>
                 </div>
-              )}
-            </div>
 
-            <div className="flex items-start justify-between gap-2">
-              <div className="space-y-1 min-w-0">
-                <h3 className="font-semibold text-sm line-clamp-2">{product.name}</h3>
-                <p className="text-sm font-semibold text-green-600">
-                  {formatCurrency(
-                    (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                      ? product.price * EXCHANGE_RATE
-                      : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                        ? product.price / EXCHANGE_RATE
-                        : product.price,
-                    currency
-                  )}
-                </p>
-              </div>
-
-              <div className="shrink-0 -mr-1 -mt-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-7 w-7 rounded-full"
-                      aria-label="Product actions"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
-                      <Settings className="mr-2 h-3.5 w-3.5" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
-                      <Copy className="mr-2 h-3.5 w-3.5" />
-                      Copy
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="shrink-0 -mr-1 -mt-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className="h-7 w-7 rounded-full"
+                        aria-label="Product actions"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEditProduct(product) }}>
+                        <Settings className="mr-2 h-3.5 w-3.5" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); copyProductLink(product.id) }}>
+                        <Copy className="mr-2 h-3.5 w-3.5" />
+                        Copy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleDeleteProduct(product.id) }}>
+                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {!isLoading && products.length === 0 && (

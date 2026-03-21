@@ -39,6 +39,7 @@ interface CreateTabProps {
   selectedCategory: ProductTypeId | null
   onProductCreated: () => void
   existingProducts?: Product[]
+  initialData?: Partial<CreateProductFormData> & { category?: ProductTypeId }
 }
 
 const DEFAULT_FORM_DATA: CreateProductFormData = {
@@ -62,12 +63,15 @@ const DEFAULT_FORM_DATA: CreateProductFormData = {
 
 const DAYS: AvailabilityForm['day'][] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-function CreateTab({ user, selectedCategory, onProductCreated, existingProducts = [] }: CreateTabProps) {
+function CreateTab({ user, selectedCategory, onProductCreated, existingProducts = [], initialData }: CreateTabProps) {
   const { currency } = useCurrency()
-  const [productType, setProductType] = useState<ProductTypeId>(selectedCategory || 'digital-download')
+  const [productType, setProductType] = useState<ProductTypeId>(initialData?.category || selectedCategory || 'digital-download')
   const [loading, setLoading] = useState(false)
   const [isPublished, setIsPublished] = useState(true)
-  const [formData, setFormData] = useState<CreateProductFormData>(DEFAULT_FORM_DATA)
+  const [formData, setFormData] = useState<CreateProductFormData>({
+    ...DEFAULT_FORM_DATA,
+    ...initialData,
+  })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState('')
   const [downloadFile, setDownloadFile] = useState<File | null>(null)
@@ -217,10 +221,10 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       return false
     }
 
-    if (productType === 'digital-download' && !downloadFile) {
-      toast.error('Please upload the file for this digital download')
-      return false
-    }
+    // if (productType === 'digital-download' && !downloadFile) {
+    //   toast.error('Please upload the file for this digital download')
+    //   return false
+    // }
 
     if (productType === 'booking' && !formData.availability.some((slot) => slot.start && slot.end)) {
       toast.error('Please add at least one availability window')
