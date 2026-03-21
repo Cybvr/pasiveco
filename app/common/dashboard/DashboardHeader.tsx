@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, Bell, ChevronRight, Coins, Compass, LifeBuoy, MessageSquare, Plus, Save, UserCircle2 } from 'lucide-react'
+import { ArrowLeft, Bell, ChevronRight, Coins, Compass, LifeBuoy, MessageSquare, Plus, Save, UserCircle2, Users } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,7 @@ const pageTitles: Record<string, string> = {
 
 const quickLinks = [
   { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
+  { href: '/dashboard/communities', label: 'Communities', icon: Users },
   { href: '/dashboard/edit', label: 'My Profile', icon: UserCircle2 },
   { href: '/dashboard/discovery', label: 'Discovery', icon: Compass },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },

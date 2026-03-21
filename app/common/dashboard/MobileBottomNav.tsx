@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Compass, Home, Package, User, LucideIcon } from 'lucide-react'
+import { Bell, Compass, Home, Package, User, LucideIcon, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -14,8 +14,8 @@ interface NavItem {
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
   { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
+  { href: '/dashboard/communities', icon: Users, label: 'Communities' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
-  { href: '/dashboard/notifications', icon: Bell, label: 'Alerts' },
   { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
 
