@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Loader2, Package, Receipt, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getProduct, Product } from '@/services/productsService';
+import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
 
 const formatPrice = (amount: number, currency: string) => {
@@ -39,7 +39,11 @@ export default function OrderConfirmationPage({ params }: { params: Promise<{ id
       const resolvedParams = await params;
 
       try {
-        const productData = await getProduct(resolvedParams.id);
+        let productData = await getProductBySlug(resolvedParams.id);
+        if (!productData) {
+          productData = await getProduct(resolvedParams.id);
+        }
+
         if (productData) {
           setProduct(productData);
           const sellerProfile = await getUser(productData.userId);
@@ -202,7 +206,7 @@ export default function OrderConfirmationPage({ params }: { params: Promise<{ id
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Link href={`/${routeParams.slug}/product/${product.id}`} className="block">
+              <Link href={`/${routeParams.slug}/product/${product.slug || product.id}`} className="block">
                 <Button variant="outline" className="w-full">
                   <Package className="mr-2 h-4 w-4" />
                   View product

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from "next/link"
 import Image from 'next/image'
 import { Button } from "@/components/ui/button"
@@ -23,6 +23,8 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextHref = searchParams.get('next') || '/dashboard'
 
   useEffect(() => {
     const pendingDataRaw = localStorage.getItem("pending_onboarding_ai")
@@ -36,13 +38,13 @@ export default function Register() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user && !window.location.search.includes('intentional=true')) {
-        router.push('/dashboard')
+      if (user) {
+        router.push(nextHref)
       }
     })
 
     return () => unsubscribe()
-  }, [router])
+  }, [nextHref, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,7 +110,7 @@ export default function Register() {
       }
 
       localStorage.removeItem("pending_onboarding_ai")
-      router.push('/dashboard')
+      router.push(nextHref)
     } catch (error) {
       setError(error.message)
     }
@@ -177,7 +179,7 @@ export default function Register() {
           localStorage.removeItem("pending_onboarding_ai")
       }
       
-      router.push('/dashboard')
+      router.push(nextHref)
     } catch (error) {
       if (error.code === 'auth/popup-closed-by-user') {
         setError('Sign up was cancelled. Please try again.')
@@ -232,7 +234,7 @@ export default function Register() {
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
-            <Link href="/auth/login" className="underline">
+            <Link href={`/auth/login?next=${encodeURIComponent(nextHref)}`} className="underline">
               Sign in
             </Link>
           </div>

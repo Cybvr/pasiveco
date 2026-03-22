@@ -105,6 +105,8 @@ export const initializePaystackPayment = (
     customerName?: string;
     customerPhone?: string;
     orderNote?: string;
+    container?: string;
+    channels?: string[];
   }
 ) => {
   const handler = (window as any).PaystackPop.setup({
@@ -120,6 +122,8 @@ export const initializePaystackPayment = (
       customer_phone: options?.customerPhone,
       order_note: options?.orderNote,
     },
+    container: options?.container,
+    channels: options?.channels,
     callback(response: { reference: string }) {
       onSuccess(response.reference);
     },
@@ -128,5 +132,9 @@ export const initializePaystackPayment = (
     }
   });
 
-  handler.openIframe();
+  if (options?.container) {
+    handler.loadIframe();
+  } else {
+    handler.openIframe();
+  }
 };

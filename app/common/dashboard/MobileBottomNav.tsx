@@ -14,8 +14,8 @@ interface NavItem {
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
   { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
-  { href: '/dashboard/communities', icon: Users, label: 'Communities' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
+  { href: '/dashboard/communities', icon: Users, label: 'Communities' },
   { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
 

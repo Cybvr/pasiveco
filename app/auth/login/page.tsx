@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,16 +19,18 @@ import { createRoot } from 'react-dom/client'
 export default function Login() {
   const [error, setError] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextHref = searchParams.get('next') || '/dashboard'
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user && !window.location.search.includes('intentional=true')) {
-        router.push('/dashboard')
+      if (user) {
+        router.push(nextHref)
       }
     })
 
     return () => unsubscribe()
-  }, [router])
+  }, [nextHref, router])
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -47,7 +49,7 @@ export default function Login() {
           isAdmin: false
         })
       }
-      router.push('/dashboard')
+      router.push(nextHref)
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
         setError('Sign in was cancelled. Please try again.')
@@ -79,7 +81,7 @@ export default function Login() {
           {error && <p className="text-destructive text-sm">{error}</p>}
           <div className="text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/auth/register" className="underline">
+            <Link href={`/auth/register?next=${encodeURIComponent(nextHref)}`} className="underline">
               Sign up
             </Link>
           </div>
