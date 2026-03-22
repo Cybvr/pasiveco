@@ -8,10 +8,80 @@ import { Toaster } from "@/components/ui/toaster"
 import Script from 'next/script';
 import { headers } from 'next/headers';
 
-const geistSans = localFont({
-  src: '../public/font/GeistVF.ttf',
-  display: 'swap',
-  variable: '--font-geist-sans',
+const aeonik = localFont({
+  src: [
+    {
+      path: '../public/font/AeonikPro-Air.otf',
+      weight: '100',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-AirItalic.otf',
+      weight: '100',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Thin.otf',
+      weight: '200',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-ThinItalic.otf',
+      weight: '200',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Light.otf',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-LightItalic.otf',
+      weight: '300',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-RegularItalic.otf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-MediumItalic.otf',
+      weight: '500',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-BoldItalic.otf',
+      weight: '700',
+      style: 'italic',
+    },
+    {
+      path: '../public/font/AeonikPro-Black.otf',
+      weight: '900',
+      style: 'normal',
+    },
+    {
+      path: '../public/font/AeonikPro-BlackItalic.otf',
+      weight: '900',
+      style: 'italic',
+    },
+  ],
+  variable: '--font-aeonik',
 });
 
 export const metadata: Metadata = {
@@ -75,7 +145,7 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${geistSans.className} antialiased`}>
+      <body className={`${aeonik.variable} font-sans antialiased font-normal`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

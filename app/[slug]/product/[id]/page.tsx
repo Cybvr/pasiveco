@@ -77,7 +77,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const checkoutHref = `/${routeParams.slug}/product/${product.slug || product.id || productId}/checkout`;
   const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency);
   const hasDirectLink = Boolean(product.url);
-  const hasPaystack = Boolean((product as any).paymentIntegration?.paystack?.enabled);
+  // Allow checkout for any priced product — the global Paystack key handles the actual payment.
+  // Only fall back to "Unavailable" if price is 0 and there's no direct link.
+  const hasPaystack = !hasDirectLink && product.price > 0;
 
   return (
     <div className="w-full space-y-12">
@@ -163,14 +165,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
           </div>
         </section>
       )}
-
-      <footer className="border-t pt-8 pb-4 text-center text-xs text-muted-foreground">
-        <p>© 2026 Pasive. All rights reserved.</p>
-        <div className="mt-1 flex items-center justify-center gap-1 opacity-60">
-          <span>Made with</span>
-          <Link href="/" className="font-bold text-foreground hover:text-primary transition-colors">Pasive</Link>
-        </div>
-      </footer>
     </div>
   );
 }
