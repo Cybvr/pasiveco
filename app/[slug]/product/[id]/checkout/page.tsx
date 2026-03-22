@@ -97,6 +97,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
     if (!product) return '';
     return formatPrice(product.price, product.currency || 'NGN', userCurrency);
   }, [product, userCurrency]);
+  
+  const buttonLabel = useMemo(() => {
+    if (selectedMethod === 'card') return 'Card ending ***4242';
+    if (selectedMethod === 'bank' && seller) return `Pay to ${seller.displayName || seller.username}`;
+    return `Pay ${formattedPrice}`;
+  }, [selectedMethod, seller, formattedPrice]);
 
   const handlePay = async () => {
     if (!product) return;
@@ -335,9 +341,9 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
                     disabled={paymentLoading}
                   >
                     {paymentLoading ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Opening Paystack...</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {buttonLabel}...</>
                     ) : (
-                      <><CreditCard className="mr-2 h-4 w-4" /> Pay {formattedPrice}</>
+                      <><CreditCard className="mr-2 h-4 w-4" /> {buttonLabel}</>
                     )}
                   </Button>
                   <div className="text-center">
@@ -450,9 +456,9 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
                   disabled={paymentLoading}
                 >
                   {paymentLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Opening Paystack...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {buttonLabel}...</>
                   ) : (
-                    <><CreditCard className="mr-2 h-4 w-4" /> Pay {formattedPrice}</>
+                    <><CreditCard className="mr-2 h-4 w-4" /> {buttonLabel}</>
                   )}
                 </Button>
                 <div className="text-center">
@@ -485,7 +491,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
               {paymentLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                'Pay now'
+                buttonLabel
               )}
             </Button>
           </div>
