@@ -96,10 +96,10 @@ export default function DashboardHomePage() {
                 <Link
                   key={product.id}
                   href="/dashboard/products"
-                  className="w-[100px] group"
+                  className="w-[170px] group"
                 >
                   <div className="flex flex-col items-start gap-1">
-                    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                       <img
                         src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
                         alt={product.name}
@@ -142,7 +142,7 @@ export default function DashboardHomePage() {
         )}
       </section>
 
-      <DashboardDiscoverySections />
+      <DashboardDiscoverySections isHome={true} />
 
       {hasPosts ? (
         <section className="space-y-2 py-0">

@@ -51,7 +51,7 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
   }
 }
 
-export default function DashboardDiscoverySections() {
+export default function DashboardDiscoverySections({ isHome = false }: { isHome?: boolean }) {
   const [users, setUsers] = useState<DiscoveryProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -76,6 +76,7 @@ export default function DashboardDiscoverySections() {
 
   const popularProducts = useMemo(() => products.slice(0, 5), [products])
   const topCreators = useMemo(() => users.filter(u => u.isFeatured).slice(0, 8), [users])
+  const trendingCreators = useMemo(() => users.filter(u => u.isTrending).slice(0, 8), [users])
 
   const topics = useMemo(() => {
     const categories = new Set(users.map(u => u.category).filter(Boolean))
@@ -113,9 +114,9 @@ export default function DashboardDiscoverySections() {
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-5 pb-4 px-1">
             {creators.map((creator) => (
-              <Link key={creator.id} href={creator.href} className="w-[100px] group">
+              <Link key={creator.id} href={creator.href} className="w-[170px] group">
                 <div className="flex flex-col items-start gap-1">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                     <Avatar className="h-full w-full rounded-none">
                       <AvatarImage 
                         src={creator.image || getDicebearAvatar(creator.handle)} 
@@ -144,18 +145,20 @@ export default function DashboardDiscoverySections() {
   }
 
   return (
-    <div className="space-y-2 -mx-1">
+    <div className="space-y-4 -mx-1">
       <CommunityDiscovery />
       
-      {popularProducts.length > 0 && (
-        <div className="space-y-1.5 py-0">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-semibold text-foreground">Popular this week</h2>
-            <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
-              View all
-            </Link>
-          </div>
-          <ScrollArea className="w-full whitespace-nowrap">
+      {!isHome && (
+        <>
+          {popularProducts.length > 0 && (
+            <div className="space-y-1.5 py-0">
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-sm font-semibold text-foreground">Popular this week</h2>
+                <Link href="/dashboard/discovery" className="text-xs font-semibold text-primary hover:underline">
+                  View all
+                </Link>
+              </div>
+              <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-5 pb-4 px-1">
               {popularProducts.map((product) => {
                 const creator = users.find((u) => u.id === product.userId)
@@ -163,9 +166,9 @@ export default function DashboardDiscoverySections() {
                 const productHref = creator?.handle ? `/${creator.handle}/product/${productSlug}` : `/product/${productSlug}`
                 
                 return (
-                  <Link key={product.id} href={productHref} className="w-[100px] group">
+                  <Link key={product.id} href={productHref} className="w-[170px] group">
                     <div className="flex flex-col items-start gap-1">
-                      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
+                      <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
                         <img 
                           src={product.thumbnail || getDicebearAvatar(product.id || product.name)} 
                           alt={product.name} 
@@ -190,15 +193,15 @@ export default function DashboardDiscoverySections() {
             </div>
             <ScrollBar orientation="horizontal" className="hidden" />
           </ScrollArea>
-        </div>
-      )}
-      
-      {topics.length > 0 && (
-        <div className="space-y-1.5 py-0">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-semibold text-foreground">Explore topics</h2>
-          </div>
-          <ScrollArea className="w-full whitespace-nowrap">
+            </div>
+          )}
+          
+          {topics.length > 0 && (
+            <div className="space-y-1.5 py-0">
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-sm font-semibold text-foreground">Explore topics</h2>
+              </div>
+              <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-3 pb-4">
               {topics.map((topic, i) => (
                 <Link
@@ -208,7 +211,7 @@ export default function DashboardDiscoverySections() {
                 >
                   <div
                     style={{ background: topicColors[i % topicColors.length] }}
-                    className="relative w-[130px] h-[130px] rounded-2xl overflow-hidden"
+                    className="relative w-[180px] aspect-video rounded-2xl overflow-hidden"
                   >
                     {/* subtle noise/shimmer overlay */}
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")', backgroundSize: '20px 20px' }} />
@@ -224,10 +227,12 @@ export default function DashboardDiscoverySections() {
             </div>
             <ScrollBar orientation="horizontal" className="hidden" />
           </ScrollArea>
-        </div>
-      )}
+            </div>
+          )}
 
-      <Section title="Top creators" creators={topCreators} />
+          <Section title="Top creators" creators={topCreators} />
+        </>
+      )}
     </div>
   )
 }

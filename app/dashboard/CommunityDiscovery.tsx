@@ -47,9 +47,9 @@ export default function CommunityDiscovery() {
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex w-max space-x-5 pb-4 px-1">
             {communities.slice(0, 8).map((community) => (
-              <Link key={community.id} href={`/dashboard/communities/${community.slug || community.id}`} className="w-[100px] block group">
+              <Link key={community.id} href={`/dashboard/communities/${community.slug || community.id}`} className="w-[170px] block group">
                 <div className="flex flex-col items-start gap-1">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 bg-muted transition-all">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 bg-muted transition-all">
                     <img
                       src={community.image || getDicebearAvatar(community.id || community.name)}
                       alt={community.name}

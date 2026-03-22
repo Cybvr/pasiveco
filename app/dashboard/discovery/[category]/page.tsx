@@ -114,7 +114,7 @@ export default function DiscoveryCategoryPage() {
           {filteredUsers.map((creator) => (
             <Link key={creator.id} href={creator.href}>
               <div className="flex flex-col items-start gap-3">
-                <div className="relative aspect-square w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
+                <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10">
                   <Avatar className="h-full w-full rounded-none">
                     <AvatarImage src={creator.image} alt={creator.handle} className="object-cover" />
                     <AvatarFallback className="text-2xl font-bold rounded-none">
