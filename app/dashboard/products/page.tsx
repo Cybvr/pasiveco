@@ -42,6 +42,7 @@ function ProductCreator() {
       price: number;
       productType: any;
       reasoning: string;
+      imageUrl?: string;
     }>
   }>(null)
   const [initialProductData, setInitialProductData] = useState<any>(null)
@@ -120,10 +121,21 @@ function ProductCreator() {
 
       if (!res.ok) throw new Error("Failed to generate")
       const data = await res.json()
-      setAiResult(data)
+      
+      // Pre-generating images for each product
+      const productsWithImages = await Promise.all(
+        data.products.map(async (p: any) => {
+          const img = await generateAIImage(p.name, p.description)
+          return { ...p, imageUrl: img }
+        })
+      )
+      
+      setAiResult({ ...data, products: productsWithImages })
     } catch (error) {
       console.error(error)
       toast.error("AI generation failed. Please try again.")
+    } finally {
+      setIsAIGenerating(false)
     }
   }
 
@@ -153,7 +165,7 @@ function ProductCreator() {
 
     setProcessingIdx(index)
     try {
-      const generatedImageUrl = await generateAIImage(selectedProduct.name, selectedProduct.description)
+      const generatedImageUrl = selectedProduct.imageUrl
       
       await createProduct({
         userId: user.uid,
@@ -282,51 +294,59 @@ function ProductCreator() {
                   {aiResult.products.map((product, idx) => (
                     <div 
                       key={idx} 
-                      className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all"
+                      className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex gap-4"
                     >
-                      <div className="flex justify-between items-start mb-2 gap-4">
-                        <div className="space-y-1 min-w-0">
-                          <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground mr-2">
-                            {product.productType.replace('-', ' ')}
-                          </span>
-                          <span className="text-sm font-bold text-primary">{formatCurrency(product.price, currency)}</span>
+                      {product.imageUrl && (
+                        <div className="w-20 h-20 shrink-0 rounded-md overflow-hidden bg-muted border border-border">
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                         </div>
-                        <div className="flex gap-1.5 shrink-0">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => handleDeclineAI(idx)}
-                            className="h-7 w-7 rounded-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                            title="Decline"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            onClick={() => handleApplyAI(product, idx)}
-                            disabled={processingIdx === idx || acceptedIndices.has(idx)}
-                            className={`h-7 px-2.5 gap-1.5 text-xs font-medium ${acceptedIndices.has(idx) ? 'bg-green-50 text-green-700 border-green-200' : ''}`}
-                            title="Accept"
-                          >
-                            {processingIdx === idx ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : acceptedIndices.has(idx) ? (
-                              <CheckCircle2 className="h-3 w-3" />
-                            ) : (
-                              <Check className="h-3 w-3" />
-                            )}
-                            {acceptedIndices.has(idx) ? 'Added' : 'Accept'}
-                          </Button>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-2 gap-4">
+                            <div className="space-y-1 min-w-0">
+                              <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground mr-2">
+                                {product.productType.replace('-', ' ')}
+                              </span>
+                              <span className="text-sm font-bold text-primary">{formatCurrency(product.price, currency)}</span>
+                            </div>
+                            <div className="flex gap-1.5 shrink-0">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleDeclineAI(idx)}
+                                className="h-7 w-7 rounded-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                title="Decline"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                onClick={() => handleApplyAI(product, idx)}
+                                disabled={processingIdx === idx || acceptedIndices.has(idx)}
+                                className={`h-7 px-2.5 gap-1.5 text-xs font-medium ${acceptedIndices.has(idx) ? 'bg-green-50 text-green-700 border-green-200' : ''}`}
+                                title="Accept"
+                              >
+                                {processingIdx === idx ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : acceptedIndices.has(idx) ? (
+                                  <CheckCircle2 className="h-3 w-3" />
+                                ) : (
+                                  <Check className="h-3 w-3" />
+                                )}
+                                {acceptedIndices.has(idx) ? 'Added' : 'Accept'}
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 italic">"{product.description}"</p>
+                          <div className="flex items-center gap-1.5 text-[10px] text-green-600 font-medium bg-green-50 w-fit px-2 py-0.5 rounded">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {product.reasoning}
+                          </div>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2 italic">"{product.description}"</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-green-600 font-medium bg-green-50 w-fit px-2 py-0.5 rounded">
-                        <Sparkles className="h-2.5 w-2.5" />
-                        {product.reasoning}
-                      </div>
-                    </div>
                   ))}
                 </div>
               </div>
@@ -343,7 +363,7 @@ function ProductCreator() {
                 {isAIGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
+                    Generating Products & Images...
                   </>
                 ) : (
                   <>

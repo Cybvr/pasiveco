@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     Creator's Brand Preferences: ${brandPreferences || 'None set'}
 
     Task:
-    Generate a LIST of 3-5 distinct product ideas that this creator could launch. 
+    Generate a LIST of exactly 3 distinct product ideas that this creator could launch. 
     The ideas should range across different formats (e.g., a digital tool, a course, a booking service).
 
     Return a JSON object with a "products" key containing an array of objects. Each object must have:
