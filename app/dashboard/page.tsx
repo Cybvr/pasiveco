@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, CheckCircle2, Landmark, PackagePlus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HomeSkeleton } from '@/app/common/dashboard/SocialLoading'
@@ -193,6 +194,14 @@ export default function DashboardHomePage() {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => { e.currentTarget.src = getDicebearAvatar(community.id || community.name) }}
                     />
+                    <div className="absolute -bottom-0.5 -left-0.5">
+                      <div className="rounded-tr-lg bg-background p-1.5 pt-2 pr-2">
+                        <Avatar className="h-6 w-6 border-2 border-background">
+                          <AvatarImage src={getDicebearAvatar(community.creatorId || community.name)} />
+                          <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </div>
                   </div>
                   <div className="text-left">
                     <p className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">{community.name}</p>
@@ -257,6 +266,14 @@ export default function DashboardHomePage() {
                         <Badge className="bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-0.5 text-[10px] font-bold rounded-md">
                           {commission}% Commission
                         </Badge>
+                      </div>
+                      <div className="absolute -bottom-0.5 -left-0.5">
+                        <div className="rounded-tr-lg bg-background p-1.5 pt-2 pr-2">
+                          <Avatar className="h-6 w-6 border-2 border-background">
+                            <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
+                            <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                        </div>
                       </div>
                     </div>
                     <div className="text-left">

@@ -63,6 +63,8 @@ export interface Product {
   status: 'active' | 'inactive' | 'draft';
   tags: string[];
   details?: ProductDetails;
+  affiliateEnabled?: boolean;
+  affiliateCommission?: number; // percentage 0-80
   inventory: {
     quantity: number;
     trackInventory: boolean;

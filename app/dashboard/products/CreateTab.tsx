@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Wand2 } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Wand2, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -82,6 +82,8 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const [fileDragging, setFileDragging] = useState(false)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [affiliateEnabled, setAffiliateEnabled] = useState(false)
+  const [affiliateCommission, setAffiliateCommission] = useState('20')
 
   useEffect(() => {
     if (selectedCategory) {
@@ -344,6 +346,8 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           description: formData.description.trim(),
           keywords: [getProductTypeLabel(productType)],
         },
+        affiliateEnabled,
+        affiliateCommission: affiliateEnabled ? (parseInt(affiliateCommission, 10) || 20) : undefined,
         paymentIntegration: {
           paystack: {
             enabled: true,
@@ -701,6 +705,48 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           )}
         </div>
       )}
+
+      {/* Affiliate settings */}
+      <div className="space-y-3 rounded-lg border border-border/60 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Zap className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Affiliate program</p>
+              <p className="text-xs text-muted-foreground">Let others promote this product and earn a commission per sale.</p>
+            </div>
+          </div>
+          <Switch checked={affiliateEnabled} onCheckedChange={setAffiliateEnabled} aria-label="Enable affiliate program" />
+        </div>
+
+        {affiliateEnabled && (
+          <div className="pt-1">
+            <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Commission rate (%)
+            </Label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                min="1"
+                max="80"
+                step="1"
+                value={affiliateCommission}
+                onChange={(e) => {
+                  const v = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
+                  setAffiliateCommission(String(v))
+                }}
+                className="w-28"
+              />
+              <span className="text-sm text-muted-foreground">% of sale price per referral</span>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Affiliates earn <span className="font-semibold text-primary">{affiliateCommission}%</span> — max allowed is 80%.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Publishing toggle */}
       <div className="flex items-center justify-between rounded-lg border border-border/60 px-4 py-3">

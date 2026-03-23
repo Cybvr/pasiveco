@@ -5,6 +5,7 @@ import { Search, Filter, Zap, DollarSign, ArrowUpRight, CheckCircle2, Star, Tren
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getAllLatestProducts, Product } from "@/services/productsService"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
@@ -126,6 +127,14 @@ export default function NetworkPage() {
                     <Button size="icon" variant="secondary" className="h-7 w-7 rounded-lg shadow-lg">
                       <Star className="h-3.5 w-3.5" />
                     </Button>
+                  </div>
+                  <div className="absolute -bottom-0.5 -left-0.5">
+                    <div className="rounded-tr-lg bg-card p-1.5 pt-2 pr-2">
+                      <Avatar className="h-6 w-6 border-2 border-background">
+                        <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
+                        <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </div>
                   </div>
                 </div>
                 <div className="p-3.5 flex flex-col gap-3">

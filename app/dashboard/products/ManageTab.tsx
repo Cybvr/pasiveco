@@ -12,7 +12,8 @@ import {
   Image as ImageIcon,
   UploadCloud,
   Wand2,
-  Loader2
+  Loader2,
+  Zap
 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -81,7 +82,9 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     slug: '',
     category: 'digital-download',
     thumbnail: '',
-    images: [] as string[]
+    images: [] as string[],
+    affiliateEnabled: false,
+    affiliateCommission: 20
   })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState('')
@@ -122,7 +125,9 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       slug: product.slug || '',
       category: product.category || 'digital-download',
       thumbnail: product.thumbnail || '',
-      images: product.images || []
+      images: product.images || [],
+      affiliateEnabled: product.affiliateEnabled || false,
+      affiliateCommission: product.affiliateCommission || 20
     })
     setImagePreview(product.thumbnail || '')
     setShowEditModal(true)
@@ -180,7 +185,9 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         slug: finalSlug,
         category: editForm.category,
         thumbnail: finalThumbnail,
-        images: finalImages
+        images: finalImages,
+        affiliateEnabled: editForm.affiliateEnabled,
+        affiliateCommission: editForm.affiliateEnabled ? (Number(editForm.affiliateCommission) || 0) : undefined
       })
       toast.success('Product updated successfully!')
       closeEditModal()
@@ -216,7 +223,9 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       slug: '',
       category: 'digital-download',
       thumbnail: '',
-      images: []
+      images: [],
+      affiliateEnabled: false,
+      affiliateCommission: 20
     })
     setImageFile(null)
     setImagePreview('')
@@ -467,6 +476,44 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                 checked={editForm.status === 'active'}
                 onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 'active' : 'draft' }))}
               />
+            </div>
+
+            <div className="space-y-4 pt-2 border-t border-border/40">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Zap className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Affiliate Program</p>
+                    <p className="text-[10px] text-muted-foreground">Allow others to sell this product for a cut.</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={editForm.affiliateEnabled}
+                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, affiliateEnabled: checked }))}
+                />
+              </div>
+
+              {editForm.affiliateEnabled && (
+                <div className="pl-11 space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Commission (%)</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="80"
+                      value={editForm.affiliateCommission}
+                      onChange={(e) => {
+                        const val = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
+                        setEditForm(prev => ({ ...prev, affiliateCommission: val }))
+                      }}
+                      className="w-24 h-11 rounded-xl"
+                    />
+                    <span className="text-[10px] text-muted-foreground">Max 80%</span>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
