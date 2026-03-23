@@ -3,15 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ExternalLink, Package, ShieldCheck, Truck, Share2, ArrowUpRight } from 'lucide-react';
+import { ExternalLink, Package, ShieldCheck, Truck, Share2, ArrowUpRight, Plus, Store, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { getUser, updateUser } from '@/services/userService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProductDetailsSummary from '@/components/products/ProductDetailsSummary';
 import { getProduct, getProductBySlug, Product, getUserProducts } from '@/services/productsService';
 import { getProductTypeLabel } from '@/lib/productTypes';
-import { getUser } from '@/services/userService';
 import { useCurrency } from "@/context/CurrencyContext";
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency";
 
@@ -32,6 +32,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [product, setProduct] = useState<Product | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPinned, setIsPinned] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState<any>(null);
   const { currency: userCurrency } = useCurrency();
 
   useEffect(() => {
@@ -44,8 +46,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
         if (!productData) productData = await getProduct(paramValue);
         if (productData) {
           setProduct(productData);
-          const [, products] = await Promise.all([getUser(productData.userId), getUserProducts(productData.userId)]);
+          const [sellerProfile, products] = await Promise.all([
+            getUser(productData.userId),
+            getUserProducts(productData.userId)
+          ]);
           setSellerProducts(products.filter(p => p.id !== productData.id && p.slug !== productData.slug).slice(0, 4));
+        }
+
+        if (user?.uid) {
+          const userData = await getUser(user.uid);
+          if (userData) {
+            setCurrentUserData(userData);
+            const pinned = userData.pinnedAffiliates || [];
+            setIsPinned(pinned.includes(paramValue) || pinned.includes(productData?.id || ''));
+          }
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -119,6 +133,37 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
     }
   };
 
+  const handlePinToStore = async () => {
+    if (!user) {
+      toast.error('Log in to pin products to your store!');
+      return;
+    }
+    if (!product) return;
+
+    try {
+      const currentPinned = currentUserData?.pinnedAffiliates || [];
+      const prodId = product.id || productId;
+      
+      let newPinned;
+      if (isPinned) {
+        newPinned = currentPinned.filter((id: string) => id !== prodId);
+        toast.success('Removed from your store!');
+      } else {
+        newPinned = [...currentPinned, prodId];
+        toast.success('Added to your store!', {
+          description: 'Fans can now find this on your public shop page.',
+        });
+      }
+
+      await updateUser(user.uid, { pinnedAffiliates: newPinned });
+      setCurrentUserData({ ...currentUserData, pinnedAffiliates: newPinned });
+      setIsPinned(!isPinned);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update store.');
+    }
+  };
+
   return (
     <div className="w-full space-y-12">
 
@@ -183,15 +228,28 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                   Share
                 </Button>
                 {product.affiliateEnabled && (
-                  <Button 
-                    variant="default" 
-                    className="flex-1 h-12 gap-2 bg-zinc-950 text-white hover:bg-zinc-800" 
-                    size="lg"
-                    onClick={handlePromote}
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                    Promote & Earn
-                  </Button>
+                  <div className="flex gap-2 flex-1">
+                    <Button 
+                      variant="default" 
+                      className="flex-1 h-12 gap-2 bg-zinc-900 text-white hover:bg-zinc-800" 
+                      size="lg"
+                      onClick={handlePromote}
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
+                      Promote
+                    </Button>
+                    {user?.uid !== product.userId && (
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        className={`h-12 w-12 border-2 ${isPinned ? 'bg-primary/10 border-primary text-primary' : 'border-zinc-200'}`}
+                        onClick={handlePinToStore}
+                        title={isPinned ? "Remove from my store" : "Add to my store"}
+                      >
+                        {isPinned ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

@@ -76,6 +76,7 @@ export interface User {
   isTrending?: boolean;
   tags?: string[];
   brandPreferences?: string;
+  pinnedAffiliates?: string[];
 }
 
 const usersCollection = collection(db, 'users');
