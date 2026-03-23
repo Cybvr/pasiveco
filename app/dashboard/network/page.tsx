@@ -13,7 +13,7 @@ import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { getDicebearAvatar } from "@/lib/avatar"
-import { getUser } from "@/services/userService"
+import { getUser, getPublicUsers, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "sonner"
 
@@ -24,7 +24,9 @@ export default function NetworkPage() {
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [products, setProducts] = useState<NetworkProduct[]>([])
+  const [merchants, setMerchants] = useState<AppUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [merchantsLoading, setMerchantsLoading] = useState(true)
   const [search, setSearch] = useState("")
  
   useEffect(() => {
@@ -54,7 +56,20 @@ export default function NetworkPage() {
         setLoading(false)
       }
     }
+
+    async function loadMerchants() {
+      try {
+        const data = await getPublicUsers()
+        setMerchants(data.slice(0, 10))
+      } catch (err) {
+        console.error("Error loading merchants:", err)
+      } finally {
+        setMerchantsLoading(false)
+      }
+    }
+
     loadProducts()
+    loadMerchants()
   }, [])
  
   const formatPrice = (amount: number, prodCurrency: string = 'USD') => {
@@ -219,19 +234,40 @@ export default function NetworkPage() {
         </div>
         
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 no-scrollbar">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-3 min-w-[120px] p-6 rounded-3xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-500 p-0.5 group-hover:scale-110 transition-transform duration-500">
-                <div className="w-full h-full rounded-full bg-background flex items-center justify-center font-bold text-lg">
-                  M{i}
+          {merchantsLoading ? (
+             Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-3 min-w-[120px] p-6 rounded-3xl bg-muted/30">
+                <Skeleton className="w-16 h-16 rounded-full" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            ))
+          ) : merchants.length === 0 ? (
+            <div className="text-sm text-muted-foreground p-4">No top merchants found yet.</div>
+          ) : (
+            merchants.map((m) => (
+              <Link 
+                key={m.id || m.userId} 
+                href={`/${(m.username || m.slug || "user").replace(/^@/, '')}`}
+                className="flex flex-col items-center gap-3 min-w-[120px] p-6 rounded-3xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
+              >
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary to-purple-500 p-0.5 group-hover:scale-110 transition-transform duration-500">
+                  <div className="w-full h-full rounded-full bg-background overflow-hidden flex items-center justify-center font-bold text-lg">
+                    {m.profilePicture || m.photoURL ? (
+                      <img src={m.profilePicture || m.photoURL || ""} alt={m.displayName || "Merchant"} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary">
+                        {(m.displayName || m.username || "M").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="text-center">
-                <p className="text-xs font-bold leading-none">Merchant Name</p>
-                <p className="text-[10px] text-muted-foreground mt-1">45 Products</p>
-              </div>
-            </div>
-          ))}
+                <div className="text-center w-full min-w-0">
+                  <p className="text-xs font-bold leading-none truncate">{m.displayName || m.username}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-tighter">Verified Seller</p>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
     </div>
