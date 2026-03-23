@@ -126,8 +126,8 @@ function ProductCreator() {
       // Pre-generating images for each product
       const productsWithImages = await Promise.all(
         data.products.map(async (p: any) => {
-          const img = await generateAIImage(p.name, p.description)
-          return { ...p, imageUrl: img }
+          const imageRes = await generateAIImage(p.name, p.description)
+          return { ...p, imageUrl: imageRes.imageUrl || null }
         })
       )
       
@@ -144,13 +144,14 @@ function ProductCreator() {
     if (regeneratingIdx !== null) return
     setRegeneratingIdx(index)
     try {
-      const img = await generateAIImage(name, desc)
-      if (img && aiResult) {
+      const res = await generateAIImage(name, desc)
+      if (res.imageUrl && aiResult) {
         const newProducts = [...aiResult.products]
-        newProducts[index] = { ...newProducts[index], imageUrl: img }
+        newProducts[index] = { ...newProducts[index], imageUrl: res.imageUrl }
         setAiResult({ ...aiResult, products: newProducts })
       } else {
-        toast.error("Generation failed. Please try again.")
+        const errorDetail = (res as any).details?.error || res.error || "Generation failed"
+        toast.error(`Image failed: ${errorDetail}`)
       }
     } finally {
       setRegeneratingIdx(null)
@@ -165,12 +166,15 @@ function ProductCreator() {
         body: JSON.stringify({ productName, productDescription }),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return { error: errorData.error || "Generation failed", details: errorData.details };
+      }
       const data = await response.json();
-      return data.imageUrl || null;
+      return { imageUrl: data.imageUrl || null };
     } catch (err) {
       console.error("Image generation proxy error:", err);
-      return null;
+      return { error: "Network error" };
     }
   }
 

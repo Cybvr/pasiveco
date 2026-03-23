@@ -35,11 +35,12 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error("HF Inference Error:", errorData);
+        console.error("HF Inference Error Details:", errorData);
         return NextResponse.json({ 
-          error: "Failed to generate image from HF", 
-          details: errorData 
-        }, { status: response.status });
+          error: "Hugging Face Inference Error", 
+          details: errorData,
+          status: response.status 
+        }, { status: 400 }); // Return 400 so we can see the body in browser
     }
 
     console.log("Image blob received, uploading to storage...");
