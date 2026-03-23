@@ -91,6 +91,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const [imageDragging, setImageDragging] = useState(false)
   const imageInputRef = React.useRef<HTMLInputElement | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     toast(`Delete "${productName}"?`, {
@@ -153,6 +154,57 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       console.error('Error uploading:', error)
       toast.error('Failed to upload image')
       return ''
+    }
+  }
+
+  const handleGenerateAIImage = async () => {
+    if (!editForm.name) {
+      toast.error('Please enter a product title to generate an image')
+      return
+    }
+    
+    setIsGeneratingImage(true)
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productName: editForm.name, 
+          productDescription: editForm.description || `A high quality product for ${editForm.name}` 
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Image generation failed')
+      }
+
+      const data = await response.json();
+      if (data.base64Image) {
+        const byteCharacters = atob(data.base64Image);
+        const byteArrays = [];
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+          const slice = byteCharacters.slice(offset, offset + 512);
+          const byteNumbers = new Array(slice.length);
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          byteArrays.push(byteArray);
+        }
+        const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+        const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
+        
+        handleImageChange(file);
+        toast.success('Image generated successfully!');
+      } else {
+        throw new Error('No image returned')
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to generate image');
+    } finally {
+      setIsGeneratingImage(false);
     }
   }
 
@@ -357,7 +409,20 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
             
             {/* Cover Image */}
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Cover Image</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Cover Image</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-7 text-[10px] gap-1.5"
+                  onClick={handleGenerateAIImage}
+                  disabled={isGeneratingImage || !editForm.name}
+                >
+                  {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  {isGeneratingImage ? 'Generating...' : 'Generate AI Image'}
+                </Button>
+              </div>
               <div
                 onClick={() => imageInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}

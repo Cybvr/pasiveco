@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Zap } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Zap, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -70,6 +70,7 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const { currency } = useCurrency()
   const [productType, setProductType] = useState<ProductTypeId>(initialData?.category || selectedCategory || 'digital-download')
   const [loading, setLoading] = useState(false)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const [isPublished, setIsPublished] = useState(true)
   const [formData, setFormData] = useState<CreateProductFormData>({
     ...DEFAULT_FORM_DATA,
@@ -120,6 +121,57 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       console.error(`Error uploading file to ${folder}:`, error)
       toast.error('Failed to upload file.')
       return ''
+    }
+  }
+
+  const handleGenerateAIImage = async () => {
+    if (!formData.name) {
+      toast.error('Please enter a product title to generate an image')
+      return
+    }
+    
+    setIsGeneratingImage(true)
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productName: formData.name, 
+          productDescription: formData.description || `A high quality product for ${formData.name}` 
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Image generation failed')
+      }
+
+      const data = await response.json();
+      if (data.base64Image) {
+        const byteCharacters = atob(data.base64Image);
+        const byteArrays = [];
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+          const slice = byteCharacters.slice(offset, offset + 512);
+          const byteNumbers = new Array(slice.length);
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          byteArrays.push(byteArray);
+        }
+        const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+        const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
+        
+        handleImageChange(file);
+        toast.success('Image generated successfully!');
+      } else {
+        throw new Error('No image returned')
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to generate image');
+    } finally {
+      setIsGeneratingImage(false);
     }
   }
 
@@ -438,7 +490,20 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
 
       {/* Cover image drop zone */}
       <div>
-        <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Cover Image</Label>
+        <div className="flex items-center justify-between mb-2">
+          <Label className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">Cover Image</Label>
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm" 
+            className="h-7 text-xs gap-1.5"
+            onClick={handleGenerateAIImage}
+            disabled={isGeneratingImage || !formData.name}
+          >
+            {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {isGeneratingImage ? 'Generating...' : 'Generate with AI'}
+          </Button>
+        </div>
         <div
           onClick={() => imageInputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
