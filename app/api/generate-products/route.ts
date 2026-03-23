@@ -5,28 +5,6 @@ export async function POST(req: NextRequest) {
   try {
     const { description, brandPreferences, productType, creatorName } = await req.json();
 
-    const serpApiKey = process.env.SERPAPI_KEY;
-    let groundedSearchData = "";
-
-    if (serpApiKey && creatorName) {
-      try {
-        const searchQuery = `${creatorName} ${description} creator professional profile`;
-        const searchRes = await fetch(
-          `https://serpapi.com/search.json?q=${encodeURIComponent(searchQuery)}&api_key=${serpApiKey}`
-        );
-        const searchData = await searchRes.json();
-        
-        if (searchData.organic_results) {
-          groundedSearchData = searchData.organic_results
-            .slice(0, 4)
-            .map((res: any) => `- ${res.title}: ${res.snippet} (Ref: ${res.link})`)
-            .join("\n");
-        }
-      } catch (err) {
-        console.warn("SerpAPI research failed, falling back to basic generation.", err);
-      }
-    }
-
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -36,23 +14,26 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    // Use the model with search potential mentioned in the prompt
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
-      generationConfig: { responseMimeType: "application/json" },
+      tools: [
+        {
+          //@ts-ignore - googleSearch is supported in gemini-2.0-flash but might not be in the current type definitions
+          googleSearch: {},
+        },
+      ],
     });
 
     const prompt = `You are a creative product strategist for creators. 
 
     Creator Name: ${creatorName || 'Unknown'}
-    Description of Interest: ${description}
+    Topic/Description: ${description}
     Creator's Brand Preferences: ${brandPreferences || 'None set'}
 
-    Research Grounding Data (from Web Search):
-    ${groundedSearchData || 'No specific web data found. Base your suggestions on the provided description and brand preferences.'}
+    Step 1: Use your Search Tool to research "${creatorName}" and their professional background/online content (social media, website, portfolio).
+    Step 2: Based on your findings and the provided description, generate a LIST of 3-5 distinct product ideas.
 
-    Task:
-    Generate a LIST of 3-5 distinct product ideas that this creator could launch. 
+    Return a JSON object with a "products" key containing an array of objects. Each object must have:
     The ideas should range across different formats (e.g., a digital tool, a course, a booking service).
 
     Return a JSON object with a "products" key containing an array of objects. Each object must have:
@@ -62,9 +43,13 @@ export async function POST(req: NextRequest) {
     - "productType": one of ["digital-download", "courses", "tickets", "membership", "booking", "bundle"]
     - "reasoning": a brief note on why this fits their brand
 
-    TONE: Professional, visionary, and perfectly aligned with the creator's brand voice.`;
+    TONE: Professional, visionary, and perfectly aligned with the creator's brand voice.
+    IMPORTANT: Ensure the response is valid JSON.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
     if (
       !result.response ||
