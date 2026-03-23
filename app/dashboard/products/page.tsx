@@ -296,11 +296,16 @@ function ProductCreator() {
                       key={idx} 
                       className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex gap-4"
                     >
-                      {product.imageUrl && (
-                        <div className="w-20 h-20 shrink-0 rounded-md overflow-hidden bg-muted border border-border">
+                      <div className="w-24 h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative">
+                        {product.imageUrl ? (
                           <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                        </div>
-                      )}
+                        ) : (
+                          <div className="flex flex-col items-center gap-1 opacity-40">
+                            <Sparkles className="h-4 w-4" />
+                            <span className="text-[8px] uppercase font-bold tracking-tighter">AI Visual</span>
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-2 gap-4">
