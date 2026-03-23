@@ -9,10 +9,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { createProduct, type Product } from '@/services/productsService'
 import { getProductTypeLabel, PRODUCT_TYPE_OPTIONS, type ProductTypeId } from '@/lib/productTypes'
 import { toast } from 'sonner'
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
 import { useCurrency } from '@/context/CurrencyContext'
 import { slugify } from '@/utils/slugify'
+import { storage } from '@/lib/firebase'
 
 type LessonForm = { title: string; content: string; videoUrl: string }
 type AvailabilityForm = { day: string; start: string; end: string }
@@ -110,15 +111,21 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const uploadFileToStorage = async (file: File, folder: string) => {
     if (!file) return ''
 
-    const storage = getStorage()
     const filename = `${uuidv4()}-${file.name}`
     const storageRef = ref(storage, `${folder}/${filename}`)
 
     try {
-      await uploadBytes(storageRef, file)
+      await uploadBytes(storageRef, file, {
+        contentType: file.type || 'application/octet-stream',
+      })
       return await getDownloadURL(storageRef)
     } catch (error) {
-      console.error(`Error uploading file to ${folder}:`, error)
+      console.error(`Error uploading file to ${folder}:`, {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        error,
+      })
       toast.error('Failed to upload file.')
       return ''
     }
@@ -148,18 +155,8 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
 
       const data = await response.json();
       if (data.base64Image) {
-        const byteCharacters = atob(data.base64Image);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-          const slice = byteCharacters.slice(offset, offset + 512);
-          const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          byteArrays.push(byteArray);
-        }
-        const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+        const response = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
+        const blob = await response.blob();
         const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
         
         handleImageChange(file);
@@ -398,13 +395,18 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           description: formData.description.trim(),
           keywords: [getProductTypeLabel(productType)],
         },
-        affiliateEnabled,
-        affiliateCommission: affiliateEnabled ? (parseInt(affiliateCommission, 10) || 20) : undefined,
-        paymentIntegration: {
-          paystack: {
-            enabled: true,
-            publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-          },
+        affiliateEnabled
+      }
+
+      const commission = affiliateEnabled ? (parseInt(affiliateCommission, 10) || 20) : null
+      if (commission !== null) {
+        (productData as any).affiliateCommission = commission
+      }
+
+      (productData as any).paymentIntegration = {
+        paystack: {
+          enabled: true,
+          publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
         },
       }
 

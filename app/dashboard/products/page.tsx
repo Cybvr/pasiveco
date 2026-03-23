@@ -12,7 +12,7 @@ import { getBankingDetails } from '@/services/bankingDetailsService'
 import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
 import { getUser } from '@/services/userService'
 import { createProduct } from '@/services/productsService'
-import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency } from '@/utils/currency'
 import { slugify } from '@/utils/slugify'
+import { storage } from '@/lib/firebase'
 
 import CreateTab from './CreateTab'  
 import ManageTab from './ManageTab'
@@ -54,6 +55,17 @@ function ProductCreator() {
   const [acceptedIndices, setAcceptedIndices] = useState<Set<number>>(new Set())
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
+
+  const base64ToBlob = (base64: string, mimeType: string) => {
+    const byteCharacters = atob(base64)
+    const byteNumbers = new Array(byteCharacters.length)
+
+    for (let i = 0; i < byteCharacters.length; i += 1) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+
+    return new Blob([new Uint8Array(byteNumbers)], { type: mimeType })
+  }
 
   const loadMyProducts = async () => {
     // If auth is still loading, stay in loading state
@@ -175,10 +187,15 @@ function ProductCreator() {
       const data = await response.json();
       
       if (data.base64Image) {
-        const storage = getStorage();
         const filename = `ai-gen-${uuidv4()}.jpg`;
         const storageRef = ref(storage, `product-images/${filename}`);
-        await uploadString(storageRef, data.base64Image, 'base64');
+        const blob = base64ToBlob(data.base64Image, 'image/jpeg')
+
+        await uploadBytes(storageRef, blob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'public,max-age=3600',
+        })
+
         const imageUrl = await getDownloadURL(storageRef);
         return { imageUrl };
       }
@@ -186,7 +203,7 @@ function ProductCreator() {
       return { imageUrl: data.imageUrl || null };
     } catch (err) {
       console.error("Image generation proxy error:", err);
-      return { error: "Network error" };
+      return { error: err instanceof Error ? err.message : "Network error" };
     }
   }
 

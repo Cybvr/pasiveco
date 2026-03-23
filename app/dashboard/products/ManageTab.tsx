@@ -26,12 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
 import { PRODUCT_TYPE_OPTIONS } from '@/lib/productTypes'
 import { slugify } from '@/utils/slugify'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { storage } from '@/lib/firebase'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -144,14 +145,21 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   }
 
   const uploadFileToStorage = async (file: File, folder: string) => {
-    const storage = getStorage()
     const filename = `${uuidv4()}-${file.name}`
     const storageRef = ref(storage, `${folder}/${filename}`)
     try {
-      await uploadBytes(storageRef, file)
+      await uploadBytes(storageRef, file, {
+        contentType: file.type || 'application/octet-stream',
+      })
       return await getDownloadURL(storageRef)
     } catch (error) {
-      console.error('Error uploading:', error)
+      console.error('Error uploading:', {
+        folder,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        error,
+      })
       toast.error('Failed to upload image')
       return ''
     }
@@ -181,18 +189,8 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
       const data = await response.json();
       if (data.base64Image) {
-        const byteCharacters = atob(data.base64Image);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-          const slice = byteCharacters.slice(offset, offset + 512);
-          const byteNumbers = new Array(slice.length);
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          byteArrays.push(byteArray);
-        }
-        const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+        const response = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
+        const blob = await response.blob();
         const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
         
         handleImageChange(file);
@@ -229,7 +227,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
       const finalSlug = editForm.slug?.trim() || editingProduct.slug || slugify(editForm.name);
 
-      await updateProduct(editingProduct.id, {
+      const updateData: any = {
         name: editForm.name,
         description: editForm.description,
         price: Number(editForm.price) || 0,
@@ -238,9 +236,14 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         category: editForm.category,
         thumbnail: finalThumbnail,
         images: finalImages,
-        affiliateEnabled: editForm.affiliateEnabled,
-        affiliateCommission: editForm.affiliateEnabled ? (Number(editForm.affiliateCommission) || 0) : undefined
-      })
+        affiliateEnabled: editForm.affiliateEnabled
+      }
+
+      if (editForm.affiliateEnabled) {
+        updateData.affiliateCommission = Number(editForm.affiliateCommission) || 20
+      }
+
+      await updateProduct(editingProduct.id, updateData)
       toast.success('Product updated successfully!')
       closeEditModal()
       onProductsChanged()
