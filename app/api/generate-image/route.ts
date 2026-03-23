@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { v4 as uuidv4 } from 'uuid';
-import { storage } from "@/lib/firebase"; 
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,18 +40,12 @@ export async function POST(req: NextRequest) {
         }, { status: 400 }); // Return 400 so we can see the body in browser
     }
 
-    console.log("Image blob received, uploading to storage...");
-    const blob = await response.blob();
-    const arrayBuffer = await blob.arrayBuffer();
-
-    const filename = `ai-gen-${uuidv4()}.jpg`;
-    const storageRef = ref(storage, `product-images/${filename}`);
+    console.log("Image blob received, converting to base64...");
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64Image = buffer.toString('base64');
     
-    await uploadBytes(storageRef, new Uint8Array(arrayBuffer));
-    const imageUrl = await getDownloadURL(storageRef);
-    console.log("Upload successful:", imageUrl);
-
-    return NextResponse.json({ imageUrl });
+    return NextResponse.json({ base64Image });
   } catch (error: any) {
     console.error("Image generation API error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -12,6 +12,8 @@ import { getBankingDetails } from '@/services/bankingDetailsService'
 import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
 import { getUser } from '@/services/userService'
 import { createProduct } from '@/services/productsService'
+import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
+import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -171,6 +173,16 @@ function ProductCreator() {
         return { error: errorData.error || "Generation failed", details: errorData.details };
       }
       const data = await response.json();
+      
+      if (data.base64Image) {
+        const storage = getStorage();
+        const filename = `ai-gen-${uuidv4()}.jpg`;
+        const storageRef = ref(storage, `product-images/${filename}`);
+        await uploadString(storageRef, data.base64Image, 'base64');
+        const imageUrl = await getDownloadURL(storageRef);
+        return { imageUrl };
+      }
+
       return { imageUrl: data.imageUrl || null };
     } catch (err) {
       console.error("Image generation proxy error:", err);
