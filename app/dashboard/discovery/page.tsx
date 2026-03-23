@@ -1,7 +1,5 @@
-'use client'
-
-import DashboardDiscoverySections from '@/app/dashboard/DashboardDiscoverySections'
+import { redirect } from 'next/navigation'
 
 export default function DiscoveryPage() {
-  return <DashboardDiscoverySections />
+  redirect('/dashboard/network')
 }

@@ -5,7 +5,6 @@ import {
   Home,
   BarChart,
   Coins,
-  Compass,
   Package,
   PanelLeftClose,
   PanelLeftOpen,
@@ -14,7 +13,8 @@ import {
   LucideIcon,
   Users,
   FileText,
-  QrCode
+  QrCode,
+  Zap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -32,7 +32,7 @@ const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },
-  { href: '/dashboard/discovery', icon: Compass, label: 'Discover' },
+  { href: '/dashboard/network', icon: Zap, label: 'Network' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
 

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Bell, ChevronRight, Coins, Compass, LifeBuoy, Package, Palette, Save, Users } from 'lucide-react'
+import { ArrowLeft, BarChart, Bell, ChevronRight, Coins, Compass, LifeBuoy, Package, Palette, Save, Users, Zap } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,6 @@ const pageTitles: Record<string, string> = {
   '/dashboard/products': 'Products',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/settings': 'Settings',
-  '/dashboard/discovery': 'Discovery',
   '/dashboard/help': 'Help & Support',
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
@@ -45,7 +44,7 @@ const quickLinks: QuickLink[] = [
   { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/edit', label: 'Edit Page', icon: Palette },
-  { href: '/dashboard/discovery', label: 'Discover', icon: Compass },
+  { href: '/dashboard/network', label: 'Network', icon: Zap },
   { href: '/dashboard/communities', label: 'Communities', icon: Users },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
 ]

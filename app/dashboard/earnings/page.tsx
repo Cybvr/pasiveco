@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table"
 import { useRouter } from "next/navigation"
 import { useState, useMemo, useEffect } from "react"
-import { walletStats } from "@/lib/wallet"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 import { getSellerTransactions } from "@/services/transactionsService"
@@ -73,9 +72,14 @@ export default function EarningsPage() {
     setSortConfig({ key, direction })
   }
  
-  const filteredAndSortedTransactions = useMemo(() => {
+  const { stats, filteredAndSortedTransactions } = useMemo(() => {
     let result = [...transactions]
     
+    // Calculate Stats from real data
+    const totalEarnings = transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
+    const pendingAmount = transactions.filter(tx => !tx.payoutDate).reduce((sum, tx) => sum + (tx.amount || 0), 0)
+    const totalOrders = transactions.length
+ 
     // Search
     if (search) {
       const s = search.toLowerCase()
@@ -111,7 +115,14 @@ export default function EarningsPage() {
       })
     }
  
-    return result
+    return {
+      stats: [
+        { title: "Total Earnings", value: totalEarnings },
+        { title: "Pending Payout", value: pendingAmount },
+        { title: "Net Sales", value: totalOrders.toString() }
+      ],
+      filteredAndSortedTransactions: result
+    }
   }, [transactions, search, sortConfig, statusFilter])
  
   const SortIcon = ({ columnKey }: { columnKey: keyof Transaction }) => {
@@ -122,11 +133,11 @@ export default function EarningsPage() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
-        {walletStats.map((stat, idx) => (
+        {stats.map((stat, idx) => (
           <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? "bg-muted/30" : ""}`}>
             <CardContent className="p-3 md:p-4">
               <div className="text-lg md:text-2xl font-bold leading-tight break-words">
-                {formatEarnings(stat.value)}
+                {stat.title === "Net Sales" ? stat.value : formatEarnings(stat.value as number)}
               </div>
               <p className="text-xs md:text-sm text-muted-foreground mt-1">{stat.title}</p>
             </CardContent>
