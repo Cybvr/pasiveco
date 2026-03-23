@@ -16,7 +16,7 @@ const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/network', icon: Zap, label: 'Network' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
-  { href: '/dashboard/customers', icon: Users, label: 'People' },
+  { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
  
 export default function MobileBottomNav() {
