@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Wand2, Zap } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -385,25 +385,13 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
 
         <div>
           <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Slug (URL) *</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => handleInputChange('slug', slugify(formData.name))}
-              className="px-2"
-              title="Auto-generate from Title"
-            >
-              <Wand2 className="h-4 w-4" />
-            </Button>
-            <Input
-              type="text"
-              placeholder={slugify(formData.name) || "my-awesome-product"}
-              value={formData.slug}
-              onChange={(e) => handleInputChange('slug', e.target.value)}
-              className="w-full"
-            />
-          </div>
+          <Input
+            type="text"
+            placeholder={slugify(formData.name) || "my-awesome-product"}
+            value={formData.slug}
+            onChange={(e) => handleInputChange('slug', e.target.value)}
+            className="w-full"
+          />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
