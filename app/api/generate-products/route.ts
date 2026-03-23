@@ -5,6 +5,28 @@ export async function POST(req: NextRequest) {
   try {
     const { description, brandPreferences, productType, creatorName } = await req.json();
 
+    const serpApiKey = process.env.SERPAPI_KEY;
+    let groundedSearchData = "";
+
+    if (serpApiKey && creatorName) {
+      try {
+        const searchQuery = `${creatorName} ${description} creator professional profile`;
+        const searchRes = await fetch(
+          `https://serpapi.com/search.json?q=${encodeURIComponent(searchQuery)}&api_key=${serpApiKey}`
+        );
+        const searchData = await searchRes.json();
+        
+        if (searchData.organic_results) {
+          groundedSearchData = searchData.organic_results
+            .slice(0, 4)
+            .map((res: any) => `- ${res.title}: ${res.snippet} (Ref: ${res.link})`)
+            .join("\n");
+        }
+      } catch (err) {
+        console.warn("SerpAPI research failed, falling back to basic generation.", err);
+      }
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -25,6 +47,9 @@ export async function POST(req: NextRequest) {
     Creator Name: ${creatorName || 'Unknown'}
     Description of Interest: ${description}
     Creator's Brand Preferences: ${brandPreferences || 'None set'}
+
+    Research Grounding Data (from Web Search):
+    ${groundedSearchData || 'No specific web data found. Base your suggestions on the provided description and brand preferences.'}
 
     Task:
     Generate a LIST of 3-5 distinct product ideas that this creator could launch. 
