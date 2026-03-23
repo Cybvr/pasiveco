@@ -17,6 +17,9 @@ import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
+import { getUser } from '@/services/userService'
+
+type NetworkProduct = Product & { sellerHandle?: string }
 
 // Reusable standard card width for all horizontal scroll rows
 const CARD_W = 'w-[200px]'
@@ -29,7 +32,7 @@ export default function DashboardHomePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [hasBankingDetails, setHasBankingDetails] = useState(true)
 
-  const [affiliateProducts, setAffiliateProducts] = useState<Product[]>([])
+  const [affiliateProducts, setAffiliateProducts] = useState<NetworkProduct[]>([])
   const [affiliateLoading, setAffiliateLoading] = useState(true)
 
   const [communities, setCommunities] = useState<Community[]>([])
@@ -57,10 +60,31 @@ export default function DashboardHomePage() {
 
   // Load affiliate products
   useEffect(() => {
-    getAllLatestProducts(8)
-      .then((data) => setAffiliateProducts(data || []))
-      .catch(() => {})
-      .finally(() => setAffiliateLoading(false))
+    async function loadAffiliate() {
+      try {
+        const data = await getAllLatestProducts(8)
+        if (!data) return
+        
+        const userIds = [...new Set(data.map(p => p.userId))]
+        const userDocs = await Promise.all(
+          userIds.map(id => getUser(id).catch(() => null))
+        )
+        const userMap = new Map(userDocs.filter(Boolean).map(u => [u?.userId || u?.id, u]))
+        
+        const enriched = data.map(p => {
+          const seller = userMap.get(p.userId)
+          const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
+          return { ...p, sellerHandle: handle }
+        })
+        
+        setAffiliateProducts(enriched)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setAffiliateLoading(false)
+      }
+    }
+    void loadAffiliate()
   }, [])
 
   // Load communities
@@ -253,7 +277,7 @@ export default function DashboardHomePage() {
                 return (
                   <Link
                     key={p.id}
-                    href="/dashboard/network"
+                    href={`/${p.sellerHandle}/product/${p.slug || p.id}`}
                     className={`${CARD_W} group flex flex-col gap-2`}
                   >
                     <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">

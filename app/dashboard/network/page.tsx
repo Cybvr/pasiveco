@@ -1,6 +1,7 @@
 "use client"
  
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Search, Filter, Zap, DollarSign, ArrowUpRight, CheckCircle2, Star, TrendingUp, Briefcase, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,11 +13,14 @@ import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { getDicebearAvatar } from "@/lib/avatar"
+import { getUser } from "@/services/userService"
+
+type NetworkProduct = Product & { sellerHandle?: string }
  
 export default function NetworkPage() {
   const router = useRouter()
   const { currency } = useCurrency()
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<NetworkProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
  
@@ -24,7 +28,23 @@ export default function NetworkPage() {
     async function loadProducts() {
       try {
         const data = await getAllLatestProducts(24)
-        setProducts(data || [])
+        if (!data) return
+        
+        // Fetch unique users concurrently
+        const userIds = [...new Set(data.map(p => p.userId))]
+        const userDocs = await Promise.all(
+          userIds.map(id => getUser(id).catch(() => null))
+        )
+        const userMap = new Map(userDocs.filter(Boolean).map(u => [u?.userId || u?.id, u]))
+        
+        // Enrich products with seller handle
+        const enriched = data.map(p => {
+          const seller = userMap.get(p.userId)
+          const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
+          return { ...p, sellerHandle: handle }
+        })
+        
+        setProducts(enriched)
       } catch (err) {
         console.error("Error loading products:", err)
       } finally {
@@ -111,7 +131,7 @@ export default function NetworkPage() {
             // Mocking commissions for the list
             const commission = Math.floor(Math.random() * 40) + 10;
             return (
-              <div key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
+              <Link href={`/${p.sellerHandle}/product/${p.slug || p.id}`} key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
                 <div className="aspect-[3/2] relative overflow-hidden">
                   <img 
                     src={p.thumbnail || getDicebearAvatar(p.id || p.name)} 
@@ -155,11 +175,11 @@ export default function NetworkPage() {
                       <p className="text-sm font-bold text-primary">{formatPrice(p.price * (commission / 100), p.currency)}</p>
                     </div>
                   </div>
-                  <Button className="w-full h-9 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
+                  <Button className="w-full h-9 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 pointer-events-none">
                     Promote Now <ArrowUpRight className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-              </div>
+              </Link>
             )
           })
         )}
