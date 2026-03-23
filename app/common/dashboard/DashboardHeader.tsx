@@ -188,42 +188,52 @@ export default function DashboardHeader() {
                   </Avatar>
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[72%] max-w-[280px]">
-                <SheetHeader>
-                  <SheetTitle className="text-left">
-                    <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
-                      <div className="rounded-lg bg-primary/10 p-1">
-                        <Image src="/images/monster.png" alt="Pasive" width={20} height={20} />
-                      </div>
-                      <span className="text-base font-black tracking-tighter leading-none">pasive</span>
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="mt-6 flex h-full flex-col">
-                  <div className="space-y-2">
+              <SheetContent side="left" className="w-[75%] max-w-[280px] p-0 flex flex-col gap-0 border-r">
+                <div className="pt-6 px-4 pb-4">
+                  <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
+                    <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm">
+                      <Image src="/images/monster.png" alt="Pasive" width={20} height={20} />
+                    </div>
+                    <span className="text-base font-black tracking-tighter leading-none">pasive</span>
+                  </Link>
+                </div>
+
+                <div className="flex items-center gap-3 px-4 py-3 bg-muted/10 border-y">
+                  <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
+                    <AvatarImage src={profilePicture} alt={displayName} />
+                    <AvatarFallback className="bg-primary/5 text-primary text-sm font-medium">{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-sm font-bold truncate text-foreground leading-none mb-0.5">{displayName}</p>
+                    <p className="text-[11px] text-muted-foreground/90 truncate leading-tight font-medium">{user?.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                  <div className="flex-1 space-y-0.5 overflow-y-auto pt-3 px-2">
                     {quickLinks.map((item) => (
                       <Button
                         key={item.href}
                         variant="ghost"
-                        className="w-full justify-start gap-3"
+                        className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
                         onClick={() => handleNavigate(item.href)}
                       >
-                        <item.icon className="h-4 w-4" />
-                        <span className="flex-1 text-left">{item.label}</span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <item.icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
                       </Button>
                     ))}
                   </div>
-
-                  <div className="mt-auto border-t pt-4">
+ 
+                  <div className="mt-auto border-t p-2">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3"
+                      className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
                       onClick={() => handleNavigate('/dashboard/help')}
                     >
-                      <LifeBuoy className="h-4 w-4" />
-                      <span className="flex-1 text-left">Help & Support</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <LifeBuoy className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1 text-[13px] text-left font-semibold">Help & Support</span>
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
                     </Button>
                   </div>
                 </div>
