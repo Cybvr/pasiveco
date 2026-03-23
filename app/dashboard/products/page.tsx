@@ -9,7 +9,7 @@ import { getUserProducts, type Product } from '@/services/productsService'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { getBankingDetails } from '@/services/bankingDetailsService'
-import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2 } from 'lucide-react'
+import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
 import { getUser } from '@/services/userService'
 import { createProduct } from '@/services/productsService'
 import { Button } from '@/components/ui/button'
@@ -48,6 +48,7 @@ function ProductCreator() {
   const [initialProductData, setInitialProductData] = useState<any>(null)
   const [brandStyle, setBrandStyle] = useState<string>("")
   const [processingIdx, setProcessingIdx] = useState<number | null>(null)
+  const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null)
   const [acceptedIndices, setAcceptedIndices] = useState<Set<number>>(new Set())
   const { user, loading: authLoading } = useAuth()
   const searchParams = useSearchParams()
@@ -136,6 +137,23 @@ function ProductCreator() {
       toast.error("AI generation failed. Please try again.")
     } finally {
       setIsAIGenerating(false)
+    }
+  }
+
+  const handleManualGenerateImage = async (index: number, name: string, desc: string) => {
+    if (regeneratingIdx !== null) return
+    setRegeneratingIdx(index)
+    try {
+      const img = await generateAIImage(name, desc)
+      if (img && aiResult) {
+        const newProducts = [...aiResult.products]
+        newProducts[index] = { ...newProducts[index], imageUrl: img }
+        setAiResult({ ...aiResult, products: newProducts })
+      } else {
+        toast.error("Generation failed. Please try again.")
+      }
+    } finally {
+      setRegeneratingIdx(null)
     }
   }
 
@@ -296,14 +314,39 @@ function ProductCreator() {
                       key={idx} 
                       className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex gap-4"
                     >
-                      <div className="w-24 h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative">
+                      <div className="w-24 h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative group/img">
                         {product.imageUrl ? (
                           <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="flex flex-col items-center gap-1 opacity-40">
-                            <Sparkles className="h-4 w-4" />
-                            <span className="text-[8px] uppercase font-bold tracking-tighter">AI Visual</span>
+                          <div className="flex flex-col items-center gap-1.5 p-2 text-center">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleManualGenerateImage(idx, product.name, product.description)}
+                              disabled={regeneratingIdx === idx}
+                              className="h-full w-full absolute inset-0 flex flex-col items-center justify-center gap-1 hover:bg-primary/5 transition-colors"
+                            >
+                              {regeneratingIdx === idx ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              ) : (
+                                <>
+                                  <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-[9px] uppercase font-bold tracking-tight text-muted-foreground">Generate</span>
+                                </>
+                              )}
+                            </Button>
                           </div>
+                        )}
+                        {product.imageUrl && (
+                          <Button 
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => handleManualGenerateImage(idx, product.name, product.description)}
+                            disabled={regeneratingIdx === idx}
+                            className="absolute bottom-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white border-none shadow-lg"
+                          >
+                            <RefreshCw className={`h-3 w-3 ${regeneratingIdx === idx ? 'animate-spin' : ''}`} />
+                          </Button>
                         )}
                       </div>
                       
