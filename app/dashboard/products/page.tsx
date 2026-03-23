@@ -287,8 +287,8 @@ function ProductCreator() {
               />
               <div className="flex flex-wrap gap-2 items-center">
                 <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 ">
-                  <Search className="h-3 w-3" />
-                  AI will research based on your brand.
+                  <Sparkles className="h-3 w-3" />
+                  AI will suggest products based on yours persona.
                 </p>
               </div>
             </div>
@@ -361,7 +361,7 @@ function ProductCreator() {
                 {isAIGenerating ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Searching...
+                    Generating...
                   </>
                 ) : (
                   <>

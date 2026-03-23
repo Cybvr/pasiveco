@@ -16,24 +16,17 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash",
-      tools: [
-        {
-          //@ts-ignore - googleSearch is supported in gemini-2.0-flash but might not be in the current type definitions
-          googleSearch: {},
-        },
-      ],
+      generationConfig: { responseMimeType: "application/json" },
     });
 
     const prompt = `You are a creative product strategist for creators. 
 
     Creator Name: ${creatorName || 'Unknown'}
-    Topic/Description: ${description}
+    Description of Interest: ${description}
     Creator's Brand Preferences: ${brandPreferences || 'None set'}
 
-    Step 1: Use your Search Tool to research "${creatorName}" and their professional background/online content (social media, website, portfolio).
-    Step 2: Based on your findings and the provided description, generate a LIST of 3-5 distinct product ideas.
-
-    Return a JSON object with a "products" key containing an array of objects. Each object must have:
+    Task:
+    Generate a LIST of 3-5 distinct product ideas that this creator could launch. 
     The ideas should range across different formats (e.g., a digital tool, a course, a booking service).
 
     Return a JSON object with a "products" key containing an array of objects. Each object must have:
@@ -46,10 +39,7 @@ export async function POST(req: NextRequest) {
     TONE: Professional, visionary, and perfectly aligned with the creator's brand voice.
     IMPORTANT: Ensure the response is valid JSON.`;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
-    });
+    const result = await model.generateContent(prompt);
 
     if (
       !result.response ||

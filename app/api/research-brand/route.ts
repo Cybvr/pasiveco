@@ -11,10 +11,18 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      tools: [
+        {
+          //@ts-ignore - googleSearch is supported in gemini-2.0-flash
+          googleSearch: {},
+        },
+      ],
+    });
 
     const prompt = `You are a brand strategist for creators. 
-    Your task is to research and define the brand voice and style for a creator.
+    Your task is to research and define the brand voice and style for "${creatorName || username}".
 
     Creator Context:
     Name: ${creatorName || 'Unknown'}
@@ -23,14 +31,16 @@ export async function POST(req: NextRequest) {
     Selected Category: ${category || 'None'}
 
     Task:
-    1. Conduct a brief mental research analysis for "${creatorName}" (@${username}) to understand their content, niche, and typical audience.
+    1. PROACTIVELY use your Google Search Tool to browse the web for "${creatorName || username}" to see who they are, what they build, and how they talk on social media (X/Twitter, LinkedIn, personal site).
     2. Write a concise "Brand Voice & Style" description (under 250 characters).
-    3. Focus on their tone (e.g., informative, witty, aesthetic, professional), their core niche, and what makes them unique.
+    3. Focus on their tone (e.g., informative, witty, aesthetic, professional) and specific niche.
 
     The tone of your answer should be descriptive and helpful. 
     Return ONLY the text for the brand preferences. No JSON, no labels.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
     const responseText = result.response.text().trim();
     
     return NextResponse.json({ brandPreferences: responseText });
