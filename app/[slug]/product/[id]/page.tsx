@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ExternalLink, Package, ShieldCheck, Truck } from 'lucide-react';
+import { ExternalLink, Package, ShieldCheck, Truck, Share2, ArrowUpRight } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProductDetailsSummary from '@/components/products/ProductDetailsSummary';
@@ -24,6 +26,7 @@ const formatPrice = (amount: number, productCurrency: string, userCurrency: stri
 };
 
 export default function ProductPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
+  const { user } = useAuth();
   const routeParams = useParams<{ slug: string }>();
   const [productId, setProductId] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
@@ -81,6 +84,41 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   // Only fall back to "Unavailable" if price is 0 and there's no direct link.
   const hasPaystack = !hasDirectLink && product.price > 0;
 
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: product.description,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  };
+
+  const handlePromote = async () => {
+    if (!user) {
+      toast.error('Log in to promote and earn commission!');
+      return;
+    }
+    const affiliateLink = `${window.location.origin}${window.location.pathname}?ref=${user.uid}`;
+    try {
+      await navigator.clipboard.writeText(affiliateLink);
+      toast.success('Affiliate link copied!', {
+        description: `You'll earn ${product?.affiliateCommission || 20}% on every sale via this link.`,
+      });
+    } catch (err) {
+      toast.error('Failed to copy link.');
+    }
+  };
+
   return (
     <div className="w-full space-y-12">
 
@@ -133,6 +171,30 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
             ) : (
               <Button className="h-12 w-full" size="lg" variant="outline" disabled>Unavailable for purchase</Button>
             )}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 h-12 gap-2 border-dashed" 
+                  size="lg"
+                  onClick={handleShare}
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </Button>
+                {product.affiliateEnabled && (
+                  <Button 
+                    variant="default" 
+                    className="flex-1 h-12 gap-2 bg-zinc-950 text-white hover:bg-zinc-800" 
+                    size="lg"
+                    onClick={handlePromote}
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                    Promote & Earn
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
