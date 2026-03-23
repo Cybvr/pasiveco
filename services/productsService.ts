@@ -212,6 +212,27 @@ export const getAllLatestProducts = async (limitCount = 10): Promise<Product[]> 
     throw error;
   }
 };
+
+export const getAffiliateProducts = async (limitCount = 20): Promise<Product[]> => {
+  try {
+    const q = query(
+      collection(db, 'products'),
+      where('status', '==', 'active'),
+      where('affiliateEnabled', '==', true),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Product[];
+  } catch (error) {
+    console.error('Error fetching affiliate products:', error);
+    throw error;
+  }
+};
 export const getProductBySlug = async (slug: string): Promise<Product | null> => {
   try {
     const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));

@@ -7,18 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getAllLatestProducts, Product } from "@/services/productsService"
+import { getAffiliateProducts, Product } from "@/services/productsService"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { getDicebearAvatar } from "@/lib/avatar"
 import { getUser } from "@/services/userService"
+import { useAuth } from "@/hooks/useAuth"
+import { toast } from "sonner"
 
 type NetworkProduct = Product & { sellerHandle?: string }
  
 export default function NetworkPage() {
   const router = useRouter()
+  const { user } = useAuth()
   const { currency } = useCurrency()
   const [products, setProducts] = useState<NetworkProduct[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,7 +30,7 @@ export default function NetworkPage() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const data = await getAllLatestProducts(24)
+        const data = await getAffiliateProducts(24)
         if (!data) return
         
         // Fetch unique users concurrently
@@ -65,7 +68,23 @@ export default function NetworkPage() {
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase())
   )
- 
+
+  const handlePromoteProduct = (e: React.MouseEvent, p: NetworkProduct) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error('You must be logged in to promote products.');
+      return;
+    }
+    const affiliateLink = `${window.location.origin}/${p.sellerHandle}/product/${p.slug || p.id}?ref=${user.uid}`;
+    navigator.clipboard.writeText(affiliateLink).then(() => {
+      toast.success('Affiliate link copied to clipboard!', {
+        description: 'Share this link with your audience to start earning.',
+      });
+    }).catch(() => {
+      toast.error('Failed to copy link.');
+    });
+  }
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-950 text-white p-8 rounded-3xl overflow-hidden relative group">
@@ -128,8 +147,7 @@ export default function NetworkPage() {
           </div>
         ) : (
           filteredProducts.map((p) => {
-            // Mocking commissions for the list
-            const commission = Math.floor(Math.random() * 40) + 10;
+            const commission = p.affiliateCommission || 20;
             return (
               <Link href={`/${p.sellerHandle}/product/${p.slug || p.id}`} key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
                 <div className="aspect-[3/2] relative overflow-hidden">
@@ -175,7 +193,10 @@ export default function NetworkPage() {
                       <p className="text-sm font-bold text-primary">{formatPrice(p.price * (commission / 100), p.currency)}</p>
                     </div>
                   </div>
-                  <Button className="w-full h-9 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5 pointer-events-none">
+                  <Button 
+                    className="w-full h-9 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5"
+                    onClick={(e) => handlePromoteProduct(e, p)}
+                  >
                     Promote Now <ArrowUpRight className="h-3.5 w-3.5" />
                   </Button>
                 </div>

@@ -273,7 +273,7 @@ export default function DashboardHomePage() {
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max gap-4 pb-4 px-1">
               {affiliateProducts.map((p) => {
-                const commission = Math.floor(Math.random() * 40) + 10
+                const commission = p.affiliateCommission || 20;
                 return (
                   <Link
                     key={p.id}
