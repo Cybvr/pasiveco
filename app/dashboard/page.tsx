@@ -175,7 +175,7 @@ export default function DashboardHomePage() {
                       </div>
                     </div>
                   </div>
-                  <p className="whitespace-pre-wrap text-sm leading-5 text-foreground">{post.message}</p>
+                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground">{post.message}</p>
 
                   <div className="flex items-center gap-2 pt-0.5 text-xs text-muted-foreground">
                     <Button

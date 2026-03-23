@@ -30,7 +30,7 @@ const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/settings/withdrawals', label: 'Withdrawals', icon: ArrowUpRight },
-  { href: '/dashboard/settings/earnings', label: 'Earnings', icon: Coins },
+  { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/settings/banking-details', label: 'Banking Details', icon: Wallet },
   { href: '/dashboard/settings/payment-method', label: 'Payment Methods', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },

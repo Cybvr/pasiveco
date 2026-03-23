@@ -91,7 +91,7 @@ export default function DashboardPostPage() {
         </div>
 
         {/* Post body */}
-        <p className="whitespace-pre-wrap text-sm leading-7">{post.message}</p>
+        <p className="whitespace-pre-wrap text-[13px] leading-relaxed">{post.message}</p>
 
         {/* Actions */}
         <div className="flex items-center gap-1 border-y py-2.5 text-sm text-muted-foreground">
@@ -151,7 +151,7 @@ export default function DashboardPostPage() {
                     <span>·</span>
                     <span>{formatSocialDate(item.createdAt)}</span>
                   </div>
-                  <p className="text-sm leading-relaxed">{item.message}</p>
+                  <p className="text-[13px] leading-relaxed">{item.message}</p>
                 </div>
               </div>
             ))}

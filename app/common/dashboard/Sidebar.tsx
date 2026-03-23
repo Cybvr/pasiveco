@@ -6,6 +6,7 @@ import {
   BarChart,
   Coins,
   Compass,
+  Package,
   PanelLeftClose,
   PanelLeftOpen,
   Palette,
@@ -27,10 +28,11 @@ interface NavItem {
 
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
+  { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/products', icon: Package, label: 'Products' },
+  { href: '/dashboard/edit', icon: Palette, label: 'Edit Page' },
+  { href: '/dashboard/discovery', icon: Compass, label: 'Discover' },
   { href: '/dashboard/communities', icon: Users, label: 'Communities' },
-  { href: '/dashboard/edit', icon: Palette, label: 'Customize' },
-  { href: '/dashboard/products', icon: Coins, label: 'Products' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
 
@@ -69,29 +71,29 @@ export default function Sidebar({
   return (
     <div className="flex flex-col h-full bg-card">
       <div className={cn(
-        "px-3 py-3 border-b border-border/50 h-14 flex items-center transition-all duration-300",
+        "px-2.5 py-2 border-b border-border/50 h-12 flex items-center transition-all duration-300",
         isCollapsed ? "justify-center" : "justify-between"
       )}>
         {!isCollapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2.5 group">
-            <div className="p-1.5 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
-              <Image src="/images/monster.png" alt="Monster" width={24} height={24} />
+          <Link href="/dashboard" className="flex items-center space-x-2 group">
+            <div className="p-1 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
+              <Image src="/images/monster.png" alt="Monster" width={20} height={20} />
             </div>
             <div>
-              <h1 className="text-lg text-foreground font-black tracking-tighter leading-none">pasive</h1>
+              <h1 className="text-base text-foreground font-black tracking-tighter leading-none">pasive</h1>
               {isAdmin && <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Admin</p>}
             </div>
           </Link>
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 hover:bg-accent rounded-lg text-muted-foreground hover:text-foreground transition-colors hidden md:block"
+          className="p-1 hover:bg-accent rounded-md text-muted-foreground hover:text-foreground transition-colors hidden md:block"
         >
           {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto py-4 px-2.5">
-        <nav className="space-y-1">
+      <div className="flex-1 overflow-y-auto py-2 px-1.5">
+        <nav className="space-y-px">
           {currentNavItems.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
@@ -101,14 +103,14 @@ export default function Sidebar({
                 href={item.href}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
-                  "flex items-center text-[13px] font-medium rounded-lg transition-all duration-200",
-                  isCollapsed ? "justify-center p-2" : "px-2.5 py-2",
+                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",
+                  isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-4 w-4", !isCollapsed && "mr-2.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             )
@@ -116,8 +118,8 @@ export default function Sidebar({
         </nav>
       </div>
 
-      <div className="border-t border-border/50 px-2.5 py-3">
-        <nav className="space-y-1">
+      <div className="border-t border-border/50 px-1.5 py-2">
+        <nav className="space-y-px">
           {bottomNavItems.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
@@ -127,14 +129,14 @@ export default function Sidebar({
                 href={item.href}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
-                  "flex items-center text-[13px] font-medium rounded-lg transition-all duration-200",
-                  isCollapsed ? "justify-center p-2" : "px-2.5 py-2",
+                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",
+                  isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-4 w-4", !isCollapsed && "mr-2.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             )
@@ -143,7 +145,7 @@ export default function Sidebar({
       </div>
 
       <div className={cn(
-        "p-3 border-t border-border/50",
+        "p-2 border-t border-border/50",
         isCollapsed ? "flex justify-center" : ""
       )}>
         <UserMenu isCollapsed={isCollapsed} />

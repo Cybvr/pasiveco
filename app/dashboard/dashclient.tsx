@@ -57,7 +57,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       {/* Sidebar - Desktop only */}
       <aside className={cn(
         "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
-        isSidebarCollapsed ? "w-14" : "w-56"
+        isSidebarCollapsed ? "w-12" : "w-48"
       )}>
         <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       </aside>
