@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CreditCard, Loader2, Package, ShieldCheck, User, Landmark, Phone, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const routeParams = useParams<{ slug: string }>();
+
+  const affiliateId = searchParams.get('ref') || '';
 
   const [product, setProduct] = useState<Product | null>(null);
   const [seller, setSeller] = useState<any>(null);
@@ -166,9 +169,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
           orderNote: notes,
           channels: channels,
           sellerId: product.userId,
-          // Add placeholders for other fields if needed, or pass them from state if implemented
+          affiliate: affiliateId,
           couponDiscount: 0, 
-          affiliate: '',
           customCharge: 0,
           variation: '', 
         }

@@ -16,10 +16,11 @@ import { useRouter } from "next/navigation"
 import { useState, useMemo, useEffect } from "react"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
-import { getSellerTransactions } from "@/services/transactionsService"
+import { getSellerTransactions, getAffiliateTransactions } from "@/services/transactionsService"
 import { useAuth } from "@/hooks/useAuth"
 import { Transaction } from "@/types/transaction"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -32,7 +33,9 @@ export default function EarningsPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { currency } = useCurrency()
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [salesTransactions, setSalesTransactions] = useState<Transaction[]>([])
+  const [affiliateTransactions, setAffiliateTransactions] = useState<Transaction[]>([])
+  const [activeTab, setActiveTab] = useState<"sales" | "affiliate">("sales")
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -41,9 +44,14 @@ export default function EarningsPage() {
   useEffect(() => {
     async function loadTransactions() {
       if (!user?.uid) return
+      setLoading(true)
       try {
-        const data = await getSellerTransactions(user.uid)
-        setTransactions(data)
+        const [sales, affiliate] = await Promise.all([
+          getSellerTransactions(user.uid),
+          getAffiliateTransactions(user.uid)
+        ])
+        setSalesTransactions(sales)
+        setAffiliateTransactions(affiliate)
       } catch (err) {
         console.error("Error loading transactions:", err)
       } finally {
@@ -52,6 +60,8 @@ export default function EarningsPage() {
     }
     loadTransactions()
   }, [user])
+
+  const transactions = activeTab === "sales" ? salesTransactions : affiliateTransactions;
  
   const formatEarnings = (amount: number | string) => {
     if (typeof amount === 'string') return amount
@@ -149,10 +159,18 @@ export default function EarningsPage() {
         <CardHeader className="px-6 py-4 border-b space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold tabular-nums">Earnings</CardTitle>
-            <Button variant="outline" size="sm" className="h-8 gap-2">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
+            <div className="flex items-center gap-3">
+              <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="sales" className="text-xs">My Products</TabsTrigger>
+                  <TabsTrigger value="affiliate" className="text-xs">Affiliate Influence</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button variant="outline" size="sm" className="h-8 gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
           </div>
           
           <div className="flex flex-col md:flex-row gap-3">
