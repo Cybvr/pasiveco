@@ -12,8 +12,6 @@ import { getBankingDetails } from '@/services/bankingDetailsService'
 import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2 } from 'lucide-react'
 import { getUser } from '@/services/userService'
 import { createProduct } from '@/services/productsService'
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { v4 as uuidv4 } from 'uuid'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -130,35 +128,19 @@ function ProductCreator() {
   }
 
   const generateAIImage = async (productName: string, productDescription: string) => {
-    const hfKey = process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY
-    if (!hfKey || hfKey === 'hf_your_key_here') return null
-
     try {
-      const prompt = `professional product cover for ${productName}, ${productDescription.slice(0, 100)}, bold, modern retail design, high quality, studio lighting`
-      const response = await fetch(
-        "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${hfKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ inputs: prompt }),
-        }
-      )
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName, productDescription }),
+      });
 
-      if (!response.ok) return null
-      const blob = await response.blob()
-      
-      // Upload to Firebase
-      const storage = getStorage()
-      const filename = `ai-gen-${uuidv4()}.jpg`
-      const storageRef = ref(storage, `product-images/${filename}`)
-      await uploadBytes(storageRef, blob)
-      return await getDownloadURL(storageRef)
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.imageUrl || null;
     } catch (err) {
-      console.error("Image generation error:", err)
-      return null
+      console.error("Image generation proxy error:", err);
+      return null;
     }
   }
 
