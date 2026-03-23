@@ -143,7 +143,7 @@ export default function NetworkPage() {
                       <span className="text-[10px] uppercase tracking-widest text-primary font-bold">In Demand</span>
                       <CheckCircle2 className="h-2.5 w-2.5 text-primary" />
                     </div>
-                    <h3 className="text-sm font-semibold line-clamp-2 leading-tight">{p.name}</h3>
+                    <h3 className="text-sm font-semibold truncate leading-tight">{p.name}</h3>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>

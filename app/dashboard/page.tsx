@@ -110,7 +110,7 @@ export default function DashboardHomePage() {
                     />
                   </div>
                   <div className="text-left">
-                    <p className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">{product.name}</p>
+                    <p className="truncate text-sm font-semibold text-foreground leading-tight">{product.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {new Intl.NumberFormat(undefined, {
                         style: 'currency',
@@ -204,7 +204,7 @@ export default function DashboardHomePage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <p className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">{community.name}</p>
+                    <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{community.memberCount} members</p>
                   </div>
                 </Link>
@@ -281,7 +281,7 @@ export default function DashboardHomePage() {
                         <span className="text-[10px] uppercase tracking-widest text-primary font-bold">In Demand</span>
                         <CheckCircle2 className="h-2.5 w-2.5 text-primary" />
                       </div>
-                      <p className="line-clamp-1 text-sm font-semibold text-foreground leading-tight">{p.name}</p>
+                      <p className="truncate text-sm font-semibold text-foreground leading-tight">{p.name}</p>
                       <div className="flex items-center justify-between mt-0.5">
                         <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency)}</p>
                         <p className="text-xs font-bold text-primary">+{formatPrice(p.price * (commission / 100), p.currency)}</p>
