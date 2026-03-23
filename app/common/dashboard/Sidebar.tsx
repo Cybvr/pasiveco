@@ -28,11 +28,11 @@ interface NavItem {
 
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
-  { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/edit', icon: Palette, label: 'Edit Page' },
+  { href: '/dashboard/products', icon: Package, label: 'Products' },
+  { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/customers', icon: Users, label: 'Customers' },
   { href: '/dashboard/discovery', icon: Compass, label: 'Discover' },
-  { href: '/dashboard/communities', icon: Users, label: 'Communities' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
 

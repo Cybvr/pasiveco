@@ -1,27 +1,27 @@
 'use client'
-
+ 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, Compass, Home, Package, User, LucideIcon, Users } from 'lucide-react'
+import { Home, Compass, Package, Users, Palette, Coins, User, LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
+ 
 interface NavItem {
   href: string
   icon: LucideIcon
   label: string
 }
-
+ 
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/discovery', icon: Compass, label: 'Discovery' },
+  { href: '/dashboard/edit', icon: Palette, label: 'Edit' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
-  { href: '/dashboard/communities', icon: Users, label: 'Communities' },
-  { href: '/dashboard/settings', icon: User, label: 'Profile' },
+  { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/customers', icon: Users, label: 'People' },
 ]
-
+ 
 export default function MobileBottomNav() {
   const pathname = usePathname()
-
+ 
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background md:hidden">
@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
             const isActive = item.href === '/dashboard'
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(`${item.href}/`)
-
+ 
             return (
               <Link
                 key={item.href}

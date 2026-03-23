@@ -125,7 +125,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
     setError('');
     setPaymentLoading(true);
 
-    const channels = [];
+    const channels: string[] = [];
     if (selectedMethod === 'card') channels.push('card');
     else if (selectedMethod === 'bank') channels.push('bank', 'bank_transfer');
 
@@ -165,6 +165,12 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
           customerPhone: buyerPhone,
           orderNote: notes,
           channels: channels,
+          sellerId: product.userId,
+          // Add placeholders for other fields if needed, or pass them from state if implemented
+          couponDiscount: 0, 
+          affiliate: '',
+          customCharge: 0,
+          variation: '', 
         }
       );
     } catch (paymentError) {

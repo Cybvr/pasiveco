@@ -11,6 +11,11 @@ interface PaystackInitializeData {
     customer_name?: string;
     customer_phone?: string;
     order_note?: string;
+    seller_id?: string;
+    coupon_discount?: number;
+    affiliate?: string;
+    custom_charge?: number;
+    variation?: string;
   };
 }
 
@@ -33,6 +38,11 @@ interface PaystackResponse {
       customer_name?: string;
       customer_phone?: string;
       order_note?: string;
+      seller_id?: string;
+      coupon_discount?: number;
+      affiliate?: string;
+      custom_charge?: number;
+      variation?: string;
     };
   };
 }
@@ -107,6 +117,11 @@ export const initializePaystackPayment = (
     orderNote?: string;
     container?: string;
     channels?: string[];
+    sellerId?: string;
+    couponDiscount?: number;
+    affiliate?: string;
+    customCharge?: number;
+    variation?: string;
   }
 ) => {
   const handler = (window as any).PaystackPop.setup({
@@ -121,6 +136,11 @@ export const initializePaystackPayment = (
       customer_name: options?.customerName,
       customer_phone: options?.customerPhone,
       order_note: options?.orderNote,
+      seller_id: options?.sellerId,
+      coupon_discount: options?.couponDiscount,
+      affiliate: options?.affiliate,
+      custom_charge: options?.customCharge,
+      variation: options?.variation,
     },
     container: options?.container,
     channels: options?.channels,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PaystackService } from '@/services/paystackService';
+import { createTransaction } from '@/services/transactionsService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,35 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    const transaction = verification.data;
+    const amount = transaction.amount || 0;
+
+    if (transaction.status === 'success') {
+      try {
+        await createTransaction({
+          sellerId: transaction.metadata?.seller_id || '',
+          productId: transaction.metadata?.product_id || '',
+          productName: transaction.metadata?.product_name || 'Product',
+          customerName: transaction.metadata?.customer_name || '',
+          customerEmail: transaction.customer?.email || '',
+          customerPhone: transaction.metadata?.customer_phone || '',
+          reference: transaction.reference,
+          amount: amount / 100, // Convert from kobo
+          currency: transaction.currency || 'NGN',
+          couponDiscount: transaction.metadata?.coupon_discount || 0,
+          affiliate: transaction.metadata?.affiliate || '',
+          yourProfit: (amount / 100) * 0.9, // Provisional profit (e.g. 90%)
+          customCharge: transaction.metadata?.custom_charge || 0,
+          payoutDate: null,
+          variation: transaction.metadata?.variation || '',
+          status: 'success'
+        });
+      } catch (dbError) {
+        console.error('Error saving transaction to DB:', dbError);
+        // We still return success to the client because the payment was actually verified
+      }
     }
 
     return NextResponse.json({
