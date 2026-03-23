@@ -2,7 +2,6 @@
  
 import { useEffect, useState } from "react"
 import { Search, Filter, Zap, DollarSign, ArrowUpRight, CheckCircle2, Star, TrendingUp, Briefcase, Package } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -111,52 +110,47 @@ export default function NetworkPage() {
             // Mocking commissions for the list
             const commission = Math.floor(Math.random() * 40) + 10;
             return (
-              <Card key={p.id} className="group border-none shadow-sm flex flex-col overflow-hidden rounded-3xl hover:shadow-xl transition-all duration-500 bg-card">
+              <div key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
                 <div className="aspect-[3/2] relative overflow-hidden">
                   <img 
                     src={p.thumbnail || getDicebearAvatar(p.id || p.name)} 
                     alt={p.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3">
-                    <Badge className="bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-1 text-[10px] font-bold rounded-lg uppercase tracking-tight">
+                  <div className="absolute top-2 left-2">
+                    <Badge className="bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-0.5 text-[10px] font-bold rounded-md">
                       {commission}% Commission
                     </Badge>
                   </div>
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="icon" variant="secondary" className="h-8 w-8 rounded-lg shadow-lg">
-                      <Star className="h-4 w-4" />
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button size="icon" variant="secondary" className="h-7 w-7 rounded-lg shadow-lg">
+                      <Star className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
-                <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 mb-1">
+                <div className="p-3.5 flex flex-col gap-3">
+                  <div>
+                    <div className="flex items-center gap-1 mb-0.5">
                       <span className="text-[10px] uppercase tracking-widest text-primary font-bold">In Demand</span>
-                      <CheckCircle2 className="h-3 w-3 text-primary" />
+                      <CheckCircle2 className="h-2.5 w-2.5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold line-clamp-2 leading-tight group-hover:text-primary transition-colors">{p.name}</h3>
+                    <h3 className="text-sm font-semibold line-clamp-2 leading-tight">{p.name}</h3>
                   </div>
-                  
-                  <div className="space-y-4 pt-2">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1 text-left">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-tighter">Selling Price</p>
-                        <p className="text-base font-black">{formatPrice(p.price, p.currency)}</p>
-                      </div>
-                      <div className="space-y-1 text-right">
-                        <p className="text-xs text-primary font-medium uppercase tracking-tighter">Your Commission</p>
-                        <p className="text-base font-black text-primary">
-                          {formatPrice(p.price * (commission / 100), p.currency)}
-                        </p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">Price</p>
+                      <p className="text-sm font-bold">{formatPrice(p.price, p.currency)}</p>
                     </div>
-                    <Button className="w-full h-11 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 gap-2">
-                       Promote Now <ArrowUpRight className="h-4 w-4" />
-                    </Button>
+                    <div className="text-right">
+                      <p className="text-[10px] text-primary font-medium uppercase tracking-tighter">Commission</p>
+                      <p className="text-sm font-bold text-primary">{formatPrice(p.price * (commission / 100), p.currency)}</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button className="w-full h-9 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 gap-1.5">
+                    Promote Now <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
             )
           })
         )}
