@@ -36,6 +36,8 @@ interface UserData {
   category: string
   brandPreferences?: string
   twoFactorEnabled: boolean
+  isPinEnabled: boolean
+  pin?: string
 }
 
 export default function AccountSettings() {
@@ -47,6 +49,7 @@ export default function AccountSettings() {
     email: "user@example.com",
     category: '',
     twoFactorEnabled: false,
+    isPinEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
   const [isResearching, setIsResearching] = useState(false)
@@ -79,6 +82,8 @@ export default function AccountSettings() {
             category: profile.category || prev.category,
             brandPreferences: profile.brandPreferences || prev.brandPreferences || '',
             profilePicture: profile.profilePicture || prev.profilePicture,
+            isPinEnabled: profile.isPinEnabled || false,
+            pin: profile.pin || '',
           }))
         }
       } catch (error) {
@@ -146,6 +151,8 @@ export default function AccountSettings() {
         category: userData.category || '',
         brandPreferences: userData.brandPreferences || '',
         profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
+        isPinEnabled: userData.isPinEnabled,
+        pin: userData.pin || '',
       })
 
       const updatedProfile = await getUser(user.uid)
@@ -357,7 +364,7 @@ export default function AccountSettings() {
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-muted-foreground">Two-Factor Authentication</p>
+              <p className="text-sm font-medium">Two-Factor Authentication</p>
               <p className="text-xs text-muted-foreground">Add an extra layer of security to your account</p>
             </div>
             <Switch
@@ -365,6 +372,51 @@ export default function AccountSettings() {
               onCheckedChange={(checked) => setUserData(prev => ({ ...prev, twoFactorEnabled: checked }))}
             />
           </div>
+
+          <Separator className="my-2" />
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">4-Digit Security PIN</p>
+              <p className="text-xs text-muted-foreground">Locks the dashboard after 30 minutes of inactivity</p>
+            </div>
+            <Switch
+              checked={userData.isPinEnabled}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  const newPin = prompt("Enter a 4-digit PIN:")
+                  if (newPin && /^\d{4}$/.test(newPin)) {
+                    setUserData(prev => ({ ...prev, isPinEnabled: true, pin: newPin }))
+                    toast({ title: "PIN Set", description: "Your security PIN has been enabled." })
+                  } else if (newPin) {
+                    toast({ title: "Invalid PIN", description: "PIN must be 4 digits.", variant: "destructive" })
+                  }
+                } else {
+                  setUserData(prev => ({ ...prev, isPinEnabled: false }))
+                  toast({ title: "PIN Disabled", description: "Security PIN has been turned off." })
+                }
+              }}
+            />
+          </div>
+
+          {userData.isPinEnabled && (
+             <Button 
+               variant="outline" 
+               size="sm" 
+               className="mt-2 text-xs"
+               onClick={() => {
+                  const newPin = prompt("Enter new 4-digit PIN:")
+                  if (newPin && /^\d{4}$/.test(newPin)) {
+                    setUserData(prev => ({ ...prev, pin: newPin }))
+                    toast({ title: "PIN Updated", description: "Your security PIN has been changed." })
+                  } else if (newPin) {
+                    toast({ title: "Invalid PIN", description: "PIN must be 4 digits.", variant: "destructive" })
+                  }
+               }}
+             >
+               Change PIN
+             </Button>
+          )}
 
           <Separator className="my-2" />
 

@@ -11,6 +11,8 @@ interface User extends FirebaseUser {
   photoURL: string | null;
   plan: string | null;
   isAdmin: boolean;
+  isPinEnabled: boolean;
+  pin?: string;
 }
 
 interface AuthContextType {
@@ -46,6 +48,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ...firebaseUser,
             plan: userData?.plan || null,
             isAdmin: userData?.isAdmin || false,
+            isPinEnabled: userData?.isPinEnabled || false,
+            pin: userData?.pin || '',
           } as User);
         } catch (err) {
           console.error('Error loading user data:', err);
@@ -53,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             ...firebaseUser,
             plan: null,
             isAdmin: false,
+            isPinEnabled: false,
           } as User);
         }
       } else {

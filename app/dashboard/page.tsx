@@ -3,6 +3,15 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Landmark, PackagePlus, Plus } from 'lucide-react'
+import { 
+  RiShoppingBag3Fill, 
+  RiShareForwardFill, 
+  RiWallet3Fill, 
+  RiUser3Fill, 
+  RiBarChart2Fill, 
+  RiTeamFill, 
+  RiSettings4Fill 
+} from 'react-icons/ri'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -18,6 +27,8 @@ import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
 import { getUser } from '@/services/userService'
+import { getAffiliateTransactions, getSellerTransactions } from '@/services/transactionsService'
+import { Transaction } from '@/types/transaction'
 
 type NetworkProduct = Product & { sellerHandle?: string }
 
@@ -30,6 +41,8 @@ export default function DashboardHomePage() {
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [hasBankingDetails, setHasBankingDetails] = useState(true)
+  const [sellerTransactions, setSellerTransactions] = useState<Transaction[]>([])
+  const [affiliateTransactions, setAffiliateTransactions] = useState<Transaction[]>([])
 
   const [affiliateProducts, setAffiliateProducts] = useState<NetworkProduct[]>([])
   const [affiliateLoading, setAffiliateLoading] = useState(true)
@@ -41,13 +54,17 @@ export default function DashboardHomePage() {
     let active = true
     const load = async () => {
       try {
-        const [userProducts, bankingDetails] = await Promise.all([
+        const [userProducts, bankingDetails, sellerTx, affiliateTx] = await Promise.all([
           user?.uid ? getUserProducts(user.uid) : Promise.resolve([]),
           user?.uid ? getBankingDetails(user.uid) : Promise.resolve(null),
+          user?.uid ? getSellerTransactions(user.uid) : Promise.resolve([]),
+          user?.uid ? getAffiliateTransactions(user.uid) : Promise.resolve([]),
         ])
         if (!active) return
         setProducts(userProducts)
         setHasBankingDetails(Boolean(bankingDetails))
+        setSellerTransactions(sellerTx)
+        setAffiliateTransactions(affiliateTx)
       } finally {
         if (active) setLoading(false)
       }
@@ -93,6 +110,16 @@ export default function DashboardHomePage() {
 
   const hasProducts = useMemo(() => products.length > 0, [products])
   const featuredProducts = useMemo(() => products.slice(0, 4), [products])
+  const earningsSummary = useMemo(() => {
+    const allTransactions = [...sellerTransactions, ...affiliateTransactions]
+    const successfulTransactions = allTransactions.filter((tx) => tx.status === 'success')
+
+    return {
+      availableBalance: successfulTransactions
+        .filter((tx) => !tx.payoutDate)
+        .reduce((sum, tx) => sum + (tx.yourProfit || tx.amount || 0), 0),
+    }
+  }, [affiliateTransactions, sellerTransactions])
 
   const formatPrice = (amount: number, prodCurrency = 'USD') => {
     const displayAmount = currency === 'NGN' && prodCurrency === 'USD'
@@ -105,6 +132,51 @@ export default function DashboardHomePage() {
 
   return (
     <div className="space-y-6">
+      <section className="px-1">
+        <Link
+          href="/dashboard/earnings"
+          className="flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-colors hover:bg-muted/20"
+        >
+          <div className="space-y-1">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Earnings balance
+            </p>
+            <p className="text-2xl font-semibold tracking-tight text-foreground">
+              {formatCurrency(earningsSummary.availableBalance, currency)}
+            </p>
+          </div>
+          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
+            <ArrowUpRight className="h-4 w-4" />
+          </span>
+        </Link>
+      </section>
+
+      {/* ── Quick Links Grid ───────────────────────────── */}
+      <section className="px-1 md:hidden">
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { name: 'Products', href: '/dashboard/products', icon: RiShoppingBag3Fill },
+            { name: 'Network', href: '/dashboard/network', icon: RiShareForwardFill },
+            { name: 'Earnings', href: '/dashboard/earnings', icon: RiWallet3Fill },
+            { name: 'Customers', href: '/dashboard/customers', icon: RiUser3Fill },
+            { name: 'Analytics', href: '/dashboard/analytics', icon: RiBarChart2Fill },
+            { name: 'Communities', href: '/dashboard/communities', icon: RiTeamFill },
+            { name: 'Customize', href: '/dashboard/settings', icon: RiSettings4Fill },
+          ].map((link) => {
+            const Icon = link.icon
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-2xl bg-card px-2 py-3 text-center transition-colors hover:bg-muted/20"
+              >
+                <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-[11px] font-medium leading-tight text-foreground">{link.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
 
       {/* ── Your products ───────────────────────────── */}
       <section className="space-y-2">

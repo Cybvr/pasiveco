@@ -91,8 +91,14 @@ service cloud.firestore {
     }
 
     match /transactions/{transactionId} {
-      allow read: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.customerEmail == request.auth.token.email);
+      allow read: if isSignedIn() && (
+        resource.data.sellerId == request.auth.uid || 
+        resource.data.affiliate == request.auth.uid ||
+        (request.auth.token.email != null && resource.data.customerEmail == request.auth.token.email) ||
+        isAdmin()
+      );
       allow create: if true;
+      allow update, delete: if isAdmin();
     }
 
     match /templates/{templateId} {
