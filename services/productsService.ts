@@ -89,6 +89,8 @@ export interface Product {
       publicKey: string;
     };
   };
+  rating?: number;
+  reviewsCount?: number;
   slug: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;

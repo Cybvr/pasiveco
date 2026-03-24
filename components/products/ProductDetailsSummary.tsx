@@ -2,6 +2,7 @@ import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { getProductTypeLabel } from '@/lib/productTypes'
 import { Product } from '@/services/productsService'
+import StarRating from '@/components/products/StarRating'
 
 const formatDateTime = (value?: string) => {
   if (!value) return null
@@ -135,6 +136,16 @@ export default function ProductDetailsSummary({ product }: { product: Product })
             {includedProducts.map((item: { id: string; name: string }, index: number) => (
               <Badge key={`${item.id}-${index}`} variant="outline">{item.name}</Badge>
             ))}
+          </div>
+        </div>
+      )}
+
+      {(product.rating || 0) > 0 && (
+        <div className="space-y-1.5 pt-2">
+          <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Storefront Rating</p>
+          <div className="flex items-center gap-2">
+            <StarRating rating={product.rating} count={product.reviewsCount} />
+            <span className="text-xs font-semibold">{product.rating} average based on {product.reviewsCount} reviews</span>
           </div>
         </div>
       )}

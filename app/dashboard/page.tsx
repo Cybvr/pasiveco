@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight, CheckCircle2, Landmark, PackagePlus, Plus } from 'lucide-react'
+import { ArrowUpRight, Landmark, PackagePlus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -21,7 +21,6 @@ import { getUser } from '@/services/userService'
 
 type NetworkProduct = Product & { sellerHandle?: string }
 
-// Reusable standard card width for all horizontal scroll rows
 const CARD_W = 'w-[200px]'
 
 export default function DashboardHomePage() {
@@ -38,7 +37,6 @@ export default function DashboardHomePage() {
   const [communities, setCommunities] = useState<Community[]>([])
   const [communitiesLoading, setCommunitiesLoading] = useState(true)
 
-  // Load user products + banking
   useEffect(() => {
     let active = true
     const load = async () => {
@@ -58,25 +56,24 @@ export default function DashboardHomePage() {
     return () => { active = false }
   }, [user])
 
-  // Load affiliate products
   useEffect(() => {
     async function loadAffiliate() {
       try {
         const data = await getAllLatestProducts(8)
         if (!data) return
-        
+
         const userIds = [...new Set(data.map(p => p.userId))]
         const userDocs = await Promise.all(
           userIds.map(id => getUser(id).catch(() => null))
         )
         const userMap = new Map(userDocs.filter(Boolean).map(u => [u?.userId || u?.id, u]))
-        
+
         const enriched = data.map(p => {
           const seller = userMap.get(p.userId)
           const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
           return { ...p, sellerHandle: handle }
         })
-        
+
         setAffiliateProducts(enriched)
       } catch (err) {
         console.error(err)
@@ -87,11 +84,10 @@ export default function DashboardHomePage() {
     void loadAffiliate()
   }, [])
 
-  // Load communities
   useEffect(() => {
     getAllCommunities()
       .then((data) => setCommunities(data || []))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setCommunitiesLoading(false))
   }, [])
 
@@ -126,7 +122,7 @@ export default function DashboardHomePage() {
             <div className="flex w-max gap-4 pb-4 px-1">
               {featuredProducts.map((product) => (
                 <Link key={product.id} href="/dashboard/products" className={`${CARD_W} group flex flex-col gap-2`}>
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
+                  <div className="aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
                     <img
                       src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
                       alt={product.name}
@@ -183,8 +179,13 @@ export default function DashboardHomePage() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className={`${CARD_W} flex flex-col gap-2`}>
                   <Skeleton className="aspect-video w-full rounded-2xl" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3.5 w-1/3" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -211,25 +212,23 @@ export default function DashboardHomePage() {
                   href={`/dashboard/communities/${community.slug || community.id}`}
                   className={`${CARD_W} group flex flex-col gap-2`}
                 >
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
+                  <div className="aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
                     <img
                       src={community.image || getDicebearAvatar(community.id || community.name)}
                       alt={community.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       onError={(e) => { e.currentTarget.src = getDicebearAvatar(community.id || community.name) }}
                     />
-                    <div className="absolute -bottom-0.5 -left-0.5">
-                      <div className="rounded-tr-lg bg-background p-1.5 pt-2 pr-2">
-                        <Avatar className="h-6 w-6 border-2 border-background">
-                          <AvatarImage src={getDicebearAvatar(community.creatorId || community.name)} />
-                          <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                      </div>
-                    </div>
                   </div>
-                  <div className="text-left">
-                    <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{community.memberCount} members</p>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6 shrink-0">
+                      <AvatarImage src={getDicebearAvatar(community.creatorId || community.name)} />
+                      <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{community.memberCount} members</p>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -259,8 +258,13 @@ export default function DashboardHomePage() {
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className={`${CARD_W} flex flex-col gap-2`}>
                   <Skeleton className="aspect-video w-full rounded-2xl" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3.5 w-1/2" />
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-6 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -273,7 +277,7 @@ export default function DashboardHomePage() {
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max gap-4 pb-4 px-1">
               {affiliateProducts.map((p) => {
-                const commission = p.affiliateCommission || 20;
+                const commission = p.affiliateCommission || 20
                 return (
                   <Link
                     key={p.id}
@@ -291,24 +295,18 @@ export default function DashboardHomePage() {
                           {commission}% Commission
                         </Badge>
                       </div>
-                      <div className="absolute -bottom-0.5 -left-0.5">
-                        <div className="rounded-tr-lg bg-background p-1.5 pt-2 pr-2">
-                          <Avatar className="h-6 w-6 border-2 border-background">
-                            <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
-                            <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        </div>
-                      </div>
                     </div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-[10px] uppercase tracking-widest text-primary font-bold">In Demand</span>
-                        <CheckCircle2 className="h-2.5 w-2.5 text-primary" />
-                      </div>
-                      <p className="truncate text-sm font-semibold text-foreground leading-tight">{p.name}</p>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency)}</p>
-                        <p className="text-xs font-bold text-primary">+{formatPrice(p.price * (commission / 100), p.currency)}</p>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6 shrink-0">
+                        <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
+                        <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground leading-tight">{p.name}</p>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency)}</p>
+                          <p className="text-xs font-bold text-primary">+{formatPrice(p.price * (commission / 100), p.currency)}</p>
+                        </div>
                       </div>
                     </div>
                   </Link>

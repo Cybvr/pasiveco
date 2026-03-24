@@ -13,8 +13,10 @@ import {
   UploadCloud,
   Wand2,
   Loader2,
-  Zap
+  Zap,
+  Star
 } from 'lucide-react'
+import StarRating from '@/components/products/StarRating'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -57,7 +59,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [profile, setProfile] = useState<AppUser | null>(null)
-  
+
   React.useEffect(() => {
     const fetchProfile = async () => {
       if (user?.uid) {
@@ -112,7 +114,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       },
       cancel: {
         label: 'Cancel',
-        onClick: () => {},
+        onClick: () => { },
       },
     })
   }
@@ -170,15 +172,15 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       toast.error('Please enter a product title to generate an image')
       return
     }
-    
+
     setIsGeneratingImage(true)
     try {
       const response = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          productName: editForm.name, 
-          productDescription: editForm.description || `A high quality product for ${editForm.name}` 
+        body: JSON.stringify({
+          productName: editForm.name,
+          productDescription: editForm.description || `A high quality product for ${editForm.name}`
         }),
       });
 
@@ -192,7 +194,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         const response = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
         const blob = await response.blob();
         const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
-        
+
         handleImageChange(file);
         toast.success('Image generated successfully!');
       } else {
@@ -288,317 +290,320 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
   return (
     <>
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={onGenAINew} className="h-8 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
-            <Sparkles className="w-3.5 h-3.5" />
-            Gen AI
-          </Button>
-          <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
-            <Plus className="w-3.5 h-3.5" />
-            New
-          </Button>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onGenAINew} className="h-8 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
+              <Sparkles className="w-3.5 h-3.5" />
+              Gen AI
+            </Button>
+            <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
+              <Plus className="w-3.5 h-3.5" />
+              New
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, index) => (
-            <div key={`product-skeleton-${index}`} className="p-3 space-y-3">
-              <Skeleton className="w-full aspect-square rounded-md" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/3" />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-1">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={`product-skeleton-${index}`} className="p-2 space-y-2">
+                <Skeleton className="w-full aspect-square rounded-md" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/3" />
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          products.map((product: any) => (
-            <div key={product.id} className="cursor-pointer p-3 space-y-3 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
-              <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
-                {product.thumbnail ? (
-                  <img
-                    src={product.thumbnail}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Package className="h-8 w-8 text-primary" />
+            ))
+          ) : (
+            products.map((product: any) => (
+              <div key={product.id} className="cursor-pointer p-2 space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+                <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
+                  {product.thumbnail ? (
+                    <img
+                      src={product.thumbnail}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <Package className="h-8 w-8 text-primary" />
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
+                    <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
+                      <Eye className="h-4 w-4" />
+                    </a>
                   </div>
-                )}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
-                  <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
-                    <Eye className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                  <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                  <p className="text-sm font-semibold text-green-600">
-                    {formatCurrency(
-                      (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                        ? product.price * EXCHANGE_RATE
-                        : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                          ? product.price / EXCHANGE_RATE
-                          : product.price,
-                      currency
-                    )}
-                  </p>
                 </div>
 
-                <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="h-7 w-7 rounded-full"
-                        aria-label="Product actions"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onSelect={(event) => { 
-                        event.preventDefault(); 
-                        handleEditProduct(product);
-                      }}>
-                        <Settings className="mr-2 h-3.5 w-3.5" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { 
-                        event.preventDefault(); 
-                        copyProductLink(product);
-                      }}>
-                        <Copy className="mr-2 h-3.5 w-3.5" />
-                        Copy
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(event) => { 
-                        event.preventDefault(); 
-                        handleDeleteProduct(product.id, product.name);
-                      }}
-                        className="text-destructive focus:text-destructive">
-                        <Trash2 className="mr-2 h-3.5 w-3.5" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                    <p className="text-sm font-semibold text-green-600">
+                      {formatCurrency(
+                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                          ? product.price * EXCHANGE_RATE
+                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                            ? product.price / EXCHANGE_RATE
+                            : product.price,
+                        currency
+                      )}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="h-7 w-7 rounded-full"
+                          aria-label="Product actions"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onSelect={(event) => {
+                          event.preventDefault();
+                          handleEditProduct(product);
+                        }}>
+                          <Settings className="mr-2 h-3.5 w-3.5" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(event) => {
+                          event.preventDefault();
+                          copyProductLink(product);
+                        }}>
+                          <Copy className="mr-2 h-3.5 w-3.5" />
+                          Copy
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(event) => {
+                          event.preventDefault();
+                          handleDeleteProduct(product.id, product.name);
+                        }}
+                          className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
+          )}
+        </div>
+
+        {!isLoading && products.length === 0 && (
+          <NoProductsSection
+            showBankingDetailsAction={!hasBankingDetails}
+            onAddProduct={onCreateNew}
+            className="border-dashed shadow-none"
+          />
         )}
-      </div>
 
-      {!isLoading && products.length === 0 && (
-        <NoProductsSection
-          showBankingDetailsAction={!hasBankingDetails}
-          onAddProduct={onCreateNew}
-          className="border-dashed shadow-none"
-        />
-      )}
+        <Dialog open={showEditModal} onOpenChange={(open) => { if (!open) closeEditModal() }}>
+          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-border/60 shadow-2xl">
+            <DialogHeader className="px-6 py-4 border-b border-border/60">
+              <DialogTitle className="text-lg font-bold">Edit Product</DialogTitle>
+            </DialogHeader>
+            <div className="p-6 space-y-6">
 
-      <Dialog open={showEditModal} onOpenChange={(open) => { if (!open) closeEditModal() }}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-border/60 shadow-2xl">
-          <DialogHeader className="px-6 py-4 border-b border-border/60">
-            <DialogTitle className="text-lg font-bold">Edit Product</DialogTitle>
-          </DialogHeader>
-          <div className="p-6 space-y-6">
-            
-            {/* Cover Image */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Cover Image</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 text-[10px] gap-1.5"
-                  onClick={handleGenerateAIImage}
-                  disabled={isGeneratingImage || !editForm.name}
-                >
-                  {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                  {isGeneratingImage ? 'Generating...' : 'Generate AI Image'}
-                </Button>
-              </div>
-              <div
-                onClick={() => imageInputRef.current?.click()}
-                onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
-                onDragLeave={() => setImageDragging(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setImageDragging(false);
-                  const file = e.dataTransfer.files?.[0];
-                  if (file && file.type.startsWith('image/')) handleImageChange(file);
-                }}
-                className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all duration-200
+              {/* Cover Image */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Cover Image</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[10px] gap-1.5"
+                    onClick={handleGenerateAIImage}
+                    disabled={isGeneratingImage || !editForm.name}
+                  >
+                    {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    {isGeneratingImage ? 'Generating...' : 'Generate AI Image'}
+                  </Button>
+                </div>
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
+                  onDragLeave={() => setImageDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setImageDragging(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file && file.type.startsWith('image/')) handleImageChange(file);
+                  }}
+                  className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all duration-200
                   ${imageDragging ? 'border-primary bg-primary/[0.03] scale-[0.99]' : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'}`}
-              >
-                {imagePreview ? (
-                  <div className="relative group/img">
-                    <img src={imagePreview} alt="Cover preview" className="max-h-48 w-auto rounded-lg object-contain shadow-sm" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                      <p className="text-white text-[10px] font-bold uppercase tracking-wider">Replace Image</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted shadow-inner">
-                      <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold">Click or drop to upload</p>
-                      <p className="mt-1 text-[10px] text-muted-foreground">PNG or JPG — 2MB max</p>
-                    </div>
-                  </>
-                )}
-                <input 
-                  ref={imageInputRef} 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleImageChange(file);
-                  }} 
-                  className="hidden" 
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Product Title</Label>
-                <Input
-                  type="text"
-                  placeholder="The Ultimate Guide..."
-                  value={editForm.name}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Short Link (Slug)</Label>
-                <Input
-                  type="text"
-                  value={editForm.slug}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 text-right">
-              <div className="space-y-2 text-left">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Category</Label>
-                <Select
-                  value={editForm.category}
-                  onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
                 >
-                  <SelectTrigger className="h-11 rounded-xl">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_TYPE_OPTIONS.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2 text-left">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Price ({currency})</Label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-xs">{currency === 'NGN' ? '₦' : '$'}</span>
-                  <Input
-                    type="number"
-                    value={editForm.price}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
-                    className="h-11 pl-8 rounded-xl"
+                  {imagePreview ? (
+                    <div className="relative group/img">
+                      <img src={imagePreview} alt="Cover preview" className="max-h-48 w-auto rounded-lg object-contain shadow-sm" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                        <p className="text-white text-[10px] font-bold uppercase tracking-wider">Replace Image</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted shadow-inner">
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold">Click or drop to upload</p>
+                        <p className="mt-1 text-[10px] text-muted-foreground">PNG or JPG — 2MB max</p>
+                      </div>
+                    </>
+                  )}
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageChange(file);
+                    }}
+                    className="hidden"
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Description</Label>
-              <Textarea
-                rows={3}
-                value={editForm.description}
-                onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
-                className="rounded-xl resize-none"
-              />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
-              <div className="space-y-0.5">
-                <p className="text-sm font-bold">Product is {editForm.status === 'active' ? 'Live' : 'Hidden'}</p>
-                <p className="text-[10px] text-muted-foreground">Toggle visibility on your storefront</p>
-              </div>
-              <Switch
-                checked={editForm.status === 'active'}
-                onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 'active' : 'draft' }))}
-              />
-            </div>
-
-            <div className="space-y-4 pt-2 border-t border-border/40">
-              <div className="flex items-center justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <Zap className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold">Affiliate Program</p>
-                    <p className="text-[10px] text-muted-foreground">Allow others to sell this product for a cut.</p>
-                  </div>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Product Title</Label>
+                  <Input
+                    type="text"
+                    placeholder="The Ultimate Guide..."
+                    value={editForm.name}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                    className="h-11 rounded-xl"
+                  />
                 </div>
-                <Switch
-                  checked={editForm.affiliateEnabled}
-                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, affiliateEnabled: checked }))}
-                />
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Short Link (Slug)</Label>
+                  <Input
+                    type="text"
+                    value={editForm.slug}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
+                    className="h-11 rounded-xl"
+                  />
+                </div>
               </div>
 
-              {editForm.affiliateEnabled && (
-                <div className="pl-11 space-y-2">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Commission (%)</Label>
-                  <div className="flex items-center gap-3">
+              <div className="grid gap-6 sm:grid-cols-2 text-right">
+                <div className="space-y-2 text-left">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Category</Label>
+                  <Select
+                    value={editForm.category}
+                    onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRODUCT_TYPE_OPTIONS.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 text-left">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Price ({currency})</Label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-xs">{currency === 'NGN' ? '₦' : '$'}</span>
                     <Input
                       type="number"
-                      min="1"
-                      max="80"
-                      value={editForm.affiliateCommission}
-                      onChange={(e) => {
-                        const val = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
-                        setEditForm(prev => ({ ...prev, affiliateCommission: val }))
-                      }}
-                      className="w-24 h-11 rounded-xl"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
+                      className="h-11 pl-8 rounded-xl"
                     />
-                    <span className="text-[10px] text-muted-foreground">Max 80%</span>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
 
-          </div>
-          <DialogFooter className="px-6 py-4 border-t border-border/60 bg-muted/10 gap-2">
-            <Button variant="outline" onClick={closeEditModal} className="h-11 px-6 rounded-xl">Cancel</Button>
-            <Button onClick={handleUpdateProduct} disabled={loading} className="h-11 px-8 rounded-xl shadow-lg shadow-primary/20">
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : 'Update Product'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Description</Label>
+                <Textarea
+                  rows={3}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                  className="rounded-xl resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-bold">Product is {editForm.status === 'active' ? 'Live' : 'Hidden'}</p>
+                  <p className="text-[10px] text-muted-foreground">Toggle visibility on your storefront</p>
+                </div>
+                <Switch
+                  checked={editForm.status === 'active'}
+                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 'active' : 'draft' }))}
+                />
+              </div>
+
+              <div className="space-y-4 pt-2 border-t border-border/40">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <Zap className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">Affiliate Program</p>
+                      <p className="text-[10px] text-muted-foreground">Allow others to sell this product for a cut.</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={editForm.affiliateEnabled}
+                    onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, affiliateEnabled: checked }))}
+                  />
+                </div>
+
+                {editForm.affiliateEnabled && (
+                  <div className="pl-11 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Commission (%)</Label>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        type="number"
+                        min="1"
+                        max="80"
+                        value={editForm.affiliateCommission}
+                        onChange={(e) => {
+                          const val = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
+                          setEditForm(prev => ({ ...prev, affiliateCommission: val }))
+                        }}
+                        className="w-24 h-11 rounded-xl"
+                      />
+                      <span className="text-[10px] text-muted-foreground">Max 80%</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+            <DialogFooter className="px-6 py-4 border-t border-border/60 bg-muted/10 gap-2">
+              <Button variant="outline" onClick={closeEditModal} className="h-11 px-6 rounded-xl">Cancel</Button>
+              <Button onClick={handleUpdateProduct} disabled={loading} className="h-11 px-8 rounded-xl shadow-lg shadow-primary/20">
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Update Product'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   )
 }

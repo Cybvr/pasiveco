@@ -2,7 +2,7 @@
  
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Search, Filter, Zap, DollarSign, ArrowUpRight, CheckCircle2, Star, TrendingUp, Briefcase, Package } from "lucide-react"
+import { Search, Filter, ArrowUpRight, Star, TrendingUp, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -192,10 +192,6 @@ export default function NetworkPage() {
                 </div>
                 <div className="p-3.5 flex flex-col gap-3">
                   <div>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <span className="text-[10px] uppercase tracking-widest text-primary font-bold">In Demand</span>
-                      <CheckCircle2 className="h-2.5 w-2.5 text-primary" />
-                    </div>
                     <h3 className="text-sm font-semibold truncate leading-tight">{p.name}</h3>
                   </div>
                   <div className="flex items-center justify-between">

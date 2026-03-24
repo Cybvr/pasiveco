@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { featuresService, Feature } from '@/services/featuresService';
 import { solutionsService, Solution } from '@/services/solutionsService';
 
@@ -191,6 +191,9 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Site Navigation</SheetTitle>
+                </SheetHeader>
                 <div className="py-6 space-y-6">
                   <div className="space-y-4">
                     <Link 

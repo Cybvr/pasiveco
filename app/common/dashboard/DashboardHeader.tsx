@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Bell, ChevronRight, Coins, Compass, LifeBuoy, Package, Palette, Save, Users, Zap } from 'lucide-react'
+import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, Package, Palette, Save, Zap } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,7 @@ const quickLinks: QuickLink[] = [
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/edit', label: 'Edit Page', icon: Palette },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
-  { href: '/dashboard/communities', label: 'Communities', icon: Users },
+  { href: '/dashboard/communities', label: 'Communities', icon: Blend },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
 ]
 
@@ -188,6 +188,9 @@ export default function DashboardHeader() {
                 </button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[75%] max-w-[280px] p-0 flex flex-col gap-0 border-r">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Dashboard Navigation</SheetTitle>
+                </SheetHeader>
                 <div className="pt-6 px-4 pb-4">
                   <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
                     <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm">

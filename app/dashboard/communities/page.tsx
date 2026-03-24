@@ -54,7 +54,7 @@ export default function CommunitiesPage() {
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 w-full rounded-xl" />)}
         </div>
       </div>
@@ -63,23 +63,10 @@ export default function CommunitiesPage() {
 
   return (
     <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Communities</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Join creators and fans in private spaces.</p>
-        </div>
-        <Link href="/dashboard/communities/create">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Community
-          </Button>
-        </Link>
-      </div>
-
       {myCommunities.length > 0 && (
         <section className="space-y-4">
           <h2 className="text-base font-semibold">Your Communities</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {myCommunities.map(community => (
               <CommunityCard key={community.id} community={community} isMember={true} />
             ))}
@@ -89,20 +76,28 @@ export default function CommunitiesPage() {
 
       <section className="space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-base font-semibold">Explore Communities</h2>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search communities..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <h2 className="text-base font-semibold">Explore</h2>
+          <div className="flex w-full md:w-auto items-center gap-2">
+            <div className="relative flex-1 md:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Link href="/dashboard/communities/create">
+              <Button>
+                <Plus className="w-4 h-4" />
+                New
+              </Button>
+            </Link>
           </div>
         </div>
 
         {filteredExplore.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredExplore.map(community => (
               <CommunityCard key={community.id} community={community} isMember={false} />
             ))}
@@ -125,36 +120,36 @@ function CommunityCard({ community, isMember }: { community: Community, isMember
   return (
     <Link href={`/dashboard/communities/${community.id}`}>
       <Card className="h-full border-border/50 overflow-hidden">
-        <div className="h-24 bg-gradient-to-br from-primary/20 to-primary/5 relative">
+        <div className="h-20 bg-gradient-to-br from-primary/20 to-primary/5 relative">
           {community.bannerImage && (
             <img src={community.bannerImage} className="w-full h-full object-cover" alt="" />
           )}
-          <div className="absolute -bottom-6 left-6 p-1 bg-background rounded-xl border border-border shadow-sm">
-            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+          <div className="absolute -bottom-5 left-4 p-1 bg-background rounded-lg border border-border shadow-sm">
+            <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center overflow-hidden">
               {community.image ? (
                 <img src={community.image} className="w-full h-full object-cover" alt="" />
               ) : (
-                <Users className="w-6 h-6 text-muted-foreground" />
+                <Users className="w-5 h-5 text-muted-foreground" />
               )}
             </div>
           </div>
         </div>
-        <CardHeader className="pt-10 pb-4">
+        <CardHeader className="pt-8 pb-3 px-4">
           <div className="flex justify-between items-start gap-2">
-            <CardTitle className="text-xl line-clamp-1">{community.name}</CardTitle>
+            <CardTitle className="text-sm md:text-base line-clamp-2 leading-tight">{community.name}</CardTitle>
             {isMember && (
-              <span className="text-base uppercase tracking-wider font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <span className="shrink-0 text-[10px] uppercase tracking-wider font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
                 Member
               </span>
             )}
           </div>
-          <CardDescription className="line-clamp-2 min-h-[2.5rem] mt-1">
+          <CardDescription className="line-clamp-2 min-h-[2rem] mt-1 text-xs">
             {community.description}
           </CardDescription>
         </CardHeader>
-        <CardFooter className="pt-0 flex justify-between items-center text-sm text-muted-foreground border-t border-border/30 mt-4 h-12">
+        <CardFooter className="px-4 pt-0 pb-3 flex justify-between items-center text-xs text-muted-foreground border-t border-border/30 mt-2 h-10">
           <span>{community.memberCount} {community.memberCount === 1 ? 'member' : 'members'}</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-3.5 h-3.5" />
         </CardFooter>
       </Card>
     </Link>

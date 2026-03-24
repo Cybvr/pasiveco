@@ -11,8 +11,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        (exists(userDocPath()) && get(userDocPath()).data.isAdmin == true) ||
-        request.auth.uid == 'mdBW2iIUy2diyIrnK55s'
+        request.auth.uid == 'mdBW2iIUy2diyIrnK55s' ||
+        (exists(userDocPath()) && get(userDocPath()).data.isAdmin == true)
       );
     }
 
@@ -25,8 +25,12 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if true;
-      allow create: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
-      allow update, delete: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /socialMeta/{documentId} {
@@ -73,9 +77,22 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if true;
-      allow write: if (isSignedIn() && request.auth.uid == resource.data.userId) || isAdmin();
       allow create: if (isSignedIn() && (request.auth.uid == request.resource.data.userId || request.resource.data.userId == 'mdBW2iIUy2diyIrnK55s')) || isAdmin();
-      allow read: if isAdmin();
+      allow update: if (isSignedIn() && request.auth.uid == resource.data.userId) || 
+                   isAdmin() ||
+                   (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rating', 'reviewsCount', 'updatedAt']));
+      allow delete: if (isSignedIn() && request.auth.uid == resource.data.userId) || isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn() && (resource.data.sellerId == request.auth.uid || resource.data.customerEmail == request.auth.token.email);
+      allow create: if true;
     }
 
     match /templates/{templateId} {

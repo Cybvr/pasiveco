@@ -9,6 +9,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Palette,
+  Blend,
   LifeBuoy,
   LucideIcon,
   Users,
@@ -33,6 +34,7 @@ const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },
   { href: '/dashboard/network', icon: Zap, label: 'Network' },
+  { href: '/dashboard/communities', icon: Blend, label: 'Communities' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
 
@@ -71,7 +73,7 @@ export default function Sidebar({
   return (
     <div className="flex flex-col h-full bg-card">
       <div className={cn(
-        "px-2.5 py-2 border-b border-border/50 h-12 flex items-center transition-all duration-300",
+        "px-2.5 py-2 border-b border-border/50 h-14 flex items-center transition-all duration-300",
         isCollapsed ? "justify-center" : "justify-between"
       )}>
         {!isCollapsed && (

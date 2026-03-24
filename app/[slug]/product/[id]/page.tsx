@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import ProductDetailsSummary from '@/components/products/ProductDetailsSummary';
 import { getProduct, getProductBySlug, Product, getUserProducts } from '@/services/productsService';
 import { getProductTypeLabel } from '@/lib/productTypes';
+import StarRating from '@/components/products/StarRating';
+import ProductReviewSection from '@/components/products/ProductReviewSection';
 import { useCurrency } from "@/context/CurrencyContext";
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency";
 
@@ -186,6 +188,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
           <div className="space-y-3 border-b pb-6">
             <Badge variant="secondary" className="w-fit">{getProductTypeLabel(product.category)}</Badge>
             <h1 className="text-3xl font-bold tracking-tight leading-tight">{product.name}</h1>
+            {(product.rating || 0) > 0 && (
+              <div className="flex items-center gap-2">
+                <StarRating rating={product.rating} count={product.reviewsCount} className="scale-110 origin-left" />
+                <span className="text-xs text-muted-foreground ml-1">Excellent ({product.rating}/5)</span>
+              </div>
+            )}
             <div className="text-3xl font-semibold text-foreground">{formattedPrice}</div>
             <p className="text-base leading-7 text-muted-foreground">{product.description}</p>
           </div>
@@ -278,13 +286,17 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                 </div>
                 <div>
                   <p className="line-clamp-1 text-sm font-bold">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency || 'NGN', userCurrency)}</p>
+                  <StarRating rating={p.rating} count={p.reviewsCount} />
+                  <p className="text-xs text-muted-foreground mt-1">{formatPrice(p.price, p.currency || 'NGN', userCurrency)}</p>
                 </div>
               </Link>
             ))}
           </div>
         </section>
       )}
+
+      {/* Product Reviews Section */}
+      <ProductReviewSection productId={product.id || productId} user={user} />
     </div>
   );
 }

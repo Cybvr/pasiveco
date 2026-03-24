@@ -10,6 +10,7 @@ import { getUserProducts, Product, getProduct } from '@/services/productsService
 import { getProductTypeLabel } from '@/lib/productTypes';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
+import StarRating from '@/components/products/StarRating';
 
 export default function ShopPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -75,6 +76,9 @@ export default function ShopPage() {
                 )}
               </div>
               <h4 className="font-semibold text-sm text-foreground line-clamp-1">{product.name}</h4>
+              <div className="flex items-center gap-2 mt-0.5">
+                <StarRating rating={product.rating} count={product.reviewsCount} />
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{product.description}</p>
               <div className="flex items-center justify-between mt-2">
                 <Badge variant="secondary" className="text-[10px] font-bold uppercase">{getProductTypeLabel(product.category)}</Badge>
@@ -108,6 +112,9 @@ export default function ShopPage() {
                   </div>
                 </div>
                 <h4 className="font-semibold text-sm text-foreground line-clamp-1">{product.name}</h4>
+                <div className="mt-1">
+                  <StarRating rating={product.rating} count={product.reviewsCount} />
+                </div>
                 <div className="flex items-center justify-between mt-2">
                    <div className="flex flex-col">
                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Promoted by {slug}</span>

@@ -5,7 +5,7 @@ import { Home, Users, QrCode, FileText, Menu } from "lucide-react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 
 const navigation = [
@@ -70,6 +70,9 @@ export default function AdminLayout({
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-72 p-0">
+                    <SheetHeader className="sr-only">
+                      <SheetTitle>Admin Navigation</SheetTitle>
+                    </SheetHeader>
                     <div className="flex h-16 items-center border-b px-6">
                       <Link href="/admin" className="flex items-center gap-3">
                         <Image src="/images/monster.png" alt="Pasive Logo" width={28} height={28} />

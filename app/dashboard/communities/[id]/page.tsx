@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Users, Shield, Share, LogOut, Loader2, Plus, Globe, MessageSquare, Pencil, Trash2, Camera, Settings, UploadCloud, Save } from "lucide-react"
+import { Users, Shield, Share, LogOut, Loader2, Plus, Globe, MessageSquare, Pencil, Trash2, Camera, Settings, UploadCloud, Save, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -53,6 +53,53 @@ export default function CommunityDetailPage() {
   const [editLoading, setEditLoading] = useState(false)
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const bannerInputRef = useRef<HTMLInputElement>(null)
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false)
+  const [isGeneratingBanner, setIsGeneratingBanner] = useState(false)
+
+  const handleGenerateAIImage = async (type: 'image' | 'bannerImage') => {
+    if (!editForm.name) {
+      toast.error('Please enter a community name to generate an image')
+      return
+    }
+
+    if (type === 'image') setIsGeneratingAvatar(true)
+    else setIsGeneratingBanner(true)
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: editForm.name,
+          productDescription: editForm.description || `A community called ${editForm.name}`,
+          aspectRatio: type === 'bannerImage' ? '16:9' : '1:1'
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Image generation failed')
+      }
+
+      const data = await response.json();
+      if (data.base64Image) {
+        const response = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
+        const blob = await response.blob();
+        const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
+
+        await handleFileUpload(file, type);
+        toast.success(`${type === 'image' ? 'Avatar' : 'Banner'} generated successfully!`);
+      } else {
+        throw new Error('No image returned')
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || 'Failed to generate image');
+    } finally {
+      if (type === 'image') setIsGeneratingAvatar(false)
+      else setIsGeneratingBanner(false)
+    }
+  }
 
   const handleFileUpload = async (file: File, type: 'image' | 'bannerImage') => {
     const storage = getStorage()
@@ -192,22 +239,35 @@ export default function CommunityDetailPage() {
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
-            <div className="space-y-1 min-w-0">
-              <h1 className="text-2xl font-semibold tracking-tight truncate">
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="overflow-hidden rounded-xl border border-border/60 bg-muted shrink-0">
+                {community.bannerImage ? (
+                  <img
+                    src={community.bannerImage}
+                    alt={`${community.name} thumbnail`}
+                    className="h-12 w-12 object-cover md:h-14 md:w-14"
+                  />
+                ) : (
+                  <div className="h-12 w-12 bg-gradient-to-br from-primary/15 via-primary/5 to-background md:h-14 md:w-14" />
+                )}
+              </div>
+              <div className="space-y-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-semibold tracking-tight break-words">
                 {community.name}
               </h1>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-lg">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
                 {community.description}
               </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex w-full lg:w-auto flex-wrap items-center gap-2 shrink-0">
               {isCreator ? (
                 <>
-                  <Button size="sm" onClick={handleEditOpen}>
+                  <Button size="sm" onClick={handleEditOpen} className="flex-1 sm:flex-none">
                     <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                     <Share className="w-3.5 h-3.5 mr-1.5" /> Share
                   </Button>
                   <Button variant="destructive" size="sm" className="w-9 p-0" onClick={() => setDeleteDialogOpen(true)}>
@@ -221,6 +281,7 @@ export default function CommunityDetailPage() {
                     variant={isMember ? "outline" : "default"}
                     onClick={handleJoinLeave}
                     disabled={actionLoading}
+                    className="flex-1 sm:flex-none"
                   >
                     {actionLoading ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -232,7 +293,7 @@ export default function CommunityDetailPage() {
                       "Join"
                     )}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                     <Share className="w-3.5 h-3.5 mr-1.5" /> Share
                   </Button>
                 </>
@@ -242,12 +303,12 @@ export default function CommunityDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-3">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Main content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <Tabs defaultValue="feed" className="w-full">
-              <TabsList className="mb-3">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="feed">Feed</TabsTrigger>
                 <TabsTrigger value="about">About</TabsTrigger>
                 <TabsTrigger value="members">Members</TabsTrigger>
@@ -255,8 +316,8 @@ export default function CommunityDetailPage() {
 
               <TabsContent value="feed">
                 {isMember ? (
-                  <div className="space-y-3">
-                    <div className="border border-dashed rounded-lg p-6 text-center">
+                  <div className="space-y-2">
+                    <div className="border border-dashed rounded-lg p-4 md:p-6 text-center">
                       <MessageSquare className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
                       <p className="text-sm font-medium">Post to the community</p>
                       <p className="text-sm text-muted-foreground mt-1 mb-3">
@@ -271,7 +332,7 @@ export default function CommunityDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-12 px-6 text-center border rounded-lg space-y-3">
+                  <div className="py-10 px-4 md:px-6 text-center border rounded-lg space-y-3">
                     <Shield className="w-8 h-8 text-muted-foreground mx-auto" />
                     <h2 className="text-base font-semibold">Members only</h2>
                     <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
@@ -285,13 +346,13 @@ export default function CommunityDetailPage() {
               </TabsContent>
 
               <TabsContent value="about">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-primary uppercase tracking-widest">About</p>
                     <h3 className="text-base font-semibold">Mission</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{community.description}</p>
                   </div>
-                  <div className="space-y-3 border-l pl-6">
+                  <div className="space-y-3 border-t pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-6">
                     <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Community Rules</p>
                     <ul className="space-y-3">
                       {[
@@ -310,7 +371,7 @@ export default function CommunityDetailPage() {
               </TabsContent>
 
               <TabsContent value="members">
-                <div className="py-12 text-center border rounded-lg">
+                <div className="py-10 md:py-12 text-center border rounded-lg px-4">
                   <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm font-medium">Member list is private</p>
                   <p className="text-sm text-muted-foreground mt-1">Only admins can view the full registry.</p>
@@ -320,7 +381,7 @@ export default function CommunityDetailPage() {
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-4">
+          <aside className="space-y-4 lg:col-span-1">
             {/* Creator */}
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Creator</p>
@@ -343,7 +404,7 @@ export default function CommunityDetailPage() {
                   <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-0.5">Members</div>
                 </div>
                 {community.category && (
-                  <div className="border-l pl-3">
+                  <div className="border-l pl-3 min-w-0">
                     <div className="text-base font-semibold truncate">{community.category}</div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium mt-0.5">Category</div>
                   </div>
@@ -366,7 +427,6 @@ export default function CommunityDetailPage() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Member contributions keep this community independent and growing.
                 </p>
-                <Button variant="outline" size="sm" className="w-full mt-1">Learn More</Button>
               </CardContent>
             </Card>
 
@@ -387,7 +447,7 @@ export default function CommunityDetailPage() {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl h-[88vh] flex flex-col p-0">
+        <DialogContent className="max-w-2xl h-[88vh] w-[calc(100vw-1rem)] sm:w-full flex flex-col p-0">
           <DialogHeader className="px-5 py-4 border-b">
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
               <Settings className="w-4 h-4 text-primary" />
@@ -396,11 +456,24 @@ export default function CommunityDetailPage() {
           </DialogHeader>
 
           <ScrollArea className="flex-1">
-            <div className="px-5 py-5 space-y-6">
+            <div className="px-4 md:px-5 py-5 space-y-6">
 
               {/* Banner */}
               <div className="space-y-1.5">
-                <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Banner Image</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Banner Image</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[10px] gap-1.5"
+                    onClick={() => handleGenerateAIImage('bannerImage')}
+                    disabled={isGeneratingBanner || !editForm.name}
+                  >
+                    {isGeneratingBanner ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    {isGeneratingBanner ? 'Generating...' : 'Generate with AI'}
+                  </Button>
+                </div>
                 <div
                   onClick={() => bannerInputRef.current?.click()}
                   className="relative h-24 rounded-lg border-2 border-dashed border-border/60 hover:border-primary/40 hover:bg-muted/30 cursor-pointer overflow-hidden transition-all group"
@@ -420,9 +493,22 @@ export default function CommunityDetailPage() {
               </div>
 
               {/* Avatar + Name */}
-              <div className="flex items-end gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
                 <div className="space-y-1.5 shrink-0">
-                  <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Logo</Label>
+                  <div className="flex items-center justify-between gap-4">
+                    <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Logo</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-6 w-6 p-0 rounded-full"
+                      onClick={() => handleGenerateAIImage('image')}
+                      disabled={isGeneratingAvatar || !editForm.name}
+                      title="Generate Logo with AI"
+                    >
+                      {isGeneratingAvatar ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    </Button>
+                  </div>
                   <div
                     onClick={() => avatarInputRef.current?.click()}
                     className="relative w-14 h-14 rounded-xl border-2 border-dashed border-border/60 hover:border-primary/40 hover:bg-muted/30 cursor-pointer overflow-hidden transition-all group"
@@ -500,7 +586,7 @@ export default function CommunityDetailPage() {
                 <RadioGroup
                   value={editForm.privacy}
                   onValueChange={v => setEditForm(p => ({ ...p, privacy: v as 'public' | 'private' }))}
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 >
                   <Label className="flex flex-col gap-1 p-3 border rounded-lg hover:bg-muted/40 transition-colors cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/[0.03]">
                     <RadioGroupItem value="public" className="sr-only" />
@@ -541,9 +627,9 @@ export default function CommunityDetailPage() {
             </div>
           </ScrollArea>
 
-          <DialogFooter className="px-5 py-4 border-t gap-2 bg-muted/20">
-            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleEditSave} disabled={editLoading}>
+          <DialogFooter className="px-4 md:px-5 py-4 border-t gap-2 bg-muted/20">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button size="sm" className="w-full sm:w-auto" onClick={handleEditSave} disabled={editLoading}>
               {editLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
               Save Changes
             </Button>
