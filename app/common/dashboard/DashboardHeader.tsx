@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, Package, Palette, Save, Zap } from 'lucide-react'
+import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, Zap } from 'lucide-react'
+import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -106,6 +107,15 @@ export default function DashboardHeader() {
   const handleSaveEditProfile = () => {
     if (typeof window === 'undefined') return
     window.dispatchEvent(new CustomEvent('dashboard:save-edit-profile'))
+  }
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut()
+      router.push('/auth/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
   return (
@@ -236,6 +246,16 @@ export default function DashboardHeader() {
                       <LifeBuoy className="h-4 w-4 text-muted-foreground" />
                       <span className="flex-1 text-[13px] text-left font-semibold">Help & Support</span>
                       <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                    </Button>
+                    <div className="h-[1px] bg-border/50 my-1 mx-2" />
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start gap-3 h-10 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span className="flex-1 text-[13px] text-left font-bold">Logout</span>
+                      <ChevronRight className="h-3.5 w-3.5 opacity-20" />
                     </Button>
                   </div>
                 </div>

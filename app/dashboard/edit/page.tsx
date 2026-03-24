@@ -37,6 +37,8 @@ function Page() {
       bio: string;
       profilePicture: string | null;
       bannerImage: string | null;
+      iconColor: string;
+      themeColor: string;
     }
   >({
     username: "username",
@@ -45,6 +47,8 @@ function Page() {
     profilePicture: "/images/dud.png" as string | null,
     bannerImage: null,
     slug: "username",
+    iconColor: "#6b7280", // Default muted-foreground
+    themeColor: "#ffffff",
   });
   const [userProfile, setUserProfile] = useState<AppUser | null>(null);
   const [links, setLinks] = useState<any[]>([]);
@@ -105,6 +109,8 @@ function Page() {
             profilePicture: profile.profilePicture || "/images/dud.png",
             bannerImage: profile.bannerImage || null,
             slug: profile.slug || profile.username || "user",
+            iconColor: (profile as any).iconColor || "#6b7280",
+            themeColor: (profile as any).themeColor || "#ffffff",
           }));
 
           const defaultLinks = [
@@ -161,9 +167,12 @@ function Page() {
         bio: profileData.bio,
         profilePicture: profileData.profilePicture,
         bannerImage: profileData.bannerImage,
+        iconColor: profileData.iconColor,
+        themeColor: profileData.themeColor,
         links,
         socialLinks,
       });
+      setIsProfileModalOpen(false);
     } catch (error) {
       console.error("Error saving profile:", error);
     }
@@ -247,14 +256,14 @@ function Page() {
         <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Edit profile">
-              <Menu className={`h-4 w-4 ${iconColor}`} />
+              <Pencil className={`h-4 w-4 ${iconColor}`} />
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Edit profile</DialogTitle>
+              <DialogTitle>Edit Profile & Description</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Banner</label>
                 <div className="relative">
@@ -287,13 +296,48 @@ function Page() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Bio</label>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Description (Bio)</label>
                 <textarea
                   value={profileData.bio}
                   onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
                   rows={3}
+                  placeholder="Tell your story..."
                   className="w-full resize-none rounded-lg border border-border/50 bg-muted/40 px-3 py-2 text-sm"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Icon Color</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={profileData.iconColor}
+                      onChange={(e) => setProfileData((prev) => ({ ...prev, iconColor: e.target.value }))}
+                      className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.iconColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Theme Color</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={profileData.themeColor}
+                      onChange={(e) => setProfileData((prev) => ({ ...prev, themeColor: e.target.value }))}
+                      className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
+                    />
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.themeColor}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Button className="w-full" onClick={saveProfile}>
+                  <Check className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
               </div>
             </div>
           </DialogContent>
@@ -338,6 +382,7 @@ function Page() {
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-8 w-8 items-center justify-center rounded-full border border-border transition-colors hover:bg-muted/50"
+              style={{ color: profileData.iconColor }}
             >
               <img src={social.thumbnail || "/images/pages/website.svg"} alt={social.platform} className="h-4 w-4 object-contain" />
             </a>
@@ -440,10 +485,10 @@ function Page() {
                       {link.active ? "ON" : "OFF"}
                     </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditLink(link)}>
-                      <Pencil className="h-3.5 w-3.5" />
+                      <Pencil className="h-3.5 w-3.5" style={{ color: profileData.iconColor }} />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteLink(link.id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-3.5 w-3.5" style={{ color: profileData.iconColor }} />
                     </Button>
                   </div>
                 </div>
@@ -451,7 +496,7 @@ function Page() {
             </div>
           ))}
           <Button variant="outline" className="w-full border-dashed" onClick={handleAddLink}>
-            <Plus className="h-4 w-4 mr-1.5" /> Add link
+            <Plus className="h-4 w-4 mr-1.5" style={{ color: profileData.iconColor }} /> Add link
           </Button>
         </TabsContent>
 
