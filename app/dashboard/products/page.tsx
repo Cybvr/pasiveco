@@ -24,6 +24,7 @@ import { storage } from '@/lib/firebase'
 
 import CreateTab from './CreateTab'  
 import ManageTab from './ManageTab'
+import InstantCatalogModal from '@/components/products/InstantCatalogModal'
 
 
 
@@ -48,6 +49,7 @@ function ProductCreator() {
       imageUrl?: string;
     }>
   }>(null)
+  const [isInstantCatalogOpen, setIsInstantCatalogOpen] = useState(false)
   const [initialProductData, setInitialProductData] = useState<any>(null)
   const [brandStyle, setBrandStyle] = useState<string>("")
   const [processingIdx, setProcessingIdx] = useState<number | null>(null)
@@ -283,9 +285,17 @@ function ProductCreator() {
             setIsCreateModalOpen(true)
           }}
           onGenAINew={() => setIsAIModalOpen(true)}
+          onBulkAINew={() => setIsInstantCatalogOpen(true)}
           hasBankingDetails={hasBankingDetails}
         />
       </div>
+
+      <InstantCatalogModal 
+        open={isInstantCatalogOpen}
+        onOpenChange={setIsInstantCatalogOpen}
+        onProductsCreated={loadMyProducts}
+        creatorName={user?.displayName || "Creator"}
+      />
 
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent className="max-w-3xl gap-0 overflow-hidden border-border/60 p-0 shadow-2xl">
@@ -318,7 +328,7 @@ function ProductCreator() {
           <DialogHeader className="border-b border-border/60 px-4 py-3">
             <DialogTitle className="flex items-center gap-2 text-base">
               <Sparkles className="h-4 w-4 text-primary" />
-              Gen AI Wizard
+              Quick Add
             </DialogTitle>
           </DialogHeader>
           <div className="max-h-[80vh] overflow-y-auto p-6 space-y-6">
@@ -333,7 +343,7 @@ function ProductCreator() {
               <div className="flex flex-wrap gap-2 items-center">
                 <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 ">
                   <Sparkles className="h-3 w-3" />
-                  AI will suggest products based on yours persona.
+                  AI will suggest products based on your persona.
                 </p>
               </div>
             </div>
@@ -345,9 +355,9 @@ function ProductCreator() {
                   {aiResult.products.map((product, idx) => (
                     <div 
                       key={idx} 
-                      className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex gap-4"
+                      className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex flex-col sm:flex-row gap-4"
                     >
-                      <div className="w-24 h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative group/img">
+                      <div className="w-full sm:w-24 h-48 sm:h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative group/img">
                         {product.imageUrl ? (
                           <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
@@ -387,12 +397,14 @@ function ProductCreator() {
                           <div className="flex justify-between items-start mb-2 gap-4">
                             <div className="space-y-1 min-w-0">
                               <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground mr-2">
-                                {product.productType.replace('-', ' ')}
-                              </span>
-                              <span className="text-sm font-bold text-primary">{formatCurrency(product.price, currency)}</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {product.productType.replace('-', ' ')}
+                                </span>
+                                <span className="text-sm font-bold text-primary">{formatCurrency(product.price, currency)}</span>
+                              </div>
                             </div>
-                            <div className="flex gap-1.5 shrink-0">
+                            <div className="flex gap-1 sm:gap-1.5 shrink-0">
                               <Button 
                                 variant="ghost" 
                                 size="icon" 

@@ -9,6 +9,9 @@ import {
   MoreVertical,
   Sparkles,
   Eye,
+  Layers,
+  LayoutGrid,
+  List,
   Image as ImageIcon,
   UploadCloud,
   Wand2,
@@ -55,7 +58,7 @@ import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getUser, type User as AppUser } from '@/services/userService'
 
-function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, hasBankingDetails = false }) {
+function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, onBulkAINew, hasBankingDetails = false }) {
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [profile, setProfile] = useState<AppUser | null>(null)
@@ -95,6 +98,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const imageInputRef = React.useRef<HTMLInputElement | null>(null)
   const [loading, setLoading] = useState(false)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     toast(`Delete "${productName}"?`, {
@@ -290,79 +294,233 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
   return (
     <>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold">My Products ({products.length})</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={onGenAINew} className="h-8 text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center p-0.5 bg-muted rounded-lg mr-2">
+              <Button 
+                variant={viewMode === 'card' ? 'secondary' : 'ghost'} 
+                size="icon" 
+                className="h-7 w-7 rounded-md"
+                onClick={() => setViewMode('card')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
+                size="icon" 
+                className="h-7 w-7 rounded-md"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button variant="outline" onClick={onGenAINew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
               <Sparkles className="w-3.5 h-3.5" />
-              Gen AI
+              Quick Add
             </Button>
-            <Button onClick={onCreateNew} className="h-8 text-xs gap-1.5">
+            <Button variant="outline" onClick={onBulkAINew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
+              <Layers className="w-3.5 h-3.5" />
+              Instant Catalog
+            </Button>
+            <Button onClick={onCreateNew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5">
               <Plus className="w-3.5 h-3.5" />
               New
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-1">
-          {isLoading ? (
-            Array.from({ length: 6 }).map((_, index) => (
-              <div key={`product-skeleton-${index}`} className="p-2 space-y-2">
-                <Skeleton className="w-full aspect-square rounded-md" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/3" />
+        {viewMode === 'card' ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pt-4">
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={`product-skeleton-${index}`} className="p-2 space-y-2">
+                  <Skeleton className="w-full aspect-square rounded-md" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/3" />
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            products.map((product: any) => (
-              <div key={product.id} className="cursor-pointer p-2 space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
-                <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
-                  {product.thumbnail ? (
-                    <img
-                      src={product.thumbnail}
-                      alt={product.name}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                      <Package className="h-8 w-8 text-primary" />
+              ))
+            ) : (
+              products.map((product: any) => (
+                <div key={product.id} className="cursor-pointer p-2 space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+                  <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
+                    {product.thumbnail ? (
+                      <img
+                        src={product.thumbnail}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <Package className="h-8 w-8 text-primary" />
+                      </div>
+                    )}
+                    {product.affiliateEnabled && (
+                      <div className="absolute top-2 left-2 z-10">
+                        <div className="flex items-center gap-1 bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-0.5 text-[10px] font-bold rounded-md">
+                          <Zap className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                          {product.affiliateCommission || 20}%
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
+                      <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
+                        <Eye className="h-4 w-4" />
+                      </a>
                     </div>
-                  )}
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
-                    <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
+                  </div>
+
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1 min-w-0">
+                      <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                      <p className="text-sm font-semibold text-green-600">
+                        {formatCurrency(
+                          (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                            ? product.price * EXCHANGE_RATE
+                            : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                              ? product.price / EXCHANGE_RATE
+                              : product.price,
+                          currency
+                        )}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-7 w-7 rounded-full"
+                            aria-label="Product actions"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onSelect={(event) => {
+                            event.preventDefault();
+                            handleEditProduct(product);
+                          }}>
+                            <Settings className="mr-2 h-3.5 w-3.5" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={(event) => {
+                            event.preventDefault();
+                            copyProductLink(product);
+                          }}>
+                            <Copy className="mr-2 h-3.5 w-3.5" />
+                            Copy
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={(event) => {
+                            event.preventDefault();
+                            handleDeleteProduct(product.id, product.name);
+                          }}
+                            className="text-destructive focus:text-destructive">
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 pt-4">
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <div key={`product-list-skeleton-${index}`} className="flex items-center gap-4 p-3 rounded-xl border border-transparent">
+                  <Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-3 w-3/4" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              products.map((product: any) => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-4 p-3 rounded-xl border border-border/40 hover:bg-muted/30 transition-all cursor-pointer group"
+                  onClick={() => handleEditProduct(product)}
+                >
+                  <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted border shrink-0">
+                    {product.thumbnail ? (
+                      <img
+                        src={product.thumbnail}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full bg-primary/10 flex items-center justify-center">
+                        <Package className="h-6 w-6 text-primary" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                      <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 bg-muted rounded-md text-muted-foreground">
+                        {product.category?.replace('-', ' ')}
+                      </span>
+                      {product.affiliateEnabled && (
+                        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-primary/10 text-primary rounded-md">
+                          <Zap className="h-2.5 w-2.5 fill-primary" />
+                          {product.affiliateCommission || 20}%
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{product.description}</p>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                      <div className="h-1 w-1 rounded-full bg-border" />
+                      <p className="font-bold text-sm text-green-600">
+                        {formatCurrency(
+                          (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                            ? product.price * EXCHANGE_RATE
+                            : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                              ? product.price / EXCHANGE_RATE
+                              : product.price,
+                          currency
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 rounded-full"
+                      onClick={(e) => { e.stopPropagation(); copyProductLink(product) }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <a
+                      href={`/${cleanHandle}/product/${product.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-accent text-foreground transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Eye className="h-4 w-4" />
                     </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 min-w-0">
-                    <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                    <p className="text-sm font-semibold text-green-600">
-                      {formatCurrency(
-                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                          ? product.price * EXCHANGE_RATE
-                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                            ? product.price / EXCHANGE_RATE
-                            : product.price,
-                        currency
-                      )}
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button
                           size="icon"
-                          variant="secondary"
-                          className="h-7 w-7 rounded-full"
+                          variant="ghost"
+                          className="h-8 w-8 rounded-full"
                           aria-label="Product actions"
                         >
                           <MoreVertical className="h-4 w-4" />
@@ -378,13 +536,6 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={(event) => {
                           event.preventDefault();
-                          copyProductLink(product);
-                        }}>
-                          <Copy className="mr-2 h-3.5 w-3.5" />
-                          Copy
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(event) => {
-                          event.preventDefault();
                           handleDeleteProduct(product.id, product.name);
                         }}
                           className="text-destructive focus:text-destructive">
@@ -395,10 +546,10 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     </DropdownMenu>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
 
         {!isLoading && products.length === 0 && (
           <NoProductsSection

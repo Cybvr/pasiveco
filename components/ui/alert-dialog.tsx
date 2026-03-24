@@ -6,6 +6,32 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
+function cleanupAlertDialogBodyState() {
+  if (typeof document === "undefined") return
+
+  const hasOpenDialog = document.querySelector(
+    '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]'
+  )
+
+  if (hasOpenDialog) return
+
+  document.body.style.removeProperty("pointer-events")
+  document.body.style.removeProperty("overflow")
+  document.body.style.removeProperty("padding-right")
+}
+
+function AlertDialogBodyCleanup() {
+  React.useEffect(() => {
+    return () => {
+      requestAnimationFrame(() => {
+        cleanupAlertDialogBodyState()
+      })
+    }
+  }, [])
+
+  return null
+}
+
 const AlertDialog = AlertDialogPrimitive.Root
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
@@ -40,7 +66,10 @@ const AlertDialogContent = React.forwardRef<
         className
       )}
       {...props}
-    />
+    >
+      <AlertDialogBodyCleanup />
+      {props.children}
+    </AlertDialogPrimitive.Content>
   </AlertDialogPortal>
 ))
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName
