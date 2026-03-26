@@ -22,7 +22,7 @@ import { slugify } from '@/utils/slugify';
 const communitiesCollection = collection(db, 'communities');
 const communityMembersCollection = collection(db, 'communityMembers');
 
-export const createCommunity = async (communityData: Omit<Community, 'id' | 'createdAt' | 'updatedAt' | 'memberCount'>) => {
+export const createCommunity = async (communityData: Omit<Community, 'id' | 'createdAt' | 'updatedAt' | 'memberCount' | 'slug'>) => {
   try {
     const slug = `${slugify(communityData.name)}-${Math.random().toString(36).substring(2, 7)}`;
     

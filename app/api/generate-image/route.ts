@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { productName, productDescription } = await req.json();
-    const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY;
+    const body = await req.json();
+    const { productName, productDescription } = body;
+    console.log("Image generation request body:", body);
+    const hfKey = (process.env.HUGGINGFACE_API_KEY || process.env.NEXT_PUBLIC_HUGGINGFACE_API_KEY || "").trim();
     console.log("Using HF Key:", hfKey ? "SET (check your terminal for key length if it fails)" : "MISSING");
 
     if (!hfKey || hfKey === 'hf_your_key_here') {
       return NextResponse.json({ error: "Hugging Face key not configured" }, { status: 500 });
     }
 
-    const prompt = `professional product cover for ${productName}, ${productDescription.slice(0, 100)}, bold, modern retail design, high quality, studio lighting`;
-    
+    const prompt = `Eye-catching digital product thumbnail inspired by "${productName}". ${productDescription}. Vivid colors, creative graphic design, visually striking composition, professional digital art, no text, no words, no letters`;
+
     console.log("Generating image for:", productName);
 
     const response = await fetch(
@@ -21,30 +23,29 @@ export async function POST(req: NextRequest) {
         headers: {
           Authorization: `Bearer ${hfKey}`,
           "Content-Type": "application/json",
-          "x-use-cache": "false" 
+          "x-use-cache": "false"
         },
-        body: JSON.stringify({ 
-          inputs: prompt,
-          options: { wait_for_model: true } 
-        }),
+        body: JSON.stringify({ inputs: prompt }),
       }
     );
 
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("HF Inference Error Details:", errorData);
-        return NextResponse.json({ 
-          error: "Hugging Face Inference Error", 
-          details: errorData,
-          status: response.status 
-        }, { status: 400 }); // Return 400 so we can see the body in browser
+      const errorData = await response.json().catch(() => ({}));
+      console.error("HF Inference Error Details:", JSON.stringify(errorData, null, 2));
+      console.error("HF Status:", response.status);
+      console.error("HF Status Text:", response.statusText);
+      return NextResponse.json({
+        error: "Hugging Face Inference Error",
+        details: errorData,
+        status: response.status
+      }, { status: 400 });
     }
 
     console.log("Image blob received, converting to base64...");
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64Image = buffer.toString('base64');
-    
+
     return NextResponse.json({ base64Image });
   } catch (error: any) {
     console.error("Image generation API error:", error);

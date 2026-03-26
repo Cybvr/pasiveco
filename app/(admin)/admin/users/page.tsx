@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, X, Settings2 } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, X, Settings2, Download } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories, deleteUserCategory, ensureUserCategory, type UserCategory } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
@@ -889,6 +889,144 @@ export default function UsersPage() {
     })
   }
 
+  const handleDownloadCsv = () => {
+    try {
+      const dataToExport = searchTerm ? filteredUsers : users
+      
+      if (dataToExport.length === 0) {
+        toast({
+          title: "No data",
+          description: "There are no users to export.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const headers = [
+        "ID",
+        "Email",
+        "Display Name",
+        "Username",
+        "Role",
+        "Is Active",
+        "Is Admin",
+        "Category",
+        "Created At",
+        "Bio",
+        "Tags"
+      ]
+
+      const csvRows = dataToExport.map(user => {
+        const createdAt = user.createdAt instanceof Timestamp 
+          ? user.createdAt.toDate().toISOString() 
+          : 'N/A'
+        
+        const tags = Array.isArray(user.tags) ? user.tags.join(';') : ''
+        
+        return [
+          user.id || '',
+          user.email || '',
+          user.displayName || '',
+          user.username || '',
+          user.role || 'user',
+          user.isActive ? '1' : '0',
+          user.isAdmin ? '1' : '0',
+          user.category || '',
+          createdAt,
+          (user.bio || '').replace(/"/g, '""'),
+          tags
+        ].map(value => {
+          const stringValue = String(value ?? "")
+          return `"${stringValue.replace(/"/g, '""')}"`
+        }).join(',')
+      })
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      toast({
+        title: "Export Success",
+        description: `Exported ${dataToExport.length} users to CSV.`,
+      })
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+      toast({
+        title: "Export Error",
+        description: "Failed to export users to CSV.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDownloadLoopsCsv = () => {
+    try {
+      const dataToExport = searchTerm ? filteredUsers : users
+      
+      if (dataToExport.length === 0) {
+        toast({
+          title: "No data",
+          description: "There are no users to export.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const headers = [
+        "First Name",
+        "Last Name",
+        "Email",
+        "User Group"
+      ]
+
+      const csvRows = dataToExport.map(user => {
+        const nameParts = (user.displayName || '').trim().split(/\s+/)
+        const firstName = nameParts[0] || ''
+        const lastName = nameParts.slice(1).join(' ') || ''
+        
+        return [
+          firstName,
+          lastName,
+          user.email || '',
+          user.category || user.role || 'User'
+        ].map(value => {
+          const stringValue = String(value ?? "")
+          return `"${stringValue.replace(/"/g, '""')}"`
+        }).join(',')
+      })
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', `loops_export_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      toast({
+        title: "Loops Export Success",
+        description: `Exported ${dataToExport.length} users in Loops format.`,
+      })
+    } catch (error) {
+      console.error('Error exporting Loops CSV:', error)
+      toast({
+        title: "Export Error",
+        description: "Failed to export users for Loops.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleCsvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
 
@@ -1038,7 +1176,23 @@ export default function UsersPage() {
             className="w-full sm:w-auto"
           >
             <Upload className="mr-2 h-4 w-4" />
-            {isImporting ? 'Importing CSV...' : 'Import CSV'}
+            {isImporting ? 'Importing...' : 'Import'}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadCsv}
+            className="w-full sm:w-auto"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export All
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadLoopsCsv}
+            className="w-full sm:w-auto bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Loops Export
           </Button>
           <Button
             variant="outline"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,11 +9,25 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Users } from "lucide-react"
+import { Trash2, Users, Image as ImageIcon, UploadCloud, Loader2, Sparkles } from "lucide-react"
 import { createCommunity, deleteCommunity, getAllCommunities, updateCommunity } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "@/hooks/use-toast"
+import InstantCommunityModal from "@/components/communities/InstantCommunityModal"
+import { storage } from "@/lib/firebase"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { v4 as uuidv4 } from "uuid"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface CommunityForm {
   id?: string
@@ -65,6 +79,17 @@ export default function CommunityTab() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [currentCommunity, setCurrentCommunity] = useState<CommunityForm | null>(null)
+  const [isInstantModalOpen, setIsInstantModalOpen] = useState(false)
+  const [communityToDelete, setCommunityToDelete] = useState<Community | null>(null)
+  
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
+  const [imageDragging, setImageDragging] = useState(false)
+  const [bannerDragging, setBannerDragging] = useState(false)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
+  
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const bannerInputRef = useRef<HTMLInputElement>(null)
 
   const selectedId = useMemo(() => currentCommunity?.id, [currentCommunity?.id])
 
@@ -88,6 +113,54 @@ export default function CommunityTab() {
   useEffect(() => {
     fetchCommunities()
   }, [])
+
+  const uploadFile = async (file: File, path: string) => {
+    const filename = `${uuidv4()}-${file.name}`
+    const storageRef = ref(storage, `${path}/${filename}`)
+    await uploadBytes(storageRef, file)
+    return await getDownloadURL(storageRef)
+  }
+
+  const handleGenerateAIImage = async () => {
+    if (!currentCommunity?.name) {
+      toast({ variant: "destructive", title: "Missing title", description: "Please enter a community title first." })
+      return
+    }
+    
+    setIsGeneratingImage(true)
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productName: currentCommunity.name, 
+          productDescription: currentCommunity.description || `A community for ${currentCommunity.name}` 
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        console.error("AI Generation Error Info:", errData);
+        throw new Error('Generation failed')
+      }
+
+      const data = await response.json();
+      if (data.base64Image) {
+        const res = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
+        const blob = await res.blob();
+        const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
+        const objectUrl = URL.createObjectURL(file);
+        setImageFile(file);
+        setCurrentCommunity(prev => prev ? { ...prev, image: objectUrl } : null);
+        toast({ title: "Success", description: "AI image generated!" })
+      }
+    } catch (error) {
+      console.error(error)
+      toast({ variant: "destructive", title: "Error", description: "Failed to generate AI image." })
+    } finally {
+      setIsGeneratingImage(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!currentCommunity || !currentCommunity.name.trim() || !currentCommunity.description.trim()) {
@@ -117,41 +190,41 @@ export default function CommunityTab() {
 
       const normalizedPrice = currentCommunity.isPaid && currentCommunity.price
         ? Number(currentCommunity.price)
-        : undefined
+        : 0
+
+      let imageUrl = currentCommunity.image
+      let bannerUrl = currentCommunity.bannerImage
+
+      if (imageFile) imageUrl = await uploadFile(imageFile, "community-images")
+      if (bannerFile) bannerUrl = await uploadFile(bannerFile, "community-banners")
+
+      const payload = {
+        name: currentCommunity.name.trim(),
+        description: currentCommunity.description.trim(),
+        category: currentCommunity.category.trim() || null,
+        privacy: currentCommunity.privacy,
+        image: imageUrl || null,
+        bannerImage: bannerUrl || null,
+        tags: normalizedTags.length > 0 ? normalizedTags : [],
+        isPaid: currentCommunity.isPaid,
+        price: normalizedPrice,
+        currency: currentCommunity.currency.trim() || "USD",
+        creatorName: currentCommunity.creatorName.trim() || null,
+      }
 
       if (currentCommunity.id) {
-        await updateCommunity(currentCommunity.id, {
-          name: currentCommunity.name.trim(),
-          description: currentCommunity.description.trim(),
-          category: currentCommunity.category.trim() || undefined,
-          privacy: currentCommunity.privacy,
-          image: currentCommunity.image.trim() || undefined,
-          bannerImage: currentCommunity.bannerImage.trim() || undefined,
-          tags: normalizedTags.length > 0 ? normalizedTags : undefined,
-          isPaid: currentCommunity.isPaid,
-          price: normalizedPrice,
-          currency: currentCommunity.currency.trim() || undefined,
-          creatorName: currentCommunity.creatorName.trim() || undefined,
-        })
+        await updateCommunity(currentCommunity.id, payload)
         toast({ title: "Saved", description: "Community updated successfully." })
       } else {
         await createCommunity({
-          name: currentCommunity.name.trim(),
-          description: currentCommunity.description.trim(),
+          ...payload,
           creatorId: user!.uid,
-          creatorName: currentCommunity.creatorName.trim() || user?.displayName || "Admin",
-          category: currentCommunity.category.trim() || undefined,
-          privacy: currentCommunity.privacy,
-          image: currentCommunity.image.trim() || undefined,
-          bannerImage: currentCommunity.bannerImage.trim() || undefined,
-          tags: normalizedTags.length > 0 ? normalizedTags : undefined,
-          isPaid: currentCommunity.isPaid,
-          price: normalizedPrice,
-          currency: currentCommunity.currency.trim() || "USD",
         })
         toast({ title: "Created", description: "Community created successfully." })
       }
 
+      setImageFile(null)
+      setBannerFile(null)
       await fetchCommunities()
     } catch (error) {
       console.error("Error saving community:", error)
@@ -166,14 +239,17 @@ export default function CommunityTab() {
   }
 
   const handleDelete = async (community: Community) => {
-    if (!community.id || !confirm(`Delete community \"${community.name}\"?`)) {
-      return
-    }
+    if (!community.id) return
+    setCommunityToDelete(community)
+  }
+
+  const confirmDelete = async () => {
+    if (!communityToDelete?.id) return
 
     try {
-      await deleteCommunity(community.id)
-      setCommunities((prev) => prev.filter((item) => item.id !== community.id))
-      if (selectedId === community.id) {
+      await deleteCommunity(communityToDelete.id)
+      setCommunities((prev) => prev.filter((item) => item.id !== communityToDelete.id))
+      if (selectedId === communityToDelete.id) {
         setCurrentCommunity(null)
       }
       toast({ title: "Deleted", description: "Community deleted successfully." })
@@ -184,6 +260,8 @@ export default function CommunityTab() {
         title: "Error",
         description: "Failed to delete community.",
       })
+    } finally {
+      setCommunityToDelete(null)
     }
   }
 
@@ -192,7 +270,17 @@ export default function CommunityTab() {
       <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
         <h2 className="mb-4 text-lg font-semibold">Communities</h2>
         <div className="space-y-4">
-          <Button onClick={() => setCurrentCommunity({ ...emptyForm })} className="w-full">+ Create New</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setCurrentCommunity({ ...emptyForm })} className="flex-1">+ Create New</Button>
+            <Button 
+              onClick={() => setIsInstantModalOpen(true)} 
+              variant="outline" 
+              className="px-3 border-primary/30 text-primary hover:bg-primary/5"
+              title="AI Instant Create"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
+          </div>
           <div className="space-y-2">
             {loading ? (
               <p className="text-sm text-muted-foreground">Loading communities...</p>
@@ -280,24 +368,93 @@ export default function CommunityTab() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input
-                  id="image"
-                  value={currentCommunity.image}
-                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, image: e.target.value })}
-                  placeholder="https://..."
-                />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Community Image</Label>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-xs gap-1.5 text-primary hover:bg-primary/5"
+                    onClick={handleGenerateAIImage}
+                    disabled={isGeneratingImage || !currentCommunity.name}
+                  >
+                    {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    AI Gen
+                  </Button>
+                </div>
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
+                  onDragLeave={() => setImageDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setImageDragging(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      setImageFile(file);
+                      setCurrentCommunity({ ...currentCommunity, image: URL.createObjectURL(file) });
+                    }
+                  }}
+                  className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-4 text-center transition-colors
+                    ${imageDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
+                >
+                  {currentCommunity.image ? (
+                    <img src={currentCommunity.image} alt="Preview" className="max-h-24 w-auto rounded-md object-contain" />
+                  ) : (
+                    <>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Drop avatar here</p>
+                    </>
+                  )}
+                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setImageFile(file);
+                      setCurrentCommunity({ ...currentCommunity, image: URL.createObjectURL(file) });
+                    }
+                  }} />
+                </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="bannerImage">Banner URL</Label>
-                <Input
-                  id="bannerImage"
-                  value={currentCommunity.bannerImage}
-                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, bannerImage: e.target.value })}
-                  placeholder="https://..."
-                />
+              <div className="space-y-2">
+                <Label>Banner Image</Label>
+                <div
+                  onClick={() => bannerInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setBannerDragging(true) }}
+                  onDragLeave={() => setBannerDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setBannerDragging(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      setBannerFile(file);
+                      setCurrentCommunity({ ...currentCommunity, bannerImage: URL.createObjectURL(file) });
+                    }
+                  }}
+                  className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-4 text-center transition-colors
+                    ${bannerDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
+                >
+                  {currentCommunity.bannerImage ? (
+                    <img src={currentCommunity.bannerImage} alt="Preview" className="max-h-24 w-auto rounded-md object-contain" />
+                  ) : (
+                    <>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                        <UploadCloud className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Drop banner here</p>
+                    </>
+                  )}
+                  <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setBannerFile(file);
+                      setCurrentCommunity({ ...currentCommunity, bannerImage: URL.createObjectURL(file) });
+                    }
+                  }} />
+                </div>
               </div>
             </div>
 
@@ -367,6 +524,28 @@ export default function CommunityTab() {
           <p className="text-sm text-muted-foreground">Select a community from the list or create a new one.</p>
         )}
       </div>
+      <InstantCommunityModal 
+        open={isInstantModalOpen}
+        onOpenChange={setIsInstantModalOpen}
+        onCommunitiesCreated={fetchCommunities}
+      />
+
+      <AlertDialog open={!!communityToDelete} onOpenChange={(open) => !open && setCommunityToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the community <strong>{communityToDelete?.name}</strong> and remove all member associations. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Community
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
