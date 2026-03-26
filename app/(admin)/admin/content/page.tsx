@@ -9,6 +9,7 @@ import Dropcursor from "@tiptap/extension-dropcursor"
 import FeaturesTab from "./FeaturesTab"
 import SolutionsTab from "./SolutionsTab"
 import BlogTab from "./BlogTab"
+import CommunityTab from "./CommunityTab"
 
 export default function ContentManagementPage() {
   const [activeTab, setActiveTab] = useState("features")
@@ -26,6 +27,7 @@ export default function ContentManagementPage() {
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="solutions">Solutions</TabsTrigger>
           <TabsTrigger value="blog">Blog Posts</TabsTrigger>
+          <TabsTrigger value="communities">Communities</TabsTrigger>
           </TabsList>
         </div>
 
@@ -39,6 +41,10 @@ export default function ContentManagementPage() {
 
         <TabsContent value="blog" className="space-y-4">
           <BlogTab editor={editor} />
+        </TabsContent>
+
+        <TabsContent value="communities" className="space-y-4">
+          <CommunityTab />
         </TabsContent>
       </Tabs>
     </div>
