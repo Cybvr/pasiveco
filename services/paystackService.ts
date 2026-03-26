@@ -5,6 +5,7 @@ interface PaystackInitializeData {
   currency?: string;
   reference?: string;
   callback_url?: string;
+  channels?: string[];
   metadata?: {
     product_id: string;
     product_name: string;
@@ -101,60 +102,3 @@ export class PaystackService {
     return Math.round(amount * 100);
   }
 }
-
-// Client-side Paystack handler
-export const initializePaystackPayment = (
-  email: string,
-  amount: number,
-  productId: string,
-  productName: string,
-  onSuccess: (reference: string) => void,
-  onClose: () => void,
-  options?: {
-    currency?: string;
-    customerName?: string;
-    customerPhone?: string;
-    orderNote?: string;
-    container?: string;
-    channels?: string[];
-    sellerId?: string;
-    couponDiscount?: number;
-    affiliate?: string;
-    customCharge?: number;
-    variation?: string;
-  }
-) => {
-  const handler = (window as any).PaystackPop.setup({
-    key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-    email,
-    amount: PaystackService.convertToKobo(amount, options?.currency || 'NGN'),
-    currency: options?.currency || 'NGN',
-    ref: PaystackService.generateReference(),
-    metadata: {
-      product_id: productId,
-      product_name: productName,
-      customer_name: options?.customerName,
-      customer_phone: options?.customerPhone,
-      order_note: options?.orderNote,
-      seller_id: options?.sellerId,
-      coupon_discount: options?.couponDiscount,
-      affiliate: options?.affiliate,
-      custom_charge: options?.customCharge,
-      variation: options?.variation,
-    },
-    container: options?.container,
-    channels: options?.channels,
-    callback(response: { reference: string }) {
-      onSuccess(response.reference);
-    },
-    onClose() {
-      onClose();
-    }
-  });
-
-  if (options?.container) {
-    handler.loadIframe();
-  } else {
-    handler.openIframe();
-  }
-};

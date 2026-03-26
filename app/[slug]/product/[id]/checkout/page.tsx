@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
-import { initializePaystackPayment } from '@/services/paystackService';
 import { getPaymentSettings, PaymentSettings, defaultPaymentSettings } from '@/services/paymentMethodService';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -120,11 +119,6 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
       return;
     }
 
-    if (!(window as any).PaystackPop) {
-      setError('Paystack is unavailable right now.');
-      return;
-    }
-
     setError('');
     setPaymentLoading(true);
 
@@ -133,51 +127,37 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
     else if (selectedMethod === 'bank') channels.push('bank', 'bank_transfer');
 
     try {
-      initializePaystackPayment(
-        buyerEmail,
-        product.price,
-        product.id || '',
-        product.name,
-        async (reference: string) => {
-          try {
-            const verifyResponse = await fetch('/api/paystack/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ reference }),
-            });
-            const verifyData = await verifyResponse.json();
-
-            if (!verifyResponse.ok || !verifyData.success) {
-              throw new Error(verifyData.error || verifyData.message || 'Verification failed');
-            }
-
-            router.push(`/${routeParams.slug}/product/${product.id}/confirmation?reference=${encodeURIComponent(reference)}`);
-          } catch (verificationError) {
-            console.error('Payment verification error:', verificationError);
-            setError('Payment succeeded but confirmation is pending. Check your email.');
-          } finally {
-            setPaymentLoading(false);
-          }
-        },
-        () => {
-          setPaymentLoading(false);
-        },
-        {
+      const initializeResponse = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: buyerEmail,
+          amount: product.price,
           currency: product.currency || 'NGN',
+          productId: product.id || '',
+          productName: product.name,
           customerName: buyerName,
           customerPhone: buyerPhone,
           orderNote: notes,
-          channels: channels,
+          channels,
           sellerId: product.userId,
           affiliate: affiliateId,
-          couponDiscount: 0, 
+          couponDiscount: 0,
           customCharge: 0,
-          variation: '', 
-        }
-      );
+          variation: '',
+          slug: routeParams.slug,
+        }),
+      });
+      const initializeData = await initializeResponse.json();
+
+      if (!initializeResponse.ok || !initializeData.success || !initializeData.authorizationUrl) {
+        throw new Error(initializeData.error || initializeData.message || 'Unable to initialize payment');
+      }
+
+      window.location.assign(initializeData.authorizationUrl);
     } catch (paymentError) {
       console.error('Payment initialization failed:', paymentError);
-      setError('Could not open Paystack. Please try again.');
+      setError('Could not start payment. Please try again.');
       setPaymentLoading(false);
     }
   };
@@ -224,7 +204,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
         <div className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight">Checkout</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Complete your details and pay securely via Paystack.
+            Complete your details, make payment, and continue to your order receipt.
           </p>
         </div>
 
@@ -444,7 +424,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
                 {/* Trust signal */}
                 <div className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-foreground" />
-                  Payments are secure and processed via Paystack.
+                  Payments are secure and processed by our backend payment flow.
                 </div>
               </div>
             </div>
