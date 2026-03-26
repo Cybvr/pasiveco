@@ -157,7 +157,6 @@ export default async function RootLayout({
           </ClientLayout>
           <Toaster />
         </ThemeProvider>
-        <Script src="https://js.paystack.co/v1/inline.js" />
       </body>
     </html>
   );

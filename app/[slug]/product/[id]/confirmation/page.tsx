@@ -24,7 +24,7 @@ const formatPrice = (amount: number, currency: string) => {
 export default function OrderConfirmationPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
   const routeParams = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
-  const reference = searchParams.get('reference') || '';
+  const reference = searchParams.get('reference') || searchParams.get('trxref') || '';
 
   const [product, setProduct] = useState<Product | null>(null);
   const [seller, setSeller] = useState<any>(null);
