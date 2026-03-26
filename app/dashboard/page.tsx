@@ -113,13 +113,23 @@ export default function DashboardHomePage() {
   const earningsSummary = useMemo(() => {
     const allTransactions = [...sellerTransactions, ...affiliateTransactions]
     const successfulTransactions = allTransactions.filter((tx) => tx.status === 'success')
+    const displayCurrency = currency.toUpperCase()
+
+    const convertAmount = (amountValue: number, sourceCurrency?: string) => {
+      const sourceCurrencyCode = (sourceCurrency || "NGN").toUpperCase()
+
+      if (sourceCurrencyCode === displayCurrency) return amountValue
+      if (sourceCurrencyCode === "NGN" && displayCurrency === "USD") return amountValue / EXCHANGE_RATE
+      if (sourceCurrencyCode === "USD" && displayCurrency === "NGN") return amountValue * EXCHANGE_RATE
+      return amountValue
+    }
 
     return {
       availableBalance: successfulTransactions
         .filter((tx) => !tx.payoutDate)
-        .reduce((sum, tx) => sum + (tx.yourProfit || tx.amount || 0), 0),
+        .reduce((sum, tx) => sum + convertAmount(tx.yourProfit || tx.amount || 0, tx.currency), 0),
     }
-  }, [affiliateTransactions, sellerTransactions])
+  }, [affiliateTransactions, currency, sellerTransactions])
 
   const formatPrice = (amount: number, prodCurrency = 'USD') => {
     const displayAmount = currency === 'NGN' && prodCurrency === 'USD'
