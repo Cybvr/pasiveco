@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, Zap } from 'lucide-react'
+import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -21,6 +21,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
   '/dashboard/edit': 'My Profile',
   '/dashboard/earnings': 'Earnings',
+  '/dashboard/purchases': 'Purchases',
   '/dashboard/products': 'Products',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/settings': 'Settings',
@@ -43,6 +44,7 @@ interface QuickLink {
 
 const quickLinks: QuickLink[] = [
   { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
+  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingBag },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/edit', label: 'Edit Page', icon: Palette },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
@@ -78,6 +80,7 @@ export default function DashboardHeader() {
   const currentTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/earnings/')) return 'Earnings Details'
+    if (pathname.startsWith('/dashboard/purchases/')) return 'Order Details'
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'

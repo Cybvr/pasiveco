@@ -79,3 +79,22 @@ export const getAffiliateTransactions = async (affiliateId: string): Promise<Tra
     throw error;
   }
 };
+
+export const getCustomerTransactions = async (customerEmail: string): Promise<Transaction[]> => {
+  try {
+    const q = query(
+      collection(db, 'transactions'),
+      where('customerEmail', '==', customerEmail),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Transaction[];
+  } catch (error) {
+    console.error('Error fetching customer transactions:', error);
+    throw error;
+  }
+};
