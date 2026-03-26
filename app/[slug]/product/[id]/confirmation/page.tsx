@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
+import { getTransactionByReference } from '@/services/transactionsService';
 
 const formatPrice = (amount: number, currency: string) => {
   try {
@@ -68,6 +69,20 @@ export default function OrderConfirmationPage({ params }: { params: Promise<{ id
       }
 
       try {
+        // PROTOTYPE MODE: look up real Firestore data instead of calling Paystack
+        if (reference.startsWith('PROTOTYPE-') || reference.startsWith('DEBUG-')) {
+          const tx = await getTransactionByReference(reference);
+          if (tx) {
+            setVerificationMessage('Payment verified');
+            setCustomerEmail(tx.customerEmail || '');
+            setPaidAmount(tx.amount ?? null);
+          } else {
+            setVerificationMessage('Payment received. Processing confirmation...');
+          }
+          setVerificationLoading(false);
+          return;
+        }
+
         const response = await fetch('/api/paystack/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

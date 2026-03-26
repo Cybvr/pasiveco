@@ -226,9 +226,9 @@ export default function DashboardHomePage() {
             </Button>
             {!hasBankingDetails && (
               <Button asChild size="sm" variant="outline" className="gap-1.5 rounded-full">
-                <Link href="/dashboard/settings/banking-details">
+                <Link href="/dashboard/settings/payment-method">
                   <Landmark className="h-3.5 w-3.5" />
-                  Add banking details
+                  Add payment method
                 </Link>
               </Button>
             )}

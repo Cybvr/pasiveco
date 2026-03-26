@@ -19,6 +19,7 @@ import { Transaction } from "@/types/transaction"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
+import DashboardPagination from "@/components/dashboard/DashboardPagination"
  
 interface Customer {
   email: string;
@@ -30,10 +31,12 @@ interface Customer {
 }
  
 export default function CustomersPage() {
+  const ITEMS_PER_PAGE = 10
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
   const [search, setSearch] = useState("")
   const [sortConfig, setSortConfig] = useState<{ key: keyof Customer; direction: 'asc' | 'desc' } | null>({ key: 'lastOrderDate', direction: 'desc' })
  
@@ -134,22 +137,19 @@ export default function CustomersPage() {
     if (sortConfig?.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />
     return sortConfig.direction === 'asc' ? <ChevronUp className="ml-2 h-4 w-4 text-primary" /> : <ChevronDown className="ml-2 h-4 w-4 text-primary" />
   }
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, sortConfig, customers.length])
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedCustomers.length / ITEMS_PER_PAGE))
+  const paginatedCustomers = filteredAndSortedCustomers.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
  
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground">Manage and analyze your customer base.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-2">
-            <Download className="h-4 w-4" />
-            Export List
-          </Button>
-        </div>
-      </div>
- 
       <Card className="border-none shadow-sm">
         <CardHeader className="px-6 py-4 border-b">
           <div className="flex flex-col md:flex-row gap-3">
@@ -164,7 +164,11 @@ export default function CustomersPage() {
             </div>
             <Button variant="outline" className="h-11 gap-2 whitespace-nowrap px-4 border-dashed">
               <Filter className="h-4 w-4 opacity-50" />
-              More Filters
+              Filters
+            </Button>
+            <Button variant="outline" className="h-11 gap-2 whitespace-nowrap px-4">
+              <Download className="h-4 w-4" />
+              Export
             </Button>
           </div>
         </CardHeader>
@@ -208,7 +212,7 @@ export default function CustomersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAndSortedCustomers.map((customer, idx) => (
+                  paginatedCustomers.map((customer, idx) => (
                     <TableRow key={customer.email} className={idx % 2 === 0 ? "bg-transparent" : "bg-muted/5"}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -237,6 +241,11 @@ export default function CustomersPage() {
               </TableBody>
             </Table>
           </div>
+          <DashboardPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>

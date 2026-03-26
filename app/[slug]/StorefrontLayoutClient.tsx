@@ -10,10 +10,12 @@ import { getDicebearAvatar } from '@/lib/avatar';
 import { getSocialIcon } from '@/lib/socialIcons';
 import MiniPageModal from '@/app/common/dashboard/MiniPageModal';
 import ShareModal from '@/app/common/dashboard/ShareModal';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function StorefrontLayoutClient({ slug, children }: { slug: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const isProductPage = pathname.includes('/product/');
+  const { user } = useAuth();
 
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +54,13 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
   const p = profileData || { username: slug };
   const socialLinks = (p.socialLinks || []).filter((l: any) => l.active);
   const coverImage = p.bannerImage || `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(p.username || slug)}&size=1200&backgroundType=gradientLinear`;
+  const isOwnUser = Boolean(user?.uid) && [p.userId, p.id].includes(user.uid);
 
   const tabs = [
     { label: 'Links', href: `/${slug}` },
     { label: 'Shop', href: `/${slug}/shop` },
     { label: 'Posts', href: `/${slug}/posts` },
+    ...(isOwnUser ? [{ label: 'Dashboard', href: '/dashboard' }] : []),
   ];
 
   // Active tab: exact match for Links, startsWith for others

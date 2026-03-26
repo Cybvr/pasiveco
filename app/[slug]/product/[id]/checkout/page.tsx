@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
 import { getPaymentSettings, PaymentSettings, defaultPaymentSettings } from '@/services/paymentMethodService';
+import { createTransaction } from '@/services/transactionsService';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
@@ -127,37 +128,38 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
     else if (selectedMethod === 'bank') channels.push('bank', 'bank_transfer');
 
     try {
-      const initializeResponse = await fetch('/api/paystack/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: buyerEmail,
-          amount: product.price,
-          currency: product.currency || 'NGN',
-          productId: product.id || '',
-          productName: product.name,
-          customerName: buyerName,
-          customerPhone: buyerPhone,
-          orderNote: notes,
-          channels,
-          sellerId: product.userId,
-          affiliate: affiliateId,
-          couponDiscount: 0,
-          customCharge: 0,
-          variation: '',
-          slug: routeParams.slug,
-        }),
-      });
-      const initializeData = await initializeResponse.json();
+      // PROTOTYPE MODE: Bypass Paystack API and simulate success
+      console.log('Using prototype checkout flow...');
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
 
-      if (!initializeResponse.ok || !initializeData.success || !initializeData.authorizationUrl) {
-        throw new Error(initializeData.error || initializeData.message || 'Unable to initialize payment');
-      }
+      const mockReference = `PROTOTYPE-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
-      window.location.assign(initializeData.authorizationUrl);
+      const payload = {
+        sellerId: product.userId,
+        productId: product.id || '',
+        productName: product.name,
+        customerName: buyerName,
+        customerEmail: buyerEmail,
+        customerPhone: buyerPhone || '000-000-0000',
+        reference: mockReference,
+        amount: product.price,
+        currency: product.currency || 'NGN',
+        status: 'success' as const,
+        couponDiscount: 0,
+        affiliate: affiliateId || '',
+        yourProfit: product.price * 0.9,
+        customCharge: 0,
+        payoutDate: null,
+        variation: '',
+      };
+
+      console.log('Creating mock transaction with payload:', payload);
+      await createTransaction(payload);
+
+      router.push(`/${routeParams.slug}/product/${product.id}/confirmation?reference=${mockReference}`);
     } catch (paymentError) {
-      console.error('Payment initialization failed:', paymentError);
-      setError('Could not start payment. Please try again.');
+      console.error('Prototype payment failed:', paymentError);
+      setError('Could not complete prototype payment.');
       setPaymentLoading(false);
     }
   };

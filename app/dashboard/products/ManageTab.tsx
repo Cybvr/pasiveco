@@ -57,8 +57,10 @@ import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getUser, type User as AppUser } from '@/services/userService'
+import DashboardPagination from '@/components/dashboard/DashboardPagination'
 
 function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, onBulkAINew, hasBankingDetails = false }) {
+  const ITEMS_PER_PAGE = 12
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [profile, setProfile] = useState<AppUser | null>(null)
@@ -99,6 +101,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const [loading, setLoading] = useState(false)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     toast(`Delete "${productName}"?`, {
@@ -292,6 +295,16 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     setImagePreview('')
   }
 
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [products.length, viewMode])
+
+  const totalPages = Math.max(1, Math.ceil(products.length / ITEMS_PER_PAGE))
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
   return (
     <>
       <div className="space-y-4">
@@ -344,7 +357,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                 </div>
               ))
             ) : (
-              products.map((product: any) => (
+              paginatedProducts.map((product: any) => (
                 <div key={product.id} className="cursor-pointer p-2 space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
                   <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
                     {product.thumbnail ? (
@@ -447,7 +460,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                 </div>
               ))
             ) : (
-              products.map((product: any) => (
+              paginatedProducts.map((product: any) => (
                 <div
                   key={product.id}
                   className="flex items-center gap-4 p-3 rounded-xl border border-border/40 hover:bg-muted/30 transition-all cursor-pointer group"
@@ -556,6 +569,14 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
             showBankingDetailsAction={!hasBankingDetails}
             onAddProduct={onCreateNew}
             className="border-dashed shadow-none"
+          />
+        )}
+
+        {!isLoading && products.length > 0 && (
+          <DashboardPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         )}
 

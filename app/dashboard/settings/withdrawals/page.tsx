@@ -1,1 +1,5 @@
-export { default } from '@/app/dashboard/payouts/page'
+import { redirect } from 'next/navigation'
+
+export default function SettingsWithdrawalsPage() {
+  redirect('/dashboard/payouts')
+}

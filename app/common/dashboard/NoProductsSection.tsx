@@ -15,7 +15,7 @@ interface NoProductsSectionProps {
 export default function NoProductsSection({
   showBankingDetailsAction = false,
   addProductHref = '/dashboard/products?new=1',
-  addBankingDetailsHref = '/dashboard/settings/banking-details',
+  addBankingDetailsHref = '/dashboard/settings/payment-method',
   onAddProduct,
   onAddBankingDetails,
   className = '',
@@ -43,13 +43,13 @@ export default function NoProductsSection({
             onAddBankingDetails ? (
               <Button type="button" variant="outline" className="gap-2" onClick={onAddBankingDetails}>
                 <Landmark className="h-4 w-4" />
-                Add Banking Details
+                Add Payment Method
               </Button>
             ) : (
               <Button asChild variant="outline" className="gap-2">
                 <Link href={addBankingDetailsHref}>
                   <Landmark className="h-4 w-4" />
-                  Add Banking Details
+                  Add Payment Method
                 </Link>
               </Button>
             )
