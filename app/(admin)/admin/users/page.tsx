@@ -42,9 +42,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, X, Settings2, Download } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, Download } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
-import { DEFAULT_USER_CATEGORIES, getUserCategories, deleteUserCategory, ensureUserCategory, type UserCategory } from "@/services/categoryService"
+import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 
@@ -60,6 +60,7 @@ interface UserFormData {
   category: string;
   isFeatured: boolean;
   isTrending: boolean;
+  isVerified: boolean;
   tags: string;
 }
 
@@ -228,13 +229,13 @@ const UserFormModal = ({
           </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
-          <Label className="sm:text-right">Popular this week</Label>
+          <Label className="sm:text-right">Verified</Label>
           <div className="flex items-center gap-2 sm:col-span-3">
             <Switch
-              checked={formData.isTrending}
-              onCheckedChange={(checked) => onFormChange('isTrending', checked)}
+              checked={formData.isVerified}
+              onCheckedChange={(checked) => onFormChange('isVerified', checked)}
             />
-            <span className="text-sm">{formData.isTrending ? 'Yes' : 'No'}</span>
+            <span className="text-sm">{formData.isVerified ? 'Yes' : 'No'}</span>
           </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-4 sm:items-center sm:gap-4">
@@ -256,76 +257,6 @@ const UserFormModal = ({
     </DialogContent>
   </Dialog>
 )
-interface CategoryManagerModalProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  categories: UserCategory[];
-  onAddCategory: (name: string) => Promise<void>;
-  onDeleteCategory: (slug: string) => Promise<void>;
-}
-
-const CategoryManagerModal = ({
-  isOpen,
-  onOpenChange,
-  categories,
-  onAddCategory,
-  onDeleteCategory
-}: CategoryManagerModalProps) => {
-  const [newCategory, setNewCategory] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const handleAdd = async () => {
-    if (!newCategory.trim()) return
-    setIsSubmitting(true)
-    try {
-      await onAddCategory(newCategory.trim())
-      setNewCategory("")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Manage User Categories</DialogTitle>
-          <DialogDescription>
-            Add or remove categories available for users.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="New category name"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-            />
-            <Button size="sm" onClick={handleAdd} disabled={isSubmitting || !newCategory.trim()}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-2">
-            {categories.map((cat) => (
-              <Badge key={cat.slug} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
-                {cat.name}
-                <Button
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-4 w-4 p-0 hover:bg-transparent hover:text-destructive"
-                  onClick={() => onDeleteCategory(cat.slug)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -337,12 +268,10 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' })
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
-  const [fullCategories, setFullCategories] = useState<UserCategory[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
   const [isBulkProcessing, setIsBulkProcessing] = useState(false)
@@ -359,6 +288,7 @@ export default function UsersPage() {
     category: '',
     isFeatured: false,
     isTrending: false,
+    isVerified: false,
     tags: '',
   })
 
@@ -381,33 +311,12 @@ export default function UsersPage() {
   const loadCategories = async () => {
     try {
       const categoryList = await getUserCategories()
-      setFullCategories(categoryList)
       if (categoryList.length > 0) {
         setCategories(categoryList.map((item) => item.name))
       }
     } catch (error) {
       console.error('Error loading categories:', error)
       setCategories(DEFAULT_USER_CATEGORIES)
-    }
-  }
-
-  const handleAddCategory = async (name: string) => {
-    try {
-      await ensureUserCategory(name)
-      await loadCategories()
-      toast({ title: "Success", description: "Category added" })
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to add category", variant: "destructive" })
-    }
-  }
-
-  const handleDeleteCategory = async (slug: string) => {
-    try {
-      await deleteUserCategory(slug)
-      await loadCategories()
-      toast({ title: "Success", description: "Category removed" })
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to remove category", variant: "destructive" })
     }
   }
 
@@ -469,7 +378,7 @@ export default function UsersPage() {
 
   const handleBulkAI = async () => {
     if (selectedUserIds.size === 0) return
-    
+
     setIsBulkProcessing(true)
     toast({
       title: "Bulk processing...",
@@ -510,7 +419,7 @@ export default function UsersPage() {
     await fetchUsers()
     setSelectedUserIds(new Set())
     setIsBulkProcessing(false)
-    
+
     toast({
       title: "Bulk processing complete",
       description: `Successfully processed ${successCount} users. ${failCount > 0 ? `${failCount} failed.` : ''}`,
@@ -573,6 +482,7 @@ export default function UsersPage() {
       category: '',
       isFeatured: false,
       isTrending: false,
+      isVerified: false,
       tags: '',
     })
   }
@@ -591,6 +501,7 @@ export default function UsersPage() {
       category: user.category || '',
       isFeatured: user.isFeatured || false,
       isTrending: user.isTrending || false,
+      isVerified: user.isVerified || false,
       tags: (user.tags || []).join(', '),
     })
     setIsEditModalOpen(true)
@@ -642,6 +553,7 @@ export default function UsersPage() {
         theme: 'default',
         isFeatured: formData.isFeatured,
         isTrending: formData.isTrending,
+        isVerified: formData.isVerified,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
       })
 
@@ -680,6 +592,7 @@ export default function UsersPage() {
         slug: createProfileSlug(formData.username || formData.displayName),
         isFeatured: formData.isFeatured,
         isTrending: formData.isTrending,
+        isVerified: formData.isVerified,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
       })
 
@@ -746,7 +659,7 @@ export default function UsersPage() {
   const handleInlineUpdate = async (userId: string, updates: Partial<User>) => {
     try {
       await updateUser(userId, updates)
-      setUsers(prevUsers => prevUsers.map(u => 
+      setUsers(prevUsers => prevUsers.map(u =>
         u.id === userId ? { ...u, ...updates } : u
       ))
       toast({
@@ -889,87 +802,10 @@ export default function UsersPage() {
     })
   }
 
-  const handleDownloadCsv = () => {
-    try {
-      const dataToExport = searchTerm ? filteredUsers : users
-      
-      if (dataToExport.length === 0) {
-        toast({
-          title: "No data",
-          description: "There are no users to export.",
-          variant: "destructive",
-        })
-        return
-      }
-
-      const headers = [
-        "ID",
-        "Email",
-        "Display Name",
-        "Username",
-        "Role",
-        "Is Active",
-        "Is Admin",
-        "Category",
-        "Created At",
-        "Bio",
-        "Tags"
-      ]
-
-      const csvRows = dataToExport.map(user => {
-        const createdAt = user.createdAt instanceof Timestamp 
-          ? user.createdAt.toDate().toISOString() 
-          : 'N/A'
-        
-        const tags = Array.isArray(user.tags) ? user.tags.join(';') : ''
-        
-        return [
-          user.id || '',
-          user.email || '',
-          user.displayName || '',
-          user.username || '',
-          user.role || 'user',
-          user.isActive ? '1' : '0',
-          user.isAdmin ? '1' : '0',
-          user.category || '',
-          createdAt,
-          (user.bio || '').replace(/"/g, '""'),
-          tags
-        ].map(value => {
-          const stringValue = String(value ?? "")
-          return `"${stringValue.replace(/"/g, '""')}"`
-        }).join(',')
-      })
-
-      const csvContent = [headers.join(','), ...csvRows].join('\n')
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.setAttribute('href', url)
-      link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      toast({
-        title: "Export Success",
-        description: `Exported ${dataToExport.length} users to CSV.`,
-      })
-    } catch (error) {
-      console.error('Error exporting CSV:', error)
-      toast({
-        title: "Export Error",
-        description: "Failed to export users to CSV.",
-        variant: "destructive",
-      })
-    }
-  }
-
   const handleDownloadLoopsCsv = () => {
     try {
       const dataToExport = searchTerm ? filteredUsers : users
-      
+
       if (dataToExport.length === 0) {
         toast({
           title: "No data",
@@ -990,7 +826,7 @@ export default function UsersPage() {
         const nameParts = (user.displayName || '').trim().split(/\s+/)
         const firstName = nameParts[0] || ''
         const lastName = nameParts.slice(1).join(' ') || ''
-        
+
         return [
           firstName,
           lastName,
@@ -1137,9 +973,9 @@ export default function UsersPage() {
           {selectedUserIds.size > 0 && (
             <div className="flex items-center gap-2 mr-4 pr-4 border-r">
               <span className="text-xs font-medium whitespace-nowrap">{selectedUserIds.size} selected</span>
-              <Button 
-                size="sm" 
-                onClick={handleBulkAI} 
+              <Button
+                size="sm"
+                onClick={handleBulkAI}
                 disabled={isBulkProcessing}
                 variant="outline"
                 className="h-8 border-primary text-primary hover:bg-primary hover:text-white"
@@ -1175,47 +1011,23 @@ export default function UsersPage() {
             disabled={isImporting}
             className="w-full sm:w-auto"
           >
-            <Upload className="mr-2 h-4 w-4" />
+            <Upload className="h-4 w-4" />
             {isImporting ? 'Importing...' : 'Import'}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDownloadCsv}
-            className="w-full sm:w-auto"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export All
           </Button>
           <Button
             variant="outline"
             onClick={handleDownloadLoopsCsv}
             className="w-full sm:w-auto bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
           >
-            <Download className="mr-2 h-4 w-4" />
-            Loops Export
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="w-full sm:w-auto"
-          >
-            <Settings2 className="mr-2 h-4 w-4" />
-            Categories
+            <Download className="h-4 w-4" />
+            Export
           </Button>
           <Button onClick={openCreateModal} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Add User
+            <Plus className="h-4 w-4" />
+            New
           </Button>
         </div>
       </div>
-
-      <CategoryManagerModal
-        isOpen={isCategoryModalOpen}
-        onOpenChange={setIsCategoryModalOpen}
-        categories={fullCategories}
-        onAddCategory={handleAddCategory}
-        onDeleteCategory={handleDeleteCategory}
-      />
 
       <UserFormModal
         isOpen={isCreateModalOpen}
@@ -1246,7 +1058,7 @@ export default function UsersPage() {
           <div key={user.id} className="space-y-3 rounded-lg border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex gap-3 min-w-0">
-                <Checkbox 
+                <Checkbox
                   checked={selectedUserIds.has(user.id!)}
                   onCheckedChange={() => toggleSelectUser(user.id!)}
                   className="mt-1"
@@ -1314,7 +1126,7 @@ export default function UsersPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                <Checkbox 
+                <Checkbox
                   checked={selectedUserIds.size === filteredUsers.length && filteredUsers.length > 0}
                   onCheckedChange={toggleSelectAll}
                 />
@@ -1342,7 +1154,7 @@ export default function UsersPage() {
             {sortedUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>
-                  <Checkbox 
+                  <Checkbox
                     checked={selectedUserIds.has(user.id!)}
                     onCheckedChange={() => toggleSelectUser(user.id!)}
                   />
@@ -1361,12 +1173,12 @@ export default function UsersPage() {
                 </TableCell>
                 <TableCell className="text-xs">{user.email}</TableCell>
                 <TableCell className="text-xs">
-                  <Input 
+                  <Input
                     defaultValue={user.username || ''}
                     onBlur={(e) => {
                       const newUsername = e.target.value.trim().replace(/^@/, '')
                       if (newUsername !== (user.username || '').replace(/^@/, '')) {
-                        handleInlineUpdate(user.id!, { 
+                        handleInlineUpdate(user.id!, {
                           username: newUsername ? `@${newUsername}` : '',
                           slug: createProfileSlug(newUsername || user.displayName || '')
                         })
@@ -1393,7 +1205,7 @@ export default function UsersPage() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-xs">
-                  <Input 
+                  <Input
                     defaultValue={user.bio || ''}
                     onBlur={(e) => {
                       if (e.target.value !== (user.bio || '')) {

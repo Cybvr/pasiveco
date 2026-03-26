@@ -28,6 +28,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
+import StarRating from "@/components/products/StarRating"
+import CommunityReviewSection from "@/components/communities/CommunityReviewSection"
 
 export default function CommunityDetailPage() {
   const { id } = useParams()
@@ -252,12 +254,17 @@ export default function CommunityDetailPage() {
                 )}
               </div>
               <div className="space-y-1 min-w-0">
-              <h1 className="text-xl md:text-2xl font-semibold tracking-tight break-words">
-                {community.name}
-              </h1>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-                {community.description}
-              </p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <h1 className="text-xl md:text-2xl font-semibold tracking-tight break-words">
+                    {community.name}
+                  </h1>
+                  {community.rating !== undefined && community.rating > 0 && (
+                    <StarRating rating={community.rating} count={community.reviewsCount} className="mb-0.5" />
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+                  {community.description}
+                </p>
               </div>
             </div>
 
@@ -308,10 +315,11 @@ export default function CommunityDetailPage() {
           {/* Main content */}
           <div className="lg:col-span-3 min-w-0">
             <Tabs defaultValue="feed" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="feed">Feed</TabsTrigger>
                 <TabsTrigger value="about">About</TabsTrigger>
                 <TabsTrigger value="members">Members</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
 
               <TabsContent value="feed">
@@ -375,6 +383,12 @@ export default function CommunityDetailPage() {
                   <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm font-medium">Member list is private</p>
                   <p className="text-sm text-muted-foreground mt-1">Only admins can view the full registry.</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="reviews">
+                <div className="border border-border/40 rounded-xl p-4 md:p-6 bg-card">
+                  <CommunityReviewSection communityId={community.id} user={user} />
                 </div>
               </TabsContent>
             </Tabs>

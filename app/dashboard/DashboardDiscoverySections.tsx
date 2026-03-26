@@ -10,7 +10,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import CommunityDiscovery from './CommunityDiscovery'
 import { getAllLatestProducts, Product } from '@/services/productsService'
 import { Package } from 'lucide-react'
-import { getDicebearAvatar } from '@/lib/avatar'
+import StarRating from '@/components/products/StarRating'
+import VerifiedBadge from '@/components/common/VerifiedBadge'
 
 interface DiscoveryProfile {
   id: string
@@ -22,6 +23,7 @@ interface DiscoveryProfile {
   bio: string
   isFeatured: boolean
   isTrending: boolean
+  isVerified: boolean
   createdAt: any
 }
 
@@ -47,6 +49,7 @@ const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
     bio: profile.bio || '',
     isFeatured: !!profile.isFeatured,
     isTrending: !!profile.isTrending,
+    isVerified: !!profile.isVerified,
     createdAt: profile.createdAt,
   }
 }
@@ -116,16 +119,19 @@ export default function DashboardDiscoverySections({ isHome = false }: { isHome?
             {creators.map((creator) => (
               <Link key={creator.id} href={creator.href} className="w-[170px] group">
                 <div className="flex flex-col items-start gap-1">
-                  <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
-                    <Avatar className="h-full w-full rounded-none">
-                      <AvatarImage 
-                        src={creator.image || getDicebearAvatar(creator.handle)} 
-                        alt={creator.handle} 
-                        className="object-cover transition-transform duration-500" 
-                      />
-                      <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </div>
+                   <div className="relative aspect-video w-full overflow-hidden rounded-2xl border-2 border-background ring-2 ring-muted/10 transition-all">
+                     <Avatar className="h-full w-full rounded-none">
+                       <AvatarImage 
+                         src={creator.image || getDicebearAvatar(creator.handle)} 
+                         alt={creator.handle} 
+                         className="object-cover transition-transform duration-500" 
+                       />
+                       <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
+                     </Avatar>
+                     {creator.isVerified && (
+                        <VerifiedBadge className="absolute top-2 left-2 z-10 scale-110" />
+                     )}
+                   </div>
                   <div className="text-left w-full space-y-0">
                     <p className="truncate text-[13px] font-semibold text-foreground leading-tight">@{creator.handle}</p>
                     {creator.bio && (
@@ -178,13 +184,16 @@ export default function DashboardDiscoverySections({ isHome = false }: { isHome?
                       </div>
                       <div className="w-full space-y-0 text-left">
                         <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-foreground">{product.name}</p>
-                        <p className="truncate text-[11px] text-muted-foreground">
-                          {new Intl.NumberFormat(undefined, {
-                            style: 'currency',
-                            currency: product.currency || 'USD',
-                            maximumFractionDigits: 0,
-                          }).format(product.price || 0)}
-                        </p>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {new Intl.NumberFormat(undefined, {
+                              style: 'currency',
+                              currency: product.currency || 'USD',
+                              maximumFractionDigits: 0,
+                            }).format(product.price || 0)}
+                          </p>
+                          <StarRating rating={product.rating} count={product.reviewsCount} className="scale-90 origin-right" />
+                        </div>
                       </div>
                     </div>
                   </Link>

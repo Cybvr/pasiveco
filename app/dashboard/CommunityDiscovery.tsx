@@ -9,6 +9,7 @@ import { getAllCommunities } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { useAuth } from "@/hooks/useAuth"
 import { getDicebearAvatar } from "@/lib/avatar"
+import StarRating from "@/components/products/StarRating"
 
 export default function CommunityDiscovery() {
   const { user } = useAuth()
@@ -59,7 +60,10 @@ export default function CommunityDiscovery() {
                   </div>
                   <div className="w-full text-left">
                     <p className="line-clamp-2 text-[13px] font-semibold text-foreground leading-tight">{community.name}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{community.memberCount} members</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="truncate text-[11px] text-muted-foreground">{community.memberCount} members</p>
+                      <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-right" />
+                    </div>
                   </div>
                 </div>
               </Link>

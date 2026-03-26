@@ -11,6 +11,7 @@ import { getSocialIcon } from '@/lib/socialIcons';
 import MiniPageModal from '@/app/common/dashboard/MiniPageModal';
 import ShareModal from '@/app/common/dashboard/ShareModal';
 import { useAuth } from '@/hooks/useAuth';
+import VerifiedBadge from '@/components/common/VerifiedBadge';
 
 export default function StorefrontLayoutClient({ slug, children }: { slug: string; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -87,11 +88,16 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
 
       {/* Avatar + name + bio + social icons */}
       <div className="flex flex-col items-center text-center px-4 -mt-10 md:-mt-12 relative z-10">
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted overflow-hidden border-4 border-background shadow-lg">
-          {p.profilePicture ? (
-            <img src={p.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <img src={getDicebearAvatar(p.username || slug)} alt="Profile" className="w-full h-full object-cover" />
+        <div className="relative">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-muted overflow-hidden border-4 border-background shadow-lg">
+            {p.profilePicture ? (
+              <img src={p.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <img src={getDicebearAvatar(p.username || slug)} alt="Profile" className="w-full h-full object-cover" />
+            )}
+          </div>
+          {p.isVerified && (
+            <VerifiedBadge size="lg" className="absolute -top-1 -left-1 scale-110" title="Verified Creator" />
           )}
         </div>
 

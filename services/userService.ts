@@ -74,6 +74,7 @@ export interface User {
   pageBackgroundImage?: string | null;
   isFeatured?: boolean;
   isTrending?: boolean;
+  isVerified?: boolean;
   tags?: string[];
   brandPreferences?: string;
   pinnedAffiliates?: string[];
@@ -95,6 +96,7 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     socialLinks: Array.isArray(user.socialLinks) ? user.socialLinks : [],
     isFeatured: Boolean(user.isFeatured),
     isTrending: Boolean(user.isTrending),
+    isVerified: Boolean(user.isVerified),
     tags: Array.isArray(user.tags) ? user.tags : [],
     brandPreferences: user.brandPreferences || '',
   };

@@ -5,16 +5,16 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import StarRating from './StarRating';
+import StarRating from '../products/StarRating';
 import { Review, addReview, getReviews, canUserReview } from '@/services/reviewsService';
 import { formatDistanceToNow } from 'date-fns';
 
-interface ProductReviewSectionProps {
-  productId: string;
+interface CommunityReviewSectionProps {
+  communityId: string;
   user: any;
 }
 
-export default function ProductReviewSection({ productId, user }: ProductReviewSectionProps) {
+export default function CommunityReviewSection({ communityId, user }: CommunityReviewSectionProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [canReviewState, setCanReviewState] = useState(false);
@@ -26,11 +26,11 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const data = await getReviews(productId, 'product');
+        const data = await getReviews(communityId, 'community');
         setReviews(data);
         
         if (user) {
-          const eligible = await canUserReview(user.uid, productId, 'product');
+          const eligible = await canUserReview(user.uid, communityId, 'community');
           setCanReviewState(eligible);
         }
       } catch (error) {
@@ -40,7 +40,7 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
       }
     };
     fetchReviews();
-  }, [productId, user]);
+  }, [communityId, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +56,8 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
     setSubmitting(true);
     try {
       const reviewData: Omit<Review, 'id' | 'createdAt'> = {
-        targetId: productId,
-        targetType: 'product',
+        targetId: communityId,
+        targetType: 'community',
         userId: user.uid,
         userName: user.displayName || user.email.split('@')[0],
         userImage: user.photoURL,
@@ -69,7 +69,7 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
       toast.success('Review submitted successfully!');
       
       // Refresh reviews
-      const data = await getReviews(productId, 'product');
+      const data = await getReviews(communityId, 'community');
       setReviews(data);
       setCanReviewState(false);
       setComment('');
@@ -85,9 +85,9 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin h-6 w-6 text-primary" /></div>;
 
   return (
-    <div className="space-y-8 border-t pt-12">
+    <div className="space-y-8 pt-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Reviews ({reviews.length})</h2>
+        <h2 className="text-xl font-bold">Community Reviews ({reviews.length})</h2>
         {reviews.length > 0 && (
           <div className="flex items-center gap-2">
             <StarRating 
@@ -131,7 +131,7 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
           <div className="space-y-2">
             <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Your Comment</p>
             <Textarea
-              placeholder="What did you think of this product?"
+              placeholder="What do you think of this community?"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="min-h-[100px] rounded-xl border-border/60 bg-background/50 focus:bg-background"
@@ -144,7 +144,7 @@ export default function ProductReviewSection({ productId, user }: ProductReviewS
         </form>
       ) : !loading && (
         <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-border/60 text-center">
-          <p className="text-sm text-muted-foreground">You have already reviewed this product. Thank you for your feedback!</p>
+          <p className="text-sm text-muted-foreground">You have already reviewed this community. Thank you for your feedback!</p>
         </div>
       )}
 

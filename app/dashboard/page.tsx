@@ -27,10 +27,11 @@ import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
 import { getUser } from '@/services/userService'
-import { getAffiliateTransactions, getSellerTransactions } from '@/services/transactionsService'
 import { Transaction } from '@/types/transaction'
+import StarRating from '@/components/products/StarRating'
+import VerifiedBadge from '@/components/common/VerifiedBadge'
 
-type NetworkProduct = Product & { sellerHandle?: string }
+type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean }
 
 const CARD_W = 'w-[200px]'
 
@@ -88,7 +89,7 @@ export default function DashboardHomePage() {
         const enriched = data.map(p => {
           const seller = userMap.get(p.userId)
           const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
-          return { ...p, sellerHandle: handle }
+          return { ...p, sellerHandle: handle, sellerVerified: !!seller?.isVerified }
         })
 
         setAffiliateProducts(enriched)
@@ -213,13 +214,16 @@ export default function DashboardHomePage() {
                   </div>
                   <div className="text-left">
                     <p className="truncate text-sm font-semibold text-foreground leading-tight">{product.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Intl.NumberFormat(undefined, {
-                        style: 'currency',
-                        currency: product.currency || 'USD',
-                        maximumFractionDigits: 2,
-                      }).format(product.price || 0)}
-                    </p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-xs text-muted-foreground">
+                        {new Intl.NumberFormat(undefined, {
+                          style: 'currency',
+                          currency: product.currency || 'USD',
+                          maximumFractionDigits: 2,
+                        }).format(product.price || 0)}
+                      </p>
+                      <StarRating rating={product.rating} count={product.reviewsCount} className="scale-90 origin-right" />
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -307,9 +311,12 @@ export default function DashboardHomePage() {
                       <AvatarImage src={getDicebearAvatar(community.creatorId || community.name)} />
                       <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{community.memberCount} members</p>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <p className="text-xs text-muted-foreground">{community.memberCount} members</p>
+                        <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-right" />
+                      </div>
                     </div>
                   </div>
                 </Link>
@@ -379,12 +386,18 @@ export default function DashboardHomePage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
-                        <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                      <div className="relative shrink-0">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
+                          <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        {p.sellerVerified && (
+                          <VerifiedBadge size="sm" className="absolute -top-1 -left-1 scale-90" />
+                        )}
+                      </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-foreground leading-tight">{p.name}</p>
+                        <StarRating rating={p.rating} count={p.reviewsCount} className="scale-75 origin-left mb-1" />
                         <div className="flex items-center justify-between mt-0.5">
                           <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency)}</p>
                           <p className="text-xs font-bold text-primary">+{formatPrice(p.price * (commission / 100), p.currency)}</p>

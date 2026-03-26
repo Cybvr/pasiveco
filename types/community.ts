@@ -18,6 +18,8 @@ export interface Community {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   tags?: string[];
+  rating?: number;
+  reviewsCount?: number;
 }
 
 export interface CommunityMember {
