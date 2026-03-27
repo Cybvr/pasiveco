@@ -153,6 +153,32 @@ export const getUserProducts = async (userId: string): Promise<Product[]> => {
   }
 };
 
+export const getAllProducts = async (): Promise<Product[]> => {
+  try {
+    const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Product[];
+  } catch (error) {
+    console.warn('Falling back to unsorted products query:', error);
+
+    const snapshot = await getDocs(collection(db, 'products'));
+    const products = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Product[];
+
+    return products.sort((a, b) => {
+      const dateA = a.createdAt instanceof Timestamp ? a.createdAt.toMillis() : 0;
+      const dateB = b.createdAt instanceof Timestamp ? b.createdAt.toMillis() : 0;
+      return dateB - dateA;
+    });
+  }
+};
+
 export const updateProduct = async (productId: string, updates: Partial<Product>) => {
   try {
     const productRef = doc(db, 'products', productId);
