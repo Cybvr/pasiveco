@@ -18,9 +18,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HomeSkeleton } from '@/app/common/dashboard/SocialLoading'
-import { getDicebearAvatar } from '@/lib/avatar'
+import { getDisplayAvatar, getDicebearAvatar } from '@/lib/avatar'
 import { getUserProducts, getAllLatestProducts, type Product } from '@/services/productsService'
 import { getBankingDetails } from '@/services/bankingDetailsService'
+import { getSellerTransactions, getAffiliateTransactions } from '@/services/transactionsService'
 import { useAuth } from '@/hooks/useAuth'
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
@@ -392,7 +393,7 @@ export default function DashboardHomePage() {
                           <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         {p.sellerVerified && (
-                          <VerifiedBadge size="sm" className="absolute -top-1 -left-1 scale-90" />
+                          <VerifiedBadge size="sm" className="absolute -top-1 -right-1 scale-90" />
                         )}
                       </div>
                       <div className="min-w-0">

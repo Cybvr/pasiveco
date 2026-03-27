@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DiscoverySkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getPublicUsers, type User } from '@/services/userService'
-import { getDisplayAvatar } from '@/lib/avatar'
+import { getDisplayAvatar, getDicebearAvatar } from '@/lib/avatar'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import CommunityDiscovery from './CommunityDiscovery'
 import { getAllLatestProducts, Product } from '@/services/productsService'
@@ -129,7 +129,7 @@ export default function DashboardDiscoverySections({ isHome = false }: { isHome?
                        <AvatarFallback className="text-2xl font-bold rounded-none">{creator.handle.slice(0, 1).toUpperCase()}</AvatarFallback>
                      </Avatar>
                      {creator.isVerified && (
-                        <VerifiedBadge className="absolute top-2 left-2 z-10 scale-110" />
+                        <VerifiedBadge className="absolute top-2 right-2 z-10 scale-110" />
                      )}
                    </div>
                   <div className="text-left w-full space-y-0">
