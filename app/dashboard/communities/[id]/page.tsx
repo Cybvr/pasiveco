@@ -30,6 +30,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
 import StarRating from "@/components/products/StarRating"
 import CommunityReviewSection from "@/components/communities/CommunityReviewSection"
+import CommunityFeed from "@/components/communities/CommunityFeed"
 
 export default function CommunityDetailPage() {
   const { id } = useParams()
@@ -323,20 +324,30 @@ export default function CommunityDetailPage() {
               </TabsList>
 
               <TabsContent value="feed">
-                {isMember ? (
-                  <div className="space-y-2">
-                    <div className="border border-dashed rounded-lg p-4 md:p-6 text-center">
-                      <MessageSquare className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm font-medium">Post to the community</p>
-                      <p className="text-sm text-muted-foreground mt-1 mb-3">
-                        Start a conversation with members.
-                      </p>
-                      <Button variant="outline" size="sm">
-                        New Post <Plus className="w-3.5 h-3.5 ml-1.5" />
-                      </Button>
-                    </div>
-                    <div className="py-12 text-center border rounded-lg">
-                      <p className="text-sm text-muted-foreground">No activity yet</p>
+                {isMember || community.privacy === 'public' ? (
+                  <div className="space-y-4">
+                    {isMember && (
+                      <div className="border border-dashed rounded-lg p-4 md:p-6 text-center">
+                        <MessageSquare className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm font-medium">Post to the community</p>
+                        <p className="text-sm text-muted-foreground mt-1 mb-3">
+                          Start a conversation with members.
+                        </p>
+                        <Button variant="outline" size="sm">
+                          New Post <Plus className="w-3.5 h-3.5 ml-1.5" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {!isMember && (
+                      <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl mb-4 text-center">
+                        <p className="text-sm font-medium text-primary">Previewing Public Feed</p>
+                        <p className="text-xs text-muted-foreground mt-1">Join this community to start posting and interacting!</p>
+                      </div>
+                    )}
+
+                    <div className="pt-2">
+                      <CommunityFeed communityId={community.id} />
                     </div>
                   </div>
                 ) : (
@@ -344,7 +355,7 @@ export default function CommunityDetailPage() {
                     <Shield className="w-8 h-8 text-muted-foreground mx-auto" />
                     <h2 className="text-base font-semibold">Members only</h2>
                     <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
-                      Join this community to access the feed and engage with members.
+                      This is a private community. Join to access the feed and engage with members.
                     </p>
                     <Button size="sm" onClick={handleJoinLeave} disabled={actionLoading}>
                       {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Join Community"}

@@ -10,6 +10,10 @@ import { Community } from "@/types/community"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import CommunityFeed from "@/components/communities/CommunityFeed"
+import { getGlobalFeed, Post } from "@/services/postService"
+import { MessageSquare, LayoutGrid, Activity } from "lucide-react"
 
 export default function CommunitiesPage() {
   const { user } = useAuth()
@@ -17,19 +21,22 @@ export default function CommunitiesPage() {
   const [exploreCommunities, setExploreCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
+  const [globalPosts, setGlobalPosts] = useState<Post[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return
       try {
-        const [my, all] = await Promise.all([
+        const [my, all, global] = await Promise.all([
           getUserCommunities(user.uid),
-          getAllCommunities()
+          getAllCommunities(),
+          getGlobalFeed(user.uid)
         ])
         setMyCommunities(my || [])
         // Filter out communities user is already part of for explore
         const explore = (all || []).filter(c => !my.some(m => m.id === c.id))
         setExploreCommunities(explore)
+        setGlobalPosts(global || [])
       } catch (error) {
         console.error("Error fetching communities:", error)
       } finally {
@@ -63,55 +70,125 @@ export default function CommunitiesPage() {
 
   return (
     <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {myCommunities.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-base font-semibold">Your Communities</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {myCommunities.map(community => (
-              <CommunityCard key={community.id} community={community} isMember={true} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-base font-semibold">Explore</h2>
-          <div className="flex w-full md:w-auto items-center gap-2">
-            <div className="relative flex-1 md:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Link href="/dashboard/communities/create">
-              <Button>
-                <Plus className="w-4 h-4" />
-                New
-              </Button>
-            </Link>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Communities</h1>
+          <p className="text-sm text-muted-foreground">Hub for networking and sharing.</p>
         </div>
+        <Link href="/dashboard/communities/create">
+          <Button size="sm">
+            <Plus className="w-4 h-4 mr-1.5" />
+            Create Community
+          </Button>
+        </Link>
+      </div>
 
-        {filteredExplore.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredExplore.map(community => (
-              <CommunityCard key={community.id} community={community} isMember={false} />
-            ))}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-muted/50 p-1 border">
+          <TabsTrigger value="overview" className="gap-2">
+            <LayoutGrid className="w-3.5 h-3.5" /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="gap-2">
+            <Activity className="w-3.5 h-3.5" /> Recent Activity
+            {globalPosts.length > 0 && (
+              <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6 m-0">
+          {myCommunities.length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/60">Your Communities</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                {myCommunities.map(community => (
+                  <CommunityCard key={community.id} community={community} isMember={true} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/60">Explore New Networks</h2>
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or niche..."
+                  className="pl-10 h-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {filteredExplore.length > 0 ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredExplore.map(community => (
+                  <CommunityCard key={community.id} community={community} isMember={false} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 rounded-2xl border-2 border-dashed bg-muted/5">
+                <Users className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                <h3 className="text-sm font-bold">No new networks found</h3>
+                <p className="text-muted-foreground text-xs mt-1">
+                  {searchQuery ? `Nothing matches "${searchQuery}"` : "You've joined all available communities!"}
+                </p>
+              </div>
+            )}
+          </section>
+        </TabsContent>
+
+        <TabsContent value="activity" className="m-0 max-w-2xl">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/60">Social Stream</h2>
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Live</span>
+            </div>
+            
+            {globalPosts.length > 0 ? (
+              <div className="space-y-4">
+                {globalPosts.map(post => {
+                  const community = [...myCommunities, ...exploreCommunities].find(c => c.id === post.communityId);
+                  return (
+                    <div key={post.id} className="relative">
+                      {community && (
+                        <div className="absolute -left-2 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
+                      )}
+                      <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/5 rounded-md uppercase tracking-wide">
+                              {community?.name || 'Community'}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm leading-relaxed mb-4">{post.message}</p>
+                        <div className="flex items-center justify-between pt-3 border-t border-border/30">
+                          <div className="flex items-center gap-2">
+                             <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
+                               {post.authorName?.[0] || 'U'}
+                             </div>
+                             <span className="text-[11px] font-semibold">{post.authorName}</span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-medium italic">Just now</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-24 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
+                <Activity className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                <h3 className="text-sm font-bold">Quiet for now</h3>
+                <p className="text-xs text-muted-foreground mt-1">Join communities to see the latest activity from members.</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="text-center py-16 rounded-xl border border-dashed">
-            <Users className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
-            <h3 className="text-sm font-medium">No communities found</h3>
-            <p className="text-muted-foreground text-sm max-w-xs mx-auto mt-1">
-              {searchQuery ? `No results for "${searchQuery}". Try a different search.` : "Be the first to create a community!"}
-            </p>
-          </div>
-        )}
-      </section>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
