@@ -1,12 +1,15 @@
 "use client"
 import type React from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Home, Users, QrCode, FileText, Menu } from "lucide-react"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
+import { useAuth } from "@/context/AuthContext"
+import { getUser } from "@/services/userService"
 
 const navigation = [
   { name: "Admin", href: "/admin", icon: Home },
@@ -21,10 +24,68 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, loading } = useAuth()
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const checkAdminAccess = async () => {
+      if (loading) return
+
+      if (!user) {
+        router.replace('/auth/login')
+        if (isMounted) {
+          setIsAuthorized(false)
+          setIsCheckingAccess(false)
+        }
+        return
+      }
+
+      try {
+        const profile = await getUser(user.uid)
+        const canAccessAdmin = Boolean(profile?.isAdmin || profile?.role === 'admin')
+
+        if (!canAccessAdmin) {
+          router.replace('/dashboard')
+        }
+
+        if (isMounted) {
+          setIsAuthorized(canAccessAdmin)
+        }
+      } catch (error) {
+        console.error('Error checking admin access:', error)
+        router.replace('/dashboard')
+        if (isMounted) {
+          setIsAuthorized(false)
+        }
+      } finally {
+        if (isMounted) {
+          setIsCheckingAccess(false)
+        }
+      }
+    }
+
+    checkAdminAccess()
+
+    return () => {
+      isMounted = false
+    }
+  }, [loading, router, user])
 
   const isActiveRoute = (href: string) => {
     if (href === "/admin") return pathname === href
     return pathname.startsWith(href)
+  }
+
+  if (loading || isCheckingAccess || !isAuthorized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4">
+        <p className="text-sm text-muted-foreground">Checking admin access...</p>
+      </div>
+    )
   }
 
   return (

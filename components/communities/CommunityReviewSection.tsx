@@ -48,10 +48,6 @@ export default function CommunityReviewSection({ communityId, user }: CommunityR
       toast.error('Please select a star rating');
       return;
     }
-    if (!comment.trim()) {
-      toast.error('Please write a comment');
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -129,9 +125,9 @@ export default function CommunityReviewSection({ communityId, user }: CommunityR
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Your Comment</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Your Comment <span className="normal-case text-xs font-medium tracking-normal">(Optional)</span></p>
             <Textarea
-              placeholder="What do you think of this community?"
+              placeholder="Share more details if you want"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="min-h-[100px] rounded-xl border-border/60 bg-background/50 focus:bg-background"
@@ -169,9 +165,15 @@ export default function CommunityReviewSection({ communityId, user }: CommunityR
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-foreground/80 leading-relaxed font-medium pl-[52px]">
-                {review.comment}
-              </p>
+              {review.comment?.trim() ? (
+                <p className="pl-[52px] text-sm font-medium leading-relaxed text-foreground/80">
+                  {review.comment}
+                </p>
+              ) : (
+                <p className="pl-[52px] text-xs uppercase tracking-wider text-muted-foreground">
+                  Rating only
+                </p>
+              )}
             </div>
           ))
         ) : (

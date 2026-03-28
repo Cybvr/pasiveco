@@ -220,12 +220,11 @@ async function runActivity() {
 
       console.log(`✍️ @${agent.username} is writing to ${community.name}...`);
 
-      const prompt = `You are a Nigerian creator named ${agent.displayName} in the ${agent.category} niche. 
-      Write a short, engaging, human-sounding community post (max 200 characters) for your members in "${community.name}". 
-      Use natural Nigerian slang or cultural references (e.g., "Oshey", "Abeg", "Steady winning", "The hustle is real", "No shaking").
-      Make it feel authentic and conversational.
+      const prompt = `You are a professional but casual community member named ${agent.displayName}. You have expertise or interest in the ${agent.category} niche. 
+      Write a highly relevant, thoughtful, and human-sounding discussion starter or comment (max 200 characters) for the specific community "${community.name}".
+      DO NOT use overly generic phrases like "hustle", "steady winning", or excessive emojis. Focus entirely on a realistic topic that would actually be discussed in the "${community.name}" community. Ask a genuine question or share a practical tip.
       
-      Return ONLY the post text without any quotes or formatting.`;
+      Return ONLY the post text without any quotes, hashtags, or formatting.`;
 
       const result = await model.generateContent(prompt);
       const postContent = result.response.text().trim().replace(/^"|"$/g, '');
@@ -250,6 +249,91 @@ async function runActivity() {
   }
 }
 
+/**
+ * 4. DAILY REVIEWS
+ * Context: For each agent, pick one of their joined communities.
+ * Check if they haven't reviewed it already.
+ * Call Gemini API to generate a realistic review.
+ * Write to the reviews collection and update the community's rating.
+ */
+async function runReviews() {
+  console.log('⭐️ Generating community reviews...');
+  try {
+    const agentsSnap = await db.collection('users').where('isAgent', '==', true).get();
+    
+    for (const agentDoc of agentsSnap.docs) {
+      const agent = agentDoc.data();
+      
+      const membershipsSnap = await db.collection('communityMembers').where('userId', '==', agent.uid).get();
+      if (membershipsSnap.empty) continue;
+
+      // Pick one random joined community
+      const randomMembership = membershipsSnap.docs[Math.floor(Math.random() * membershipsSnap.docs.length)].data();
+      const communityDoc = await db.collection('communities').doc(randomMembership.communityId).get();
+      if (!communityDoc.exists) continue;
+      
+      const community = communityDoc.data();
+
+      // Check if already reviewed
+      const reviewSnap = await db.collection('reviews')
+        .where('targetId', '==', communityDoc.id)
+        .where('targetType', '==', 'community')
+        .where('userId', '==', agent.uid)
+        .get();
+
+      if (!reviewSnap.empty) {
+        continue; // Skip if already reviewed
+      }
+
+      console.log(`✍️ @${agent.username} is reviewing ${community.name}...`);
+
+      const prompt = `You are a community member named ${agent.displayName}. You have just joined "${community.name}".
+      Write a realistic, positive, and human-sounding review for this community (max 150 characters).
+      Do not sound overly promotional or spammy. Offer a brief word of praise or explain what you like about it.
+      
+      Return ONLY the review text without any quotes or formatting.`;
+
+      const result = await model.generateContent(prompt);
+      const reviewComment = result.response.text().trim().replace(/^"|"$/g, '');
+      const rating = Math.floor(Math.random() * 2) + 4; // Random rating 4 or 5 (mostly positive)
+
+      await db.runTransaction(async (transaction) => {
+        const commRef = db.collection('communities').doc(communityDoc.id);
+        const commDoc = await transaction.get(commRef);
+        const commData = commDoc.data();
+
+        const currentRating = commData.rating || 0;
+        const currentCount = commData.reviewsCount || 0;
+        const newCount = currentCount + 1;
+        const newRating = ((currentRating * currentCount) + rating) / newCount;
+
+        const reviewRef = db.collection('reviews').doc();
+        transaction.set(reviewRef, {
+          targetId: communityDoc.id,
+          targetType: 'community',
+          userId: agent.uid,
+          userName: agent.displayName,
+          userImage: agent.photoURL || null,
+          rating: rating,
+          comment: reviewComment,
+          createdAt: Timestamp.now()
+        });
+
+        transaction.update(commRef, {
+          rating: Number(newRating.toFixed(1)),
+          reviewsCount: newCount,
+          updatedAt: Timestamp.now()
+        });
+      });
+
+      console.log(`   ✅ Reviewed: [${rating} Stars] "${reviewComment}"`);
+    }
+    console.log('🎉 Reviews generated!');
+  } catch (error) {
+    console.error('❌ Review generation failed:', error);
+  }
+}
+
 // Main Execution logic
 (async () => {
   if (args.length === 0) {
@@ -262,6 +346,7 @@ Flags:
   --create    Generate Nigerian creator personas and create accounts
   --join      Match agents to communities based on category
   --activity  Generate and post daily activity (8am-10pm WAT)
+  --review    Generate 4-5 star reviews from agents for communities
     `);
     process.exit(0);
   }
@@ -276,6 +361,10 @@ Flags:
   
   if (args.includes('--activity')) {
     await runActivity();
+  }
+
+  if (args.includes('--review')) {
+    await runReviews();
   }
   
   process.exit(0);

@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CommunityFeed from "@/components/communities/CommunityFeed"
 import { getGlobalFeed, Post } from "@/services/postService"
 import { MessageSquare, LayoutGrid, Activity } from "lucide-react"
+import StarRating from "@/components/products/StarRating"
 
 export default function CommunitiesPage() {
   const { user } = useAuth()
@@ -223,6 +224,11 @@ function CommunityCard({ community, isMember }: { community: Community, isMember
           <CardDescription className="line-clamp-2 min-h-[2rem] mt-1 text-xs">
             {community.description}
           </CardDescription>
+          <div className="mt-2 min-h-[20px]">
+            {(community.rating || 0) > 0 ? (
+              <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-left" />
+            ) : null}
+          </div>
         </CardHeader>
         <CardFooter className="px-4 pt-0 pb-3 flex justify-between items-center text-xs text-muted-foreground border-t border-border/30 mt-2 h-10">
           <span>{community.memberCount} {community.memberCount === 1 ? 'member' : 'members'}</span>

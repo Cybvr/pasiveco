@@ -66,6 +66,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
 
   const displayName = profile?.displayName || user.displayName || 'User'
   const handle = profile?.username ? `@${profile.username}` : user.email
+  const canAccessAdmin = profile?.isAdmin || profile?.role === 'admin'
 
   return (
     <>
@@ -121,10 +122,12 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push('/admin')}>
-            <Shield className="mr-2 h-4 w-4" />
-            <span>Admin</span>
-          </DropdownMenuItem>
+          {canAccessAdmin && (
+            <DropdownMenuItem onClick={() => router.push('/admin')}>
+              <Shield className="mr-2 h-4 w-4" />
+              <span>Admin</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <ThemeToggle />
           <DropdownMenuSeparator />

@@ -22,6 +22,7 @@ export interface Post {
   authorName?: string;
   authorUsername?: string;
   authorImage?: string;
+  parentId?: string;
 }
 
 const postsCollection = collection(db, 'posts');
