@@ -14,6 +14,7 @@ import { auth, db } from '@/lib/firebase'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 
 const AIOnboardingSticky = () => {
+  const [nameValue, setNameValue] = useState("")
   const [emailValue, setEmailValue] = useState("")
   const [whatIDo, setWhatIDo] = useState("")
   const [password, setPassword] = useState("")
@@ -28,6 +29,10 @@ const AIOnboardingSticky = () => {
 
   const handleGenerate = async (e?: React.FormEvent) => {
     e?.preventDefault()
+    if (!nameValue.trim()) {
+      toast.error("Please tell us your name!");
+      return;
+    }
     if (!isValidPopularEmail) {
       toast.error("Please provide a valid personal email (like Gmail or Yahoo) to continue!");
       return;
@@ -38,7 +43,7 @@ const AIOnboardingSticky = () => {
     }
 
     setIsGenerating(true)
-    const combinedInput = `My email is ${emailValue}, and I ${whatIDo}`;
+    const combinedInput = `My name is ${nameValue}, my email is ${emailValue}, and I ${whatIDo}`;
     try {
       const res = await fetch("/api/onboarding-ai", {
         method: "POST",
@@ -154,7 +159,14 @@ const AIOnboardingSticky = () => {
         >
           <div className="bg-background/80 backdrop-blur-2xl border border-border/50 shadow-xl rounded-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-4">
             <div className="flex-1 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm md:text-base font-medium text-foreground/80 pl-2">
-              <span className="whitespace-nowrap italic opacity-60">Hi, my email is</span>
+              <span className="whitespace-nowrap italic opacity-60">Hi my name is</span>
+              <input
+                type="text" value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                placeholder="David"
+                className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-0.5 w-24 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-xs md:text-sm"
+              />
+              <span className="whitespace-nowrap italic opacity-60">, here's my email</span>
               <div className="relative inline-flex items-center">
                 <input
                   type="email" value={emailValue}
@@ -164,7 +176,7 @@ const AIOnboardingSticky = () => {
                 />
                 {isValidPopularEmail && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-1 shrink-0" />}
               </div>
-              <span className="whitespace-nowrap italic opacity-60">, and I</span>
+              <span className="whitespace-nowrap italic opacity-60">and I</span>
               <input
                 type="text" value={whatIDo}
                 onChange={(e) => setWhatIDo(e.target.value)}
@@ -174,8 +186,8 @@ const AIOnboardingSticky = () => {
             </div>
             <Button
               onClick={handleGenerate}
-              disabled={isGenerating || !isValidPopularEmail || !whatIDo.trim()}
-              className={`rounded-xl px-6 h-10 transition-all font-bold text-sm gap-2 shadow-md ${isValidPopularEmail && whatIDo.trim() ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground opacity-50"}`}
+              disabled={isGenerating || !nameValue.trim() || !isValidPopularEmail || !whatIDo.trim()}
+              className={`rounded-xl px-6 h-10 transition-all font-bold text-sm gap-2 shadow-md ${nameValue.trim() && isValidPopularEmail && whatIDo.trim() ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground opacity-50"}`}
             >
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
               Start Selling

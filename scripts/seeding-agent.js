@@ -143,10 +143,8 @@ async function joinCommunities() {
     const communities = communitiesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     for (const agent of agents) {
-      // Find communities matching agent's niche
-      const matchingCommunities = communities.filter(c => c.category === agent.category);
-
-      for (const community of matchingCommunities) {
+      // Allow agents to join ALL communities
+      for (const community of communities) {
         const memberId = `${community.id}_${agent.uid}`;
         const memberRef = db.collection('communityMembers').doc(memberId);
         const memberDoc = await memberRef.get();

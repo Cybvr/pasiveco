@@ -22,22 +22,22 @@ import AIOnboardingSticky from "@/app/common/website/AIOnboardingSticky"
 
 const TESTIMONIALS = [
   {
-    quote: "As a standup comedian, Pasive makes it easy for my fans to subscribe and I send targeted emails by city whenever I'm on tour. Nothing else comes close.",
+    quote: "As a creator, Pasive makes it easy to bring my fans into one dedicated community where we can truly connect. Nothing else comes close.",
     author: "Chidi Okonkwo",
     role: "Comedian"
   },
   {
-    quote: "I've built an email list that's fully mine. No algorithm can take that away. Pasive made it simple from day one.",
+    quote: "I've built a community that's fully mine. No algorithm can take that away. Pasive made it simple from day one.",
     author: "Ngozi Obi",
     role: "Fitness Creator"
   },
   {
-    quote: "The Pasive Store let me start selling my style guides immediately. Brand visibility went up and the checkout is seamless.",
+    quote: "The Pasive Store let me start selling my style guides immediately. Discovering products on the affiliate network boosted my income instantly.",
     author: "Dami Adeyemi",
     role: "Fashion Creator"
   },
   {
-    quote: "Everything in one place — my store, brand deals, and email list. I don't know how I managed without it.",
+    quote: "Everything in one place — my store, affiliate network, and community. I don't know how I managed without it.",
     author: "Amaka Eze",
     role: "Lifestyle Creator"
   }
@@ -148,22 +148,22 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             <div className="space-y-10 order-2 lg:order-1">
               <div className="inline-block px-3 py-1 border border-zinc-700 text-[10px] uppercase tracking-widest text-zinc-400 rounded-none">
-                The Algorithm Killer
+                Your Community Hub
               </div>
               <h2 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none">
-                Complete <br /> creative <br /> control
+                Build <br /> vibrant <br /> communities
               </h2>
               <p className="text-xl text-zinc-400 font-light leading-relaxed max-w-md">
-                No shadow-banning. No reach suppression. Your content is delivered directly to your fans via email, SMS, and your private feed.
+                Bring your fans together in one place. Your content, discussions, and digital products all delivered directly to your dedicated community.
               </p>
               <div className="pt-6 grid grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <div className="text-3xl font-bold text-blue-400">100%</div>
-                  <div className="text-xs uppercase tracking-widest text-zinc-500">Reach</div>
+                  <div className="text-xs uppercase tracking-widest text-zinc-500">Ownership</div>
                 </div>
                 <div className="space-y-2">
                   <div className="text-3xl font-bold text-emerald-400">0</div>
-                  <div className="text-xs uppercase tracking-widest text-zinc-500">Algorithmic bias</div>
+                  <div className="text-xs uppercase tracking-widest text-zinc-500">Distractions</div>
                 </div>
               </div>
             </div>
@@ -201,26 +201,26 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-24 gap-6">
             <h2 className="text-5xl md:text-7xl font-bold tracking-tight">Turning passions <br /> into businesses</h2>
-            <p className="text-xl text-muted-foreground max-w-sm">From digital products to recurring subscriptions, we provide the infrastructure.</p>
+            <p className="text-xl text-muted-foreground max-w-sm">From digital products to affiliate networks, we provide the infrastructure.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Digital Downloads",
+                title: "Digital Products",
                 desc: "Sell courses, templates, and assets with one-click checkouts.",
                 icon: DollarSign,
                 color: "text-amber-500"
               },
               {
-                title: "Membership Tiers",
-                desc: "Build recurring revenue streams with custom fan perks.",
+                title: "Communities",
+                desc: "Build a dedicated hub for your most passionate fans.",
                 icon: Star,
                 color: "text-purple-500"
               },
               {
-                title: "Brand Deals",
-                desc: "Land high-paying partnerships with automated media kits.",
+                title: "Affiliate Network",
+                desc: "Earn commissions selling others products, or have others sell yours.",
                 icon: Zap,
                 color: "text-emerald-500"
               }

@@ -5,8 +5,9 @@ import { Users, Shield, Share, LogOut, Loader2, Plus, Globe, MessageSquare, Penc
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
-import { getCommunity, getCommunityBySlug, isCommunityMember, joinCommunity, leaveCommunity, deleteCommunity, updateCommunity } from "@/services/communityService"
+import { getCommunity, getCommunityBySlug, getCommunityMembers, isCommunityMember, joinCommunity, leaveCommunity, deleteCommunity, updateCommunity } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -31,12 +32,26 @@ import { v4 as uuidv4 } from 'uuid'
 import StarRating from "@/components/products/StarRating"
 import CommunityReviewSection from "@/components/communities/CommunityReviewSection"
 import CommunityFeed from "@/components/communities/CommunityFeed"
+import { getDisplayAvatar } from "@/lib/avatar"
+import { getUser, User } from "@/services/userService"
+
+type CommunityMemberProfile = {
+  id: string
+  userId: string
+  role: "admin" | "moderator" | "member"
+  displayName: string
+  username?: string
+  profilePicture?: string | null
+  photoURL?: string
+  category?: string
+}
 
 export default function CommunityDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
   const router = useRouter()
   const [community, setCommunity] = useState<Community | null>(null)
+  const [members, setMembers] = useState<CommunityMemberProfile[]>([])
   const [isMember, setIsMember] = useState(false)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
@@ -58,6 +73,28 @@ export default function CommunityDetailPage() {
   const bannerInputRef = useRef<HTMLInputElement>(null)
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false)
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false)
+
+  const formatMember = (member: { id: string; userId: string; role: "admin" | "moderator" | "member" }, profile: User | null): CommunityMemberProfile => ({
+    id: member.id,
+    userId: member.userId,
+    role: member.role,
+    displayName: profile?.displayName?.trim() || profile?.username?.trim() || "Community Member",
+    username: profile?.username,
+    profilePicture: profile?.profilePicture,
+    photoURL: profile?.photoURL,
+    category: profile?.category,
+  })
+
+  const loadMembers = async (communityId: string) => {
+    const communityMembers = await getCommunityMembers(communityId)
+    const memberProfiles = await Promise.all(
+      communityMembers.map(async (member) => {
+        const profile = await getUser(member.userId).catch(() => null)
+        return formatMember(member, profile)
+      })
+    )
+    setMembers(memberProfiles)
+  }
 
   const handleGenerateAIImage = async (type: 'image' | 'bannerImage') => {
     if (!editForm.name) {
@@ -126,6 +163,7 @@ export default function CommunityDetailPage() {
         if (!data) data = await getCommunity(id)
         if (!data) { router.push("/dashboard/communities"); return }
         setCommunity(data)
+        await loadMembers(data.id)
         if (user) {
           const member = await isCommunityMember(data.id, user.uid)
           setIsMember(member)
@@ -147,10 +185,12 @@ export default function CommunityDetailPage() {
         await leaveCommunity(community.id, user.uid)
         setIsMember(false)
         setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount - 1 } : null)
+        await loadMembers(community.id)
       } else {
         await joinCommunity(community.id, user.uid)
         setIsMember(true)
         setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount + 1 } : null)
+        await loadMembers(community.id)
       }
     } catch (error: any) {
       console.error("Error joining/leaving community:", error)
@@ -390,11 +430,56 @@ export default function CommunityDetailPage() {
               </TabsContent>
 
               <TabsContent value="members">
-                <div className="py-10 md:py-12 text-center border rounded-lg px-4">
-                  <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm font-medium">Member list is private</p>
-                  <p className="text-sm text-muted-foreground mt-1">Only admins can view the full registry.</p>
-                </div>
+                {members.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {members.map((member) => {
+                      const handle = member.username ? `@${member.username}` : null
+
+                      return (
+                        <div key={member.id} className="rounded-xl border border-border/50 bg-card p-4">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-11 w-11 border border-border/50">
+                              <AvatarImage
+                                src={getDisplayAvatar({
+                                  image: member.profilePicture || member.photoURL || "",
+                                  displayName: member.displayName,
+                                  handle: member.username || member.userId,
+                                })}
+                                alt={member.displayName}
+                              />
+                              <AvatarFallback>{member.displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="truncate text-sm font-semibold">{member.displayName}</p>
+                                {member.role !== "member" && (
+                                  <Badge variant="secondary" className="capitalize">
+                                    {member.role}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <p className="truncate text-xs text-muted-foreground">
+                                {handle || member.category || "Community member"}
+                              </p>
+
+                              {handle && member.category && (
+                                <p className="mt-1 truncate text-xs text-muted-foreground">{member.category}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-10 md:py-12 text-center border rounded-lg px-4">
+                    <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm font-medium">No members to show yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">Community members will appear here as people join.</p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="reviews">

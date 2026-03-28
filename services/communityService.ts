@@ -141,6 +141,27 @@ export const isCommunityMember = async (communityId: string, userId: string): Pr
   }
 };
 
+export const getCommunityMembers = async (communityId: string): Promise<CommunityMember[]> => {
+  try {
+    const q = query(communityMembersCollection, where('communityId', '==', communityId));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs
+      .map((memberDoc) => ({
+        id: memberDoc.id,
+        ...memberDoc.data(),
+      } as CommunityMember))
+      .sort((a, b) => {
+        const aTime = a.joinedAt instanceof Timestamp ? a.joinedAt.toMillis() : 0;
+        const bTime = b.joinedAt instanceof Timestamp ? b.joinedAt.toMillis() : 0;
+        return aTime - bTime;
+      });
+  } catch (error) {
+    console.error('Error fetching community members:', error);
+    throw error;
+  }
+};
+
 export const getUserCommunities = async (userId: string): Promise<Community[]> => {
   try {
     const q = query(communityMembersCollection, where('userId', '==', userId));
@@ -200,4 +221,3 @@ export const deleteCommunity = async (communityId: string) => {
     throw error;
   }
 };
-
