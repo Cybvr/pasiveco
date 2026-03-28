@@ -230,9 +230,14 @@ function CommunityCard({ community, isMember }: { community: Community, isMember
             ) : null}
           </div>
         </CardHeader>
-        <CardFooter className="px-4 pt-0 pb-3 flex justify-between items-center text-xs text-muted-foreground border-t border-border/30 mt-2 h-10">
+        <CardFooter className="mt-2 flex h-10 items-center justify-between border-t border-border/30 px-4 pt-0 pb-3 text-xs text-muted-foreground">
           <span>{community.memberCount} {community.memberCount === 1 ? 'member' : 'members'}</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-foreground">
+              {community.isPaid ? `₦${(community.price || 0).toLocaleString()}/mo` : 'Free'}
+            </span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </div>
         </CardFooter>
       </Card>
     </Link>

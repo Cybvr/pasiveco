@@ -514,6 +514,13 @@ export default function CommunityDetailPage() {
                             </div>
 
                             <div className="flex justify-between items-center border-t pt-3">
+                                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Subscription</span>
+                                <span className="text-sm font-semibold">
+                                    {community.isPaid ? `₦${community.price?.toLocaleString() || 0}/mo` : 'Free'}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between items-center border-t pt-3">
                                 <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Visibility</span>
                                 <Badge variant="secondary" className="text-xs capitalize font-medium">
                                     {community.privacy}
