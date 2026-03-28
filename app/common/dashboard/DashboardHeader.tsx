@@ -60,6 +60,7 @@ export default function DashboardHeader() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [profilePicture, setProfilePicture] = useState<string>('')
   const [displayName, setDisplayName] = useState<string>('Creator')
+  const [profileHandle, setProfileHandle] = useState<string>('')
   const unreadNotifications = DASHBOARD_NOTIFICATIONS.filter((item) => item.status === 'new').length
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function DashboardHeader() {
         const profile = await getUser(user.uid)
         setProfilePicture(getDisplayAvatar({ image: profile?.profilePicture || user.photoURL || '', displayName: profile?.displayName || user.displayName || 'Creator', handle: profile?.username || user.email || 'creator' }))
         setDisplayName(profile?.displayName || user.displayName || 'Creator')
+        setProfileHandle((profile?.username || profile?.slug || user.email?.split('@')[0] || 'creator').replace(/^@/, '').trim())
       } catch (error) {
         console.error('Error loading user profile for header:', error)
       }
@@ -96,6 +98,9 @@ export default function DashboardHeader() {
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ')
   }, [pathname])
+
+  const publicProfileHref = profileHandle ? `/${profileHandle}` : ''
+  const publicProfileLabel = profileHandle ? `pasive.co/${profileHandle}` : ''
 
   const handleNavigate = (href: string) => {
     setIsSheetOpen(false)
@@ -141,6 +146,17 @@ export default function DashboardHeader() {
         </div>
 
         <div className="flex items-center gap-2">
+          {publicProfileHref ? (
+            <Link
+              href={publicProfileHref}
+              target="_blank"
+              rel="noreferrer"
+              className="max-w-[140px] truncate text-xs font-medium text-primary hover:underline"
+            >
+              {publicProfileLabel}
+            </Link>
+          ) : null}
+
           <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
             <DialogTrigger asChild>
               <Button type="button" variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" aria-label="Open notifications">
