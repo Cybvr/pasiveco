@@ -307,22 +307,22 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 ">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center p-0.5 bg-muted rounded-lg mr-2">
-              <Button 
-                variant={viewMode === 'card' ? 'secondary' : 'ghost'} 
-                size="icon" 
+              <Button
+                variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+                size="icon"
                 className="h-7 w-7 rounded-md"
                 onClick={() => setViewMode('card')}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
-              <Button 
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'} 
-                size="icon" 
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="icon"
                 className="h-7 w-7 rounded-md"
                 onClick={() => setViewMode('list')}
               >
@@ -345,7 +345,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
         </div>
 
         {viewMode === 'card' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pt-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
                 <div key={`product-skeleton-${index}`} className="p-2 space-y-2">
@@ -358,7 +358,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
               ))
             ) : (
               paginatedProducts.map((product: any) => (
-                <div key={product.id} className="cursor-pointer p-2 space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
+                <div key={product.id} className="  cursor-pointer space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
                   <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
                     {product.thumbnail ? (
                       <img

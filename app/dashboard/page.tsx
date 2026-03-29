@@ -27,17 +27,17 @@ import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
-import { getUser } from '@/services/userService'
+import { getUser, type User as AppUser } from '@/services/userService'
 import { Transaction } from '@/types/transaction'
 import StarRating from '@/components/products/StarRating'
 import VerifiedBadge from '@/components/common/VerifiedBadge'
 
-type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean }
+type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean; sellerAvatar?: string }
 
 const CARD_W = 'w-[200px]'
 
 export default function DashboardHomePage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { currency } = useCurrency()
 
   const [loading, setLoading] = useState(true)
@@ -51,6 +51,7 @@ export default function DashboardHomePage() {
 
   const [communities, setCommunities] = useState<Community[]>([])
   const [communitiesLoading, setCommunitiesLoading] = useState(true)
+  const [communityCreators, setCommunityCreators] = useState<Record<string, AppUser | null>>({})
 
   useEffect(() => {
     let active = true
@@ -90,7 +91,16 @@ export default function DashboardHomePage() {
         const enriched = data.map(p => {
           const seller = userMap.get(p.userId)
           const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
-          return { ...p, sellerHandle: handle, sellerVerified: !!seller?.isVerified }
+          return {
+            ...p,
+            sellerHandle: handle,
+            sellerVerified: !!seller?.isVerified,
+            sellerAvatar: getDisplayAvatar({
+              image: seller?.profilePicture || seller?.photoURL || '',
+              displayName: seller?.displayName || p.name,
+              handle: seller?.username || seller?.slug || p.userId || p.name,
+            }),
+          }
         })
 
         setAffiliateProducts(enriched)
@@ -109,6 +119,41 @@ export default function DashboardHomePage() {
       .catch(() => { })
       .finally(() => setCommunitiesLoading(false))
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    const loadCommunityCreators = async () => {
+      const creatorIds = [...new Set(communities.map((community) => community.creatorId).filter(Boolean))]
+      if (creatorIds.length === 0) {
+        if (active) setCommunityCreators({})
+        return
+      }
+
+      try {
+        const profiles = await Promise.all(
+          creatorIds.map((creatorId) => getUser(creatorId).catch(() => null))
+        )
+
+        if (!active) return
+
+        const nextCreators = creatorIds.reduce<Record<string, AppUser | null>>((acc, creatorId, index) => {
+          acc[creatorId] = profiles[index]
+          return acc
+        }, {})
+
+        setCommunityCreators(nextCreators)
+      } catch (error) {
+        console.error('Error loading community creator avatars:', error)
+      }
+    }
+
+    void loadCommunityCreators()
+
+    return () => {
+      active = false
+    }
+  }, [communities])
 
   const hasProducts = useMemo(() => products.length > 0, [products])
   const featuredProducts = useMemo(() => products.slice(0, 4), [products])
@@ -140,7 +185,7 @@ export default function DashboardHomePage() {
     return formatCurrency(displayAmount, currency)
   }
 
-  if (loading) return <HomeSkeleton />
+  if (loading || authLoading) return <HomeSkeleton />
 
   return (
     <div className="space-y-6">
@@ -293,7 +338,15 @@ export default function DashboardHomePage() {
         ) : (
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max gap-4 pb-4 px-1">
-              {communities.slice(0, 8).map((community) => (
+              {communities.slice(0, 8).map((community) => {
+                const creator = communityCreators[community.creatorId]
+                const creatorAvatar = getDisplayAvatar({
+                  image: creator?.profilePicture || creator?.photoURL || '',
+                  displayName: creator?.displayName || community.creatorName || community.name,
+                  handle: creator?.username || creator?.slug || community.creatorId || community.name,
+                })
+
+                return (
                 <Link
                   key={community.id}
                   href={`/dashboard/communities/${community.slug || community.id}`}
@@ -309,7 +362,7 @@ export default function DashboardHomePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6 shrink-0">
-                      <AvatarImage src={getDicebearAvatar(community.creatorId || community.name)} />
+                      <AvatarImage src={creatorAvatar} />
                       <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
@@ -321,7 +374,8 @@ export default function DashboardHomePage() {
                     </div>
                   </div>
                 </Link>
-              ))}
+                )
+              })}
             </div>
             <ScrollBar orientation="horizontal" className="hidden" />
           </ScrollArea>
@@ -389,7 +443,7 @@ export default function DashboardHomePage() {
                     <div className="flex items-center gap-2">
                       <div className="relative shrink-0">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={getDicebearAvatar(p.userId || p.name)} />
+                          <AvatarImage src={p.sellerAvatar || getDicebearAvatar(p.userId || p.name)} />
                           <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         {p.sellerVerified && (

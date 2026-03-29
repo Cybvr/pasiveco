@@ -286,10 +286,10 @@ export default function CommunityDetailPage() {
                     <div className="flex flex-col lg:flex-row items-start justify-between gap-4">
                         <div className="flex items-start gap-4 min-w-0">
                             <div className="overflow-hidden rounded-xl border border-border/60 bg-muted shrink-0">
-                                {community.bannerImage ? (
+                                {community.image ? (
                                     <img
-                                        src={community.bannerImage}
-                                        alt={`${community.name} thumbnail`}
+                                        src={community.image}
+                                        alt={`${community.name} logo`}
                                         className="h-12 w-12 object-cover md:h-14 md:w-14"
                                     />
                                 ) : (
