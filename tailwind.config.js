@@ -17,6 +17,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-aeonik)', 'system-ui', 'sans-serif'],
+        chunko: ['var(--font-chunko)', 'cursive', 'sans-serif'],
       },
       extend: {
         colors: {

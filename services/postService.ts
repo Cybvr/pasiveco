@@ -21,6 +21,7 @@ export interface Post {
   category: string;
   authorName?: string;
   authorUsername?: string;
+  authorSlug?: string;
   authorImage?: string;
   parentId?: string;
 }
@@ -54,6 +55,7 @@ export const getCommunityPosts = async (communityId: string): Promise<Post[]> =>
             const userData = userDoc.data();
             post.authorName = userData.displayName;
             post.authorUsername = userData.username;
+            post.authorSlug = userData.slug || userData.username;
             post.authorImage = userData.photoURL || userData.image;
           }
         } catch (err) {

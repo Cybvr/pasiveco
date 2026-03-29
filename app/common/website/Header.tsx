@@ -51,7 +51,7 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
               {/* Logo */}
               <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
                 <img src="/images/logo.svg" alt="Logo" className="w-8 h-8" />
-                <span className="text-2xl font-bold ml-2">Pasive</span>
+                <span className="text-3xl font-chunko ml-2.5 translate-y-[1px]">PASIVE</span>
               </Link>
 
               {/* Desktop Navigation */}

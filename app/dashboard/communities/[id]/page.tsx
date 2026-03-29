@@ -41,6 +41,7 @@ type CommunityMemberProfile = {
     role: "admin" | "moderator" | "member"
     displayName: string
     username?: string
+    slug?: string
     profilePicture?: string | null
     photoURL?: string
     category?: string
@@ -80,6 +81,7 @@ export default function CommunityDetailPage() {
         role: member.role,
         displayName: profile?.displayName?.trim() || profile?.username?.trim() || "Community Member",
         username: profile?.username,
+        slug: profile?.slug,
         profilePicture: profile?.profilePicture,
         photoURL: profile?.photoURL,
         category: profile?.category,
@@ -360,16 +362,16 @@ export default function CommunityDetailPage() {
                     {/* Main content */}
                     <div className="lg:col-span-3 min-w-0">
                         <Tabs defaultValue="feed" className="w-full">
-                            <TabsList className="grid w-full grid-cols-4">
+                            <TabsList className="grid w-full grid-cols-4 ">
                                 <TabsTrigger value="feed">Feed</TabsTrigger>
                                 <TabsTrigger value="about">About</TabsTrigger>
                                 <TabsTrigger value="members">Members</TabsTrigger>
                                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
                             </TabsList>
 
-                            <TabsContent value="feed">
+                            <TabsContent value="feed" className="mt-0">
                                 {isMember || community.privacy === 'public' ? (
-                                    <div className="space-y-4">
+                                    <div className="space-y-2">
                                         {!isMember && (
                                             <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl mb-4 text-center">
                                                 <p className="text-sm font-medium text-primary">Previewing Public Feed</p>
@@ -377,7 +379,7 @@ export default function CommunityDetailPage() {
                                             </div>
                                         )}
 
-                                        <div className="pt-2">
+                                        <div className="">
                                             <CommunityFeed communityId={community.id} />
                                         </div>
                                     </div>
@@ -395,7 +397,7 @@ export default function CommunityDetailPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="about">
+                            <TabsContent value="about" className="mt-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <p className="text-xs font-semibold text-primary uppercase tracking-widest">About</p>
@@ -420,16 +422,27 @@ export default function CommunityDetailPage() {
                                 </div>
                             </TabsContent>
 
-                            <TabsContent value="members">
+                            <TabsContent value="members" className="mt-0">
                                 {members.length > 0 ? (
                                     <div className="overflow-hidden rounded-xl border border-border/50 bg-card">
                                         {members.map((member) => {
                                             const handle = member.username ? `@${member.username}` : null
+                                            const profileSlug = member.slug || member.username
+                                            const isClickable = Boolean(profileSlug)
 
                                             return (
                                                 <div
                                                     key={member.id}
-                                                    className="flex items-center gap-3 border-b border-border/40 px-4 py-3 last:border-b-0"
+                                                    className={`flex items-center gap-3 border-b border-border/40 px-4 py-3 last:border-b-0 ${isClickable ? "cursor-pointer transition-colors hover:bg-muted/40" : ""}`}
+                                                    onClick={isClickable ? () => router.push(`/${profileSlug}`) : undefined}
+                                                    onKeyDown={isClickable ? (event) => {
+                                                        if (event.key === "Enter" || event.key === " ") {
+                                                            event.preventDefault()
+                                                            router.push(`/${profileSlug}`)
+                                                        }
+                                                    } : undefined}
+                                                    role={isClickable ? "link" : undefined}
+                                                    tabIndex={isClickable ? 0 : undefined}
                                                 >
                                                     <Avatar className="h-9 w-9 border border-border/50">
                                                         <AvatarImage
@@ -474,7 +487,7 @@ export default function CommunityDetailPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="reviews">
+                            <TabsContent value="reviews" className="mt-0">
                                 <div className="border border-border/40 rounded-xl p-4 md:p-6 bg-card">
                                     <CommunityReviewSection communityId={community.id} user={user} />
                                 </div>

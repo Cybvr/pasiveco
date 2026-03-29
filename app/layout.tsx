@@ -84,6 +84,11 @@ const aeonik = localFont({
   variable: '--font-aeonik',
 });
 
+const chunko = localFont({
+  src: '../public/font/chunko-bold.otf',
+  variable: '--font-chunko',
+});
+
 export const metadata: Metadata = {
   title: {
     default: 'Pasive',
@@ -145,7 +150,7 @@ export default async function RootLayout({
           `}
         </Script>
       </head>
-      <body className={`${aeonik.variable} font-sans antialiased font-normal`}>
+      <body className={`${aeonik.variable} ${chunko.variable} font-sans antialiased font-normal`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

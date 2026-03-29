@@ -84,7 +84,7 @@ export default function Sidebar({
               <Image src="/images/monster.png" alt="Monster" width={20} height={20} />
             </div>
             <div>
-              <h1 className="text-base text-foreground font-black tracking-tighter leading-none">pasive</h1>
+              <h1 className="text-xl font-chunko text-foreground leading-none translate-y-[1px]">PASIVE</h1>
               {isAdmin && <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Admin</p>}
             </div>
           </Link>

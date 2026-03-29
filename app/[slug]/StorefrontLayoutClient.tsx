@@ -55,7 +55,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
   const p = profileData || { username: slug };
   const socialLinks = (p.socialLinks || []).filter((l: any) => l.active);
   const coverImage = p.bannerImage || `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(p.username || slug)}&size=1200&backgroundType=gradientLinear`;
-  const isOwnUser = Boolean(user?.uid) && [p.userId, p.id].includes(user.uid);
+  const isOwnUser = Boolean(user?.uid) && [p.userId, p.id].includes(user?.uid || '');
 
   const tabs = [
     { label: 'Links', href: `/${slug}` },
@@ -144,7 +144,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
         <p>© 2026 Pasive. All rights reserved.</p>
         <div className="mt-1 flex items-center justify-center gap-1 opacity-60">
           <span>Made with</span>
-          <a href="/" className="font-bold text-foreground hover:text-primary transition-colors">Pasive</a>
+          <a href="/" className="font-chunko text-foreground hover:text-primary transition-colors text-sm translate-y-[1px]">PASIVE</a>
         </div>
       </footer>
 

@@ -38,7 +38,7 @@ const Footer = () => {
           <div className="space-y-6 lg:w-2/5">
             <div className="flex items-center space-x-2">
               <img src="/images/logo.svg" alt="Pasive Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold">Pasive</span>
+              <span className="text-2xl font-chunko ml-2.5 translate-y-[1px]">PASIVE</span>
             </div>
 
             <p className="text-lg leading-relaxed text-foreground/80">

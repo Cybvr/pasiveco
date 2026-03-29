@@ -56,7 +56,7 @@ export default function LandingPage() {
   if (loading || user) return null
 
   return (
-    <div className="flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-hidden home-page">
       <Header isMenuOpen={false} setIsMenuOpen={() => { }} />
 
       {/* ── Patreon Style Hero ── */}
