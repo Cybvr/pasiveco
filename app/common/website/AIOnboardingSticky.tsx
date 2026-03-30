@@ -157,37 +157,45 @@ const AIOnboardingSticky = () => {
           transition={{ delay: 0.5, duration: 0.8 }}
           className="w-full max-w-3xl pointer-events-auto"
         >
-          <div className="bg-background/80 backdrop-blur-2xl border border-border/50 shadow-xl rounded-2xl p-2 md:p-3 flex flex-col md:flex-row items-center gap-4">
-            <div className="flex-1 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm md:text-base font-medium text-foreground/80 pl-2">
-              <span className="whitespace-nowrap italic opacity-60">Hi my name is</span>
-              <input
-                type="text" value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
-                placeholder="David"
-                className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-0.5 w-24 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-xs md:text-sm"
-              />
-              <span className="whitespace-nowrap italic opacity-60">, here's my email</span>
-              <div className="relative inline-flex items-center">
+          <div className="bg-background/90 backdrop-blur-3xl border border-border/50 shadow-2xl rounded-2xl p-4 md:p-3 flex flex-col md:flex-row items-stretch md:items-center gap-4 transition-all">
+            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-y-3 md:gap-x-2 text-sm md:text-base font-medium text-foreground/90 pl-1">
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-1">
+                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">Hi my name is</span>
                 <input
-                  type="email" value={emailValue}
-                  onChange={(e) => setEmailValue(e.target.value)}
-                  placeholder="david@gmail.com"
-                  className={`bg-muted/40 border-b border-border/50 focus:border-primary outline-none px-2 py-0.5 w-32 md:w-48 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-xs md:text-sm ${isValidPopularEmail ? 'border-green-500/50 text-green-600' : ''}`}
+                  type="text" value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  placeholder="David"
+                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full md:w-24 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
                 />
-                {isValidPopularEmail && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 ml-1 shrink-0" />}
               </div>
-              <span className="whitespace-nowrap italic opacity-60">and I</span>
-              <input
-                type="text" value={whatIDo}
-                onChange={(e) => setWhatIDo(e.target.value)}
-                placeholder="teach fitness..."
-                className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-0.5 flex-1 min-w-[150px] transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-xs md:text-sm"
-              />
+
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-1">
+                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">here's my email</span>
+                <div className="relative flex items-center w-full md:w-auto">
+                  <input
+                    type="email" value={emailValue}
+                    onChange={(e) => setEmailValue(e.target.value)}
+                    placeholder="david@gmail.com"
+                    className={`bg-muted/40 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full md:w-48 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm ${isValidPopularEmail ? 'border-green-500/50 text-green-600' : ''}`}
+                  />
+                  {isValidPopularEmail && <CheckCircle2 className="absolute right-2 w-3.5 h-3.5 text-green-500 shrink-0" />}
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-[2]">
+                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">and I</span>
+                <input
+                  type="text" value={whatIDo}
+                  onChange={(e) => setWhatIDo(e.target.value)}
+                  placeholder="teach fitness..."
+                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
+                />
+              </div>
             </div>
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || !nameValue.trim() || !isValidPopularEmail || !whatIDo.trim()}
-              className={`rounded-xl px-6 h-10 transition-all font-bold text-sm gap-2 shadow-md ${nameValue.trim() && isValidPopularEmail && whatIDo.trim() ? "bg-primary text-primary-foreground scale-105" : "bg-muted text-muted-foreground opacity-50"}`}
+              className={`rounded-xl px-8 h-12 md:h-10 transition-all font-bold text-sm gap-2 shadow-md ${nameValue.trim() && isValidPopularEmail && whatIDo.trim() ? "bg-primary text-primary-foreground scale-[1.02] md:scale-105" : "bg-muted text-muted-foreground opacity-50"}`}
             >
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
               Start Selling

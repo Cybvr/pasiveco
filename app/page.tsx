@@ -72,7 +72,7 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-6xl w-full text-center space-y-12">
           <div className="space-y-2">
-            <h1 className="text-[12vw] sm:text-8xl md:text-9xl lg:text-[10rem] font-bold leading-[0.85] tracking-tighter text-foreground text-left lg:text-center transition-all">
+            <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-bold leading-none sm:leading-[0.85] tracking-tighter text-foreground text-left lg:text-center transition-all">
               <span className="block italic font-light opacity-60">Your house</span>
               <span className="block -mt-1 sm:-mt-4">Your rules</span>
             </h1>
@@ -107,8 +107,8 @@ export default function LandingPage() {
 
       {/* ── Collage Section: Creativity Powered ── */}
       <section className="px-6 py-32 bg-background relative z-10">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
-          <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-auto">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="relative aspect-video sm:aspect-square lg:aspect-auto h-[400px] lg:h-auto">
             {/* Collage elements */}
             <div className="absolute top-0 left-0 w-2/3 aspect-[4/5] bg-muted/20 overflow-hidden shadow-2xl z-20 group hover:scale-[1.02] transition-transform duration-700 rounded-none">
               <img src="/images/redesign/hero.png" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
@@ -125,7 +125,7 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-8">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground leading-[0.9]">
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground leading-[0.9]">
               Creativity <span className="block opacity-40">powered</span> <span className="italic font-light">by fandom</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
@@ -150,7 +150,7 @@ export default function LandingPage() {
               <div className="inline-block px-3 py-1 border border-zinc-700 text-[10px] uppercase tracking-widest text-zinc-400 rounded-none">
                 Your Community Hub
               </div>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none">
+              <h2 className="text-4xl md:text-7xl font-bold tracking-tighter leading-none">
                 Build <br /> vibrant <br /> communities
               </h2>
               <p className="text-xl text-zinc-400 font-light leading-relaxed max-w-md">
@@ -182,8 +182,8 @@ export default function LandingPage() {
 
       {/* ── High Contrast: Creators. Fans. ── */}
       <section className="px-6 py-40 bg-background text-foreground text-center space-y-16">
-        <h2 className="text-7xl md:text-9xl font-extrabold tracking-tighter leading-none uppercase">
-          Creators. Fans. <br /> <span className="opacity-20 italic font-medium">Nothing in between.</span>
+        <h2 className="text-5xl md:text-9xl font-extrabold tracking-tighter leading-none uppercase">
+          Creators. Fans. <br /> <span className="opacity-20 italic font-medium lowercase">Nothing in between.</span>
         </h2>
 
         <div className="max-w-xl mx-auto space-y-8">
@@ -200,7 +200,7 @@ export default function LandingPage() {
       <section className="px-6 py-40 bg-muted/30 border-y border-border">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-24 gap-6">
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tight">Turning passions <br /> into businesses</h2>
+            <h2 className="text-4xl md:text-7xl font-bold tracking-tight">Turning passions <br /> into businesses</h2>
             <p className="text-xl text-muted-foreground max-w-sm">From digital products to affiliate networks, we provide the infrastructure.</p>
           </div>
 
@@ -271,7 +271,7 @@ export default function LandingPage() {
       <section className="px-6 py-40 relative group overflow-hidden">
         <div className="absolute inset-0 bg-foreground pointer-events-none transition-transform duration-1000 scale-[1.01] group-hover:scale-100" />
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-12 text-background">
-          <h2 className="text-6xl md:text-8xl font-bold tracking-tighter leading-none italic">
+          <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none italic">
             Ready to rule your house?
           </h2>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
