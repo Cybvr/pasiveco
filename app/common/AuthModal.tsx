@@ -1,27 +1,28 @@
 
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
+  getAuth,
   GoogleAuthProvider, 
-  signInWithPopup 
+  signInWithPopup,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult
 } from "firebase/auth"
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from "firebase/firestore"
+import { ChevronLeft, Smartphone } from "lucide-react"
 
 interface AuthModalProps {
   isOpen: boolean
@@ -29,13 +30,45 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'register'
 }
 
-export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+declare global {
+  interface Window {
+    recaptchaVerifier: RecaptchaVerifier | undefined;
+    confirmationResult: ConfirmationResult | undefined;
+  }
+}
+
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<'social' | 'phone' | 'otp'>('social')
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  // Clean up reCAPTCHA on unmount
+  useEffect(() => {
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear()
+        window.recaptchaVerifier = undefined
+      }
+    }
+  }, [])
+
+  const setupRecaptcha = (containerId: string) => {
+    if (window.recaptchaVerifier) return window.recaptchaVerifier;
+    
+    auth.useDeviceLanguage();
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      'size': 'invisible',
+      'callback': () => {},
+      'expired-callback': () => {
+         setError('Captcha expired. Please try again.')
+      }
+    });
+    return window.recaptchaVerifier;
+  }
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider()
@@ -56,107 +89,89 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
           updatedAt: new Date(),
           plan: 'free',
           isAdmin: false,
-          emailVerified: result.user.emailVerified,
-          isActive: true,
           role: 'user',
           username: (result.user.email || '').split('@')[0],
           bio: '',
           profilePicture: result.user.photoURL || '',
           slug: (result.user.email || '').split('@')[0],
-          links: [],
-          socialLinks: []
         })
       }
-      
       onClose()
       router.push('/dashboard')
-    } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        setError('Sign in was cancelled. Please try again.')
-      } else {
-        setError('Unable to sign in. Please try again.')
+    } catch (err: any) {
+      setError('Sign in failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    
+    try {
+      const verifier = setupRecaptcha('recaptcha-anchor')
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier)
+      window.confirmationResult = confirmationResult
+      setStep('otp')
+    } catch (err: any) {
+      console.error(err)
+      setError('Failed to send SMS. verify number format (+234...)')
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear()
+        window.recaptchaVerifier = undefined
       }
     } finally {
       setLoading(false)
     }
   }
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     
-    try {
-      await signInWithEmailAndPassword(auth, email, password)
-      onClose()
-      router.push('/dashboard')
-    } catch (error: any) {
-      setError('Invalid email or password. Please try again.')
-    } finally {
-      setLoading(false)
+    if (!window.confirmationResult) {
+      setError('Session expired. Go back.')
+      return
     }
-  }
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
-    }
-    
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
-      return
-    }
-    
-    setLoading(true)
-    
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const result = await window.confirmationResult.confirm(otp)
+      const userRef = doc(db, 'users', result.user.uid)
+      const userSnap = await getDoc(userRef)
       
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: email,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        plan: 'free',
-        displayName: '',
-        phoneNumber: '',
-        photoURL: '',
-        profilePicture: '',
-        isAdmin: false,
-        emailVerified: false,
-        isActive: true,
-        role: 'user',
-        username: email.split('@')[0],
-        bio: '',
-        slug: email.split('@')[0],
-        links: [],
-        socialLinks: []
-      })
-      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          phoneNumber: result.user.phoneNumber,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          plan: 'free',
+          isAdmin: false,
+          role: 'user',
+          username: (result.user.phoneNumber || '').slice(-6),
+          slug: (result.user.phoneNumber || '').slice(-6),
+        })
+      }
       onClose()
       router.push('/dashboard')
-    } catch (error: any) {
-      if (error.code === 'auth/email-already-in-use') {
-        setError('Email is already registered. Please sign in instead.')
-      } else if (error.code === 'auth/weak-password') {
-        setError('Password is too weak. Please choose a stronger password.')
-      } else {
-        setError('Unable to create account. Please try again.')
-      }
+    } catch (err: any) {
+      setError('Invalid code.')
     } finally {
       setLoading(false)
     }
   }
 
   const resetForm = () => {
-    setEmail('')
-    setPassword('')
-    setConfirmPassword('')
+    setPhoneNumber('')
+    setOtp('')
     setError('')
+    setStep('social')
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear()
+      window.recaptchaVerifier = undefined
+    }
   }
 
   return (
@@ -166,29 +181,35 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
         resetForm()
       }
     }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Welcome to Pasive</DialogTitle>
-          <DialogDescription>
-            Sign in to your account or create a new one
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[calc(100%-32px)] sm:max-w-[400px] rounded-lg bg-background p-5 sm:p-6 border shadow-xl flex flex-col gap-5 selection:bg-black selection:text-white">
         
-        <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Sign Up</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="login" className="space-y-4">
-            <div className="space-y-4">
+        <div id="recaptcha-anchor"></div>
+
+        <DialogHeader className="space-y-1.5 text-center sm:text-left">
+           <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight">
+             {step === 'social' ? 'Welcome to Pasive' : step === 'phone' ? 'Phone Login' : 'Enter One-Time Key'}
+           </DialogTitle>
+           {step === 'social' && (
+             <p className="text-sm text-muted-foreground">
+               Quickly access your dashboard with social login
+             </p>
+           )}
+           {step === 'phone' && (
+             <p className="text-sm text-muted-foreground">
+               Enter your number with country code (+234...)
+             </p>
+           )}
+        </DialogHeader>
+
+        <div className="space-y-5">
+          {step === 'social' ? (
+            <div className="space-y-4 text-center sm:text-left">
               <Button 
                 onClick={handleGoogleSignIn} 
-                variant="outline" 
-                className="w-full"
                 disabled={loading}
+                className="w-full h-12 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-all hover:scale-[1.01]"
               >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -196,124 +217,61 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
                 </svg>
                 Continue with Google
               </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              
-              <form onSubmit={handleEmailSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                
-                {error && (
-                  <p className="text-sm text-red-600">{error}</p>
-                )}
-                
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </form>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="register" className="space-y-4">
-            <div className="space-y-4">
-              <Button 
-                onClick={handleGoogleSignIn} 
-                variant="outline" 
-                className="w-full"
-                disabled={loading}
+              <button 
+                onClick={() => setStep('phone')}
+                className="inline-block text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-2 hover:underline hover:text-black transition-all flex items-center justify-center gap-2 mx-auto sm:mx-0"
               >
-                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              
-              <form onSubmit={handleEmailSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <Input
-                    id="register-password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-                
-                {error && (
-                  <p className="text-sm text-red-600">{error}</p>
-                )}
-                
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Create Account'}
-                </Button>
-              </form>
+                <Smartphone className="w-3 h-3" /> or use phone number
+              </button>
             </div>
-          </TabsContent>
-        </Tabs>
+          ) : (
+            <div className="animate-in slide-in-from-right-4 duration-300">
+              <button 
+                onClick={() => setStep('social')}
+                className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-black mb-5 transition-colors"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Back
+              </button>
+
+              {step === 'phone' ? (
+                <form onSubmit={handleSendOtp} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" type="tel" required placeholder="+234 800 000 0000" className="h-10 rounded-md" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                  </div>
+                  {error && <div className="p-2.5 bg-red-50 rounded-md text-[11px] font-medium text-red-600 border border-red-100">{error}</div>}
+                  <Button type="submit" disabled={loading} className="w-full h-11 rounded-md font-semibold text-sm">
+                    {loading ? 'Sending SMS...' : 'Send Verification Code'}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div className="space-y-1.5 text-center">
+                    <Label htmlFor="otp">6-Digit Code</Label>
+                    <Input 
+                        id="otp" 
+                        type="text" 
+                        required 
+                        maxLength={6} 
+                        placeholder="••••••" 
+                        className="h-12 rounded-md text-center text-2xl tracking-[0.5em] font-bold" 
+                        value={otp} 
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
+                    />
+                  </div>
+                  {error && <div className="p-2.5 bg-red-100 rounded-md text-[11px] font-medium text-red-600">{error}</div>}
+                  <Button type="submit" disabled={loading} className="w-full h-11 rounded-md font-semibold text-sm">
+                    {loading ? 'Verifying...' : 'Authenticate'}
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+
+        <p className="text-[10px] text-center text-muted-foreground">
+          By continuing, you agree to our <button className="underline hover:text-black">Terms of Service</button>
+        </p>
       </DialogContent>
     </Dialog>
   )

@@ -176,8 +176,9 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                   <Button
                     onClick={() => setIsAuthModalOpen(true)}
                     size="sm"
+                    className="rounded-none font-bold uppercase tracking-widest px-6"
                   >
-                    Get started for free
+                    Get Started
                   </Button>
                 </>
               )}
@@ -251,9 +252,9 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                         </Button>
                         <Button
                           onClick={() => setIsAuthModalOpen(true)}
-                          className="w-full"
+                          className="w-full rounded-none font-bold uppercase tracking-widest"
                         >
-                          Get started for free
+                          Get Started
                         </Button>
                       </div>
                     )}
