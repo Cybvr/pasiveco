@@ -139,6 +139,34 @@ service cloud.firestore {
       allow update: if isAdmin();
     }
 
+    match /feedbackResponses/{responseId} {
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          'firstName',
+          'email',
+          'satisfaction',
+          'goal',
+          'blocker',
+          'source',
+          'page',
+          'createdAt'
+        ]) &&
+        request.resource.data.source == 'marketing-survey-page' &&
+        request.resource.data.page == '/survey/feedback' &&
+        request.resource.data.firstName is string &&
+        request.resource.data.email is string &&
+        request.resource.data.satisfaction is string &&
+        request.resource.data.goal is string &&
+        request.resource.data.blocker is string &&
+        request.resource.data.firstName.size() <= 120 &&
+        request.resource.data.email.size() <= 200 &&
+        request.resource.data.satisfaction.size() <= 200 &&
+        request.resource.data.goal.size() <= 2000 &&
+        request.resource.data.blocker.size() <= 2000;
+
+      allow read, update, delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if isAdmin();
     }

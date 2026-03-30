@@ -18,6 +18,19 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } f
 import { auth, db } from '@/lib/firebase'
 import { doc, setDoc } from 'firebase/firestore'
 
+// Fire-and-forget: sync new user to Loops mailing list
+async function syncToLoops(email: string, firstName: string, userId: string) {
+  try {
+    await fetch('/api/loops/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, firstName, userId, source: 'register' }),
+    })
+  } catch (err) {
+    console.warn('[Loops] Failed to sync contact:', err)
+  }
+}
+
 export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -81,6 +94,9 @@ export default function Register() {
 
       // Create user document in Firestore
       await setDoc(doc(db, 'users', uid), userData)
+
+      // Sync to Loops (fire-and-forget)
+      syncToLoops(email, userData.displayName || '', uid)
 
       // Create AI products if any
       if (pendingData?.products?.length) {
@@ -153,6 +169,9 @@ export default function Register() {
           }
           
           await setDoc(doc(db, 'users', uid), userData)
+
+          // Sync to Loops (fire-and-forget)
+          syncToLoops(email, userData.displayName || '', uid)
           
           if (pendingData?.products?.length) {
             const { createProduct } = await import('@/services/productsService')

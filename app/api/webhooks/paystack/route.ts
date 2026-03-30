@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { PaystackService } from '@/services/paystackService';
+import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +60,22 @@ async function handleSuccessfulPayment(data: any) {
     // Example: Update order in Firebase
     // await updateOrderStatus(reference, 'completed');
     // await grantProductAccess(customer.email, metadata.product_id);
+
+    // Send purchase confirmation email via Loops
+    if (loops && customer?.email) {
+      try {
+        await loops.sendTransactionalEmail({
+          transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+          email: customer.email,
+          dataVariables: {
+            productId: metadata?.product_id || '',
+            amount: (amount / 100).toString(),
+          },
+        });
+      } catch (err) {
+        console.error('[Loops] Failed to send purchase confirmation:', err);
+      }
+    }
   } catch (error) {
     console.error('Error handling successful payment:', error);
   }
@@ -75,6 +92,21 @@ async function handleFailedPayment(data: any) {
 
     // TODO: Implement failure handling
     // Example: Update order status, send notification
+
+    // Send payment failed email via Loops
+    if (loops && data?.customer?.email) {
+      try {
+        await loops.sendTransactionalEmail({
+          transactionalId: LOOPS_TEMPLATES.PAYMENT_FAILED,
+          email: data.customer.email,
+          dataVariables: {
+            productId: metadata?.product_id || '',
+          },
+        });
+      } catch (err) {
+        console.error('[Loops] Failed to send payment failed email:', err);
+      }
+    }
   } catch (error) {
     console.error('Error handling failed payment:', error);
   }
