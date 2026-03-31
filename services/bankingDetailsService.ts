@@ -8,6 +8,9 @@ export interface BankingDetails {
   accountName: string
   accountNumber: string
   recipientCode?: string
+  country?: string
+  payoutGateway?: 'flutterwave' | 'stripe_connect'
+  stripeConnectId?: string
   isDefault?: boolean
   updatedAt?: any
 }

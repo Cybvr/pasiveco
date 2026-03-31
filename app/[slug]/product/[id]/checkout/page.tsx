@@ -123,43 +123,38 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
     setError('');
     setPaymentLoading(true);
 
-    const channels: string[] = [];
-    if (selectedMethod === 'card') channels.push('card');
-    else if (selectedMethod === 'bank') channels.push('bank', 'bank_transfer');
-
     try {
-      // PROTOTYPE MODE: Bypass Paystack API and simulate success
-      console.log('Using prototype checkout flow...');
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate delay
+      const res = await fetch('/api/paystack/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: buyerEmail,
+          amount: product.price,
+          currency: product.currency || 'USD',
+          productId: product.id,
+          productName: product.name,
+          slug: routeParams.slug,
+          metadata: {
+            customerName: buyerName,
+            customerPhone: buyerPhone,
+            sellerId: product.userId,
+            affiliate: affiliateId,
+          }
+        }),
+      });
 
-      const mockReference = `PROTOTYPE-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      const data = await res.json();
 
-      const payload = {
-        sellerId: product.userId,
-        productId: product.id || '',
-        productName: product.name,
-        customerName: buyerName,
-        customerEmail: buyerEmail,
-        customerPhone: buyerPhone || '000-000-0000',
-        reference: mockReference,
-        amount: product.price,
-        currency: product.currency || 'NGN',
-        status: 'success' as const,
-        couponDiscount: 0,
-        affiliate: affiliateId || '',
-        yourProfit: product.price * 0.9,
-        customCharge: 0,
-        payoutDate: null,
-        variation: '',
-      };
-
-      console.log('Creating mock transaction with payload:', payload);
-      await createTransaction(payload);
-
-      router.push(`/${routeParams.slug}/product/${product.id}/confirmation?reference=${mockReference}`);
+      if (data.success && data.authorizationUrl) {
+        // Redirect to Stripe Checkout or Flutterwave Payment Link
+        window.location.href = data.authorizationUrl;
+      } else {
+        setError(data.message || 'Failed to initialize payment.');
+        setPaymentLoading(false);
+      }
     } catch (paymentError) {
-      console.error('Prototype payment failed:', paymentError);
-      setError('Could not complete prototype payment.');
+      console.error('Payment initialization failed:', paymentError);
+      setError('Could not connect to payment gateway.');
       setPaymentLoading(false);
     }
   };

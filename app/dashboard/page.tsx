@@ -8,7 +8,6 @@ import {
   RiShareForwardFill, 
   RiWallet3Fill, 
   RiUser3Fill, 
-  RiBarChart2Fill, 
   RiTeamFill, 
   RiSettings4Fill 
 } from 'react-icons/ri'
@@ -210,13 +209,12 @@ export default function DashboardHomePage() {
 
       {/* ── Quick Links Grid ───────────────────────────── */}
       <section className="px-1 md:hidden">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {[
             { name: 'Products', href: '/dashboard/products', icon: RiShoppingBag3Fill },
             { name: 'Network', href: '/dashboard/network', icon: RiShareForwardFill },
             { name: 'Earnings', href: '/dashboard/earnings', icon: RiWallet3Fill },
             { name: 'Customers', href: '/dashboard/customers', icon: RiUser3Fill },
-            { name: 'Analytics', href: '/dashboard/analytics', icon: RiBarChart2Fill },
             { name: 'Communities', href: '/dashboard/communities', icon: RiTeamFill },
             { name: 'Customize', href: '/dashboard/settings', icon: RiSettings4Fill },
           ].map((link) => {

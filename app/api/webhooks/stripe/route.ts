@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { doc, getDoc, updateDoc, collection, setDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -40,6 +41,9 @@ export async function POST(request: Request) {
         break;
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data.object);
+        break;
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
     }
 
@@ -255,4 +259,38 @@ async function handleInvoicePaymentFailed(invoice: any) {
     paymentFailed: true,
     updatedAt: Timestamp.now()
   });
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  const { metadata, customer_email, amount_total, mode } = session;
+
+  // Only handle 'payment' mode (one-time purchases)
+  // 'subscription' mode is handled by invoice.paid and subscription events
+  if (mode !== 'payment') return;
+
+  console.log('Stripe Checkout Completed (Product):', {
+    sessionId: session.id,
+    productId: metadata?.productId,
+    customerEmail: customer_email,
+    amount: (amount_total || 0) / 100,
+  });
+
+  // 1. Log transaction in Firestore
+  // 2. Grant access to product
+  // 3. Send confirmation email
+
+  if (loops && customer_email) {
+    try {
+      await loops.sendTransactionalEmail({
+        transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+        email: customer_email,
+        dataVariables: {
+          productId: metadata?.productId || '',
+          amount: ((amount_total || 0) / 100).toString(),
+        },
+      });
+    } catch (err) {
+      console.error('[Loops] Failed to send purchase confirmation:', err);
+    }
+  }
 }

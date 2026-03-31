@@ -35,13 +35,23 @@ interface Bank {
   code: string
 }
 
-type Country = "nigeria" | "ghana" | "kenya" | "south africa"
+type Country = "nigeria" | "ghana" | "kenya" | "south africa" | "uganda" | "tanzania" | "rwanda" | "egypt" | "senegal" | "ivory coast" | "cameroon" | "united states" | "united kingdom" | "europe"
 
-const COUNTRIES: { value: Country; label: string; currency: string }[] = [
-  { value: "nigeria", label: "Nigeria", currency: "NGN" },
-  { value: "ghana", label: "Ghana", currency: "GHS" },
-  { value: "kenya", label: "Kenya", currency: "KES" },
-  { value: "south africa", label: "South Africa", currency: "ZAR" },
+const COUNTRIES: { value: Country; label: string; currency: string; gateway: 'flutterwave' | 'stripe_connect' }[] = [
+  { value: "nigeria", label: "Nigeria", currency: "NGN", gateway: 'flutterwave' },
+  { value: "ghana", label: "Ghana", currency: "GHS", gateway: 'flutterwave' },
+  { value: "kenya", label: "Kenya", currency: "KES", gateway: 'flutterwave' },
+  { value: "south africa", label: "South Africa", currency: "ZAR", gateway: 'flutterwave' },
+  { value: "uganda", label: "Uganda", currency: "UGX", gateway: 'flutterwave' },
+  { value: "tanzania", label: "Tanzania", currency: "TZS", gateway: 'flutterwave' },
+  { value: "rwanda", label: "Rwanda", currency: "RWF", gateway: 'flutterwave' },
+  { value: "egypt", label: "Egypt", currency: "EGP", gateway: 'flutterwave' },
+  { value: "senegal", label: "Senegal", currency: "XOF", gateway: 'flutterwave' },
+  { value: "ivory coast", label: "Ivory Coast", currency: "XOF", gateway: 'flutterwave' },
+  { value: "cameroon", label: "Cameroon", currency: "XAF", gateway: 'flutterwave' },
+  { value: "united states", label: "United States (Stripe)", currency: "USD", gateway: 'stripe_connect' },
+  { value: "united kingdom", label: "United Kingdom (Stripe)", currency: "GBP", gateway: 'stripe_connect' },
+  { value: "europe", label: "Europe (Stripe)", currency: "EUR", gateway: 'stripe_connect' },
 ]
 
 const initialBankingForm = {
@@ -176,10 +186,41 @@ export default function PayoutMethodsPage() {
   const hasCompletedBankingDetails = useMemo(() => Boolean(bankingForm.bankName.trim() && bankingForm.accountName.trim() && bankingForm.accountNumber.trim()), [bankingForm])
   const filteredBanks = useMemo(() => banks.filter((bank) => bank.name.toLowerCase().includes(bankSearch.toLowerCase())), [banks, bankSearch])
   const handleSelectCountry = (country: Country) => {
+    const gateway = COUNTRIES.find(c => c.value === country)?.gateway || 'flutterwave'
     setBankingForm((c) => ({ ...c, country, bankName: "", bankCode: "", accountNumber: "" }))
     setCountryDropdownOpen(false)
-    void fetchBanks(country)
+    if (gateway === 'flutterwave') {
+      void fetchBanks(country)
+    }
   }
+
+  const handleStripeConnect = async () => {
+    if (!user?.email) return
+    setBankingSaving(true)
+    try {
+      const res = await fetch("/api/stripe/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: user.email,
+          country: bankingForm.country === 'united kingdom' ? 'GB' : bankingForm.country === 'europe' ? 'DE' : 'US'
+        })
+      })
+      const json = await res.json()
+      if (json.success && json.url) {
+        window.location.href = json.url
+      } else {
+        toast.error(json.error || "Failed to start Stripe onboarding")
+      }
+    } catch {
+      toast.error("An error occurred")
+    } finally {
+      setBankingSaving(false)
+    }
+  }
+
+  const selectedCountry = COUNTRIES.find(c => c.value === bankingForm.country)
+  const isStripeCountry = selectedCountry?.gateway === 'stripe_connect'
 
   const handleSaveBankingDetails = async () => {
     if (!user?.uid) return
@@ -253,7 +294,7 @@ export default function PayoutMethodsPage() {
                     {COUNTRIES.find(c => c.value === bankingForm.country)?.label} <ChevronDown className="h-4 w-4 opacity-40" />
                   </button>
                   {countryDropdownOpen && (
-                    <div className="absolute z-50 mt-1 w-full border bg-popover rounded shadow-lg p-1 text-left">
+                    <div className="absolute z-50 mt-1 w-full border bg-popover rounded shadow-lg p-1 text-left max-h-60 overflow-y-auto">
                       {COUNTRIES.map(c => (
                         <button key={c.value} onClick={() => handleSelectCountry(c.value)} className="w-full text-left px-3 py-2 text-sm rounded hover:bg-accent">{c.label}</button>
                       ))}
@@ -262,40 +303,59 @@ export default function PayoutMethodsPage() {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold opacity-50">{isMobileMoney ? "Provider" : "Bank"}</Label>
-                {manualBankEntry ? (
-                  <Input className="h-10 text-sm" placeholder={isMobileMoney ? "e.g. M-Pesa" : "e.g. GTBank"} value={bankingForm.bankName} onChange={e => setBankingForm({...bankingForm, bankName: e.target.value})} />
-                ) : (
-                  <div className="relative" ref={bankDropdownRef}>
-                    <button onClick={() => setBankDropdownOpen(!bankDropdownOpen)} className="h-10 w-full rounded-md flex items-center justify-between px-3 border bg-background text-sm text-left truncate">
-                      <span className="truncate">{bankingForm.bankName || "Select"}</span> <ChevronDown className="h-4 w-4 opacity-40" />
-                    </button>
-                    {bankDropdownOpen && (
-                      <div className="absolute z-50 mt-1 w-full border bg-popover rounded shadow-xl p-1 text-left">
-                        <div className="flex items-center px-3 py-2 border-b mb-1"><Search className="h-4 w-4 opacity-30" /><input autoFocus className="h-8 w-full bg-transparent pl-2 text-xs outline-none" placeholder="Search..." value={bankSearch} onChange={e => setBankSearch(e.target.value)} /></div>
-                        <div className="max-h-52 overflow-y-auto">
-                          {filteredBanks.map(b => <button key={b.code} onClick={() => { setBankingForm({...bankingForm, bankName: b.name}); setBankDropdownOpen(false) }} className="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-accent truncate">{b.name}</button>)}
-                        </div>
+              {isStripeCountry ? (
+                <div className="col-span-2 p-6 border border-dashed rounded-lg flex flex-col items-center justify-center text-center space-y-4 bg-primary/5">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm">Stripe Connect</h4>
+                    <p className="text-xs text-muted-foreground max-w-[280px]">Accept payments in USD/EUR/GBP and get paid directly to your bank account via Stripe.</p>
+                  </div>
+                  <Button size="sm" className="font-bold" onClick={handleStripeConnect} disabled={bankingSaving}>
+                    {bankingSaving ? "Redirecting..." : "Connect with Stripe"}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold opacity-50">{isMobileMoney ? "Provider" : "Bank"}</Label>
+                    {manualBankEntry ? (
+                      <Input className="h-10 text-sm" placeholder={isMobileMoney ? "e.g. M-Pesa" : "e.g. GTBank"} value={bankingForm.bankName} onChange={e => setBankingForm({...bankingForm, bankName: e.target.value})} />
+                    ) : (
+                      <div className="relative" ref={bankDropdownRef}>
+                        <button onClick={() => setBankDropdownOpen(!bankDropdownOpen)} className="h-10 w-full rounded-md flex items-center justify-between px-3 border bg-background text-sm text-left truncate">
+                          <span className="truncate">{bankingForm.bankName || "Select"}</span> <ChevronDown className="h-4 w-4 opacity-40" />
+                        </button>
+                        {bankDropdownOpen && (
+                          <div className="absolute z-50 mt-1 w-full border bg-popover rounded shadow-xl p-1 text-left">
+                            <div className="flex items-center px-3 py-2 border-b mb-1"><Search className="h-4 w-4 opacity-30" /><input autoFocus className="h-8 w-full bg-transparent pl-2 text-xs outline-none" placeholder="Search..." value={bankSearch} onChange={e => setBankSearch(e.target.value)} /></div>
+                            <div className="max-h-52 overflow-y-auto">
+                              {filteredBanks.map(b => <button key={b.code} onClick={() => { setBankingForm({...bankingForm, bankName: b.name}); setBankDropdownOpen(false) }} className="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-accent truncate">{b.name}</button>)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold opacity-50">Account Name</Label>
-                <Input className="h-10 text-sm" value={bankingForm.accountName} onChange={e => setBankingForm({...bankingForm, accountName: e.target.value})} />
-              </div>
-              <div className="col-span-2 space-y-2">
-                <Label className="text-[10px] uppercase font-bold opacity-50">Account Number</Label>
-                <Input className="h-10 text-sm" value={bankingForm.accountNumber} onChange={e => setBankingForm({...bankingForm, accountNumber: e.target.value})} />
-              </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold opacity-50">Account Name</Label>
+                    <Input className="h-10 text-sm" value={bankingForm.accountName} onChange={e => setBankingForm({...bankingForm, accountName: e.target.value})} />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold opacity-50">Account Number</Label>
+                    <Input className="h-10 text-sm" value={bankingForm.accountNumber} onChange={e => setBankingForm({...bankingForm, accountNumber: e.target.value})} />
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button size="sm" className="h-9 px-6 font-bold" onClick={handleSaveBankingDetails} disabled={bankingSaving}>{bankingSaving? "Saving..." : "Save Account"}</Button>
-              <Button size="sm" variant="ghost" className="h-9 px-4 font-bold" onClick={() => { setAddingNew(false); setEditingId(null) }}>Cancel</Button>
-            </div>
+            {!isStripeCountry && (
+              <div className="flex gap-2">
+                <Button size="sm" className="h-9 px-6 font-bold" onClick={handleSaveBankingDetails} disabled={bankingSaving}>{bankingSaving? "Saving..." : "Save Account"}</Button>
+                <Button size="sm" variant="ghost" className="h-9 px-4 font-bold" onClick={() => { setAddingNew(false); setEditingId(null) }}>Cancel</Button>
+              </div>
+            )}
           </div>
         )}
       </section>

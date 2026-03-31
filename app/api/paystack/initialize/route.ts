@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PaystackService } from '@/services/paystackService';
+import { PaymentGatewayService } from '@/services/paymentGatewayService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,16 +9,8 @@ export async function POST(request: NextRequest) {
       currency,
       productId,
       productName,
-      customerName,
-      customerPhone,
-      orderNote,
-      channels,
-      sellerId,
-      affiliate,
-      couponDiscount,
-      customCharge,
-      variation,
       slug,
+      metadata = {},
     } = await request.json();
 
     if (!email || typeof email !== 'string') {
@@ -33,34 +25,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
     }
 
-    const normalizedSlug = typeof slug === 'string' && slug.trim() ? slug.trim() : '';
-    const callbackPath = normalizedSlug
-      ? `/${normalizedSlug}/product/${productId}/confirmation`
-      : `/product/${productId}/confirmation`;
-
-    const callbackUrl = new URL(callbackPath, request.nextUrl.origin);
-
-    const initialization = await PaystackService.initializeTransaction({
+    const initialization = await PaymentGatewayService.initializeCheckout({
       email,
-      amount: PaystackService.convertToKobo(amount, currency || 'NGN'),
-      currency: currency || 'NGN',
-      callback_url: callbackUrl.toString(),
-      channels: Array.isArray(channels) ? channels : undefined,
+      amount,
+      currency: currency || 'USD',
+      productId,
+      productName: productName || 'Product',
+      slug: slug || '',
+      hostname: request.nextUrl.host,
       metadata: {
-        product_id: productId,
-        product_name: productName || 'Product',
-        customer_name: customerName || '',
-        customer_phone: customerPhone || '',
-        order_note: orderNote || '',
-        seller_id: sellerId || '',
-        coupon_discount: typeof couponDiscount === 'number' ? couponDiscount : 0,
-        affiliate: affiliate || '',
-        custom_charge: typeof customCharge === 'number' ? customCharge : 0,
-        variation: variation || '',
+        ...metadata,
+        productId,
       },
     });
 
-    if (!initialization.status || !initialization.data?.authorization_url) {
+    if (!initialization.status) {
       return NextResponse.json(
         {
           success: false,
@@ -70,13 +49,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Return the authorization URL (Stripe Checkout or Flutterwave Payment Link)
     return NextResponse.json({
       success: true,
-      authorizationUrl: initialization.data.authorization_url,
-      reference: initialization.data.reference,
+      authorizationUrl: initialization.url || initialization.link,
+      id: initialization.id, // For Stripe
     });
   } catch (error) {
-    console.error('Paystack initialize route error:', error);
+    console.error('Checkout initialize route error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to initialize transaction' },
       { status: 500 }

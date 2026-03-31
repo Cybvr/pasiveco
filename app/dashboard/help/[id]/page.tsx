@@ -1,19 +1,18 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, BookText } from 'lucide-react'
-import { getHelpDocById, getHelpDocs, getRelatedHelpDocs } from '@/lib/help-docs'
+import { getHelpDocById, getHelpDocs } from '@/lib/help-docs'
 
 export function generateStaticParams() {
   return getHelpDocs().map((doc) => ({ id: doc.id }))
 }
 
 export default async function HelpDocDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const docs = getHelpDocs()
   const { id } = await params
   const doc = getHelpDocById(id)
 
   if (!doc) notFound()
-
-  const relatedDocs = getRelatedHelpDocs(doc.id)
 
   return (
     <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[180px_minmax(0,1fr)_220px]">
@@ -116,20 +115,26 @@ export default async function HelpDocDetailPage({ params }: { params: Promise<{ 
         <div className="sticky top-24 space-y-4">
           <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             <BookText className="h-3.5 w-3.5" />
-            Related
+            Table of Contents
           </div>
           <div className="space-y-px">
-            {relatedDocs.map((relatedDoc) => (
+            {docs.map((helpDoc) => (
               <Link
-                key={relatedDoc.id}
-                href={`/dashboard/help/${relatedDoc.id}`}
-                className="group flex items-start justify-between gap-2 py-3 text-sm transition-colors hover:text-primary"
+                key={helpDoc.id}
+                href={`/dashboard/help/${helpDoc.id}`}
+                className={`group flex items-start justify-between gap-2 py-3 text-sm transition-colors hover:text-primary ${
+                  helpDoc.id === doc.id ? 'text-foreground' : ''
+                }`}
               >
                 <div className="min-w-0 space-y-0.5">
-                  <p className="font-medium leading-snug">{relatedDoc.title}</p>
-                  <p className="text-xs text-muted-foreground">{relatedDoc.readTime}</p>
+                  <p className="font-medium leading-snug">{helpDoc.title}</p>
+                  <p className="text-xs text-muted-foreground">{helpDoc.readTime}</p>
                 </div>
-                <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                <ArrowRight
+                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary ${
+                    helpDoc.id === doc.id ? 'text-primary' : ''
+                  }`}
+                />
               </Link>
             ))}
           </div>

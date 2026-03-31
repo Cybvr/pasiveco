@@ -1,78 +1,101 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PaystackService } from '@/services/paystackService';
+import { StripeService } from '@/services/stripeService';
+import { FlutterwaveService } from '@/services/flutterwaveService';
 import { createTransaction } from '@/services/transactionsService';
 
 export async function POST(request: NextRequest) {
   try {
-    const { reference } = await request.json();
+    const { reference, transactionId } = await request.json();
 
-    if (!reference || typeof reference !== 'string') {
-      return NextResponse.json({ error: 'Reference is required' }, { status: 400 });
+    if (!reference && !transactionId) {
+      return NextResponse.json({ error: 'Reference or Transaction ID is required' }, { status: 400 });
     }
 
-    if (reference.startsWith('PROTOTYPE-')) {
+    // Handle Prototype mode
+    if (reference?.startsWith('PROTOTYPE-')) {
       return NextResponse.json({
         success: true,
         message: 'PROTOTYPE: Transaction simulated successfully',
-        transaction: {
-          status: 'success',
-          amount: 1000,
-          currency: 'NGN',
-          reference: reference,
-          customer: { email: 'prototype@example.com' },
-          metadata: {}
-        },
+        transaction: { status: 'success', reference },
       });
     }
 
-    const verification = await PaystackService.verifyTransaction(reference);
+    let verification: any;
+    let gateway: 'stripe' | 'flutterwave' | null = null;
+
+    if (reference?.startsWith('cs_')) {
+      // Stripe Checkout Session
+      gateway = 'stripe';
+      verification = await StripeService.verifySession(reference);
+    } else if (transactionId || reference?.startsWith('flw_')) {
+      // Flutterwave
+      gateway = 'flutterwave';
+      verification = await FlutterwaveService.verifyPayment(transactionId || reference);
+    } else {
+      return NextResponse.json({ error: 'Unsupported reference format' }, { status: 400 });
+    }
 
     if (!verification.status || !verification.data) {
       return NextResponse.json(
-        {
-          success: false,
-          message: verification.message || 'Unable to verify transaction',
-        },
+        { success: false, message: verification.message || 'Unable to verify transaction' },
         { status: 400 }
       );
     }
 
-    const transaction = verification.data;
-    const amount = transaction.amount || 0;
+    const data = verification.data;
+    let status = '';
+    let amount = 0;
+    let currency = '';
+    let metadata: any = {};
+    let customerEmail = '';
 
-    if (transaction.status === 'success') {
+    if (gateway === 'stripe') {
+      status = data.payment_status === 'paid' ? 'success' : 'failed';
+      amount = (data.amount_total || 0) / 100;
+      currency = (data.currency || 'USD').toUpperCase();
+      metadata = data.metadata || {};
+      customerEmail = data.customer_email || '';
+    } else {
+      status = data.status === 'successful' ? 'success' : 'failed';
+      amount = data.amount || 0;
+      currency = (data.currency || 'USD').toUpperCase();
+      metadata = data.meta || {};
+      customerEmail = data.customer?.email || '';
+    }
+
+    if (status === 'success') {
       try {
         await createTransaction({
-          sellerId: transaction.metadata?.seller_id || '',
-          productId: transaction.metadata?.product_id || '',
-          productName: transaction.metadata?.product_name || 'Product',
-          customerName: transaction.metadata?.customer_name || '',
-          customerEmail: transaction.customer?.email || '',
-          customerPhone: transaction.metadata?.customer_phone || '',
-          reference: transaction.reference,
-          amount: amount / 100, // Convert from kobo
-          currency: transaction.currency || 'NGN',
-          couponDiscount: transaction.metadata?.coupon_discount || 0,
-          affiliate: transaction.metadata?.affiliate || '',
-          yourProfit: (amount / 100) * 0.9, // Provisional profit (e.g. 90%)
-          customCharge: transaction.metadata?.custom_charge || 0,
+          sellerId: metadata.seller_id || metadata.sellerId || '',
+          productId: metadata.product_id || metadata.productId || '',
+          productName: metadata.product_name || metadata.productName || 'Product',
+          customerName: metadata.customer_name || metadata.customerName || '',
+          customerEmail: customerEmail,
+          customerPhone: metadata.customer_phone || metadata.customerPhone || '',
+          reference: reference || transactionId,
+          amount: amount,
+          currency: currency,
+          couponDiscount: Number(metadata.coupon_discount || metadata.couponDiscount || 0),
+          affiliate: metadata.affiliate || '',
+          yourProfit: amount * 0.9,
+          customCharge: Number(metadata.custom_charge || metadata.customCharge || 0),
           payoutDate: null,
-          variation: transaction.metadata?.variation || '',
+          variation: metadata.variation || '',
           status: 'success'
         });
       } catch (dbError) {
         console.error('Error saving transaction to DB:', dbError);
-        // We still return success to the client because the payment was actually verified
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: verification.message,
-      transaction: verification.data,
+      message: 'Transaction verified',
+      status,
+      data: verification.data,
     });
   } catch (error) {
-    console.error('Paystack verification route error:', error);
+    console.error('Verification route error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to verify transaction' },
       { status: 500 }

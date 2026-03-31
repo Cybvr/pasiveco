@@ -26,7 +26,7 @@ export const HELP_DOCS: HelpDoc[] = [
     id: 'getting-started',
     title: 'Getting started with Pasive',
     summary: 'Set up your creator page, publish your profile, and understand the core areas of the dashboard.',
-    category: 'Basics',
+    category: 'General',
     readTime: '4 min read',
     sections: [
       {
@@ -77,7 +77,7 @@ export const HELP_DOCS: HelpDoc[] = [
     id: 'profile-and-page-setup',
     title: 'Profile and page setup',
     summary: 'Learn how to make your public page clear, trustworthy, and ready for conversion.',
-    category: 'Profile',
+    category: 'General',
     readTime: '5 min read',
     sections: [
       {
@@ -123,7 +123,7 @@ export const HELP_DOCS: HelpDoc[] = [
     id: 'products-and-sales',
     title: 'Products and sales',
     summary: 'Use products to monetize your audience with clear offers, fast fulfillment, and simple follow-through.',
-    category: 'Monetization',
+    category: 'Products',
     readTime: '5 min read',
     sections: [
       {
@@ -162,7 +162,7 @@ export const HELP_DOCS: HelpDoc[] = [
     id: 'analytics-and-growth',
     title: 'Analytics and growth',
     summary: 'Use data from your dashboard to understand which content, offers, and links are performing best.',
-    category: 'Analytics',
+    category: 'Growth',
     readTime: '4 min read',
     sections: [
       {
@@ -196,9 +196,9 @@ export const HELP_DOCS: HelpDoc[] = [
     ],
   },
   {
-    id: 'paystack-integration-overview',
-    title: 'Paystack integration overview',
-    summary: 'Understand how Paystack, Firestore, and webhooks work together for subscriptions, purchases, invoices, and payouts.',
+    id: 'payment-payout-integration',
+    title: 'Payment and payout integration',
+    summary: 'Understand how Stripe, Flutterwave, and webhooks work together for global collections and localized payouts.',
     category: 'Payments',
     readTime: '6 min read',
     sections: [
@@ -206,60 +206,31 @@ export const HELP_DOCS: HelpDoc[] = [
         id: 'how-it-works',
         title: 'How it works',
         paragraphs: [
-          'Paystack handles the money. Firestore handles the state. They work together via webhooks — Paystack tells your backend when money moves, your backend updates Firestore, and your app reads Firestore to control access.',
+          'Pasive uses a multi-layered payment system. Western buyers are routed to Stripe, African buyers are routed to Flutterwave, and webhooks from both providers update Firestore to grant product access or subscription status.',
         ],
       },
       {
-        id: 'creator-subscriptions',
-        title: "User subscribes to another user's page",
+        id: 'collections',
+        title: 'Global collections',
         paragraphs: [
-          "A user pays to subscribe to another user's page. That payment goes through Paystack. Paystack fires a webhook to your backend, which writes the subscription record to Firestore. Every access check in the app reads Firestore — not Paystack.",
+          'When a buyer checks out, we detect their currency/location and route them to the appropriate gateway:',
         ],
         bullets: [
-          'Firestore: subscriptions/{subscriberId} with pageOwnerId, plan, status, expiry',
-        ],
-      },
-      {
-        id: 'platform-plan',
-        title: 'User subscribes to your platform (tiered plan)',
-        paragraphs: [
-          "A user pays for a platform plan such as basic or pro to unlock features like analytics or customization. The mechanic is the same — a Paystack webhook hits your backend, and the backend updates the user's record in Firestore.",
-        ],
-        bullets: [
-          'Firestore: users/{userId} with plan and planExpiry',
-        ],
-      },
-      {
-        id: 'invoices',
-        title: 'Subscription invoices',
-        paragraphs: [
-          'Paystack stores these natively. You hit the Paystack API on demand to fetch and display them. No need to duplicate them in Firestore unless you want offline access or custom formatting.',
-        ],
-        bullets: [
-          'Paystack API: GET /transaction or GET /subscription',
-        ],
-      },
-      {
-        id: 'digital-products',
-        title: 'Who bought a digital product',
-        paragraphs: [
-          'A one-time payment runs through Paystack. The webhook fires, your backend writes the purchase to Firestore, Firestore becomes the access record, and Paystack remains the transaction record.',
-        ],
-        bullets: [
-          'Firestore: purchases/{buyerId} with productId',
+          'Western buyers -> Stripe',
+          'African buyers -> Flutterwave',
+          'Stripe supports USD, EUR, GBP, and similar currencies via card wallets and card payments.',
+          'Flutterwave supports NGN, GHS, KES, ZAR, and similar local currencies via mobile money, bank transfer, and local cards.',
         ],
       },
       {
         id: 'payouts',
-        title: 'User payouts',
+        title: 'Seller payouts',
         paragraphs: [
-          "When someone pays to subscribe to a user's page, that money lands in your Paystack account first — not the user's. Your platform is the middleman.",
-          'You then send the user their cut minus your platform percentage to their bank account. The user should add bank details in the app first. Paystack Transfers handles the bank transfer itself.',
-          'Payouts can be scheduled automatically or triggered manually by the user. In both cases, your platform initiates the payout, Paystack executes it, and Firestore logs the result.',
-        ],
-        bullets: [
-          'Firestore: users/{userId} stores recipientCode created when bank details are saved',
-          'Firestore: payouts/{userId} logs transfer record, status, and amount',
+          "Money flows into Pasive's balance first. We then distribute payouts based on the seller's location:",
+          'Payout to African sellers -> Flutterwave Payouts',
+          'Payout to Western-based African sellers -> Stripe Connect',
+          'African sellers are paid through Flutterwave directly to supported bank accounts or mobile money wallets.',
+          'Western-based African sellers are paid through Stripe Connect and must connect their Stripe account in settings.',
         ],
       },
       {
@@ -268,12 +239,70 @@ export const HELP_DOCS: HelpDoc[] = [
         table: {
           headers: ['Layer', 'Role'],
           rows: [
-            ['Paystack', 'Payment processor and transaction ledger'],
-            ['Firestore', 'Access control database'],
-            ['Webhooks', 'Bridge between Paystack and Firestore'],
+            ['Stripe', 'Western buyer collections and payouts to Western-based African sellers via Stripe Connect'],
+            ['Flutterwave', 'African buyer collections and payouts to African sellers via Flutterwave Payouts'],
+            ['Webhooks', 'Bridge between processors and Firestore'],
           ],
         },
-        note: 'Without the webhook writing to Firestore, Paystack knows money moved but your app does not know to unlock anything. The webhook handler is the most critical piece in the whole system.',
+        note: 'Without webhooks writing to Firestore, our systems would not know when a payment is successful. The webhook handlers for both Stripe and Flutterwave are critical for unlocking product access.',
+      },
+    ],
+  },
+  {
+    id: 'affiliate-network',
+    title: 'Affiliate network guide',
+    summary: 'Learn how the Pasive affiliate network works for affiliates promoting products and merchants listing offers.',
+    category: 'Affiliates',
+    readTime: '5 min read',
+    sections: [
+      {
+        id: 'network-overview',
+        title: 'What the affiliate network is',
+        paragraphs: [
+          'The Pasive Affiliate Network is a marketplace where digital creators and merchants list products for affiliates to discover and promote.',
+          'Affiliates earn a commission on each successful sale made through their unique affiliate link.',
+        ],
+      },
+      {
+        id: 'why-join',
+        title: 'Why affiliates join',
+        bullets: [
+          'Browse a large catalog of digital products ready to promote.',
+          'Choose offers across categories like education, health, finance, and lifestyle.',
+          'Earn commissions set by the product owner, often ranging from 10% to 70%.',
+          'Use the network to start selling without creating your own product first.',
+        ],
+      },
+      {
+        id: 'how-to-join',
+        title: 'How to join the network',
+        bullets: [
+          'Create your Pasive account.',
+          'Subscribe to the affiliate plan to unlock network access.',
+          'Browse products and choose what you want to promote.',
+          'Share your affiliate link and earn when your referrals buy.',
+        ],
+      },
+      {
+        id: 'for-merchants',
+        title: 'How merchants use it',
+        paragraphs: [
+          'Merchants can list their products on the marketplace so affiliates can discover and promote them.',
+          'This gives creators an additional distribution channel and helps products reach more buyers through affiliate referrals.',
+        ],
+        bullets: [
+          'Sign up on Pasive.',
+          'Upload your product.',
+          'List the product on the marketplace for affiliates to promote.',
+        ],
+      },
+      {
+        id: 'affiliate-payouts',
+        title: 'Affiliate commissions and payouts',
+        paragraphs: [
+          'Commission percentages are defined by the merchant for each product. Affiliate earnings are then paid out through Pasive based on the platform withdrawal schedule and payout setup.',
+        ],
+        note: 'If you are promoting products as an affiliate, make sure your payout details are complete so commissions can be released without delay.',
       },
     ],
   },
