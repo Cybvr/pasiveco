@@ -272,9 +272,10 @@ function LoginContent() {
             <div className="inline-flex items-center gap-2 px-3 py-1 border border-zinc-700 text-[10px] uppercase tracking-widest text-zinc-400 rounded-none bg-zinc-950/80 backdrop-blur">
               <Disc className="w-3 h-3 animate-spin duration-3000" /> Authorized Access Only
             </div>
-            <h1 className="text-7xl xl:text-8xl font-black leading-[0.85] tracking-tighter text-zinc-100 uppercase">
-              Identify <br />
-              <span className="italic font-light opacity-50 block mt-2 text-5xl xl:text-6xl">yourself</span>
+            <h1 className="text-6xl xl:text-7xl font-black leading-[0.85] tracking-tighter text-zinc-100 uppercase">
+              Upload it. <br />
+              Set your price. <br />
+              <span className="italic font-light opacity-50 block mt-4 text-4xl xl:text-5xl">Get paid.</span>
             </h1>
           </div>
           

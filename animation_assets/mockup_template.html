@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; padding: 0; background-color: transparent; }
+  .phone-container {
+    position: relative;
+    width: 340px;
+    height: 680px;
+  }
+  .screenshot {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    width: 304px;
+    height: 644px;
+    border-radius: 34px;
+    object-fit: cover;
+    z-index: 1;
+  }
+  .shell {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 340px;
+    height: 680px;
+    z-index: 10;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <div class="phone-container">
+    <img class="screenshot" src="live_app_home_screenshot.png" id="screenshotImg">
+    <img class="shell" src="phone_shell_transparent.svg">
+  </div>
+</body>
+</html>

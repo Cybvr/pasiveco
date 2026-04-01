@@ -1,0 +1,31 @@
+<svg width="400" height="320" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="380" height="300" rx="24" fill="#111827" stroke="#1F2937" stroke-width="2"/>
+  
+  <text x="30" y="55" fill="white" font-family="system-ui, sans-serif" font-size="18" font-weight="600">Recent Customers</text>
+  <text x="330" y="55" fill="#6366F1" font-family="system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="end">View All</text>
+  
+  <!-- Customer 1 -->
+  <circle cx="50" cy="100" r="20" fill="#3B82F6"/>
+  <text x="50" y="105" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">A</text>
+  <text x="85" y="95" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="500">Alex Johnson</text>
+  <text x="85" y="115" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="13">Bought 'UI Components'</text>
+  <text x="350" y="105" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="end">+$89.00</text>
+
+  <path d="M30 140 L370 140" stroke="#1F2937" stroke-width="1"/>
+
+  <!-- Customer 2 -->
+  <circle cx="50" cy="180" r="20" fill="#10B981"/>
+  <text x="50" y="185" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">S</text>
+  <text x="85" y="175" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="500">Sarah Williams</text>
+  <text x="85" y="195" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="13">Bought 'E-Book Basics'</text>
+  <text x="350" y="185" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="end">+$49.00</text>
+
+  <path d="M30 220 L370 220" stroke="#1F2937" stroke-width="1"/>
+
+  <!-- Customer 3 -->
+  <circle cx="50" cy="260" r="20" fill="#F59E0B"/>
+  <text x="50" y="265" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">M</text>
+  <text x="85" y="255" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="500">Michael Chen</text>
+  <text x="85" y="275" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="13">Subscribed to Pro Tier</text>
+  <text x="350" y="265" fill="white" font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="end">+$29.00/mo</text>
+</svg>

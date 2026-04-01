@@ -42,7 +42,7 @@ const Footer = () => {
             </div>
 
             <p className="text-lg leading-relaxed text-foreground/80">
-              Sell digital products, run memberships, grow your email list, and manage brand deals from one home base.
+              The best way to sell digital products online.
             </p>
 
             <div className="space-y-3">

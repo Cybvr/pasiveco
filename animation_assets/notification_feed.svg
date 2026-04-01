@@ -1,0 +1,28 @@
+<svg width="350" height="280" viewBox="0 0 350 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Soft shadow drop down -->
+  <rect x="10" y="10" width="330" height="260" rx="16" fill="#1F2937" stroke="#374151" stroke-width="1" style="filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.5));"/>
+  
+  <text x="30" y="45" fill="white" font-family="system-ui, sans-serif" font-size="16" font-weight="600">Notifications</text>
+  <rect x="290" y="25" width="30" height="20" rx="10" fill="#EF4444"/>
+  <text x="305" y="40" fill="white" font-family="system-ui, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">3</text>
+
+  <!-- Notification 1 -->
+  <rect x="30" y="70" width="40" height="40" rx="10" fill="#10B981" fill-opacity="0.1"/>
+  <!-- Green dot indicator -->
+  <circle cx="50" cy="90" r="5" fill="#10B981"/>
+  <text x="85" y="85" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="500">New Sale: Pro Plan</text>
+  <text x="85" y="105" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="12">Just now • +$129.00</text>
+
+  <!-- Notification 2 -->
+  <rect x="30" y="135" width="40" height="40" rx="10" fill="#3B82F6" fill-opacity="0.1"/>
+  <!-- Blue pulse indicator -->
+  <circle cx="50" cy="155" r="5" fill="#3B82F6"/>
+  <text x="85" y="150" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="500">Withdrawal Success</text>
+  <text x="85" y="170" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="12">2 hours ago • Bank ending 4492</text>
+
+  <!-- Notification 3 -->
+  <rect x="30" y="200" width="40" height="40" rx="10" fill="#8B5CF6" fill-opacity="0.1"/>
+  <circle cx="50" cy="220" r="5" fill="#8B5CF6"/>
+  <text x="85" y="215" fill="white" font-family="system-ui, sans-serif" font-size="14" font-weight="500">New Community Member</text>
+  <text x="85" y="235" fill="#9CA3AF" font-family="system-ui, sans-serif" font-size="12">5 hours ago • UI/UX Masters</text>
+</svg>

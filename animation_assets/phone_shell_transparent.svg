@@ -1,0 +1,28 @@
+<svg width="340" height="680" viewBox="0 0 340 680" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Bezel / Phone Body -->
+  <rect x="5" y="5" width="330" height="670" rx="46" fill="#1F2937" stroke="#374151" stroke-width="4" style="filter: drop-shadow(0px 20px 25px rgba(0,0,0,0.5));"/>
+  
+  <!-- Outer Frame Highlight -->
+  <rect x="7" y="7" width="326" height="666" rx="44" stroke="white" stroke-opacity="0.1" stroke-width="2"/>
+  
+  <!-- Black Inner Border -->
+  <rect x="12" y="12" width="316" height="656" rx="40" fill="black"/>
+  
+  <!-- TRANSPARENT SCREEN AREA -->
+  <!-- Video editors will see right through this part -->
+  <rect x="18" y="18" width="304" height="644" rx="34" fill="none"/>
+  
+  <!-- Dynamic Island -->
+  <rect x="105" y="28" width="130" height="30" rx="15" fill="black"/>
+  <!-- Camera lens reflection on island -->
+  <circle cx="215" cy="43" r="5" fill="#111827"/>
+  <circle cx="215" cy="43" r="2" fill="#3B82F6" fill-opacity="0.3"/>
+  <circle cx="125" cy="43" r="5" fill="#111827"/>
+  
+  <!-- Side Buttons -->
+  <rect x="2" y="150" width="3" height="30" rx="1.5" fill="#374151"/>
+  <rect x="2" y="200" width="3" height="60" rx="1.5" fill="#374151"/>
+  <rect x="2" y="280" width="3" height="60" rx="1.5" fill="#374151"/>
+  <!-- Power Button -->
+  <rect x="335" y="220" width="3" height="80" rx="1.5" fill="#374151"/>
+</svg>
