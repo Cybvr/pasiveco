@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
+import AdminHeader from "./components/header"
 import { useAuth } from "@/context/AuthContext"
 import { getUser } from "@/services/userService"
 
@@ -120,9 +121,9 @@ export default function AdminLayout({
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
-          <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
-            <div className="flex h-16 items-center justify-between px-4 md:px-6">
-              <div className="flex items-center gap-3">
+          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
+            <AdminHeader
+              mobileNav={
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden">
@@ -161,12 +162,9 @@ export default function AdminLayout({
                     </nav>
                   </SheetContent>
                 </Sheet>
-                <h1 className="text-sm font-medium text-muted-foreground">Admin Console</h1>
-              </div>
-
-              <div className="hidden text-sm text-muted-foreground md:block">Manage users and content</div>
-            </div>
-          </header>
+              }
+            />
+          </div>
 
           <main className="flex-1 overflow-x-hidden p-4 md:p-6">
             <div className="mx-auto w-full max-w-full min-w-0">{children}</div>

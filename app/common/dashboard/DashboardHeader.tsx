@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Bell, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap } from 'lucide-react'
+import { ArrowLeft, BarChart, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -13,9 +13,7 @@ import { getUser } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import { LucideIcon } from 'lucide-react'
 import Image from 'next/image'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import NotificationsList, { DASHBOARD_NOTIFICATIONS } from './NotificationsList'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import NotificationsDialog from './NotificationsDialog'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
@@ -57,11 +55,9 @@ export default function DashboardHeader() {
   const router = useRouter()
   const { user } = useAuth()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [profilePicture, setProfilePicture] = useState<string>('')
   const [displayName, setDisplayName] = useState<string>('Creator')
   const [profileHandle, setProfileHandle] = useState<string>('')
-  const unreadNotifications = DASHBOARD_NOTIFICATIONS.filter((item) => item.status === 'new').length
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -157,49 +153,7 @@ export default function DashboardHeader() {
             </Link>
           ) : null}
 
-          <Dialog open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" aria-label="Open notifications">
-                <Bell className="h-4 w-4" />
-                {unreadNotifications > 0 ? (
-                  <span className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
-                ) : null}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="overflow-hidden flex max-h-[min(85vh,540px)] flex-col gap-0 p-0 sm:max-w-[400px]">
-              <DialogHeader className="flex flex-row items-center justify-between border-b px-4 py-3 pr-10 space-y-0">
-                <DialogTitle className="text-sm font-semibold text-foreground/90">Notifications</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className="flex-1">
-                <NotificationsList />
-              </ScrollArea>
-              <div className="flex items-center gap-2 border-t p-2 bg-muted/20">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="flex-1 h-9 text-xs font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => {
-                    setIsNotificationsOpen(false)
-                    router.push('/dashboard/notifications')
-                  }}
-                >
-                  View all
-                </Button>
-                {unreadNotifications > 0 && (
-                  <>
-                    <div className="h-4 w-[1px] bg-border/60" />
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="flex-1 h-9 text-xs font-semibold text-primary hover:text-primary/80 hover:bg-primary/5"
-                    >
-                      Mark all read
-                    </Button>
-                  </>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <NotificationsDialog audience="creator" viewAllHref="/dashboard/notifications" />
 
           {showSaveButton ? (
             <Button type="button" size="sm" className="gap-2" onClick={handleSaveEditProfile}>
