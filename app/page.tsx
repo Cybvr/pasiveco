@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import AIOnboardingSticky from "@/app/common/website/AIOnboardingSticky"
+import CurrencyPayoutSection from "@/app/common/website/CurrencyPayoutSection"
+import { getUserCount } from "@/services/userService"
 
 const TESTIMONIALS = [
   {
@@ -46,6 +48,17 @@ const TESTIMONIALS = [
 export default function LandingPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const [userCount, setUserCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      const count = await getUserCount()
+      setUserCount(count)
+    }
+    fetchUserCount()
+  }, [])
+
+  const displayCount = userCount !== null ? (userCount >= 1000 ? `${(userCount / 1000).toFixed(1)}k+` : userCount) : '...'
 
   useEffect(() => {
     if (!loading && user) {
@@ -91,6 +104,7 @@ export default function LandingPage() {
                   How it works
                 </Button>
               </div>
+              <p className="text-xs uppercase tracking-widest font-mono opacity-50">Join {displayCount} creators building their house on Pasive</p>
             </div>
 
             <div className="hidden lg:block text-xs uppercase tracking-[0.3em] font-mono opacity-50 space-y-1">
@@ -247,6 +261,8 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <CurrencyPayoutSection />
+
       {/* ── Testimonials ── */}
       <section className="px-6 py-32 bg-background border-b border-border">
         <div className="max-w-7xl mx-auto space-y-20">
@@ -278,7 +294,7 @@ export default function LandingPage() {
             <Button size="lg" className="bg-background text-foreground hover:bg-background/90 h-16 px-12 text-xl font-bold">
               Get Started Now
             </Button>
-            <span className="text-lg opacity-60">Join 100+ creators today</span>
+            <span className="text-lg opacity-60">Join {displayCount} creators today</span>
           </div>
         </div>
         {/* Decorative elements */}

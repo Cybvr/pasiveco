@@ -123,3 +123,14 @@
 .animate-shake {
   animation: shake 0.5s ease-in-out;
 }
+
+/* Visually hide React/Next.js Dev Errors and Indicators */
+[data-nextjs-dialog-overlay],
+[data-nextjs-toast],
+[data-nextjs-hydration-error-dialog],
+.nextjs-static-indicator-root,
+#NEXT_ERROR_OVERLAY_BAR_ID {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { motion } from "framer-motion"
-import { Sparkles, Loader2, Wand2, ShoppingBag, User as UserIcon, CheckCircle2, Lock, Mail } from "lucide-react"
+import { Sparkles, Loader2, Wand2, User as UserIcon, CheckCircle2, Lock, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
@@ -29,18 +29,9 @@ const AIOnboardingSticky = () => {
 
   const handleGenerate = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!nameValue.trim()) {
-      toast.error("Please tell us your name!");
-      return;
-    }
-    if (!isValidPopularEmail) {
-      toast.error("Please provide a valid personal email (like Gmail or Yahoo) to continue!");
-      return;
-    }
-    if (!whatIDo.trim()) {
-      toast.error("Tell us a bit more about what you do so I can design your brand!");
-      return;
-    }
+    if (!nameValue.trim()) { toast.error("Please tell us your name!"); return; }
+    if (!isValidPopularEmail) { toast.error("Please provide a valid personal email (like Gmail or Yahoo) to continue!"); return; }
+    if (!whatIDo.trim()) { toast.error("Tell us a bit more about what you do so I can design your brand!"); return; }
 
     setIsGenerating(true)
     const combinedInput = `My name is ${nameValue}, my email is ${emailValue}, and I ${whatIDo}`;
@@ -66,7 +57,7 @@ const AIOnboardingSticky = () => {
     const email = user.email;
 
     const userData = {
-      email: email,
+      email,
       createdAt: new Date(),
       updatedAt: new Date(),
       plan: 'free',
@@ -114,10 +105,7 @@ const AIOnboardingSticky = () => {
   }
 
   const handleEmailSignup = async () => {
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters")
-      return
-    }
+    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
     setIsSigningUp(true)
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, emailValue, password)
@@ -151,51 +139,67 @@ const AIOnboardingSticky = () => {
 
   return (
     <>
-      <div className="fixed bottom-8 left-0 right-0 z-50 px-6 flex justify-center pointer-events-none">
+      {/* Sticky bar */}
+      <div className="fixed bottom-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
         <motion.div
-          initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
           className="w-full max-w-3xl pointer-events-auto"
         >
-          <div className="bg-background/90 backdrop-blur-3xl border border-border/50 shadow-2xl rounded-2xl p-4 md:p-3 flex flex-col md:flex-row items-stretch md:items-center gap-4 transition-all">
-            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-y-3 md:gap-x-2 text-sm md:text-base font-medium text-foreground/90 pl-1">
-              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-1">
-                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">Hi my name is</span>
+          <div className="bg-background/90 backdrop-blur-3xl border border-border/50 shadow-2xl rounded-2xl px-4 py-3 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+
+            {/* Fields row */}
+            <div className="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+
+              {/* Name */}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="whitespace-nowrap italic opacity-50 text-xs shrink-0">Hi, I'm</span>
                 <input
-                  type="text" value={nameValue}
+                  type="text"
+                  value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   placeholder="David"
-                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full md:w-24 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
+                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1 w-full md:w-24 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
                 />
               </div>
 
-              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-1">
-                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">here's my email</span>
-                <div className="relative flex items-center w-full md:w-auto">
+              {/* Email */}
+              <div className="flex items-center gap-2 flex-1">
+                <span className="whitespace-nowrap italic opacity-50 text-xs shrink-0">email</span>
+                <div className="relative flex items-center flex-1">
                   <input
-                    type="email" value={emailValue}
+                    type="email"
+                    value={emailValue}
                     onChange={(e) => setEmailValue(e.target.value)}
                     placeholder="david@gmail.com"
-                    className={`bg-muted/40 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full md:w-48 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm ${isValidPopularEmail ? 'border-green-500/50 text-green-600' : ''}`}
+                    className={`bg-muted/40 border-b border-border/50 focus:border-primary outline-none px-2 py-1 w-full md:w-64 transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm pr-6 ${isValidPopularEmail ? 'border-green-500/50 text-green-600' : ''}`}
                   />
-                  {isValidPopularEmail && <CheckCircle2 className="absolute right-2 w-3.5 h-3.5 text-green-500 shrink-0" />}
+                  {isValidPopularEmail && <CheckCircle2 className="absolute right-1.5 w-3.5 h-3.5 text-green-500 shrink-0" />}
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row md:items-center gap-1.5 flex-[2]">
-                <span className="whitespace-nowrap italic opacity-60 text-xs md:text-sm">and I</span>
+              {/* What I do */}
+              <div className="flex items-center gap-2 flex-[2]">
+                <span className="whitespace-nowrap italic opacity-50 text-xs shrink-0">and I</span>
                 <input
-                  type="text" value={whatIDo}
+                  type="text"
+                  value={whatIDo}
                   onChange={(e) => setWhatIDo(e.target.value)}
                   placeholder="teach fitness..."
-                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1.5 md:py-0.5 w-full transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
+                  className="bg-muted/40 hover:bg-muted/60 border-b border-border/50 focus:border-primary outline-none px-2 py-1 w-full transition-colors placeholder:text-muted-foreground/30 text-foreground rounded-md text-sm"
                 />
               </div>
             </div>
+
+            {/* CTA */}
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || !nameValue.trim() || !isValidPopularEmail || !whatIDo.trim()}
-              className={`rounded-xl px-8 h-12 md:h-10 transition-all font-bold text-sm gap-2 shadow-md ${nameValue.trim() && isValidPopularEmail && whatIDo.trim() ? "bg-primary text-primary-foreground scale-[1.02] md:scale-105" : "bg-muted text-muted-foreground opacity-50"}`}
+              className={`rounded-xl px-6 h-10 shrink-0 transition-all font-bold text-sm gap-2 shadow-md ${nameValue.trim() && isValidPopularEmail && whatIDo.trim()
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground opacity-50"
+                }`}
             >
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
               Start Selling
@@ -204,25 +208,31 @@ const AIOnboardingSticky = () => {
         </motion.div>
       </div>
 
+      {/* Result dialog */}
       <Dialog open={showResult} onOpenChange={setShowResult}>
         <DialogContent className="max-w-3xl gap-0 p-0 overflow-hidden border-none shadow-3xl bg-background rounded-3xl">
           <div className="max-h-[85vh] overflow-y-auto">
+
+            {/* Hero banner */}
             <div className="relative h-44 bg-muted overflow-hidden">
-               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-               <div className="absolute bottom-4 left-6 flex items-end gap-4">
-                  <div className="w-20 h-20 rounded-2xl bg-background border-4 border-background shadow-lg flex items-center justify-center text-primary">
-                    <UserIcon className="w-10 h-10" />
-                  </div>
-                  <div className="pb-1 space-y-0.5">
-                    <h2 className="text-xl font-bold">{aiData?.profile?.name}</h2>
-                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[9px] uppercase font-bold tracking-wider">
-                      {aiData?.profile?.category}
-                    </Badge>
-                  </div>
-               </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
+              <div className="absolute bottom-4 left-6 flex items-end gap-4">
+                <div className="w-20 h-20 rounded-2xl bg-background border-4 border-background shadow-lg flex items-center justify-center text-primary">
+                  <UserIcon className="w-10 h-10" />
+                </div>
+                <div className="pb-1 space-y-0.5">
+                  <h2 className="text-xl font-bold">{aiData?.profile?.name}</h2>
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[9px] uppercase font-bold tracking-wider">
+                    {aiData?.profile?.category}
+                  </Badge>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 pt-4 space-y-6">
+            {/* Body */}
+            <div className="p-6 space-y-6">
+
+              {/* Profile + products */}
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">The Vision</h3>
@@ -232,7 +242,7 @@ const AIOnboardingSticky = () => {
                   <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Products</h3>
                   <div className="space-y-1.5">
                     {aiData?.products?.slice(0, 3).map((p: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between text-xs p-2 rounded-lg bg-muted/30 border border-border/50">
+                      <div key={i} className="flex items-center justify-between text-xs p-2.5 rounded-lg bg-muted/30 border border-border/50">
                         <span className="font-bold truncate max-w-[150px]">{p.name}</span>
                         <span className="font-black">₦{Number(p.price).toLocaleString()}</span>
                       </div>
@@ -241,7 +251,8 @@ const AIOnboardingSticky = () => {
                 </div>
               </div>
 
-              <div className="bg-muted/20 p-6 rounded-3xl border border-border/50 space-y-4">
+              {/* Claim account */}
+              <div className="bg-muted/20 rounded-2xl border border-border/50 p-5 space-y-4">
                 <div className="text-center space-y-1">
                   <h3 className="text-lg font-bold">Claim Your House</h3>
                   <p className="text-xs text-muted-foreground">Setup your account to start selling these products.</p>
@@ -251,34 +262,47 @@ const AIOnboardingSticky = () => {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="flex-1 relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input value={emailValue} className="pl-10 h-12 rounded-xl bg-background pointer-events-none opacity-60" readOnly />
+                      <Input
+                        value={emailValue}
+                        className="pl-10 h-11 rounded-xl bg-background pointer-events-none opacity-60"
+                        readOnly
+                      />
                     </div>
                     <div className="flex-1 relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input 
-                        type="password" placeholder="Create Password" value={password} 
+                      <Input
+                        type="password"
+                        placeholder="Create Password"
+                        value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 h-12 rounded-xl bg-background" 
+                        className="pl-10 h-11 rounded-xl bg-background"
                       />
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={handleEmailSignup} disabled={isSigningUp || password.length < 6}
-                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-lg hover:scale-[1.01] transition-all"
+                  <Button
+                    onClick={handleEmailSignup}
+                    disabled={isSigningUp || password.length < 6}
+                    className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-lg hover:scale-[1.01] transition-all"
                   >
                     {isSigningUp ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
                     Start Selling Now
                   </Button>
 
                   <div className="relative">
-                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
-                    <div className="relative flex justify-center text-[10px] uppercase font-bold"><span className="bg-background px-2 text-muted-foreground">Or</span></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border/50" />
+                    </div>
+                    <div className="relative flex justify-center text-[10px] uppercase font-bold">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
                   </div>
 
-                  <Button 
-                    variant="outline" onClick={handleGoogleSignup} disabled={isSigningUp}
-                    className="w-full h-12 rounded-xl border-border hover:bg-muted/50 transition-all font-bold"
+                  <Button
+                    variant="outline"
+                    onClick={handleGoogleSignup}
+                    disabled={isSigningUp}
+                    className="w-full h-11 rounded-xl border-border hover:bg-muted/50 transition-all font-bold"
                   >
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4 mr-2" alt="Google" />
                     Sign up with Google

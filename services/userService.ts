@@ -12,6 +12,7 @@ import {
   where,
   orderBy,
   Timestamp,
+  getCountFromServer,
 } from 'firebase/firestore';
 
 export interface UserLink {
@@ -282,5 +283,15 @@ export const deleteUser = async (userId: string) => {
   } catch (error) {
     console.error('Error deleting user:', error);
     throw error;
+  }
+};
+
+export const getUserCount = async (): Promise<number> => {
+  try {
+    const snapshot = await getCountFromServer(usersCollection);
+    return snapshot.data().count;
+  } catch (error) {
+    console.error('Error fetching user count:', error);
+    return 0; // Return 0 as fallback
   }
 };
