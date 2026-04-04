@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PaymentGatewayService } from '@/services/paymentGatewayService';
+import { StripeService } from '@/services/stripeService';
 
 export async function POST(request: NextRequest) {
   try {
     const {
+      userId,
       email,
       amount,
       currency,
@@ -25,6 +27,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
     }
 
+    let customerId: string | null = null;
+
+    if (userId && typeof userId === 'string' && currency && ['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(String(currency).toUpperCase())) {
+      customerId = await StripeService.ensureCustomer({ userId, email });
+    }
+
     const initialization = await PaymentGatewayService.initializeCheckout({
       email,
       amount,
@@ -33,6 +41,7 @@ export async function POST(request: NextRequest) {
       productName: productName || 'Product',
       slug: slug || '',
       hostname: request.nextUrl.host,
+      customerId,
       metadata: {
         ...metadata,
         productId,
@@ -50,10 +59,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Return the authorization URL (Stripe Checkout or Flutterwave Payment Link)
+    const authorizationUrl =
+      'url' in initialization
+        ? initialization.url
+        : 'link' in initialization
+          ? initialization.link
+          : undefined;
+
+    const initializationId = 'id' in initialization ? initialization.id : undefined;
+
     return NextResponse.json({
       success: true,
-      authorizationUrl: initialization.url || initialization.link,
-      id: initialization.id, // For Stripe
+      authorizationUrl,
+      id: initializationId,
     });
   } catch (error) {
     console.error('Checkout initialize route error:', error);

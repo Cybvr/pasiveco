@@ -128,6 +128,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ id: string;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: user.uid,
           email: buyerEmail,
           amount: product.price,
           currency: product.currency || 'USD',

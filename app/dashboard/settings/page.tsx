@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, ArrowUpRight, BarChart, ChevronRight, ShieldCheck, Coins, Palette, HelpCircle } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, HelpCircle } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -30,10 +30,8 @@ const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/payouts', label: 'Withdrawals', icon: ArrowUpRight },
-  { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/settings/payment-method', label: 'Payment Methods', icon: CreditCard },
+  { href: '/dashboard/settings/payment-method', label: 'Payout Methods', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
-  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/help', label: 'Help & Support', icon: HelpCircle },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]

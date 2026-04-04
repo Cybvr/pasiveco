@@ -12,6 +12,7 @@ export interface CheckoutOptions {
   slug: string;
   hostname: string; // To build callback URLs
   metadata?: Record<string, string>;
+  customerId?: string | null;
 }
 
 export class PaymentGatewayService {
@@ -54,6 +55,7 @@ export class PaymentGatewayService {
         successUrl,
         cancelUrl,
         metadata: options.metadata,
+        customerId: options.customerId,
       });
     } else {
       // Flutterwave

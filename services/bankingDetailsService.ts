@@ -54,6 +54,9 @@ export const savePayoutAccount = async (userId: string, account: BankingDetails)
     accountName: normalizeValue(account.accountName),
     accountNumber: normalizeValue(account.accountNumber),
     recipientCode: account.recipientCode || null,
+    country: normalizeValue(account.country),
+    payoutGateway: account.payoutGateway || 'flutterwave',
+    stripeConnectId: normalizeValue(account.stripeConnectId),
     isDefault: accounts.length === 0 ? true : !!account.isDefault,
     updatedAt: new Date().toISOString()
   }

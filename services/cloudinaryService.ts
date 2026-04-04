@@ -5,12 +5,20 @@ export const uploadFile = async (file: File): Promise<string> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'qrtraffic');
-    
+
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset =
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ||
+      process.env.CLOUDINARY_UPLOAD_PRESET;
+
     if (!cloudName) {
       throw new Error('Cloudinary cloud name is not defined');
     }
+    if (!uploadPreset) {
+      throw new Error('Cloudinary upload preset is not defined');
+    }
+
+    formData.append('upload_preset', uploadPreset);
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/upload`,

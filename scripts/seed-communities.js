@@ -74,9 +74,17 @@ async function uploadToCloudinary(filePath) {
       console.log(`⚠️ Local file not found: ${filePath}`);
       return null;
     }
+    const uploadPreset =
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ||
+      process.env.CLOUDINARY_UPLOAD_PRESET;
+
+    if (!uploadPreset) {
+      throw new Error('Cloudinary upload preset is not defined');
+    }
+
     const result = await cloudinary.uploader.upload(filePath, {
       folder: 'communities',
-      upload_preset: 'qrtraffic' // Using the preset found in the code
+      upload_preset: uploadPreset
     });
     return result.secure_url;
   } catch (error) {

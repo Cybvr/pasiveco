@@ -3,13 +3,13 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Landmark, PackagePlus, Plus } from 'lucide-react'
-import { 
-  RiShoppingBag3Fill, 
-  RiShareForwardFill, 
-  RiWallet3Fill, 
-  RiUser3Fill, 
-  RiTeamFill, 
-  RiSettings4Fill 
+import {
+  RiShoppingBag3Fill,
+  RiShareForwardFill,
+  RiWallet3Fill,
+  RiUser3Fill,
+  RiTeamFill,
+  RiSettings4Fill
 } from 'react-icons/ri'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +22,7 @@ import { getUserProducts, getAllLatestProducts, type Product } from '@/services/
 import { getBankingDetails } from '@/services/bankingDetailsService'
 import { getSellerTransactions, getAffiliateTransactions } from '@/services/transactionsService'
 import { useAuth } from '@/hooks/useAuth'
+
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
@@ -30,6 +31,7 @@ import { getUser, type User as AppUser } from '@/services/userService'
 import { Transaction } from '@/types/transaction'
 import StarRating from '@/components/products/StarRating'
 import VerifiedBadge from '@/components/common/VerifiedBadge'
+import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
 
 type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean; sellerAvatar?: string }
 
@@ -188,23 +190,33 @@ export default function DashboardHomePage() {
 
   return (
     <div className="space-y-6">
-      <section className="px-1">
-        <Link
-          href="/dashboard/earnings"
-          className="flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-colors hover:bg-muted/20"
-        >
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Earnings balance
-            </p>
-            <p className="text-2xl font-semibold tracking-tight text-foreground">
-              {formatCurrency(earningsSummary.availableBalance, currency)}
-            </p>
-          </div>
-          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
-            <ArrowUpRight className="h-4 w-4" />
-          </span>
-        </Link>
+      <section className="px-1 flex flex-col md:flex-row gap-4 items-stretch">
+        <ProfileCompletionCard
+          user={user}
+          hasBankingDetails={hasBankingDetails}
+          productsLength={products.length}
+          availableBalance={earningsSummary.availableBalance}
+          currency={currency}
+        />
+
+        <div className="flex-1">
+          <Link
+            href="/dashboard/earnings"
+            className="flex h-full items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-colors hover:bg-muted/20"
+          >
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                Earnings balance
+              </p>
+              <p className="text-2xl font-semibold tracking-tight text-foreground">
+                {formatCurrency(earningsSummary.availableBalance, currency)}
+              </p>
+            </div>
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </Link>
+        </div>
       </section>
 
       {/* ── Quick Links Grid ───────────────────────────── */}
@@ -345,33 +357,33 @@ export default function DashboardHomePage() {
                 })
 
                 return (
-                <Link
-                  key={community.id}
-                  href={`/dashboard/communities/${community.slug || community.id}`}
-                  className={`${CARD_W} group flex flex-col gap-2`}
-                >
-                  <div className="aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
-                    <img
-                      src={community.image || getDicebearAvatar(community.id || community.name)}
-                      alt={community.name}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => { e.currentTarget.src = getDicebearAvatar(community.id || community.name) }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6 shrink-0">
-                      <AvatarImage src={creatorAvatar} />
-                      <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
-                      <div className="flex items-center justify-between mt-0.5">
-                        <p className="text-xs text-muted-foreground">{community.memberCount} members</p>
-                        <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-right" />
+                  <Link
+                    key={community.id}
+                    href={`/dashboard/communities/${community.slug || community.id}`}
+                    className={`${CARD_W} group flex flex-col gap-2`}
+                  >
+                    <div className="aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
+                      <img
+                        src={community.image || getDicebearAvatar(community.id || community.name)}
+                        alt={community.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => { e.currentTarget.src = getDicebearAvatar(community.id || community.name) }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6 shrink-0">
+                        <AvatarImage src={creatorAvatar} />
+                        <AvatarFallback className="text-[10px]">{community.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-foreground leading-tight">{community.name}</p>
+                        <div className="flex items-center justify-between mt-0.5">
+                          <p className="text-xs text-muted-foreground">{community.memberCount} members</p>
+                          <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-right" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
                 )
               })}
             </div>

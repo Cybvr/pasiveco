@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, ArrowUpRight, BarChart, ChevronRight, ArrowLeft, ShieldCheck, Coins, Palette, HelpCircle } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ArrowLeft, ShieldCheck, Palette, HelpCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -20,10 +20,8 @@ const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/payouts', label: 'Withdrawals', icon: ArrowUpRight },
-  { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/settings/payment-method', label: 'Payment Methods', icon: CreditCard },
+  { href: '/dashboard/settings/payment-method', label: 'Payout Methods', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
-  { href: '/dashboard/settings/analytics', label: 'Analytics', icon: BarChart },
   { href: '/dashboard/help', label: 'Help & Support', icon: HelpCircle },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]

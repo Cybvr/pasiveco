@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +12,27 @@ import { Button } from '@/components/ui/button';
 import PricingPlans from "@/app/common/website/PricingPlans";
 import Invoices from "./invoices";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import SavedCardsSection from '@/components/dashboard/SavedCardsSection'
 
 export default function BillingPage() {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState(null);
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isPlansModalOpen, setIsPlansModalOpen] = useState(false);
+
+  useEffect(() => {
+    const cardsState = searchParams.get('cards')
+
+    if (cardsState === 'updated') {
+      toast.success('Card saved')
+      router.replace('/dashboard/settings/plan-billing')
+    } else if (cardsState === 'cancelled') {
+      toast.message('Card setup was cancelled')
+      router.replace('/dashboard/settings/plan-billing')
+    }
+  }, [router, searchParams])
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -89,7 +105,7 @@ export default function BillingPage() {
     }
   };
 
-  const formatDate = (timestamp) => {
+  const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
 
     // Handle both Firestore Timestamp objects and regular timestamps
@@ -173,6 +189,16 @@ export default function BillingPage() {
           />
         </DialogContent>
       </Dialog>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Methods</CardTitle>
+          <CardDescription>Manage saved cards for your purchases.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SavedCardsSection />
+        </CardContent>
+      </Card>
 
       <Invoices userId={user?.uid} />
     </div>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qrtraffic-cache-v2';
+const CACHE_NAME = 'pasive-cache-v3';
 const ASSETS = ['/', '/favicon.png', '/manifest.json', '/images/logo.png'];
 const DEFAULT_NOTIFICATION_URL = '/dashboard/notifications';
 
