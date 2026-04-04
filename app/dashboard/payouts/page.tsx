@@ -82,8 +82,8 @@ export default function PayoutsPage() {
         setAffiliateTransactions(affiliateTx)
         setPayoutRequests(requests)
         setPayoutAccounts(accounts)
-        
-        const defaultAcc = accounts.find(a => a.isDefault) || accounts[0]
+
+        const defaultAcc = accounts.find((a) => a.isDefault) || accounts[0]
         if (defaultAcc) setSelectedAccountId(defaultAcc.id!)
       } catch (error) {
         console.error("Failed to load payouts data:", error)
@@ -106,10 +106,14 @@ export default function PayoutsPage() {
   const getEarningValue = (tx: Transaction) => tx.yourProfit || tx.amount || 0
 
   const summary = useMemo(() => {
-    const successfulTransactions = [...sellerTransactions, ...affiliateTransactions].filter(tx => tx.status === "success")
+    const successfulTransactions = [...sellerTransactions, ...affiliateTransactions].filter((tx) => tx.status === "success")
     const totalEarnings = successfulTransactions.reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
-    const pendingPayout = successfulTransactions.filter(tx => !tx.payoutDate).reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
-    const paidOut = successfulTransactions.filter((tx) => tx.payoutDate).reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
+    const pendingPayout = successfulTransactions
+      .filter((tx) => !tx.payoutDate)
+      .reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
+    const paidOut = successfulTransactions
+      .filter((tx) => tx.payoutDate)
+      .reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
 
     return { totalEarnings, pendingPayout, paidOut, requests: payoutRequests.length }
   }, [affiliateTransactions, currency, payoutRequests.length, sellerTransactions])
@@ -120,19 +124,30 @@ export default function PayoutsPage() {
     { title: "Payout Requests", value: summary.requests.toString() },
   ]
 
-  useEffect(() => { setCurrentPage(1) }, [payoutRequests.length])
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [payoutRequests.length])
 
   const totalPages = Math.max(1, Math.ceil(payoutRequests.length / ITEMS_PER_PAGE))
   const paginatedPayoutRequests = payoutRequests.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   const handleWithdraw = async () => {
     if (!user?.uid) return
-    const account = payoutAccounts.find(a => a.id === selectedAccountId)
-    if (!account) { toast.error("Select a withdrawal account"); return }
+    const account = payoutAccounts.find((a) => a.id === selectedAccountId)
+    if (!account) {
+      toast.error("Select a withdrawal account")
+      return
+    }
 
     const numericAmount = Number(amount)
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) { toast.error("Enter a valid amount"); return }
-    if (numericAmount > summary.pendingPayout) { toast.error("Insufficient balance"); return }
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      toast.error("Enter a valid amount")
+      return
+    }
+    if (numericAmount > summary.pendingPayout) {
+      toast.error("Insufficient balance")
+      return
+    }
 
     const payload = {
       userId: user.uid,
@@ -149,13 +164,17 @@ export default function PayoutsPage() {
     try {
       const requestId = await createPayoutRequest(payload as any)
 
-      setPayoutRequests(current => [{
-        id: requestId,
-        ...payload,
-        createdAt: Timestamp.now(),
-      } as any, ...current])
+      setPayoutRequests((current) => [
+        {
+          id: requestId,
+          ...payload,
+          createdAt: Timestamp.now(),
+        } as any,
+        ...current,
+      ])
 
-      setAmount(""); setDialogOpen(false)
+      setAmount("")
+      setDialogOpen(false)
       toast.success("Withdrawal submitted")
     } catch {
       toast.error("Failed to submit")
@@ -186,7 +205,7 @@ export default function PayoutsPage() {
                       <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {payoutAccounts.map(acc => (
+                      {payoutAccounts.map((acc) => (
                         <SelectItem key={acc.id} value={acc.id!} className="rounded-lg">
                           <div className="flex flex-col items-start py-0.5">
                             <span className="font-bold text-sm tracking-tight">{acc.bankName}</span>
@@ -196,7 +215,10 @@ export default function PayoutsPage() {
                       ))}
                       <div className="border-t mt-1 p-1">
                         <button
-                          onClick={() => { setDialogOpen(false); router.push("/dashboard/settings/payment-method") }}
+                          onClick={() => {
+                            setDialogOpen(false)
+                            router.push("/dashboard/settings/payment-method")
+                          }}
                           className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors"
                         >
                           <Pencil className="h-3 w-3" /> Manage Accounts
@@ -207,7 +229,14 @@ export default function PayoutsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="amount" className="text-xs uppercase font-bold opacity-50">Amount</Label>
-                  <Input id="amount" className="h-11 rounded-xl font-bold" inputMode="decimal" placeholder={formatCurrency(0, currency)} value={amount} onChange={e => setAmount(e.target.value)} />
+                  <Input
+                    id="amount"
+                    className="h-11 rounded-xl font-bold"
+                    inputMode="decimal"
+                    placeholder={formatCurrency(0, currency)}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
                 </div>
               </div>
               <DialogFooter>
@@ -266,7 +295,7 @@ export default function PayoutsPage() {
                     ) : null}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    {account.accountName} · {formatAccountEnding(account.accountNumber)}
+                    {account.accountName} - {formatAccountEnding(account.accountNumber)}
                   </p>
                 </div>
               </div>

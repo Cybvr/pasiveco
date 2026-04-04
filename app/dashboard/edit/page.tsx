@@ -174,16 +174,41 @@ function Page() {
         socialLinks,
       });
       setIsProfileModalOpen(false);
+      // Dispatch event to refresh other components (like UserMenu)
+      window.dispatchEvent(new Event("user-profile-updated"));
     } catch (error) {
       console.error("Error saving profile:", error);
     }
+  };
+
+  const compressImage = (base64Str: string, maxWidth = 800, maxHeight = 800): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+        } else if (height > maxHeight) {
+          width *= maxHeight / height; height = maxHeight;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
+      };
+    });
   };
 
   const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => setProfileData((prev) => ({ ...prev, profilePicture: e.target?.result as string }));
+    reader.onload = async (e) => {
+      const compressed = await compressImage(e.target?.result as string);
+      setProfileData((prev) => ({ ...prev, profilePicture: compressed }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -191,7 +216,10 @@ function Page() {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => setProfileData((prev) => ({ ...prev, bannerImage: e.target?.result as string }));
+    reader.onload = async (e) => {
+      const compressed = await compressImage(e.target?.result as string, 1200, 400); // Banners are wider
+      setProfileData((prev) => ({ ...prev, bannerImage: compressed }));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -271,18 +299,31 @@ function Page() {
             <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Banner</label>
-                <div className="relative">
+                <div className="relative group">
                   <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-lg border bg-muted">
                     {profileData.bannerImage
                       ? <img src={profileData.bannerImage} alt="Banner" className="h-full w-full object-cover" />
                       : <span className="text-xs text-muted-foreground">Click to upload</span>}
                   </div>
                   <input type="file" accept="image/*" onChange={handleBannerUpload} className="absolute inset-0 cursor-pointer opacity-0" />
+                  {profileData.bannerImage && (
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfileData(prev => ({ ...prev, bannerImage: null }));
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Profile picture</label>
-                <div className="relative h-16 w-16">
+                <div className="relative h-16 w-16 group">
                   <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-muted">
                     <img
                       src={editPageAvatar}
@@ -291,6 +332,19 @@ function Page() {
                     />
                   </div>
                   <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 cursor-pointer opacity-0" />
+                  {profileData.profilePicture && (
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="absolute -top-1 -right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfileData(prev => ({ ...prev, profilePicture: null }));
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               </div>
               <div>

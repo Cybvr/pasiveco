@@ -85,6 +85,8 @@ export interface User {
     updates: boolean;
   };
   hasClaimedProfileBonus?: boolean;
+  iconColor?: string;
+  themeColor?: string;
 }
 
 const usersCollection = collection(db, 'users');

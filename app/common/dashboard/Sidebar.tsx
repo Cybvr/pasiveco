@@ -30,7 +30,7 @@ interface NavItem {
 
 const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/edit', icon: Palette, label: 'Edit Page' },
+  { href: '/dashboard/edit', icon: Palette, label: 'Storefront' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },

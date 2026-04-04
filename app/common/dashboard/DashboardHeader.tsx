@@ -17,7 +17,7 @@ import NotificationsDialog from './NotificationsDialog'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
-  '/dashboard/edit': 'My Profile',
+  '/dashboard/edit': 'Storefront',
   '/dashboard/earnings': 'Earnings',
   '/dashboard/purchases': 'Purchases',
   '/dashboard/products': 'Products',
@@ -43,7 +43,7 @@ interface QuickLink {
 const quickLinks: QuickLink[] = [
   { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/edit', label: 'Edit Page', icon: Palette },
+  { href: '/dashboard/edit', label: 'Storefront', icon: Palette },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
 ]
 
@@ -106,8 +106,7 @@ export default function DashboardHeader() {
     router.push(href)
   }
 
-  const showBackButton = pathname === '/dashboard/posts/new' || 
-                         pathname === '/dashboard/edit' || 
+  const showBackButton = pathname === '/dashboard/posts/new' ||
                          (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
   const showSaveButton = pathname === '/dashboard/edit'
 

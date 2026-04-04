@@ -51,6 +51,10 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
       }
     }
     fetchProfile()
+
+    // Listen for updates from the edit page
+    window.addEventListener('user-profile-updated', fetchProfile)
+    return () => window.removeEventListener('user-profile-updated', fetchProfile)
   }, [user])
 
   const handleLogout = async () => {
@@ -83,7 +87,11 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
               "transition-all duration-300",
               isCollapsed ? "h-10 w-10 rounded-xl" : "h-9 w-9 rounded-lg"
             )}>
-              <AvatarImage src={getDisplayAvatar({ image: profile?.profilePicture || user.photoURL || '', displayName, handle: profile?.username || user.email || displayName })} alt={displayName} />
+              <AvatarImage src={getDisplayAvatar({ 
+                image: (profile?.profilePicture && !profile.profilePicture.includes("googleusercontent.com")) ? profile.profilePicture : null, 
+                displayName, 
+                handle: profile?.username || user.email || displayName 
+              })} alt={displayName} />
               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                 {displayName.charAt(0)}
               </AvatarFallback>

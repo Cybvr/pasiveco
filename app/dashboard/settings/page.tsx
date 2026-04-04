@@ -44,7 +44,7 @@ interface UserData {
   email: string
   profilePicture?: string
   plan: string
-  emailVerified: boolean
+  isVerified: boolean
   createdAt: Date
   lastLoginAt: Date
   phone?: string
@@ -59,7 +59,7 @@ export default function GeneralSettings() {
     lastName: "",
     email: "user@example.com",
     plan: "free",
-    emailVerified: false,
+    isVerified: false,
     createdAt: new Date(),
     lastLoginAt: new Date(),
   })
@@ -84,6 +84,7 @@ export default function GeneralSettings() {
             firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
             lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
+            isVerified: Boolean(firebaseProfile.isVerified),
           }))
         }
       } catch (error) {
@@ -139,8 +140,8 @@ export default function GeneralSettings() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1">
                 <h3 className="text-md font-medium text-foreground">{userData.displayName}</h3>
-                <Badge variant={userData.emailVerified ? 'default' : 'secondary'} className="text-xs">
-                  {userData.emailVerified ? 'Verified' : 'Unverified'}
+                <Badge variant={userData.isVerified ? 'default' : 'secondary'} className="text-xs">
+                  {userData.isVerified ? 'Verified' : 'Unverified'}
                 </Badge>
               </div>
               <p className="text-muted-foreground mt-1 text-sm">{userData.email}</p>

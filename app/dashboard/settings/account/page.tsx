@@ -13,6 +13,8 @@ import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Sparkles, Loader2, Phone, CheckCircle2 } from 'lucide-react'
 import { auth } from '@/lib/firebase'
+import { getUserProducts } from '@/services/productsService'
+import { getPayoutAccounts } from '@/services/bankingDetailsService'
 // Removed Firebase Phone Auth imports, using backend Termii API
 import {
   AlertDialog,
@@ -104,8 +106,15 @@ export default function AccountSettings() {
   const [phoneVerifying, setPhoneVerifying] = useState(false)
   const [termiiPinId, setTermiiPinId] = useState<string | null>(null)
   const [verifiedPhone, setVerifiedPhone] = useState<string>('')
+  const [hasProducts, setHasProducts] = useState(false)
+  const [hasPayoutAccount, setHasPayoutAccount] = useState(false)
   const selectedCountry = COUNTRY_OPTIONS.find((country) => country.code === selectedCountryCode) || DEFAULT_COUNTRY
   const formattedPhoneNumber = `${selectedCountry.dialCode}${phoneInput}`.trim()
+  const isCreatorVerified =
+    Boolean(userData.profilePicture || firebaseProfile?.profilePicture || user?.photoURL) &&
+    Boolean((userData.bio || '').trim()) &&
+    hasProducts &&
+    hasPayoutAccount
   // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -113,9 +122,15 @@ export default function AccountSettings() {
       if (!user?.uid) return
 
       try {
-        const profile = await getUser(user.uid)
+        const [profile, products, payoutAccounts] = await Promise.all([
+          getUser(user.uid),
+          getUserProducts(user.uid),
+          getPayoutAccounts(user.uid),
+        ])
         if (profile) {
           setFirebaseProfile(profile)
+          setHasProducts(products.length > 0)
+          setHasPayoutAccount(payoutAccounts.length > 0)
           const existingPhone = profile.phoneNumber || ''
           setUserData(prev => ({
             ...prev,
@@ -270,6 +285,7 @@ export default function AccountSettings() {
         category: userData.category || '',
         brandPreferences: userData.brandPreferences || '',
         profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
+        isVerified: isCreatorVerified,
       })
 
       const updatedProfile = await getUser(user.uid)
@@ -322,7 +338,12 @@ export default function AccountSettings() {
     <div className="space-y-4 max-w-2xl">
       <div className="bg-card rounded-lg overflow-hidden border border-border/60">
         <div className="p-4 border-b border-border/60">
-          <h2 className="text-lg font-semibold text-foreground">Profile Information</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground">Profile Information</h2>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isCreatorVerified ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+              {isCreatorVerified ? 'Verified' : 'Unverified'}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground">Update your personal details and choose the category that best fits your profile.</p>
         </div>
         <div className="p-4 space-y-4">
