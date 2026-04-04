@@ -13,6 +13,8 @@ interface User extends FirebaseUser {
   isAdmin: boolean;
   isPinEnabled: boolean;
   pin?: string;
+  username?: string;
+  slug?: string;
 }
 
 interface AuthContextType {
@@ -50,6 +52,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             isAdmin: userData?.isAdmin || false,
             isPinEnabled: userData?.isPinEnabled || false,
             pin: userData?.pin || '',
+            username: userData?.username || '',
+            slug: userData?.slug || '',
           } as User);
         } catch (err) {
           console.error('Error loading user data:', err);

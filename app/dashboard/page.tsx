@@ -32,6 +32,8 @@ import { Transaction } from '@/types/transaction'
 import StarRating from '@/components/products/StarRating'
 import VerifiedBadge from '@/components/common/VerifiedBadge'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
+import InviteCard from '@/components/dashboard/InviteCard'
+import { checkAndQualifyReferral } from '@/services/referralService'
 
 type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean; sellerAvatar?: string }
 
@@ -76,6 +78,20 @@ export default function DashboardHomePage() {
     void load()
     return () => { active = false }
   }, [user])
+
+  // ── Auto-qualify referral when this user finishes their own 4 steps ──────────
+  useEffect(() => {
+    if (!user?.uid || loading) return
+    const u = user as any
+    const allFourDone =
+      Boolean(u?.profilePicture || u?.photoURL) &&
+      Boolean(u?.bio) &&
+      products.length > 0 &&
+      hasBankingDetails
+    // Fire-and-forget: only writes to Firestore if status isn't already 'qualified'
+    checkAndQualifyReferral(user.uid, allFourDone).catch(console.warn)
+  }, [user, products, hasBankingDetails, loading])
+  // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     async function loadAffiliate() {
@@ -199,10 +215,10 @@ export default function DashboardHomePage() {
           currency={currency}
         />
 
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col gap-4">
           <Link
             href="/dashboard/earnings"
-            className="flex h-full items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-colors hover:bg-muted/20"
+            className="flex items-start justify-between gap-4 rounded-2xl border border-border/60 bg-card px-4 py-4 transition-colors hover:bg-muted/20"
           >
             <div className="space-y-1">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -216,6 +232,11 @@ export default function DashboardHomePage() {
               <ArrowUpRight className="h-4 w-4" />
             </span>
           </Link>
+          <InviteCard
+            userId={user?.uid || ''}
+            username={((user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
+            currency={currency}
+          />
         </div>
       </section>
 
@@ -287,21 +308,8 @@ export default function DashboardHomePage() {
             <ScrollBar orientation="horizontal" className="hidden" />
           </ScrollArea>
         ) : (
-          <div className="flex flex-wrap items-center gap-2 px-1">
-            <Button asChild size="sm" className="gap-1.5 rounded-full">
-              <Link href="/dashboard/products?new=1">
-                <PackagePlus className="h-3.5 w-3.5" />
-                Add product
-              </Link>
-            </Button>
-            {!hasBankingDetails && (
-              <Button asChild size="sm" variant="outline" className="gap-1.5 rounded-full">
-                <Link href="/dashboard/settings/payment-method">
-                  <Landmark className="h-3.5 w-3.5" />
-                  Add payment method
-                </Link>
-              </Button>
-            )}
+          <div className="rounded-2xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground mx-1">
+            No products yet. Add your first product to see it here.
           </div>
         )}
       </section>

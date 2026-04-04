@@ -16,8 +16,9 @@ import {
   ConfirmationResult
 } from "firebase/auth";
 import { auth, db } from '@/lib/firebase'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { ArrowRight, Star, Disc, ChevronLeft, Smartphone } from "lucide-react"
+import { createReferral } from '@/services/referralService'
 
 declare global {
   interface Window {
@@ -64,6 +65,14 @@ async function handleAIPendingOnboarding(uid: string, fallbackName: string, fall
     await setDoc(doc(db, 'users', uid), userData)
     syncToLoops(userData.email, userData.displayName, uid)
 
+    // ── Referral attribution ──────────────────────────────────────────────────
+    const inviterUid = localStorage.getItem('ref_inviter_uid')
+    if (inviterUid && inviterUid !== uid) {
+        await createReferral(inviterUid, uid, userData.displayName).catch(console.warn)
+        localStorage.removeItem('ref_inviter_uid')
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (pendingData?.products?.length) {
         const { createProduct } = await import('@/services/productsService')
         const { slugify } = await import('@/utils/slugify')
@@ -95,6 +104,12 @@ function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const nextHref = searchParams.get('next') || '/dashboard'
+
+  // Persist the referrer uid from ?ref= so it survives the OTP multi-step flow
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) localStorage.setItem('ref_inviter_uid', ref)
+  }, [searchParams])
 
   useEffect(() => {
     return () => {

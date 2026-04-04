@@ -26,8 +26,7 @@ export default function ProfileCompletionCard({
     { label: 'Write your bio', completed: Boolean(user?.bio), href: '/dashboard/settings/account' },
     { label: 'Add a product', completed: productsLength > 0, href: '/dashboard/products?new=1' },
     { label: 'Connect payout account', completed: hasBankingDetails, href: '/dashboard/settings/payment-method' },
-    { label: 'Set your niche', completed: Boolean(user?.category), href: '/dashboard/settings/account' },
-  ], [hasBankingDetails, productsLength, user?.profilePicture, user?.photoURL, user?.bio, user?.category])
+  ], [hasBankingDetails, productsLength, user?.profilePicture, user?.photoURL, user?.bio])
 
   const completedSteps = profileSteps.filter(s => s.completed).length
   const totalSteps = profileSteps.length
