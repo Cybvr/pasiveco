@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import Sidebar from "@/app/common/dashboard/Sidebar"
 import { cn } from "@/lib/utils"
-import OnboardingModal from "@/app/common/OnboardingModal"
+import UserOnboarding from "@/app/auth/UserOnboarding"
 import { useAuth } from "@/hooks/useAuth"
 import { db } from "@/lib/firebase"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -78,7 +78,13 @@ export default function DashboardClientLayout({ children }: { children: React.Re
           <MobileBottomNav />
         </div>
         
-        <OnboardingModal isOpen={showOnboarding} onClose={handleOnboardingClose} />
+        {showOnboarding && user?.uid && (
+          <UserOnboarding 
+            onComplete={handleOnboardingClose} 
+            userId={user.uid}
+            displayName={user.displayName || ''}
+          />
+        )}
       </div>
     </SecurityLock>
   )

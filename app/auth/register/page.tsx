@@ -65,13 +65,7 @@ async function handleAIPendingOnboarding(uid: string, fallbackName: string, fall
     await setDoc(doc(db, 'users', uid), userData)
     syncToLoops(userData.email, userData.displayName, uid)
 
-    // ── Referral attribution ──────────────────────────────────────────────────
-    const inviterUid = localStorage.getItem('ref_inviter_uid')
-    if (inviterUid && inviterUid !== uid) {
-        await createReferral(inviterUid, uid, userData.displayName).catch(console.warn)
-        localStorage.removeItem('ref_inviter_uid')
-    }
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────── Referral attribution moved to Onboarding ───────────────
 
     if (pendingData?.products?.length) {
         const { createProduct } = await import('@/services/productsService')
