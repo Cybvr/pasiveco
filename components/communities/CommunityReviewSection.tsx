@@ -83,7 +83,7 @@ export default function CommunityReviewSection({ communityId, user }: CommunityR
   return (
     <div className="space-y-8 pt-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Community Reviews ({reviews.length})</h2>
+        <h2 className="text-xl font-bold">Space Reviews ({reviews.length})</h2>
         {reviews.length > 0 && (
           <div className="flex items-center gap-2">
             <StarRating 
@@ -140,7 +140,7 @@ export default function CommunityReviewSection({ communityId, user }: CommunityR
         </form>
       ) : !loading && (
         <div className="bg-muted/10 p-6 rounded-2xl border border-dashed border-border/60 text-center">
-          <p className="text-sm text-muted-foreground">You have already reviewed this community. Thank you for your feedback!</p>
+          <p className="text-sm text-muted-foreground">You have already reviewed this space. Thank you for your feedback!</p>
         </div>
       )}
 

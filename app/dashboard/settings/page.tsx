@@ -1,11 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, HelpCircle } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, HelpCircle, Bell } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import md5 from 'md5'
@@ -28,6 +28,8 @@ import { SettingsSkeleton } from '@/app/common/dashboard/SocialLoading'
 
 const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
+  { href: '/dashboard/settings/security', label: 'Security', icon: ShieldCheck },
+  { href: '/dashboard/settings/notifications', label: 'Notifications', icon: Bell },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/payouts', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/payment-method', label: 'Payout Methods', icon: CreditCard },
@@ -149,27 +151,26 @@ export default function GeneralSettings() {
 
       <div className="md:hidden bg-background border rounded-lg p-2 space-y-1">
         {settingsLinks.map((link) => (
-          <Button
+          <Link
             key={`${link.href}-${link.label}`}
-            variant="ghost"
-            className="w-full justify-start px-2 gap-2"
-            onClick={() => router.push(link.href)}
+            href={link.href}
+            className="flex min-h-8 w-full items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
           >
-            <link.icon className="h-4 w-4" />
-            <span className="flex-1 text-left">{link.label}</span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </Button>
+            <link.icon className="mr-1.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="flex-1 text-left truncate">{link.label}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+          </Link>
         ))}
         <div className="pt-3 mt-2 border-t">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              <button
+                type="button"
+                className="flex min-h-8 w-full items-center rounded-md px-2 py-1.5 text-left text-xs font-medium leading-none text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700"
               >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
+                <LogOut className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Logout</span>
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

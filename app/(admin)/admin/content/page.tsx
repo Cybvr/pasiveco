@@ -28,7 +28,7 @@ export default function ContentManagementPage() {
           <TabsTrigger value="features">Features</TabsTrigger>
           <TabsTrigger value="solutions">Solutions</TabsTrigger>
           <TabsTrigger value="blog">Blog Posts</TabsTrigger>
-          <TabsTrigger value="communities">Communities</TabsTrigger>
+          <TabsTrigger value="communities">Spaces</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           </TabsList>
         </div>

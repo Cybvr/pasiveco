@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
@@ -12,7 +11,16 @@ import { getUser, updateUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
-import { Shield, Sparkles, Loader2 } from 'lucide-react'
+import { Sparkles, Loader2, Phone, CheckCircle2 } from 'lucide-react'
+import { auth } from '@/lib/firebase'
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  linkWithCredential,
+  updatePhoneNumber,
+  type ConfirmationResult,
+} from 'firebase/auth'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,9 +43,47 @@ interface UserData {
   bio?: string
   category: string
   brandPreferences?: string
-  twoFactorEnabled: boolean
-  isPinEnabled: boolean
-  pin?: string
+}
+
+type CountryOption = {
+  code: string
+  name: string
+  flag: string
+  dialCode: string
+}
+
+const COUNTRY_OPTIONS: CountryOption[] = [
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬', dialCode: '+234' },
+  { code: 'US', name: 'United States', flag: '🇺🇸', dialCode: '+1' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', dialCode: '+44' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦', dialCode: '+1' },
+  { code: 'GH', name: 'Ghana', flag: '🇬🇭', dialCode: '+233' },
+  { code: 'KE', name: 'Kenya', flag: '🇰🇪', dialCode: '+254' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦', dialCode: '+27' },
+  { code: 'IN', name: 'India', flag: '🇮🇳', dialCode: '+91' },
+  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪', dialCode: '+971' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪', dialCode: '+49' },
+]
+
+const DEFAULT_COUNTRY = COUNTRY_OPTIONS[0]
+
+const parsePhoneNumber = (value: string) => {
+  const sanitized = value.replace(/[^\d+]/g, '')
+  const matchedCountry = [...COUNTRY_OPTIONS]
+    .sort((a, b) => b.dialCode.length - a.dialCode.length)
+    .find((country) => sanitized.startsWith(country.dialCode))
+
+  if (!matchedCountry) {
+    return {
+      countryCode: DEFAULT_COUNTRY.code,
+      localNumber: sanitized.replace(/\D/g, ''),
+    }
+  }
+
+  return {
+    countryCode: matchedCountry.code,
+    localNumber: sanitized.slice(matchedCountry.dialCode.length).replace(/\D/g, ''),
+  }
 }
 
 export default function AccountSettings() {
@@ -48,19 +94,28 @@ export default function AccountSettings() {
     username: '',
     email: "user@example.com",
     category: '',
-    twoFactorEnabled: false,
-    isPinEnabled: false,
   })
   const [uploading, setUploading] = useState(false)
   const [isResearching, setIsResearching] = useState(false)
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [firebaseProfile, setFirebaseProfile] = useState<User | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null)
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
   const { user } = useAuth()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+
+  // ─── Phone verification state ─────────────────────────────────────────────
+  const [selectedCountryCode, setSelectedCountryCode] = useState(DEFAULT_COUNTRY.code)
+  const [phoneInput, setPhoneInput] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [phoneVerifying, setPhoneVerifying] = useState(false)
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+  const [verifiedPhone, setVerifiedPhone] = useState<string>('')
+  const selectedCountry = COUNTRY_OPTIONS.find((country) => country.code === selectedCountryCode) || DEFAULT_COUNTRY
+  const formattedPhoneNumber = `${selectedCountry.dialCode}${phoneInput}`.trim()
+  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -70,6 +125,7 @@ export default function AccountSettings() {
         const profile = await getUser(user.uid)
         if (profile) {
           setFirebaseProfile(profile)
+          const existingPhone = profile.phoneNumber || ''
           setUserData(prev => ({
             ...prev,
             displayName: profile.displayName || prev.displayName,
@@ -78,13 +134,17 @@ export default function AccountSettings() {
             email: user.email || prev.email,
             username: profile.username || prev.username,
             bio: profile.bio || prev.bio,
-            phone: profile.phoneNumber || prev.phone,
+            phone: existingPhone,
             category: profile.category || prev.category,
             brandPreferences: profile.brandPreferences || prev.brandPreferences || '',
             profilePicture: profile.profilePicture || prev.profilePicture,
-            isPinEnabled: profile.isPinEnabled || false,
-            pin: profile.pin || '',
           }))
+          if (existingPhone) {
+            const parsedPhone = parsePhoneNumber(existingPhone)
+            setSelectedCountryCode(parsedPhone.countryCode)
+            setPhoneInput(parsedPhone.localNumber)
+            setVerifiedPhone(existingPhone)
+          }
         }
       } catch (error) {
         console.error("Error loading profile:", error)
@@ -110,6 +170,67 @@ export default function AccountSettings() {
       displayName: userData.displayName,
       handle: userData.username || firebaseProfile?.username || userData.email,
     })
+
+  // ─── Phone OTP handlers ──────────────────────────────────────────────────
+  const sendOtp = async () => {
+    const phone = formattedPhoneNumber
+    if (!phoneInput.trim()) {
+      toast({ title: 'Enter a phone number', description: 'Add your number after the country code.', variant: 'destructive' })
+      return
+    }
+    try {
+      setPhoneVerifying(true)
+      if (!recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
+      }
+      const result = await signInWithPhoneNumber(auth, phone, recaptchaVerifierRef.current)
+      setConfirmationResult(result)
+      setOtpSent(true)
+      toast({ title: 'Code sent!', description: `OTP sent to ${phone}` })
+    } catch (err: any) {
+      console.error(err)
+      // Reset recaptcha on failure so it can be tried again
+      recaptchaVerifierRef.current?.clear()
+      recaptchaVerifierRef.current = null
+      toast({ title: 'Failed to send OTP', description: err?.message || 'Check the number and try again', variant: 'destructive' })
+    } finally {
+      setPhoneVerifying(false)
+    }
+  }
+
+  const confirmOtp = async () => {
+    if (!confirmationResult || !otpCode.trim()) return
+    try {
+      setPhoneVerifying(true)
+      const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, otpCode.trim())
+      if (user) {
+        try {
+          await linkWithCredential(user, credential)
+        } catch (linkErr: any) {
+          if (linkErr?.code === 'auth/provider-already-linked' || linkErr?.code === 'auth/credential-already-in-use') {
+            await updatePhoneNumber(user, credential as any)
+          } else {
+            throw linkErr
+          }
+        }
+      }
+      const phone = formattedPhoneNumber
+      if (user?.uid) {
+        await updateUser(user.uid, { phoneNumber: phone })
+      }
+      setVerifiedPhone(phone)
+      setUserData(prev => ({ ...prev, phone }))
+      setOtpSent(false)
+      setOtpCode('')
+      toast({ title: '✅ Phone verified!', description: 'Your phone number has been verified and saved.' })
+    } catch (err: any) {
+      console.error(err)
+      toast({ title: 'Invalid code', description: err?.message || 'Please check the OTP and try again', variant: 'destructive' })
+    } finally {
+      setPhoneVerifying(false)
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -141,7 +262,6 @@ export default function AccountSettings() {
 
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
-      console.error("SAVING WITH ID:", user.uid, "AUTH UID:", user.uid)
       await updateUser(user.uid, {
         email: user.email || userData.email,
         displayName,
@@ -151,8 +271,6 @@ export default function AccountSettings() {
         category: userData.category || '',
         brandPreferences: userData.brandPreferences || '',
         profilePicture: userData.profilePicture || firebaseProfile?.profilePicture || '',
-        isPinEnabled: userData.isPinEnabled,
-        pin: userData.pin || '',
       })
 
       const updatedProfile = await getUser(user.uid)
@@ -163,31 +281,6 @@ export default function AccountSettings() {
     } catch (error) {
       console.error("Error updating profile", error)
       toast({ title: "Update failed", description: String(error), variant: "destructive" })
-    }
-  }
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentPassword) {
-      toast({ title: "Error", description: "Current password is required", variant: "destructive" })
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      toast({ title: "Error", description: "New passwords do not match", variant: "destructive" })
-      return
-    }
-    if (newPassword.length < 6) {
-      toast({ title: "Error", description: "Password must be at least 6 characters long", variant: "destructive" })
-      return
-    }
-    try {
-      toast({ title: "Password updated", description: "Your password has been updated." })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-    } catch (error) {
-      console.error("Error updating password", error)
-      toast({ title: "Error", description: "Failed to update password. Please try again.", variant: "destructive" })
     }
   }
 
@@ -227,16 +320,16 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="space-y-2">
-      <div className="bg-card rounded-lg overflow-hidden">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold">Profile Information</h2>
+    <div className="space-y-4 max-w-2xl">
+      <div className="bg-card rounded-lg overflow-hidden border border-border/60">
+        <div className="p-4 border-b border-border/60">
+          <h2 className="text-lg font-semibold text-foreground">Profile Information</h2>
           <p className="text-sm text-muted-foreground">Update your personal details and choose the category that best fits your profile.</p>
         </div>
         <div className="p-4 space-y-4">
           <div className="flex justify-center mb-4">
             <div className="relative cursor-pointer group" onClick={handleProfilePictureClick}>
-              <Avatar className="w-20 h-20 border-2 border-gray-200">
+              <Avatar className="w-20 h-20 border-2 border-border/60">
                 <AvatarImage src={getProfilePicture()} alt={userData.displayName} />
                 <AvatarFallback className="text-lg">
                   {(userData.firstName[0] || 'U')}{(userData.lastName[0] || '')}
@@ -257,35 +350,144 @@ export default function AccountSettings() {
           {uploading && <p className="text-center text-sm text-muted-foreground">Uploading...</p>}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder="First name"
-              value={userData.firstName}
-              onChange={(e) => setUserData(prev => ({ ...prev, firstName: e.target.value }))}
-            />
-            <Input
-              placeholder="Last name"
-              value={userData.lastName}
-              onChange={(e) => setUserData(prev => ({ ...prev, lastName: e.target.value }))}
-            />
-            <Input
-              placeholder="Username"
-              value={userData.username}
-              onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
-            />
-            <Input
-              placeholder="Email address"
-              type="email"
-              value={userData.email}
-              readOnly
-            />
-            <Input
-              placeholder="Phone number"
-              value={userData.phone || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))}
-            />
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">First name</label>
+              <Input
+                placeholder="First name"
+                value={userData.firstName}
+                onChange={(e) => setUserData(prev => ({ ...prev, firstName: e.target.value }))}
+                className="bg-muted/10 border-border/60 focus:border-primary/50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Last name</label>
+              <Input
+                placeholder="Last name"
+                value={userData.lastName}
+                onChange={(e) => setUserData(prev => ({ ...prev, lastName: e.target.value }))}
+                className="bg-muted/10 border-border/60 focus:border-primary/50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Username</label>
+              <Input
+                placeholder="Username"
+                value={userData.username}
+                onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
+                className="bg-muted/10 border-border/60 focus:border-primary/50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Email address</label>
+              <Input
+                placeholder="Email address"
+                type="email"
+                value={userData.email}
+                readOnly
+                className="bg-muted/20 border-border/60 cursor-not-allowed opacity-70"
+              />
+            </div>
+
+            {/* Phone verification */}
             <div className="md:col-span-2">
+              <div id="recaptcha-container" ref={recaptchaContainerRef} />
+              
+              <div className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm font-medium text-foreground">Phone number</span>
+                  {verifiedPhone && (
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                      <CheckCircle2 className="h-3 w-3" /> Verified
+                    </span>
+                  )}
+                </div>
+
+                {!otpSent ? (
+                  <div className="flex flex-col gap-2 md:flex-row">
+                    <Select
+                      value={selectedCountryCode}
+                      onValueChange={setSelectedCountryCode}
+                      disabled={phoneVerifying}
+                    >
+                      <SelectTrigger className="w-full md:w-[220px] bg-muted/5 border-border/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRY_OPTIONS.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.flag} {country.name} ({country.dialCode})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="phone-input"
+                      placeholder="8012345678"
+                      value={phoneInput}
+                      onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
+                      className="flex-1 font-mono text-sm bg-muted/5 border-border/60"
+                      disabled={phoneVerifying}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={sendOtp}
+                      disabled={phoneVerifying || !phoneInput.trim()}
+                      className="shrink-0 gap-1.5 border-border/60"
+                    >
+                      {phoneVerifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Phone className="h-3.5 w-3.5" />}
+                      {phoneVerifying ? 'Sending...' : verifiedPhone ? 'Re-verify' : 'Send code'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Enter the 6-digit code sent to <span className="font-semibold text-foreground">{formattedPhoneNumber}</span></p>
+                    <div className="flex gap-2">
+                      <Input
+                        id="otp-input"
+                        placeholder="123456"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        maxLength={6}
+                        className="flex-1 font-mono text-center text-lg tracking-[0.4em] bg-muted/5 border-border/60"
+                        disabled={phoneVerifying}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={confirmOtp}
+                        disabled={phoneVerifying || otpCode.length < 6}
+                        className="shrink-0 gap-1.5"
+                      >
+                        {phoneVerifying ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                        {phoneVerifying ? 'Verifying...' : 'Confirm'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setOtpSent(false); setOtpCode('') }}
+                        className="shrink-0 text-muted-foreground text-xs"
+                      >
+                        Back
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {!otpSent ? (
+                  <p className="text-xs text-muted-foreground">
+                    Selected: <span className="font-semibold text-foreground">{selectedCountry.flag} {selectedCountry.dialCode}</span>
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="md:col-span-2 space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground ml-1">Category</label>
               <Select value={userData.category || 'unselected'} onValueChange={(value) => setUserData(prev => ({ ...prev, category: value === 'unselected' ? '' : value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-muted/10 border-border/60">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -298,42 +500,47 @@ export default function AccountSettings() {
             </div>
           </div>
 
-          <Textarea
-            placeholder="Tell us about yourself..."
-            value={userData.bio || ''}
-            onChange={(e) => setUserData(prev => ({ ...prev, bio: e.target.value }))}
-            rows={3}
-          />
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground ml-1">Bio</label>
+            <Textarea
+              placeholder="Tell us about yourself..."
+              value={userData.bio || ''}
+              onChange={(e) => setUserData(prev => ({ ...prev, bio: e.target.value }))}
+              rows={3}
+              className="bg-muted/10 border-border/60 focus:border-primary/50"
+            />
+          </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Brand Preferences & Style</label>
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground ml-1 font-bold">AI Brand Profiling</label>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleResearchBrand}
                 disabled={isResearching || !userData.firstName}
-                className="h-7 gap-1.5 text-[10px] text-primary hover:text-primary hover:bg-primary/10"
+                className="h-7 gap-1.5 text-[10px] text-primary hover:text-primary hover:bg-primary/10 font-bold"
               >
                 {isResearching ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   <Sparkles className="h-3 w-3" />
                 )}
-                {isResearching ? 'Searching...' : 'Create with AI'}
+                {isResearching ? 'Profiling...' : 'Generate with AI'}
               </Button>
             </div>
             <Textarea
-              placeholder="Describe your brand voice, style, and niche. E.g., 'Modern, minimalist, and focused on tech tutorials' or 'Bold, colorful, and energetic voice for fitness content'."
+              placeholder="AI will help describe your brand voice and style here..."
               value={userData.brandPreferences || ''}
               onChange={(e) => setUserData(prev => ({ ...prev, brandPreferences: e.target.value }))}
               rows={3}
+              className="bg-muted/10 border-border/60 focus:border-primary/50"
             />
-            <p className="text-[10px] text-muted-foreground">Tell us about your brand and what it&apos;s about.</p>
+            <p className="text-[10px] text-muted-foreground leading-snug px-1">This helps us match you with the right affiliate products and communities.</p>
           </div>
         </div>
-        <div className="p-4 flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={() => {
+        <div className="p-4 flex bg-muted/5 justify-end space-x-2 border-t border-border/60">
+          <Button type="button" variant="outline" size="sm" className="h-9 px-4 text-xs font-semibold" onClick={() => {
             if (firebaseProfile) {
               setUserData(prev => ({
                 ...prev,
@@ -348,111 +555,18 @@ export default function AccountSettings() {
                 profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
               }))
             }
-          }}>Cancel</Button>
-          <Button type="button" onClick={handleUpdateProfile}>Save changes</Button>
+          }}>Reset</Button>
+          <Button type="button" size="sm" className="h-9 px-6 text-xs font-semibold" onClick={handleUpdateProfile}>Save changes</Button>
         </div>
       </div>
 
-      <div className="bg-card rounded-lg overflow-hidden">
-        <div className="p-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Shield className="h-5 w-5" />
-            Security Settings
-          </h2>
-          <p className="text-sm text-muted-foreground">Manage your password and security preferences.</p>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">Two-Factor Authentication</p>
-              <p className="text-xs text-muted-foreground">Add an extra layer of security to your account</p>
-            </div>
-            <Switch
-              checked={userData.twoFactorEnabled}
-              onCheckedChange={(checked) => setUserData(prev => ({ ...prev, twoFactorEnabled: checked }))}
-            />
-          </div>
-
-          <Separator className="my-2" />
-
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-medium">4-Digit Security PIN</p>
-              <p className="text-xs text-muted-foreground">Locks the dashboard after 30 minutes of inactivity</p>
-            </div>
-            <Switch
-              checked={userData.isPinEnabled}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  const newPin = prompt("Enter a 4-digit PIN:")
-                  if (newPin && /^\d{4}$/.test(newPin)) {
-                    setUserData(prev => ({ ...prev, isPinEnabled: true, pin: newPin }))
-                    toast({ title: "PIN Set", description: "Your security PIN has been enabled." })
-                  } else if (newPin) {
-                    toast({ title: "Invalid PIN", description: "PIN must be 4 digits.", variant: "destructive" })
-                  }
-                } else {
-                  setUserData(prev => ({ ...prev, isPinEnabled: false }))
-                  toast({ title: "PIN Disabled", description: "Security PIN has been turned off." })
-                }
-              }}
-            />
-          </div>
-
-          {userData.isPinEnabled && (
-             <Button 
-               variant="outline" 
-               size="sm" 
-               className="mt-2 text-xs"
-               onClick={() => {
-                  const newPin = prompt("Enter new 4-digit PIN:")
-                  if (newPin && /^\d{4}$/.test(newPin)) {
-                    setUserData(prev => ({ ...prev, pin: newPin }))
-                    toast({ title: "PIN Updated", description: "Your security PIN has been changed." })
-                  } else if (newPin) {
-                    toast({ title: "Invalid PIN", description: "PIN must be 4 digits.", variant: "destructive" })
-                  }
-               }}
-             >
-               Change PIN
-             </Button>
-          )}
-
-          <Separator className="my-2" />
-
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <Input
-              placeholder="Current password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <Input
-              placeholder="New password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <Input
-              placeholder="Confirm new password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <Button type="submit">Update password</Button>
-          </form>
-        </div>
-      </div>
-
-      <Separator className="my-4" />
-
-      <div className="border border-red-200 bg-card rounded-lg overflow-hidden">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-red-600">Danger Zone</h2>
-          <p className="text-sm text-muted-foreground">Permanent actions that cannot be undone.</p>
+      <div className="border border-red-200/50 bg-red-50/5 rounded-lg overflow-hidden mt-8">
+        <div className="p-4 border-b border-red-200/50">
+          <h2 className="text-sm font-bold text-red-600 uppercase tracking-wider">Danger Zone</h2>
+          <p className="text-xs text-muted-foreground">Permanent actions that cannot be undone.</p>
         </div>
         <div className="p-4">
-          <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>Delete Account</Button>
+          <Button variant="destructive" size="sm" className="h-9 px-4 text-xs font-bold" onClick={() => setDeleteDialogOpen(true)}>Delete Account</Button>
         </div>
       </div>
 

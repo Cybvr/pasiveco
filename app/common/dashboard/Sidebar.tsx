@@ -28,16 +28,19 @@ interface NavItem {
   label: string
 }
 
-const DASHBOARD_NAV_ITEMS: NavItem[] = [
+const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
   { href: '/dashboard/edit', icon: Palette, label: 'Edit Page' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
-  { href: '/dashboard/purchases', icon: ShoppingBag, label: 'Purchases' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },
-  { href: '/dashboard/network', icon: Zap, label: 'Network' },
-  { href: '/dashboard/communities', icon: Blend, label: 'Communities' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
+]
+
+const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
+  { href: '/dashboard/purchases', icon: ShoppingBag, label: 'Purchases' },
+  { href: '/dashboard/network', icon: Zap, label: 'Network' },
+  { href: '/dashboard/communities', icon: Blend, label: 'Spaces' },
 ]
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
@@ -65,7 +68,7 @@ export default function Sidebar({
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
 
-  const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_NAV_ITEMS)
+  const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
   const isItemActive = (href: string) => {
     if (href === '/dashboard') return pathname === href
     if (href === '/admin') return pathname === href
@@ -99,6 +102,34 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto py-2 px-1.5">
         <nav className="space-y-px">
           {currentNavItems.map((item) => {
+            const Icon = item.icon
+            const isActive = isItemActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={isCollapsed ? item.label : ""}
+                className={cn(
+                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",
+                  isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
+                  isActive
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                )}
+              >
+                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
+              </Link>
+            )
+          })}
+          {!isAdmin && !navItems && !isCollapsed && (
+            <div className="px-2 pt-3 pb-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+                Explore
+              </p>
+            </div>
+          )}
+          {!isAdmin && !navItems && DASHBOARD_EXPLORE_NAV_ITEMS.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
             return (

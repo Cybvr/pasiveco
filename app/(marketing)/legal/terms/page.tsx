@@ -6,7 +6,7 @@ export default function Terms() {
   return (
     <LegalPageShell
       title="Terms of Service"
-      summary="These Terms of Service govern your access to and use of Pasive, including creator storefronts, digital product sales, memberships, communities, messaging, analytics, affiliate tools, and payout features."
+      summary="These Terms of Service govern your access to and use of Pasive, including creator storefronts, digital product sales, memberships, spaces, messaging, analytics, affiliate tools, and payout features."
       lastUpdated={LAST_UPDATED}
       sections={[
         {
@@ -27,13 +27,13 @@ export default function Terms() {
         {
           heading: "3. Using Pasive",
           paragraphs: [
-            "Pasive gives creators tools to publish profile pages, sell products, run memberships, build communities, track performance, communicate with customers, and manage payouts from a central dashboard. Your use of these tools must comply with applicable law and these terms.",
+            "Pasive gives creators tools to publish profile pages, sell products, run memberships, build spaces, track performance, communicate with customers, and manage payouts from a central dashboard. Your use of these tools must comply with applicable law and these terms.",
           ],
         },
         {
           heading: "4. Creator responsibilities",
           bullets: [
-            "Creators are responsible for the accuracy of listings, pricing, descriptions, delivery promises, and community or membership offers they publish.",
+            "Creators are responsible for the accuracy of listings, pricing, descriptions, delivery promises, and space or membership offers they publish.",
             "Creators must have all rights, licenses, consents, and permissions needed to upload, sell, distribute, or promote their content and products.",
             "Creators are responsible for customer support obligations related to their own products, offers, and claims unless Pasive expressly states otherwise.",
             "Creators are responsible for their own taxes, reporting obligations, and compliance with laws that apply to their business, content, and customers.",

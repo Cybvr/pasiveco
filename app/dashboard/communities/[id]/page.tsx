@@ -79,7 +79,7 @@ export default function CommunityDetailPage() {
         id: member.id,
         userId: member.userId,
         role: member.role,
-        displayName: profile?.displayName?.trim() || profile?.username?.trim() || "Community Member",
+        displayName: profile?.displayName?.trim() || profile?.username?.trim() || "Space Member",
         username: profile?.username,
         slug: profile?.slug,
         profilePicture: profile?.profilePicture,
@@ -100,7 +100,7 @@ export default function CommunityDetailPage() {
 
     const handleGenerateAIImage = async (type: 'image' | 'bannerImage') => {
         if (!editForm.name) {
-            toast.error('Please enter a community name to generate an image')
+            toast.error('Please enter a space name to generate an image')
             return
         }
 
@@ -113,7 +113,7 @@ export default function CommunityDetailPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     productName: editForm.name,
-                    productDescription: editForm.description || `A community called ${editForm.name}`,
+                    productDescription: editForm.description || `A space called ${editForm.name}`,
                     aspectRatio: type === 'bannerImage' ? '16:9' : '1:1'
                 }),
             });
@@ -234,11 +234,11 @@ export default function CommunityDetailPage() {
             }
             await updateCommunity(community.id, updateData)
             setCommunity(prev => prev ? { ...prev, ...updateData } : null)
-            toast.success('Community updated')
+            toast.success('Space updated')
             setEditDialogOpen(false)
         } catch (err) {
             console.error(err)
-            toast.error('Failed to update community')
+            toast.error('Failed to update space')
         } finally {
             setEditLoading(false)
         }
@@ -248,11 +248,11 @@ export default function CommunityDetailPage() {
         if (!community) return
         try {
             await deleteCommunity(community.id)
-            toast.success('Community deleted')
+            toast.success('Space deleted')
             router.push('/dashboard/communities')
         } catch (err) {
             console.error(err)
-            toast.error('Failed to delete community')
+            toast.error('Failed to delete space')
         }
     }
 
@@ -375,7 +375,7 @@ export default function CommunityDetailPage() {
                                         {!isMember && (
                                             <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl mb-4 text-center">
                                                 <p className="text-sm font-medium text-primary">Previewing Public Feed</p>
-                                                <p className="text-xs text-muted-foreground mt-1">Join this community to start posting and interacting!</p>
+                                                <p className="text-xs text-muted-foreground mt-1">Join this space to start posting and interacting!</p>
                                             </div>
                                         )}
 
@@ -388,10 +388,10 @@ export default function CommunityDetailPage() {
                                         <Shield className="w-8 h-8 text-muted-foreground mx-auto" />
                                         <h2 className="text-base font-semibold">Members only</h2>
                                         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
-                                            This is a private community. Join to access the feed and engage with members.
+                                            This is a private space. Join to access the feed and engage with members.
                                         </p>
                                         <Button size="sm" onClick={handleJoinLeave} disabled={actionLoading}>
-                                            {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Join Community"}
+                                            {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Join Space"}
                                         </Button>
                                     </div>
                                 )}
@@ -405,12 +405,12 @@ export default function CommunityDetailPage() {
                                         <p className="text-sm text-muted-foreground leading-relaxed">{community.description}</p>
                                     </div>
                                     <div className="space-y-3 border-t pt-6 md:border-t-0 md:border-l md:pt-0 md:pl-6">
-                                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Community Rules</p>
+                                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Space Rules</p>
                                         <ul className="space-y-3">
                                             {[
                                                 "Respect all members and their perspectives.",
                                                 "No spam, solicitation, or self-promotion.",
-                                                "Keep posts relevant to the community topic.",
+                                                "Keep posts relevant to the space topic.",
                                             ].map((rule, i) => (
                                                 <li key={i} className="flex items-start gap-2.5">
                                                     <span className="text-primary font-mono text-xs mt-0.5 shrink-0">0{i + 1}</span>
@@ -467,7 +467,7 @@ export default function CommunityDetailPage() {
                                                         </div>
 
                                                         <p className="truncate text-xs text-muted-foreground">
-                                                            {[handle, member.category].filter(Boolean).join(" • ") || "Community member"}
+                                            {[handle, member.category].filter(Boolean).join(" • ") || "Space member"}
                                                         </p>
                                                     </div>
 
@@ -482,7 +482,7 @@ export default function CommunityDetailPage() {
                                     <div className="py-10 md:py-12 text-center border rounded-lg px-4">
                                         <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
                                         <p className="text-sm font-medium">No members to show yet</p>
-                                        <p className="text-sm text-muted-foreground mt-1">Community members will appear here as people join.</p>
+                                            <p className="text-sm text-muted-foreground mt-1">Space members will appear here as people join.</p>
                                     </div>
                                 )}
                             </TabsContent>
@@ -545,9 +545,9 @@ export default function CommunityDetailPage() {
                         <Card className="border">
                             <CardContent className="p-4 space-y-2">
                                 <Globe className="w-4 h-4 text-muted-foreground" />
-                                <p className="text-sm font-medium leading-snug">Support this community</p>
+                                <p className="text-sm font-medium leading-snug">Support this space</p>
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    Member contributions keep this community independent and growing.
+                                    Member contributions keep this space independent and growing.
                                 </p>
                             </CardContent>
                         </Card>
@@ -560,7 +560,7 @@ export default function CommunityDetailPage() {
                                 onClick={handleJoinLeave}
                             >
                                 <LogOut className="w-3.5 h-3.5 mr-1.5" />
-                                Leave Community
+                                Leave Space
                             </Button>
                         )}
                     </aside>
@@ -573,7 +573,7 @@ export default function CommunityDetailPage() {
                     <DialogHeader className="px-5 py-4 border-b">
                         <DialogTitle className="flex items-center gap-2 text-base font-semibold">
                             <Settings className="w-4 h-4 text-primary" />
-                            Community Settings
+                            Space Settings
                         </DialogTitle>
                     </DialogHeader>
 
@@ -650,7 +650,7 @@ export default function CommunityDetailPage() {
                                 </div>
 
                                 <div className="flex-1 space-y-1.5">
-                                    <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Community Name</Label>
+                                    <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">Space Name</Label>
                                     <Input
                                         value={editForm.name}
                                         onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))}
@@ -696,7 +696,7 @@ export default function CommunityDetailPage() {
                                     value={editForm.description}
                                     onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
                                     className="text-sm resize-none"
-                                    placeholder="What is this community about?"
+                                    placeholder="What is this space about?"
                                 />
                             </div>
 
@@ -763,7 +763,7 @@ export default function CommunityDetailPage() {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete community?</AlertDialogTitle>
+                        <AlertDialogTitle>Delete space?</AlertDialogTitle>
                         <AlertDialogDescription>
                             This will permanently delete <strong>{community?.name}</strong> and remove all members. This cannot be undone.
                         </AlertDialogDescription>
@@ -774,7 +774,7 @@ export default function CommunityDetailPage() {
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={handleDelete}
                         >
-                            Delete Community
+                            Delete Space
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

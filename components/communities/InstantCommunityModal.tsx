@@ -106,7 +106,7 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
 
   const handleGenerate = async () => {
     if (!userInput.trim()) {
-      toast.error('Please enter some information about your communities')
+      toast.error('Please enter some information about your spaces')
       return
     }
 
@@ -123,23 +123,23 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to generate communities')
+        throw new Error(error.error || 'Failed to generate spaces')
       }
 
       const data = await response.json()
       if (data.communities && Array.isArray(data.communities)) {
         setGeneratedCommunities(data.communities.map((c: any) => ({ ...c, selected: true, imageUrl: null })))
         setStep('preview')
-        toast.success(`Generated ${data.communities.length} community ideas!`)
+        toast.success(`Generated ${data.communities.length} space ideas!`)
         
         // Start background image generation
         void handleGenerateAllImages(data.communities)
       } else {
-        throw new Error('No communities found in AI response')
+        throw new Error('No spaces found in AI response')
       }
     } catch (error: any) {
       console.error('Instant community generation error:', error)
-      toast.error(error.message || 'Failed to generate communities')
+      toast.error(error.message || 'Failed to generate spaces')
     } finally {
       setIsGenerating(false)
     }
@@ -183,12 +183,12 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
   const handleCreateAll = async () => {
     const selectedCommunities = generatedCommunities.filter(c => c.selected)
     if (selectedCommunities.length === 0) {
-      toast.error('Please select at least one community to create')
+      toast.error('Please select at least one space to create')
       return
     }
 
     if (!user?.uid) {
-      toast.error('You must be logged in to create communities')
+      toast.error('You must be logged in to create spaces')
       return
     }
 
@@ -213,12 +213,12 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
         createdCount++
       }
 
-      toast.success(`Successfully created ${createdCount} communities!`)
+      toast.success(`Successfully created ${createdCount} spaces!`)
       onCommunitiesCreated()
       handleClose()
     } catch (error: any) {
       console.error('Instant community creation error:', error)
-      toast.error(`Created ${createdCount} communities, but encountered an error with the rest.`)
+      toast.error(`Created ${createdCount} spaces, but encountered an error with the rest.`)
     } finally {
       setIsCreating(false)
     }
@@ -250,12 +250,12 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
         <DialogHeader className="px-6 py-4 border-b border-border/60 bg-muted/5">
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-            Instant Communities
+            Instant Spaces
           </DialogTitle>
           <DialogDescription>
             {step === 'input' 
-              ? "Paste your ideas or a list of communities. Our AI will extract and structure them for you."
-              : "Review the generated communities. You can deselect or remove individual ones before creating."}
+              ? "Paste your ideas or a list of spaces. Our AI will extract and structure them for you."
+              : "Review the generated spaces. You can deselect or remove individual ones before creating."}
           </DialogDescription>
           {step === 'preview' && isGeneratingImages && (
             <div className="flex items-center gap-2 mt-2 text-[10px] font-bold text-primary uppercase tracking-widest animate-pulse">
@@ -272,7 +272,7 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
                 <Label htmlFor="userInput" className="text-sm font-semibold">Your Input Data</Label>
                 <Textarea
                   id="userInput"
-                  placeholder="Example: I want to build a fitness community for techies, a marketing mastermind group, and a travel enthusiast network..."
+                  placeholder="Example: I want to build a fitness space for techies, a marketing mastermind group, and a travel enthusiast network..."
                   className="min-h-[250px] rounded-xl resize-none text-sm p-4 border-border/60 focus:ring-primary/20"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
@@ -380,7 +380,7 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
                     <AlertCircle className="h-6 w-6 text-muted-foreground" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold">No communities left</p>
+                    <p className="text-sm font-semibold">No spaces left</p>
                     <p className="text-xs text-muted-foreground">Go back and try different input.</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setStep('input')}>
@@ -425,12 +425,12 @@ const InstantCommunityModal: React.FC<InstantCommunityModalProps> = ({
                 {isCreating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating {generatedCommunities.filter(c => c.selected).length} communities...
+                    Creating {generatedCommunities.filter(c => c.selected).length} spaces...
                   </>
                 ) : (
                   <>
                     <Plus className="mr-2 h-4 w-4" />
-                    Create {generatedCommunities.filter(c => c.selected).length} Communities
+                    Create {generatedCommunities.filter(c => c.selected).length} Spaces
                   </>
                 )}
               </Button>

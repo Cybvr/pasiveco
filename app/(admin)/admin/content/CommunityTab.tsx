@@ -103,7 +103,7 @@ export default function CommunityTab() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch communities.",
+        description: "Failed to fetch spaces.",
       })
     } finally {
       setLoading(false)
@@ -123,7 +123,7 @@ export default function CommunityTab() {
 
   const handleGenerateAIImage = async () => {
     if (!currentCommunity?.name) {
-      toast({ variant: "destructive", title: "Missing title", description: "Please enter a community title first." })
+      toast({ variant: "destructive", title: "Missing title", description: "Please enter a space title first." })
       return
     }
     
@@ -134,7 +134,7 @@ export default function CommunityTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           productName: currentCommunity.name, 
-          productDescription: currentCommunity.description || `A community for ${currentCommunity.name}` 
+          productDescription: currentCommunity.description || `A space for ${currentCommunity.name}` 
         }),
       });
 
@@ -176,7 +176,7 @@ export default function CommunityTab() {
       toast({
         variant: "destructive",
         title: "Authentication required",
-        description: "Please sign in to create a community.",
+        description: "Please sign in to create a space.",
       })
       return
     }
@@ -214,13 +214,13 @@ export default function CommunityTab() {
 
       if (currentCommunity.id) {
         await updateCommunity(currentCommunity.id, payload)
-        toast({ title: "Saved", description: "Community updated successfully." })
+        toast({ title: "Saved", description: "Space updated successfully." })
       } else {
         await createCommunity({
           ...payload,
           creatorId: user!.uid,
         })
-        toast({ title: "Created", description: "Community created successfully." })
+        toast({ title: "Created", description: "Space created successfully." })
       }
 
       setImageFile(null)
@@ -231,7 +231,7 @@ export default function CommunityTab() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to save community.",
+        description: "Failed to save space.",
       })
     } finally {
       setSaving(false)
@@ -252,13 +252,13 @@ export default function CommunityTab() {
       if (selectedId === communityToDelete.id) {
         setCurrentCommunity(null)
       }
-      toast({ title: "Deleted", description: "Community deleted successfully." })
+      toast({ title: "Deleted", description: "Space deleted successfully." })
     } catch (error) {
       console.error("Error deleting community:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete community.",
+        description: "Failed to delete space.",
       })
     } finally {
       setCommunityToDelete(null)
@@ -268,7 +268,7 @@ export default function CommunityTab() {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
       <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
-        <h2 className="mb-4 text-lg font-semibold">Communities</h2>
+        <h2 className="mb-4 text-lg font-semibold">Spaces</h2>
         <div className="space-y-4">
           <div className="flex gap-2">
             <Button onClick={() => setCurrentCommunity({ ...emptyForm })} className="flex-1">+ Create New</Button>
@@ -283,9 +283,9 @@ export default function CommunityTab() {
           </div>
           <div className="space-y-2">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading communities...</p>
+              <p className="text-sm text-muted-foreground">Loading spaces...</p>
             ) : communities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No communities found.</p>
+              <p className="text-sm text-muted-foreground">No spaces found.</p>
             ) : (
               communities.map((community) => (
                 <Card key={community.id} className="p-3 hover:bg-accent">
@@ -316,7 +316,7 @@ export default function CommunityTab() {
       </div>
 
       <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-8">
-        <h2 className="mb-4 text-lg font-semibold">{currentCommunity?.id ? "Edit Community" : "Create Community"}</h2>
+        <h2 className="mb-4 text-lg font-semibold">{currentCommunity?.id ? "Edit Space" : "Create Space"}</h2>
         {currentCommunity ? (
           <div className="space-y-4">
             <div className="grid gap-2">
@@ -325,7 +325,7 @@ export default function CommunityTab() {
                 id="name"
                 value={currentCommunity.name}
                 onChange={(e) => setCurrentCommunity({ ...currentCommunity, name: e.target.value })}
-                placeholder="Community name"
+                placeholder="Space name"
               />
             </div>
 
@@ -335,7 +335,7 @@ export default function CommunityTab() {
                 id="description"
                 value={currentCommunity.description}
                 onChange={(e) => setCurrentCommunity({ ...currentCommunity, description: e.target.value })}
-                placeholder="What is this community about?"
+                placeholder="What is this space about?"
               />
             </div>
 
@@ -370,7 +370,7 @@ export default function CommunityTab() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Community Image</Label>
+                  <Label>Space Image</Label>
                   <Button 
                     type="button" 
                     variant="ghost" 
@@ -481,7 +481,7 @@ export default function CommunityTab() {
 
             <div className="rounded-md border p-3 space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor="isPaid">Paid community</Label>
+                <Label htmlFor="isPaid">Paid space</Label>
                 <Switch
                   id="isPaid"
                   checked={currentCommunity.isPaid}
@@ -521,7 +521,7 @@ export default function CommunityTab() {
             </div>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Select a community from the list or create a new one.</p>
+          <p className="text-sm text-muted-foreground">Select a space from the list or create a new one.</p>
         )}
       </div>
       <InstantCommunityModal 
@@ -535,13 +535,13 @@ export default function CommunityTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the community <strong>{communityToDelete?.name}</strong> and remove all member associations. This action cannot be undone.
+              This will permanently delete the space <strong>{communityToDelete?.name}</strong> and remove all member associations. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete Community
+              Delete Space
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

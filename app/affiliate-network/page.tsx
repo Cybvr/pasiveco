@@ -232,10 +232,10 @@ export default function AffiliateNetworkPage() {
               Learn, <span className="italic font-light opacity-30">Connect</span> & Grow with Top <span className="italic">Affiliates</span>
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed max-w-lg font-light">
-              Join a thriving community of affiliates sharing insights, strategies, and opportunities to grow faster together.
+              Join a thriving space of affiliates sharing insights, strategies, and opportunities to grow faster together.
             </p>
             <Button variant="outline" size="lg" className="rounded-none h-14 px-10 text-lg font-bold border-foreground hover:bg-foreground hover:text-background transition-all uppercase tracking-tighter">
-              Join Affiliate Community
+              Join Affiliate Space
             </Button>
           </div>
           <div className="flex-1 grid grid-cols-2 gap-4">

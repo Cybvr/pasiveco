@@ -27,8 +27,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard/messages': 'Messages',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
-  '/dashboard/communities': 'Communities',
-  '/dashboard/communities/create': 'Create Community',
+  '/dashboard/communities': 'Spaces',
+  '/dashboard/communities/create': 'Create Space',
   '/admin': 'Admin Console',
   '/admin/users': 'Manage Users',
   '/admin/content': 'Content Management',
@@ -42,12 +42,15 @@ interface QuickLink {
 
 const quickLinks: QuickLink[] = [
   { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingBag },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/edit', label: 'Edit Page', icon: Palette },
-  { href: '/dashboard/network', label: 'Network', icon: Zap },
-  { href: '/dashboard/communities', label: 'Communities', icon: Blend },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
+]
+
+const exploreLinks: QuickLink[] = [
+  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingBag },
+  { href: '/dashboard/network', label: 'Network', icon: Zap },
+  { href: '/dashboard/communities', label: 'Spaces', icon: Blend },
 ]
 
 export default function DashboardHeader() {
@@ -83,8 +86,8 @@ export default function DashboardHeader() {
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
     if (pathname.startsWith('/dashboard/communities/')) {
-        if (pathname === '/dashboard/communities/create') return 'Create Community'
-        return 'Community Details'
+        if (pathname === '/dashboard/communities/create') return 'Create Space'
+        return 'Space Details'
     }
 
     const segments = pathname.split('/').filter(Boolean)
@@ -153,7 +156,7 @@ export default function DashboardHeader() {
             </Link>
           ) : null}
 
-          <NotificationsDialog audience="creator" viewAllHref="/dashboard/notifications" />
+          <NotificationsDialog viewAllHref="/dashboard/notifications" />
 
           {showSaveButton ? (
             <Button type="button" size="sm" className="gap-2" onClick={handleSaveEditProfile}>
@@ -197,6 +200,23 @@ export default function DashboardHeader() {
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                   <div className="flex-1 space-y-0.5 overflow-y-auto pt-3 px-2">
                     {quickLinks.map((item) => (
+                      <Button
+                        key={item.href}
+                        variant="ghost"
+                        className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
+                        onClick={() => handleNavigate(item.href)}
+                      >
+                        <item.icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                      </Button>
+                    ))}
+                    <div className="px-3 pt-3 pb-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
+                        Explore
+                      </p>
+                    </div>
+                    {exploreLinks.map((item) => (
                       <Button
                         key={item.href}
                         variant="ghost"

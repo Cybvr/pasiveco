@@ -13,7 +13,7 @@ export default function AdminHeader({ mobileNav }: { mobileNav?: ReactNode }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <NotificationsDialog audience="admin" viewAllHref="/dashboard/notifications" />
+        <NotificationsDialog viewAllHref="/dashboard/notifications" />
         <UserMenu />
       </div>
     </header>

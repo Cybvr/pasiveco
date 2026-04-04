@@ -12,13 +12,13 @@ export default function PrivacyPolicy() {
         {
           heading: "1. Information we collect",
           paragraphs: [
-            "Pasive is built to help creators publish storefronts, sell products, grow their audience, manage communities, and receive payouts. To run those features, we collect information you choose to provide and information created through use of the platform.",
+            "Pasive is built to help creators publish storefronts, sell products, grow their audience, manage spaces, and receive payouts. To run those features, we collect information you choose to provide and information created through use of the platform.",
           ],
           bullets: [
             "Account and profile information such as your name, email address, username, bio, profile image, and login details.",
-            "Storefront and product information such as listings, pricing, product files, thumbnails, membership settings, community details, links, and customization choices.",
+            "Storefront and product information such as listings, pricing, product files, thumbnails, membership settings, space details, links, and customization choices.",
             "Transaction and payout information such as buyer name, buyer email, payment references, order details, banking or transfer details, and payout history.",
-            "Audience and communication data such as customer lists, email preferences, campaign activity, message history, and community participation.",
+            "Audience and communication data such as customer lists, email preferences, campaign activity, message history, and space participation.",
             "Usage, device, and analytics information such as pages visited, clicks, traffic sources, browser data, cookie preferences, and feature interactions.",
             "Support information such as emails, questions, feedback, and troubleshooting details you send to our team.",
           ],
@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
         {
           heading: "2. How we use information",
           bullets: [
-            "Provide and operate creator storefronts, checkouts, memberships, communities, affiliate tools, analytics, and dashboard features.",
+            "Provide and operate creator storefronts, checkouts, memberships, spaces, affiliate tools, analytics, and dashboard features.",
             "Process purchases, record transactions, confirm orders, deliver digital products, and support creator payouts.",
             "Personalize the product experience, remember settings, and improve performance across web and mobile sessions.",
             "Communicate with you about account activity, purchases, receipts, platform updates, support issues, and security notices.",
@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
           bullets: [
             "With payment, transfer, infrastructure, analytics, email, storage, and support providers that help us operate Pasive.",
             "With creators when a customer buys a product, joins a membership, or interacts with a creator experience that requires fulfillment or support.",
-            "With customers or the public when creators choose to publish profile information, storefront content, reviews, community details, or other public-facing materials.",
+            "With customers or the public when creators choose to publish profile information, storefront content, reviews, space details, or other public-facing materials.",
             "With professional advisers, regulators, law enforcement, or courts when disclosure is required to protect rights, safety, or legal compliance.",
             "As part of a merger, acquisition, financing, restructuring, or sale of all or part of the business, subject to appropriate safeguards.",
           ],

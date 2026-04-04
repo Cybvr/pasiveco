@@ -53,7 +53,7 @@ export default function CreateCommunityPage() {
 
   const handleGenerateAIImage = async (type: 'image' | 'bannerImage') => {
     if (!formData.name) {
-      toast.error('Enter a community name first')
+      toast.error('Enter a space name first')
       return
     }
     if (type === 'bannerImage') setIsGeneratingBanner(true)
@@ -64,7 +64,7 @@ export default function CreateCommunityPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productName: formData.name,
-          productDescription: formData.description || `A community called ${formData.name}`,
+          productDescription: formData.description || `A space called ${formData.name}`,
           aspectRatio: type === 'bannerImage' ? '16:9' : '1:1'
         }),
       })
@@ -92,7 +92,7 @@ export default function CreateCommunityPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) { setError("You must be logged in."); return }
-    if (!formData.name.trim()) { setError("Community name is required."); return }
+    if (!formData.name.trim()) { setError("Space name is required."); return }
 
     setLoading(true)
     setError(null)
@@ -113,7 +113,7 @@ export default function CreateCommunityPage() {
     } catch (err: any) {
       const isPermissionError = err.message?.toLowerCase().includes("permission") ||
         err.message?.toLowerCase().includes("insufficient")
-      if (!isPermissionError) setError(err.message || "Failed to create community.")
+      if (!isPermissionError) setError(err.message || "Failed to create space.")
       setLoading(false)
     }
   }
@@ -133,7 +133,7 @@ export default function CreateCommunityPage() {
           <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Name</Label>
           <Input
             id="name"
-            placeholder="Creative Rebels Community"
+            placeholder="Creative Rebels Space"
             maxLength={40}
             required
             className="h-9 text-sm"
@@ -206,7 +206,7 @@ export default function CreateCommunityPage() {
             <Label htmlFor="description" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Description</Label>
             <Textarea
               id="description"
-              placeholder="What's this community about?"
+              placeholder="What's this space about?"
               className="text-sm flex-1 resize-none"
               style={{ minHeight: '68px' }}
               value={formData.description}

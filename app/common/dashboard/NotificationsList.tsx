@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
 export type NotificationAudience = 'creator' | 'admin'
-export type NotificationCategory = 'activity' | 'news'
+export type NotificationCategory = 'activity' | 'updates'
 type NotificationStatus = 'new' | 'done'
 type NotificationVisibility = NotificationAudience | 'all'
 
@@ -27,48 +27,7 @@ export interface NotificationItem {
   visibility: NotificationVisibility
 }
 
-export const DASHBOARD_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'n1',
-    icon: Bell,
-    title: 'A creator you follow published a new post',
-    body: 'Lin Xia shared a new post in your feed about her spring capsule picks.',
-    time: '5 minutes ago',
-    status: 'new',
-    category: 'activity',
-    visibility: 'creator',
-  },
-  {
-    id: 'n2',
-    icon: UserPlus,
-    title: 'You have a new subscriber',
-    body: 'Jordan Miles subscribed to your page and can now get your latest updates.',
-    time: '22 minutes ago',
-    status: 'new',
-    category: 'activity',
-    visibility: 'creator',
-  },
-  {
-    id: 'n3',
-    icon: MessageSquare,
-    title: 'You received a new message',
-    body: 'Amara Okafor sent you a message asking about your current rates and availability.',
-    time: '1 hour ago',
-    status: 'new',
-    category: 'activity',
-    visibility: 'creator',
-  },
-  {
-    id: 'n5',
-    icon: Rss,
-    title: 'New Pasive blog update',
-    body: 'Pasive published a new blog post with platform updates, creator tips, and product news.',
-    time: 'Yesterday',
-    status: 'done',
-    category: 'news',
-    visibility: 'all',
-  },
-]
+export const DASHBOARD_NOTIFICATIONS: NotificationItem[] = []
 
 type NotificationFilter = 'all' | NotificationCategory
 
@@ -112,7 +71,7 @@ export default function NotificationsList({
     () => ({
       all: items.length,
       activity: items.filter((item) => item.category === 'activity').length,
-      news: items.filter((item) => item.category === 'news').length,
+      updates: items.filter((item) => item.category === 'updates').length,
     }),
     [items]
   )
@@ -129,8 +88,8 @@ export default function NotificationsList({
               <TabsTrigger value="activity" className="rounded-md px-3 py-1.5 text-xs font-medium">
                 Activity ({counts.activity})
               </TabsTrigger>
-              <TabsTrigger value="news" className="rounded-md px-3 py-1.5 text-xs font-medium">
-                News ({counts.news})
+              <TabsTrigger value="updates" className="rounded-md px-3 py-1.5 text-xs font-medium">
+                Updates ({counts.updates})
               </TabsTrigger>
             </TabsList>
           </Tabs>

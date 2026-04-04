@@ -132,7 +132,7 @@ export default function FeedbackSurveyPage() {
                   id="goal"
                   value={goal}
                   onChange={(event) => setGoal(event.target.value)}
-                  placeholder="For example: sell digital products, build a community, grow affiliate income, or manage everything from one place."
+                  placeholder="For example: sell digital products, build a space, grow affiliate income, or manage everything from one place."
                 />
               </div>
 
@@ -179,7 +179,7 @@ export default function FeedbackSurveyPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">What Pasive helps with</p>
                 <ul className="mt-3 space-y-3 text-sm leading-6 text-zinc-200">
                   <li>Sell digital products from your own storefront</li>
-                  <li>Build a dedicated community around your audience</li>
+                  <li>Build a dedicated space around your audience</li>
                   <li>Earn through the affiliate network from one dashboard</li>
                 </ul>
               </div>

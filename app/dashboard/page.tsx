@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight, Landmark, PackagePlus, Plus } from 'lucide-react'
+import { ArrowUpRight, Plus } from 'lucide-react'
 import {
   RiShoppingBag3Fill,
   RiShareForwardFill,
@@ -18,7 +18,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { HomeSkeleton } from '@/app/common/dashboard/SocialLoading'
 import { getDisplayAvatar, getDicebearAvatar } from '@/lib/avatar'
-import { getUserProducts, getAllLatestProducts, type Product } from '@/services/productsService'
+import { getUserProducts, type Product } from '@/services/productsService'
 import { getBankingDetails } from '@/services/bankingDetailsService'
 import { getSellerTransactions, getAffiliateTransactions } from '@/services/transactionsService'
 import { useAuth } from '@/hooks/useAuth'
@@ -30,12 +30,9 @@ import { Community } from '@/types/community'
 import { getUser, type User as AppUser } from '@/services/userService'
 import { Transaction } from '@/types/transaction'
 import StarRating from '@/components/products/StarRating'
-import VerifiedBadge from '@/components/common/VerifiedBadge'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
 import InviteCard from '@/components/dashboard/InviteCard'
 import { checkAndQualifyReferral } from '@/services/referralService'
-
-type NetworkProduct = Product & { sellerHandle?: string; sellerVerified?: boolean; sellerAvatar?: string }
 
 const CARD_W = 'w-[200px]'
 
@@ -48,9 +45,6 @@ export default function DashboardHomePage() {
   const [hasBankingDetails, setHasBankingDetails] = useState(true)
   const [sellerTransactions, setSellerTransactions] = useState<Transaction[]>([])
   const [affiliateTransactions, setAffiliateTransactions] = useState<Transaction[]>([])
-
-  const [affiliateProducts, setAffiliateProducts] = useState<NetworkProduct[]>([])
-  const [affiliateLoading, setAffiliateLoading] = useState(true)
 
   const [communities, setCommunities] = useState<Community[]>([])
   const [communitiesLoading, setCommunitiesLoading] = useState(true)
@@ -85,50 +79,13 @@ export default function DashboardHomePage() {
     const u = user as any
     const allFourDone =
       Boolean(u?.profilePicture || u?.photoURL) &&
-      Boolean(u?.bio) &&
+      Boolean(u?.phoneNumber) &&
       products.length > 0 &&
       hasBankingDetails
     // Fire-and-forget: only writes to Firestore if status isn't already 'qualified'
     checkAndQualifyReferral(user.uid, allFourDone).catch(console.warn)
   }, [user, products, hasBankingDetails, loading])
   // ─────────────────────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    async function loadAffiliate() {
-      try {
-        const data = await getAllLatestProducts(8)
-        if (!data) return
-
-        const userIds = [...new Set(data.map(p => p.userId))]
-        const userDocs = await Promise.all(
-          userIds.map(id => getUser(id).catch(() => null))
-        )
-        const userMap = new Map(userDocs.filter(Boolean).map(u => [u?.userId || u?.id, u]))
-
-        const enriched = data.map(p => {
-          const seller = userMap.get(p.userId)
-          const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
-          return {
-            ...p,
-            sellerHandle: handle,
-            sellerVerified: !!seller?.isVerified,
-            sellerAvatar: getDisplayAvatar({
-              image: seller?.profilePicture || seller?.photoURL || '',
-              displayName: seller?.displayName || p.name,
-              handle: seller?.username || seller?.slug || p.userId || p.name,
-            }),
-          }
-        })
-
-        setAffiliateProducts(enriched)
-      } catch (err) {
-        console.error(err)
-      } finally {
-        setAffiliateLoading(false)
-      }
-    }
-    void loadAffiliate()
-  }, [])
 
   useEffect(() => {
     getAllCommunities()
@@ -195,13 +152,6 @@ export default function DashboardHomePage() {
     }
   }, [affiliateTransactions, currency, sellerTransactions])
 
-  const formatPrice = (amount: number, prodCurrency = 'USD') => {
-    const displayAmount = currency === 'NGN' && prodCurrency === 'USD'
-      ? amount * EXCHANGE_RATE
-      : amount
-    return formatCurrency(displayAmount, currency)
-  }
-
   if (loading || authLoading) return <HomeSkeleton />
 
   return (
@@ -237,6 +187,33 @@ export default function DashboardHomePage() {
             username={((user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
             currency={currency}
           />
+          <Link
+            href="/dashboard/network"
+            className="group block w-full rounded-2xl border border-border/60 bg-card overflow-hidden transition-all hover:bg-muted/5 active:scale-[0.99]"
+          >
+            <div className="flex items-center justify-between p-4 sm:p-5 gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                  <RiShareForwardFill className="h-5 w-5 sm:h-6 sm:w-6" />
+                </div>
+                <div className="space-y-0.5 sm:space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-foreground">Promote & Earn</h3>
+                    <Badge className="bg-primary/10 text-primary border-none text-[10px] font-bold px-2 py-0 rounded-full h-4">
+                      50% Comm.
+                    </Badge>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-snug max-w-[280px] sm:max-w-md">
+                    Join our affiliate network and earn high commissions by promoting top products.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-muted/40 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                <ArrowUpRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+            </div>
+          </Link>
         </div>
       </section>
 
@@ -248,7 +225,7 @@ export default function DashboardHomePage() {
             { name: 'Network', href: '/dashboard/network', icon: RiShareForwardFill },
             { name: 'Earnings', href: '/dashboard/earnings', icon: RiWallet3Fill },
             { name: 'Customers', href: '/dashboard/customers', icon: RiUser3Fill },
-            { name: 'Communities', href: '/dashboard/communities', icon: RiTeamFill },
+            { name: 'Spaces', href: '/dashboard/communities', icon: RiTeamFill },
             { name: 'Customize', href: '/dashboard/settings', icon: RiSettings4Fill },
           ].map((link) => {
             const Icon = link.icon
@@ -317,7 +294,7 @@ export default function DashboardHomePage() {
       {/* ── Trending Communities ─────────────────────── */}
       <section className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-semibold text-foreground">Trending Communities</h2>
+          <h2 className="text-sm font-semibold text-foreground">Trending Spaces</h2>
           <Link href="/dashboard/communities" className="text-xs font-semibold text-primary hover:underline">
             View all
           </Link>
@@ -343,7 +320,7 @@ export default function DashboardHomePage() {
         ) : communities.length === 0 ? (
           <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10 mx-1">
             <div className="space-y-0.5">
-              <p className="text-sm font-bold">No Communities yet</p>
+              <p className="text-sm font-bold">No Spaces yet</p>
               <p className="text-xs text-muted-foreground">Be the first to create one.</p>
             </div>
             <Button asChild size="sm" variant="secondary" className="h-8 rounded-full text-xs font-bold gap-1.5">
@@ -388,92 +365,6 @@ export default function DashboardHomePage() {
                         <div className="flex items-center justify-between mt-0.5">
                           <p className="text-xs text-muted-foreground">{community.memberCount} members</p>
                           <StarRating rating={community.rating} count={community.reviewsCount} className="scale-90 origin-right" />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-            <ScrollBar orientation="horizontal" className="hidden" />
-          </ScrollArea>
-        )}
-      </section>
-
-      {/* ── Affiliate Network ────────────────────────── */}
-      <section className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-foreground">Affiliate Network</h2>
-            <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
-              Earn up to 50%
-            </Badge>
-          </div>
-          <Link href="/dashboard/network" className="text-xs font-semibold text-primary hover:underline">
-            View all
-          </Link>
-        </div>
-
-        {affiliateLoading ? (
-          <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max gap-4 pb-4 px-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className={`${CARD_W} flex flex-col gap-2`}>
-                  <Skeleton className="aspect-video w-full rounded-2xl" />
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-6 w-6 rounded-full shrink-0" />
-                    <div className="flex-1 space-y-1.5">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        ) : affiliateProducts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed bg-muted/20 p-6 text-center text-sm text-muted-foreground mx-1">
-            No affiliate products yet. Check back soon!
-          </div>
-        ) : (
-          <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max gap-4 pb-4 px-1">
-              {affiliateProducts.map((p) => {
-                const commission = p.affiliateCommission || 20
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/${p.sellerHandle}/product/${p.slug || p.id}`}
-                    className={`${CARD_W} group flex flex-col gap-2`}
-                  >
-                    <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-border/60 bg-muted">
-                      <img
-                        src={p.thumbnail || getDicebearAvatar(p.id || p.name)}
-                        alt={p.name}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute top-2 left-2">
-                        <Badge className="bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-0.5 text-[10px] font-bold rounded-md">
-                          {commission}% Commission
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="relative shrink-0">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={p.sellerAvatar || getDicebearAvatar(p.userId || p.name)} />
-                          <AvatarFallback className="text-[10px]">{p.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        {p.sellerVerified && (
-                          <VerifiedBadge size="sm" className="absolute -top-1 -right-1 scale-90" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground leading-tight">{p.name}</p>
-                        <StarRating rating={p.rating} count={p.reviewsCount} className="scale-75 origin-left mb-1" />
-                        <div className="flex items-center justify-between mt-0.5">
-                          <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.currency)}</p>
-                          <p className="text-xs font-bold text-primary">+{formatPrice(p.price * (commission / 100), p.currency)}</p>
                         </div>
                       </div>
                     </div>

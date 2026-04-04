@@ -79,6 +79,12 @@ export interface User {
   tags?: string[];
   brandPreferences?: string;
   pinnedAffiliates?: string[];
+  notificationPreferences?: {
+    email: boolean;
+    push: boolean;
+    sales: boolean;
+    updates: boolean;
+  };
 }
 
 const usersCollection = collection(db, 'users');

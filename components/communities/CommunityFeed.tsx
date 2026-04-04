@@ -117,7 +117,7 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
         <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-bold tracking-tight">The floor is yours</h3>
         <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto leading-relaxed">
-          Be the first to share your thoughts, resources, or just say hello to your new community!
+          Be the first to share your thoughts, resources, or just say hello to your new space!
         </p>
       </div>
     );

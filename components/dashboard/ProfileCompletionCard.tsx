@@ -23,10 +23,10 @@ export default function ProfileCompletionCard({
 }: ProfileCompletionCardProps) {
   const profileSteps = useMemo(() => [
     { label: 'Add profile photo', completed: Boolean(user?.profilePicture || user?.photoURL), href: '/dashboard/settings/account' },
-    { label: 'Write your bio', completed: Boolean(user?.bio), href: '/dashboard/settings/account' },
+    { label: 'Verify phone number', completed: Boolean(user?.phoneNumber), href: '/dashboard/settings/account' },
     { label: 'Add a product', completed: productsLength > 0, href: '/dashboard/products?new=1' },
     { label: 'Connect payout account', completed: hasBankingDetails, href: '/dashboard/settings/payment-method' },
-  ], [hasBankingDetails, productsLength, user?.profilePicture, user?.photoURL, user?.bio])
+  ], [hasBankingDetails, productsLength, user?.profilePicture, user?.photoURL, user?.phoneNumber])
 
   const completedSteps = profileSteps.filter(s => s.completed).length
   const totalSteps = profileSteps.length

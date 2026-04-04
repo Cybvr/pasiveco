@@ -68,7 +68,7 @@ export default function InviteCard({ userId, username, currency }: InviteCardPro
             <div>
               <p className="text-sm font-bold text-foreground leading-tight">Invite friends, earn money</p>
               <p className="text-xs text-muted-foreground leading-tight mt-0.5">
-                Get paid when your friend adds a photo, bio, first product, and payout account.</p>
+                Get paid when your friend adds a photo, phone number, first product, and payout account.</p>
             </div>
           </div>
           {qualified.length > 0 && (

@@ -1,7 +1,9 @@
 'use client'
+import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ArrowLeft, ShieldCheck, Palette, HelpCircle } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ArrowLeft, ShieldCheck, Palette, HelpCircle, Bell } from 'lucide-react'
 import { Button } from "@/components/ui/button"
+import { cn } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +20,8 @@ import { toast } from "@/hooks/use-toast"
 
 const settingsLinks = [
   { href: '/dashboard/settings/account', label: 'My Profile', icon: User },
+  { href: '/dashboard/settings/security', label: 'Security', icon: ShieldCheck },
+  { href: '/dashboard/settings/notifications', label: 'Notifications', icon: Bell },
   { href: '/dashboard/settings/appearance', label: 'Appearance', icon: Palette },
   { href: '/dashboard/payouts', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/payment-method', label: 'Payout Methods', icon: CreditCard },
@@ -63,31 +67,38 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div className="flex flex-col md:flex-row min-h-full">
       <div className="hidden md:flex md:w-56 border-r bg-background flex-col p-3">
-        <nav className="space-y-1 w-full">
+        <nav className="space-y-px w-full">
           {settingsLinks.map((link) => (
-            <Button
+            <Link
               key={`${link.href}-${link.label}`}
-              variant={isSettingsLinkActive(link.href) ? "secondary" : "ghost"}
-              className="w-full justify-start px-2 gap-2"
-              onClick={() => router.push(link.href)}
+              href={link.href}
+              className={cn(
+                "flex min-h-8 w-full items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200",
+                isSettingsLinkActive(link.href)
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              )}
             >
-              <link.icon className="h-4 w-4" />
-              <span className="flex-1 text-left">{link.label}</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Button>
+              <link.icon className={cn(
+                "mr-1.5 h-3.5 w-3.5 shrink-0",
+                isSettingsLinkActive(link.href) ? "text-foreground" : "text-muted-foreground"
+              )} />
+              <span className="flex-1 truncate text-left">{link.label}</span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </Link>
           ))}
         </nav>
 
         <div className="mt-6 pt-4 border-t">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-2 gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              <button
+                type="button"
+                className="flex min-h-8 w-full items-center rounded-md px-2 py-1.5 text-left text-xs font-medium leading-none text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700"
               >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
+                <LogOut className="mr-1.5 h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Logout</span>
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

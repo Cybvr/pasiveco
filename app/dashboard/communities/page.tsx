@@ -73,7 +73,7 @@ export default function CommunitiesPage() {
     <div className="space-y-4 pb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Communities</h1>
+          <h1 className="text-xl font-bold tracking-tight">Spaces</h1>
           <p className="text-sm text-muted-foreground">Hub for networking and sharing.</p>
         </div>
         <Link href="/dashboard/communities/create" className="shrink-0">
@@ -100,7 +100,7 @@ export default function CommunitiesPage() {
         <TabsContent value="overview" className="space-y-5 m-0">
           {myCommunities.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Your Communities</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Your Spaces</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {myCommunities.map(community => (
                   <CommunityCard key={community.id} community={community} isMember={true} />
@@ -134,7 +134,7 @@ export default function CommunitiesPage() {
                 <Users className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
                 <h3 className="text-sm font-bold">No new networks found</h3>
                 <p className="text-muted-foreground text-xs mt-1">
-                  {searchQuery ? `Nothing matches "${searchQuery}"` : "You've joined all available communities!"}
+                  {searchQuery ? `Nothing matches "${searchQuery}"` : "You've joined all available spaces!"}
                 </p>
               </div>
             )}
@@ -160,7 +160,7 @@ export default function CommunitiesPage() {
                       <div className="bg-card border border-border/50 rounded-xl p-3 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/5 rounded-md uppercase tracking-wide">
-                            {community?.name || 'Community'}
+                            {community?.name || 'Space'}
                           </span>
                         </div>
                         <p className="text-sm leading-relaxed mb-3">{post.message}</p>
@@ -185,7 +185,7 @@ export default function CommunitiesPage() {
               <div className="py-20 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
                 <Activity className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
                 <h3 className="text-sm font-bold">Quiet for now</h3>
-                <p className="text-xs text-muted-foreground mt-1">Join communities to see the latest activity from members.</p>
+                <p className="text-xs text-muted-foreground mt-1">Join spaces to see the latest activity from members.</p>
               </div>
             )}
           </div>

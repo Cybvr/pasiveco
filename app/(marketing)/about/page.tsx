@@ -249,7 +249,7 @@ export default function AboutPage() {
               <div className="relative z-20 p-6 pt-0 -mt-12">
                 <h3 className="text-2xl font-bold">Fitness & Lifestyle</h3>
                 <p className="mt-2 text-muted-foreground">
-                  Promote your programs, sell merchandise, and connect with your fitness community all in one place.
+                  Promote your programs, sell merchandise, and connect with your fitness space all in one place.
                 </p>
                 <Button variant="link" className="mt-4 p-0 h-auto" asChild>
                   <Link href="#" className="group flex items-center gap-1">

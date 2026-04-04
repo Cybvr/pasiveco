@@ -862,7 +862,7 @@ export default function ProductsTab() {
                 </div>
                 <div className="space-y-2">
                   <Label>Perks</Label>
-                  <Textarea value={currentProduct.perksText} onChange={(event) => updateForm("perksText", event.target.value)} placeholder={"One perk per line\nExclusive updates\nCommunity access"} rows={5} />
+                  <Textarea value={currentProduct.perksText} onChange={(event) => updateForm("perksText", event.target.value)} placeholder={"One perk per line\nExclusive updates\nSpace access"} rows={5} />
                 </div>
               </div>
             )}

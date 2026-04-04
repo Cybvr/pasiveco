@@ -37,7 +37,7 @@ export default function CommunityDiscovery() {
     <section className="space-y-1.5 py-0">
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-semibold text-foreground">
-          Trending Communities
+          Trending Spaces
         </h2>
         <Link href="/dashboard/communities" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
           View all
@@ -75,13 +75,13 @@ export default function CommunityDiscovery() {
         <div className="px-1">
           <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
             <div className="space-y-0.5">
-              <p className="text-sm font-bold">No Communities yet</p>
-              <p className="text-[11px] text-muted-foreground">Be the first to create a community.</p>
+              <p className="text-sm font-bold">No Spaces yet</p>
+              <p className="text-[11px] text-muted-foreground">Be the first to create a space.</p>
             </div>
             <Button asChild size="sm" variant="secondary" className="h-8 rounded-full text-xs font-bold gap-1.5">
               <Link href="/dashboard/communities/create">
                 <Plus className="h-3 w-3" />
-                Create Community
+                Create Space
               </Link>
             </Button>
           </div>

@@ -24,7 +24,7 @@ interface NotificationsDialogProps {
 }
 
 export default function NotificationsDialog({
-  audience = 'creator',
+  audience,
   viewAllHref,
 }: NotificationsDialogProps) {
   const router = useRouter()

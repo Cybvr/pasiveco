@@ -24,12 +24,12 @@ import { getUserCount } from "@/services/userService"
 
 const TESTIMONIALS = [
   {
-    quote: "As a creator, Pasive makes it easy to bring my fans into one dedicated community where we can truly connect. Nothing else comes close.",
+    quote: "As a creator, Pasive makes it easy to bring my fans into one dedicated space where we can truly connect. Nothing else comes close.",
     author: "Chidi Okonkwo",
     role: "Comedian"
   },
   {
-    quote: "I've built a community that's fully mine. No algorithm can take that away. Pasive made it simple from day one.",
+    quote: "I've built a space that's fully mine. No algorithm can take that away. Pasive made it simple from day one.",
     author: "Ngozi Obi",
     role: "Fitness Creator"
   },
@@ -39,7 +39,7 @@ const TESTIMONIALS = [
     role: "Fashion Creator"
   },
   {
-    quote: "Everything in one place — my store, affiliate network, and community. I don't know how I managed without it.",
+    quote: "Everything in one place — my store, affiliate network, and space. I don't know how I managed without it.",
     author: "Amaka Eze",
     role: "Lifestyle Creator"
   }
@@ -162,13 +162,13 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             <div className="space-y-10 order-2 lg:order-1">
               <div className="inline-block px-3 py-1 border border-zinc-700 text-[10px] uppercase tracking-widest text-zinc-400 rounded-none">
-                Your Community Hub
+                Your Space Hub
               </div>
               <h2 className="text-4xl md:text-7xl font-bold tracking-tighter leading-none">
-                Build <br /> vibrant <br /> communities
+                Build <br /> vibrant <br /> spaces
               </h2>
               <p className="text-xl text-zinc-400 font-light leading-relaxed max-w-md">
-                Bring your fans together in one place. Your content, discussions, and digital products all delivered directly to your dedicated community.
+                Bring your fans together in one place. Your content, discussions, and digital products all delivered directly to your dedicated space.
               </p>
               <div className="pt-6 grid grid-cols-2 gap-8">
                 <div className="space-y-2">
@@ -227,7 +227,7 @@ export default function LandingPage() {
                 color: "text-amber-500"
               },
               {
-                title: "Communities",
+                title: "Spaces",
                 desc: "Build a dedicated hub for your most passionate fans.",
                 icon: Star,
                 color: "text-purple-500"

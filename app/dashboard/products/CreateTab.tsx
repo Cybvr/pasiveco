@@ -661,7 +661,7 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           </div>
           <div>
             <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Perks list</Label>
-            <Textarea placeholder={'One perk per line\nExclusive posts\nCommunity access\nMonthly Q&A'} value={formData.perksText} onChange={(e) => handleInputChange('perksText', e.target.value)} className="min-h-[100px] resize-none" />
+            <Textarea placeholder={'One perk per line\nExclusive posts\nSpace access\nMonthly Q&A'} value={formData.perksText} onChange={(e) => handleInputChange('perksText', e.target.value)} className="min-h-[100px] resize-none" />
           </div>
         </div>
       )}
