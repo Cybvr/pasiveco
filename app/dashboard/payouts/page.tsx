@@ -60,6 +60,12 @@ export default function PayoutsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
+  const formatAccountEnding = (accountNumber?: string | null) => {
+    const digits = (accountNumber || "").replace(/\D/g, "")
+    if (!digits) return "Account on file"
+    return `Account ending in ${digits.slice(-4)}`
+  }
+
   useEffect(() => {
     const load = async () => {
       if (!user?.uid) return
@@ -184,7 +190,7 @@ export default function PayoutsPage() {
                         <SelectItem key={acc.id} value={acc.id!} className="rounded-lg">
                           <div className="flex flex-col items-start py-0.5">
                             <span className="font-bold text-sm tracking-tight">{acc.bankName}</span>
-                            <span className="text-[10px] opacity-60 leading-none mt-0.5">{acc.accountNumber}</span>
+                            <span className="text-[10px] opacity-60 leading-none mt-0.5">{formatAccountEnding(acc.accountNumber)}</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -228,6 +234,46 @@ export default function PayoutsPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="border-none shadow-sm">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+          <div>
+            <CardTitle className="text-lg font-bold">Withdrawal Methods</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">Choose where your earnings land when you cash out.</p>
+          </div>
+          <Link href="/dashboard/settings/payment-method">
+            <Button variant="outline" size="sm" className="font-bold">Manage</Button>
+          </Link>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {payoutAccounts.length === 0 ? (
+            <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+              No withdrawal account added yet.
+            </div>
+          ) : (
+            payoutAccounts.map((account) => (
+              <div
+                key={account.id}
+                className={`flex items-center justify-between rounded-xl border bg-background p-4 ${account.isDefault ? "border-primary/30 ring-1 ring-primary/5" : ""}`}
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-semibold">{account.bankName}</span>
+                    {account.isDefault ? (
+                      <span className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Default
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {account.accountName} · {formatAccountEnding(account.accountNumber)}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="border-none shadow-sm">
         <CardHeader><CardTitle className="text-lg font-bold">Withdrawal History</CardTitle></CardHeader>
