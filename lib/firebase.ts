@@ -27,6 +27,12 @@ function initializeFirebase() {
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     auth.useDeviceLanguage();
+    
+    // Bypass ReCAPTCHA strictly for local development
+    if (process.env.NODE_ENV === 'development') {
+      auth.settings.appVerificationDisabledForTesting = true;
+    }
+    
     return app;
   }
 }

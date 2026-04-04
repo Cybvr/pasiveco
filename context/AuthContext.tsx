@@ -15,6 +15,7 @@ interface User extends FirebaseUser {
   pin?: string;
   username?: string;
   slug?: string;
+  bio?: string;
 }
 
 interface AuthContextType {
@@ -54,6 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             pin: userData?.pin || '',
             username: userData?.username || '',
             slug: userData?.slug || '',
+            bio: userData?.bio || '',
           } as User);
         } catch (err) {
           console.error('Error loading user data:', err);

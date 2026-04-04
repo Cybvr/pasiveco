@@ -13,14 +13,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Sparkles, Loader2, Phone, CheckCircle2 } from 'lucide-react'
 import { auth } from '@/lib/firebase'
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  PhoneAuthProvider,
-  linkWithCredential,
-  updatePhoneNumber,
-  type ConfirmationResult,
-} from 'firebase/auth'
+// Removed Firebase Phone Auth imports, using backend Termii API
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,8 +93,6 @@ export default function AccountSettings() {
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const [firebaseProfile, setFirebaseProfile] = useState<User | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null)
-  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null)
   const { user } = useAuth()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
@@ -111,7 +102,7 @@ export default function AccountSettings() {
   const [otpCode, setOtpCode] = useState('')
   const [otpSent, setOtpSent] = useState(false)
   const [phoneVerifying, setPhoneVerifying] = useState(false)
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null)
+  const [termiiPinId, setTermiiPinId] = useState<string | null>(null)
   const [verifiedPhone, setVerifiedPhone] = useState<string>('')
   const selectedCountry = COUNTRY_OPTIONS.find((country) => country.code === selectedCountryCode) || DEFAULT_COUNTRY
   const formattedPhoneNumber = `${selectedCountry.dialCode}${phoneInput}`.trim()
@@ -180,18 +171,24 @@ export default function AccountSettings() {
     }
     try {
       setPhoneVerifying(true)
-      if (!recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' })
+      
+      const response = await fetch('/api/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send OTP')
       }
-      const result = await signInWithPhoneNumber(auth, phone, recaptchaVerifierRef.current)
-      setConfirmationResult(result)
+
+      setTermiiPinId(data.pinId)
       setOtpSent(true)
       toast({ title: 'Code sent!', description: `OTP sent to ${phone}` })
     } catch (err: any) {
       console.error(err)
-      // Reset recaptcha on failure so it can be tried again
-      recaptchaVerifierRef.current?.clear()
-      recaptchaVerifierRef.current = null
       toast({ title: 'Failed to send OTP', description: err?.message || 'Check the number and try again', variant: 'destructive' })
     } finally {
       setPhoneVerifying(false)
@@ -199,21 +196,22 @@ export default function AccountSettings() {
   }
 
   const confirmOtp = async () => {
-    if (!confirmationResult || !otpCode.trim()) return
+    if (!termiiPinId || !otpCode.trim()) return
     try {
       setPhoneVerifying(true)
-      const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, otpCode.trim())
-      if (user) {
-        try {
-          await linkWithCredential(user, credential)
-        } catch (linkErr: any) {
-          if (linkErr?.code === 'auth/provider-already-linked' || linkErr?.code === 'auth/credential-already-in-use') {
-            await updatePhoneNumber(user, credential as any)
-          } else {
-            throw linkErr
-          }
-        }
+      
+      const response = await fetch('/api/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinId: termiiPinId, pin: otpCode.trim() }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid verification code')
       }
+
       const phone = formattedPhoneNumber
       if (user?.uid) {
         await updateUser(user.uid, { phoneNumber: phone })
@@ -222,6 +220,7 @@ export default function AccountSettings() {
       setUserData(prev => ({ ...prev, phone }))
       setOtpSent(false)
       setOtpCode('')
+      setTermiiPinId(null)
       toast({ title: '✅ Phone verified!', description: 'Your phone number has been verified and saved.' })
     } catch (err: any) {
       console.error(err)
@@ -390,8 +389,6 @@ export default function AccountSettings() {
 
             {/* Phone verification */}
             <div className="md:col-span-2">
-              <div id="recaptcha-container" ref={recaptchaContainerRef} />
-              
               <div className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3">
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground shrink-0" />

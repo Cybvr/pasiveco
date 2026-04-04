@@ -82,9 +82,9 @@ export interface User {
   notificationPreferences?: {
     email: boolean;
     push: boolean;
-    sales: boolean;
     updates: boolean;
   };
+  hasClaimedProfileBonus?: boolean;
 }
 
 const usersCollection = collection(db, 'users');

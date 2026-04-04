@@ -74,7 +74,7 @@ export default function DashboardHomePage() {
     const u = user as any
     const allFourDone =
       Boolean(u?.profilePicture || u?.photoURL) &&
-      Boolean(u?.phoneNumber) &&
+      Boolean(u?.bio && u.bio.trim().length > 0) &&
       products.length > 0 &&
       hasBankingDetails
     // Fire-and-forget: only writes to Firestore if status isn't already 'qualified'
