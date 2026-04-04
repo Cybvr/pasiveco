@@ -5,6 +5,7 @@ import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Ch
 import { getUser, updateUser, type User as AppUser } from "@/services/userService";
 import { getUserProducts, type Product } from "@/services/productsService";
 import { getProductTypeLabel } from "@/lib/productTypes";
+import { getDicebearAvatar } from "@/lib/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import ShareModal from "@/app/common/dashboard/ShareModal";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ function Page() {
     username: "username",
     displayName: "Your Name",
     bio: "Your bio here",
-    profilePicture: "/images/dud.png" as string | null,
+    profilePicture: null,
     bannerImage: null,
     slug: "username",
     iconColor: "#6b7280", // Default muted-foreground
@@ -92,7 +93,7 @@ function Page() {
             username: user.email?.split("@")[0] || "user",
             displayName: user.displayName || "Your Name",
             bio: "Building something amazing ✨",
-            profilePicture: user.photoURL || "/images/dud.png",
+            profilePicture: "",
             links: defaultLinks,
             socialLinks: defaultSocialLinks,
             slug: user.email?.split("@")[0] || "user",
@@ -106,7 +107,7 @@ function Page() {
             username: profile.username || "user",
             displayName: profile.displayName || "Your Name",
             bio: profile.bio || "Building something amazing ✨",
-            profilePicture: profile.profilePicture || "/images/dud.png",
+            profilePicture: (profile.profilePicture && !profile.profilePicture.includes("googleusercontent.com")) ? profile.profilePicture : null,
             bannerImage: profile.bannerImage || null,
             slug: profile.slug || profile.username || "user",
             iconColor: (profile as any).iconColor || "#6b7280",
@@ -247,6 +248,10 @@ function Page() {
 
   const activeProducts = products.filter((product) => product.status === "active");
   const iconColor = profileData.bannerImage ? "text-white drop-shadow-md" : "text-muted-foreground";
+  const editPageAvatar =
+    profileData.profilePicture?.trim()
+      ? profileData.profilePicture
+      : getDicebearAvatar(profileData.username || "pasive-user");
 
   return (
     <div className="mx-auto w-full max-w-sm px-4 pb-24 pt-6 sm:px-0 sm:pb-6">
@@ -279,19 +284,21 @@ function Page() {
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Profile picture</label>
                 <div className="relative h-16 w-16">
                   <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-muted">
-                    {profileData.profilePicture
-                      ? <img src={profileData.profilePicture} alt="Profile" className="h-full w-full object-cover" />
-                      : <UserIcon className="h-5 w-5 text-muted-foreground" />}
+                    <img
+                      src={editPageAvatar}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                   <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 cursor-pointer opacity-0" />
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Display name</label>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Username</label>
                 <input
                   type="text"
-                  value={profileData.displayName}
-                  onChange={(e) => setProfileData((prev) => ({ ...prev, displayName: e.target.value }))}
+                  value={profileData.username}
+                  onChange={(e) => setProfileData((prev) => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
                   className="w-full rounded-lg border border-border/50 bg-muted/40 px-3 py-2 text-sm"
                 />
               </div>
@@ -364,9 +371,11 @@ function Page() {
       {/* Avatar + identity */}
       <div className="mb-6 text-center">
         <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-muted">
-          {profileData.profilePicture
-            ? <img src={profileData.profilePicture} alt="Profile" className="h-full w-full object-cover" />
-            : <div className="flex h-full w-full items-center justify-center"><UserIcon className="h-7 w-7 text-muted-foreground" /></div>}
+          <img
+            src={editPageAvatar}
+            alt="Profile"
+            className="h-full w-full object-cover"
+          />
         </div>
         <h2 className="text-lg font-semibold">
           @{profileData.username?.startsWith("@") ? profileData.username.substring(1) : profileData.username}
@@ -550,7 +559,7 @@ function Page() {
         </TabsContent>
       </Tabs>
 
-      
+
 
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
     </div>

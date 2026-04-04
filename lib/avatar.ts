@@ -1,13 +1,15 @@
 import { createAvatar } from '@dicebear/core'
-import { glass } from '@dicebear/collection'
+import { bigSmile } from '@dicebear/collection'
 
 export function getDicebearAvatar(seed: string) {
   const normalizedSeed = seed.trim() || 'pasive-user'
-  const avatar = createAvatar(glass, {
+  const avatar = createAvatar(bigSmile, {
     seed: normalizedSeed,
   })
-
-  return avatar.toDataUri()
+  
+  const svg = avatar.toString()
+  // base64 is universally supported; unescape+encodeURIComponent handles any Unicode chars
+  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
 }
 
 export function getDisplayAvatar({
