@@ -1,62 +1,66 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-:root {
---background: 120 20% 97%;
---foreground: 120 15% 10%;
---muted: 120 20% 92%;
---muted-foreground: 120 10% 35%;
---popover: 120 20% 98%;
---popover-foreground: 120 15% 10%;
---card: 120 20% 98%;
---card-foreground: 120 15% 10%;
---border: 120 10% 80%;
---input: 120 20% 94%;
---primary: 142 72% 35%;
---primary-foreground: 0 0% 100%;
---secondary: 142 45% 85%;
---secondary-foreground: 142 50% 20%;
---accent: 120 20% 90%;
---accent-foreground: 120 15% 10%;
---destructive: 0 72% 45%;
---destructive-foreground: 0 0% 100%;
---ring: 142 72% 35%;
---chart-1: 142 70% 35%;
---chart-2: 142 45% 80%;
---chart-3: 120 20% 90%;
---chart-4: 142 45% 75%;
---chart-5: 142 70% 40%;
---radius: 0.5rem;
-}
-.dark {
---background: 120 15% 7%;
---foreground: 120 20% 90%;
---muted: 120 15% 15%;
---muted-foreground: 120 10% 65%;
---popover: 120 15% 10%;
---popover-foreground: 120 20% 90%;
---card: 120 15% 10%;
---card-foreground: 120 20% 90%;
---border: 120 15% 20%;
---input: 120 15% 25%;
---primary: 142 72% 40%;
---primary-foreground: 0 0% 100%;
---secondary: 142 30% 20%;
---secondary-foreground: 142 45% 85%;
---accent: 120 15% 20%;
---accent-foreground: 120 20% 90%;
---destructive: 0 72% 45%;
---destructive-foreground: 0 0% 100%;
---ring: 142 72% 40%;
---chart-1: 142 70% 40%;
---chart-2: 142 30% 25%;
---chart-3: 120 15% 20%;
---chart-4: 142 30% 30%;
---chart-5: 142 70% 45%;
-}
+  :root {
+    --radius: 0.5rem;
+    --background: 45 15% 97%;
+    /* FDF8F4 or similar warm off-white */
+    --foreground: 152 10% 15%;
+    --muted: 45 10% 92%;
+    --muted-foreground: 152 5% 55%;
+    /* Lighter, less dark grey */
+    --popover: 0 0% 100%;
+    --popover-foreground: 152 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 152 10% 15%;
+    --border: 152 10% 90%;
+    --input: 152 10% 90%;
+    --primary: 154 55% 42%;
+    /* Softer, muted emerald green */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 85 30% 90%;
+    /* Soft yellowish-green for accents */
+    --secondary-foreground: 152 10% 15%;
+    --accent: 85 35% 92%;
+    --accent-foreground: 152 10% 15%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 154 55% 42%;
+    --chart-1: 154 55% 42%;
+    --chart-2: 85 30% 90%;
+    --chart-3: 45 10% 92%;
+    --chart-4: 152 10% 40%;
+    --chart-5: 154 40% 50%;
+  }
+
+  .dark {
+    --background: 120 15% 7%;
+    --foreground: 120 20% 90%;
+    --muted: 120 15% 15%;
+    --muted-foreground: 120 10% 65%;
+    --popover: 120 15% 10%;
+    --popover-foreground: 120 20% 90%;
+    --card: 120 15% 10%;
+    --card-foreground: 120 20% 90%;
+    --border: 120 15% 20%;
+    --input: 120 15% 25%;
+    --primary: 142 72% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 30% 20%;
+    --secondary-foreground: 142 45% 85%;
+    --accent: 120 15% 20%;
+    --accent-foreground: 120 20% 90%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 142 72% 40%;
+    --chart-1: 142 70% 40%;
+    --chart-2: 142 30% 25%;
+    --chart-3: 120 15% 20%;
+    --chart-4: 142 30% 30%;
+    --chart-5: 142 70% 45%;
+  }
 }
 
 
@@ -64,9 +68,11 @@
   * {
     @apply border-border;
   }
+
   html {
     font-size: 112.5%;
   }
+
   body {
     @apply bg-background text-foreground text-base;
   }
@@ -91,11 +97,15 @@
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
+
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 .screen-content {
@@ -104,20 +114,37 @@
 
 /* Hide scrollbars globally while preserving scroll behavior */
 * {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
+
 *::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
   width: 0;
   height: 0;
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
 }
 
 .animate-shake {
