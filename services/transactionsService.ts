@@ -10,7 +10,8 @@ import {
   orderBy,
   Timestamp,
   doc as firestoreDoc,
-  setDoc
+  setDoc,
+  limit
 } from 'firebase/firestore';
 import { Transaction } from '@/types/transaction';
 
@@ -96,5 +97,25 @@ export const getCustomerTransactions = async (customerEmail: string): Promise<Tr
   } catch (error) {
     console.error('Error fetching customer transactions:', error);
     throw error;
+  }
+};
+
+/**
+ * Checks if a customer has successfully purchased a specific product.
+ */
+export const checkPurchaseStatus = async (customerEmail: string, productId: string): Promise<boolean> => {
+  try {
+    const q = query(
+      collection(db, 'transactions'),
+      where('customerEmail', '==', customerEmail),
+      where('productId', '==', productId),
+      where('status', '==', 'success'),
+      limit(1)
+    );
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error('Error checking purchase status:', error);
+    return false;
   }
 };

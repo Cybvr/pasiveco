@@ -16,7 +16,8 @@ import {
   Users,
   FileText,
   QrCode,
-  Zap
+  Zap,
+  Library
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -38,7 +39,7 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
 ]
 
 const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard/purchases', icon: ShoppingBag, label: 'Purchases' },
+  { href: '/dashboard/library', icon: Library, label: 'Library' },
   { href: '/dashboard/network', icon: Zap, label: 'Network' },
   { href: '/dashboard/communities', icon: Blend, label: 'Spaces' },
 ]

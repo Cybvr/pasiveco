@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Loader2 } from 'lucide-react'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { formatCurrency } from '@/utils/currency'
 import { updateUser } from '@/services/userService'
 import { createTransaction } from '@/services/transactionsService'
@@ -82,10 +83,24 @@ export default function ProfileCompletionCard({
 
   if (profileProgress >= 100) {
     return (
-      <Button className="w-full" onClick={handleClaimBonus} disabled={isClaiming}>
-        {isClaiming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        {isClaiming ? 'Claiming...' : `Claim ${formatCurrency(maxBonus, currency)} bonus`}
-      </Button>
+      <Alert className="border-[#189e68]/20 bg-[#189e68]/5 dark:bg-[#189e68]/10 py-4">
+        <CheckCircle2 className="h-4 w-4 text-[#189e68]" />
+        <AlertTitle className="text-[#189e68] font-semibold text-sm">Profile Complete!</AlertTitle>
+        <AlertDescription className="flex items-center justify-between gap-2 mt-2">
+          <span className="text-muted-foreground text-[11px] sm:text-xs">
+            You've successfully completed your profile.
+          </span>
+          <Button 
+            size="sm" 
+            className="bg-[#189e68] hover:bg-[#148557] text-white h-8 px-3 text-[11px] shrink-0" 
+            onClick={handleClaimBonus} 
+            disabled={isClaiming}
+          >
+            {isClaiming ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : null}
+            {isClaiming ? 'Claiming...' : 'Claim Prize'}
+          </Button>
+        </AlertDescription>
+      </Alert>
     )
   }
 

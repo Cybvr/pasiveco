@@ -11,6 +11,8 @@ import { doc, getDoc, Timestamp } from "firebase/firestore"
 import { Transaction } from "@/types/transaction"
 import { formatCurrency } from "@/utils/currency"
 import { useAuth } from "@/hooks/useAuth"
+import { getProduct, Product } from "@/services/productsService"
+import { ExternalLink, FileText, Play, Video } from "lucide-react"
 
 function formatDate(val: any) {
   if (!val) return "—"
@@ -24,6 +26,7 @@ export default function PurchaseDetailPage() {
   const router = useRouter()
   const { user } = useAuth()
   const [transaction, setTransaction] = useState<Transaction | null>(null)
+  const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -45,6 +48,12 @@ export default function PurchaseDetailPage() {
         }
 
         setTransaction(tx)
+
+        // Fetch the product as well to show its digital assets
+        if (tx.productId) {
+          const p = await getProduct(tx.productId)
+          setProduct(p)
+        }
       } catch (e: any) {
         setError(e.message || "Failed to load order.")
       } finally {
@@ -86,6 +95,87 @@ export default function PurchaseDetailPage() {
         </Card>
       ) : transaction ? (
         <>
+          {/* Your Access Section (Digital Assets) */}
+          {transaction.status === "success" && product && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold flex items-center gap-2 text-primary">
+                  <Play className="h-5 w-5 fill-primary" />
+                  Your Access
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {product.details?.fileUrl && (
+                  <div className="flex flex-col gap-2 p-4 rounded-xl border bg-background shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-50 rounded-lg">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{product.details.fileName || "Digital Download"}</p>
+                        <p className="text-xs text-muted-foreground">Ready to download</p>
+                      </div>
+                      <a href={product.details.fileUrl} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" className="gap-2">
+                          <ExternalLink className="h-4 w-4" />
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {product.details?.videoLink && (
+                  <div className="flex flex-col gap-3 p-4 rounded-xl border bg-background shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-50 rounded-lg">
+                        <Video className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">Access Link</p>
+                        <p className="text-xs text-muted-foreground">Click to view/access your content</p>
+                      </div>
+                    </div>
+                    <a href={product.details.videoLink} target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" className="w-full gap-2 border-primary/20 hover:bg-primary/5">
+                        <ExternalLink className="h-4 w-4" />
+                        Go to Access Link
+                      </Button>
+                    </a>
+                  </div>
+                )}
+
+                {product.details?.lessons && product.details.lessons.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-bold px-1">Course Content</p>
+                    <div className="grid gap-2">
+                      {product.details.lessons.map((lesson, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border bg-background text-sm">
+                          <span className="text-xs font-mono text-muted-foreground">0{idx + 1}</span>
+                          <span className="flex-1 font-medium">{lesson.title}</span>
+                          {lesson.videoUrl && (
+                            <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer">
+                              <Button size="sm" variant="ghost" className="h-8 gap-2">
+                                <Play className="h-3 w-3" />
+                                Watch
+                              </Button>
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!product.details?.fileUrl && !product.details?.videoLink && (!product.details?.lessons || product.details.lessons.length === 0) && (
+                  <p className="text-sm text-muted-foreground py-2 italic text-center">
+                    This order is verified. For physical goods or custom services, the seller will contact you.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center justify-between gap-2">

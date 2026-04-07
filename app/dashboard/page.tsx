@@ -170,7 +170,7 @@ export default function DashboardHomePage() {
         >
           <div>
             <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80 mb-1.5">Promote & Earn</p>
-            <p className="text-3xl sm:text-2xl font-bold text-foreground">Up to 50% Comm.</p>
+            <p className="text-2xl sm:text-2xl font-bold text-foreground">Up to 50% Comm.</p>
             <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
               Join our affiliate network and earn high commissions by promoting top products.
             </p>

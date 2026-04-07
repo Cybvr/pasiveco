@@ -19,7 +19,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
   '/dashboard/edit': 'Storefront',
   '/dashboard/earnings': 'Earnings',
-  '/dashboard/purchases': 'Purchases',
+  '/dashboard/library': 'Library',
   '/dashboard/products': 'Products',
   '/dashboard/analytics': 'Analytics',
   '/dashboard/settings': 'Settings',
@@ -48,7 +48,7 @@ const quickLinks: QuickLink[] = [
 ]
 
 const exploreLinks: QuickLink[] = [
-  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingBag },
+  { href: '/dashboard/library', label: 'Library', icon: ShoppingBag },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
   { href: '/dashboard/communities', label: 'Spaces', icon: Blend },
 ]
@@ -81,7 +81,7 @@ export default function DashboardHeader() {
   const currentTitle = useMemo(() => {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/earnings/')) return 'Earnings Details'
-    if (pathname.startsWith('/dashboard/purchases/')) return 'Order Details'
+    if (pathname.startsWith('/dashboard/library/')) return 'Order Details'
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'

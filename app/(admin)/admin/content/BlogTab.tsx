@@ -4,21 +4,13 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { blogService } from "@/services/blogService"
+import { blogService, type BlogPost } from "@/services/blogService"
 import { useEditor } from "@tiptap/react"
-import { Eye, Trash2 } from "lucide-react"
+import { Eye, Trash2, Sparkles, Loader2 } from "lucide-react"
 import { uploadImage } from "@/services/cloudinaryService"
 import { toast } from "@/hooks/use-toast"
 import EditorContent from "./EditorContent"
 
-interface BlogPost {
-  id?: string
-  title: string
-  description: string
-  content: string
-  slug: string
-  imageUrl?: string
-}
 
 interface BlogTabProps {
   editor: ReturnType<typeof useEditor> | null
@@ -28,11 +20,12 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPost, setCurrentPost] = useState<BlogPost | null>(null)
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false)
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const data = await blogService.getAllPosts()
+        const data = await blogService.getAllPosts() as BlogPost[]
         setPosts(data)
       } catch (error) {
         console.error("Error fetching blog posts:", error)
@@ -61,7 +54,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
             await blogService.createPost(postToSave)
           }
           // Refresh the list
-          const data = await blogService.getAllPosts()
+          const data = await blogService.getAllPosts() as BlogPost[]
           setPosts(data)
           toast({
             title: "Success",
@@ -115,6 +108,45 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
         }
       }
 
+      const handleGenerateAI = async () => {
+        if (!currentPost?.title || !currentPost?.excerpt || !editor) {
+          toast({
+            variant: "destructive",
+            title: "Missing Info",
+            description: "Please provide a title and description first.",
+          })
+          return
+        }
+
+        setIsGeneratingContent(true)
+        try {
+          const response = await fetch("/api/generate-blog-content", {
+            method: "POST",
+            body: JSON.stringify({
+              title: currentPost.title,
+              description: currentPost.excerpt,
+            }),
+          })
+          const data = await response.json()
+          if (data.error) throw new Error(data.error)
+          
+          editor.commands.setContent(data.content)
+          toast({
+            title: "Content Generated",
+            description: "AI has successfully generated your blog content.",
+          })
+        } catch (error: any) {
+          console.error("AI Generation failed:", error)
+          toast({
+            variant: "destructive",
+            title: "Generation Failed",
+            description: error.message || "Failed to generate AI content.",
+          })
+        } finally {
+          setIsGeneratingContent(false)
+        }
+      }
+
       return (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
           <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
@@ -122,7 +154,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
             <div className="space-y-4">
               <Button
                 onClick={() => {
-                  setCurrentPost({ title: "", description: "", content: "", slug: "" })
+                  setCurrentPost({ title: "", excerpt: "", content: "", slug: "", image: "", date: new Date().toISOString() })
                   if (editor) {
                     editor.commands.setContent("")
                   }
@@ -183,8 +215,8 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
                   placeholder="Title"
                 />
                 <Input
-                  value={currentPost.description}
-                  onChange={(e) => setCurrentPost({ ...currentPost, description: e.target.value })}
+                  value={currentPost.excerpt}
+                  onChange={(e) => setCurrentPost({ ...currentPost, excerpt: e.target.value })}
                   placeholder="Description"
                 />
                 <Input
@@ -192,6 +224,23 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
                   onChange={(e) => setCurrentPost({ ...currentPost, slug: e.target.value })}
                   placeholder="URL Slug"
                 />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium">Post Content</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-primary"
+                    onClick={handleGenerateAI}
+                    disabled={isGeneratingContent || !currentPost.title || !currentPost.excerpt}
+                  >
+                    {isGeneratingContent ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    Generate with AI
+                  </Button>
+                </div>
                 <div className="min-h-[200px] border rounded-md">
                   <EditorContent editor={editor} />
                 </div>
@@ -201,19 +250,19 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
                     accept="image/*"
                     onChange={async (e) => {
                       const file = e.target.files?.[0]
-                      if (file) {
+                      if (file && currentPost) {
                         try {
                           const imageUrl = await handleImageUpload(file)
-                          setCurrentPost({ ...currentPost, imageUrl })
+                          setCurrentPost({ ...currentPost, image: imageUrl, imageUrl })
                         } catch (error) {
                           // Error is already handled in handleImageUpload
                         }
                       }
                     }}
                   />
-                  {currentPost.imageUrl && (
+                  {(currentPost.imageUrl || currentPost.image) && (
                     <img
-                      src={currentPost.imageUrl || "/placeholder.svg"}
+                      src={currentPost.imageUrl || currentPost.image || "/placeholder.svg"}
                       alt="Preview"
                       className="w-full sm:w-20 h-auto sm:h-20 max-w-[200px] object-cover rounded mt-2 sm:mt-0"
                     />

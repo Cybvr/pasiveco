@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export default function PurchasesPage() {
+export default function LibraryPage() {
   const ITEMS_PER_PAGE = 10
   const router = useRouter()
   const { user } = useAuth()
@@ -54,7 +54,7 @@ export default function PurchasesPage() {
         setTransactions(customerTransactions)
       } catch (err: any) {
         console.error("Error loading customer transactions:", err)
-        setError(err.message || "Failed to load purchases. Check your Firestore indexes.")
+        setError(err.message || "Failed to load library items. Check your Firestore indexes.")
       } finally {
         setLoading(false)
       }
@@ -186,7 +186,7 @@ export default function PurchasesPage() {
       <Card className="border-none shadow-sm overflow-hidden">
         <CardHeader className="px-6 py-4 border-b space-y-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold tabular-nums">Purchases</CardTitle>
+            <CardTitle className="text-lg font-semibold tabular-nums">My Library</CardTitle>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
@@ -252,18 +252,18 @@ export default function PurchasesPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">Loading purchases...</TableCell>
+                    <TableCell colSpan={5} className="h-24 text-center">Loading library...</TableCell>
                   </TableRow>
                 ) : filteredAndSortedTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No purchases found.</TableCell>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No items found in your library.</TableCell>
                   </TableRow>
                 ) : (
                   paginatedTransactions.map((tx) => (
                     <TableRow
                       key={tx.id}
                       className="cursor-pointer hover:bg-muted/50 transition-colors border-b"
-                      onClick={() => router.push(`/dashboard/purchases/${tx.id}`)}
+                      onClick={() => router.push(`/dashboard/library/${tx.id}`)}
                     >
                       <TableCell className="font-medium whitespace-nowrap">{tx.productName}</TableCell>
                       <TableCell className="whitespace-nowrap font-mono text-xs">{tx.reference}</TableCell>

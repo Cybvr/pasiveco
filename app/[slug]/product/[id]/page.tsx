@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ExternalLink, Package, ShieldCheck, Truck, Share2, ArrowUpRight, Plus, Store, Check } from 'lucide-react';
+import { ExternalLink, Package, ShieldCheck, Truck, Share2, ArrowUpRight, Plus, Store, Check, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { getUser, updateUser } from '@/services/userService';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import ProductDetailsSummary from '@/components/products/ProductDetailsSummary';
 import { getProduct, getProductBySlug, Product, getUserProducts } from '@/services/productsService';
+import { checkPurchaseStatus } from '@/services/transactionsService';
 import { getProductTypeLabel } from '@/lib/productTypes';
 import StarRating from '@/components/products/StarRating';
 import ProductReviewSection from '@/components/products/ProductReviewSection';
@@ -36,6 +37,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [loading, setLoading] = useState(true);
   const [isPinned, setIsPinned] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<any>(null);
+  const [hasPurchased, setHasPurchased] = useState(false);
   const { currency: userCurrency } = useCurrency();
 
   useEffect(() => {
@@ -61,6 +63,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
             setCurrentUserData(userData);
             const pinned = userData.pinnedAffiliates || [];
             setIsPinned(pinned.includes(paramValue) || pinned.includes(productData?.id || ''));
+            
+            // Check if user has purchased this product
+            if (productData?.id || paramValue) {
+              const purchased = await checkPurchaseStatus(user.email!, productData?.id || paramValue);
+              setHasPurchased(purchased);
+            }
           }
         }
       } catch (error) {
@@ -206,6 +214,52 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
 
           <ProductDetailsSummary product={product} />
 
+          {/* Member Access / "You Own This" Section */}
+          {hasPurchased && (
+            <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-primary font-bold">
+                  <ShieldCheck className="h-5 w-5" />
+                  You own this product
+                </div>
+                <Badge className="bg-primary text-primary-foreground">Member Access</Badge>
+              </div>
+              
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">You have full access to this content. You can also find this in your <Link href="/dashboard/library" className="font-bold underline text-foreground">Library</Link>.</p>
+                
+                {product.details?.fileUrl && (
+                  <a href={product.details.fileUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full h-11 gap-2" variant="default">
+                      <ExternalLink className="h-4 w-4" />
+                      Download {product.details.fileName || 'Files'}
+                    </Button>
+                  </a>
+                )}
+                
+                {product.details?.videoLink && (
+                  <a href={product.details.videoLink} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full h-11 gap-2" variant="outline">
+                      <Play className="h-4 w-4 fill-current" />
+                      Access Content Link
+                    </Button>
+                  </a>
+                )}
+
+                {product.details?.lessons && product.details.lessons.length > 0 && (
+                   <div className="pt-2">
+                     <Link href={`/dashboard/library/${product.id || productId}`}>
+                       <Button className="w-full h-11 gap-2" variant="secondary">
+                         <Package className="h-4 w-4" />
+                         Go to Course Library
+                       </Button>
+                     </Link>
+                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3 border-b pb-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-foreground shrink-0" />Secure payment</div>
             <div className="flex items-center gap-1.5"><Truck className="h-4 w-4 text-foreground shrink-0" />Instant checkout</div>
@@ -213,7 +267,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
           </div>
 
           <div className="space-y-3">
-            {hasDirectLink ? (
+            {hasPurchased ? (
+              <Link href="/dashboard/library" className="block">
+                <Button className="h-12 w-full bg-primary/10 text-primary hover:bg-primary/20" size="lg">
+                  <Package className="mr-2 h-4 w-4" />
+                  View in My Library
+                </Button>
+              </Link>
+            ) : hasDirectLink ? (
               <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="h-12 w-full" size="lg"><ExternalLink className="mr-2 h-4 w-4" />Get product</Button>
               </a>

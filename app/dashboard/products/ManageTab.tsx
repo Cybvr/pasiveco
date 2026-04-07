@@ -308,10 +308,10 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   return (
     <>
       <div className="space-y-4 ">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center p-0.5 bg-muted rounded-lg mr-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
+            <div className="flex items-center p-0.5 bg-muted rounded-lg lg:hidden">
               <Button
                 variant={viewMode === 'card' ? 'secondary' : 'ghost'}
                 size="icon"
@@ -329,18 +329,40 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                 <List className="h-4 w-4" />
               </Button>
             </div>
-            <Button variant="outline" onClick={onGenAINew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
-              <Sparkles className="w-3.5 h-3.5" />
-              Quick Add
-            </Button>
-            <Button variant="outline" onClick={onBulkAINew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5 border-primary/20 hover:bg-primary/5 text-primary">
-              <Layers className="w-3.5 h-3.5" />
-              Instant Catalog
-            </Button>
-            <Button onClick={onCreateNew} className="flex-1 sm:flex-none h-8 text-[10px] sm:text-xs gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              New
-            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="hidden lg:flex items-center p-0.5 bg-muted rounded-lg mr-2">
+              <Button
+                variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7 rounded-md"
+                onClick={() => setViewMode('card')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7 rounded-md"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:w-auto">
+              <Button variant="outline" onClick={onGenAINew} title="Quick Add" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-primary/20 hover:bg-primary/5 text-primary px-2 sm:px-3 rounded-lg overflow-hidden shrink-0">
+                <Sparkles className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline truncate">Quick Add</span>
+              </Button>
+              <Button variant="outline" onClick={onBulkAINew} title="Instant Catalog" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-primary/20 hover:bg-primary/5 text-primary px-2 sm:px-3 rounded-lg overflow-hidden shrink-0">
+                <Layers className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline truncate">Instant Catalog</span>
+              </Button>
+              <Button onClick={onCreateNew} title="New Product" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 px-2 sm:px-4 rounded-lg overflow-hidden shrink-0">
+                <Plus className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline">New</span>
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -379,8 +401,8 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                         </div>
                       </div>
                     )}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
-                      <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur text-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
+                    <div className="absolute top-2 right-2 sm:opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
+                      <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur text-muted-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
                         <Eye className="h-4 w-4" />
                       </a>
                     </div>
@@ -404,13 +426,13 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                       </div>
                     </div>
 
-                    <div className="shrink-0 -mr-1 -mt-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
+                    <div className="shrink-0 -mr-1 -mt-1 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="h-7 w-7 rounded-full"
+                            className="h-7 w-7 rounded-full text-muted-foreground bg-background/90 backdrop-blur shadow-sm"
                             aria-label="Product actions"
                           >
                             <MoreVertical className="h-4 w-4" />
@@ -451,8 +473,8 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
           <div className="flex flex-col gap-2 pt-4">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <div key={`product-list-skeleton-${index}`} className="flex items-center gap-4 p-3 rounded-xl border border-transparent">
-                  <Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+                <div key={`product-list-skeleton-${index}`} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl border border-transparent">
+                  <Skeleton className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg shrink-0" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-3 w-3/4" />
@@ -463,10 +485,10 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
               paginatedProducts.map((product: any) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-4 p-3 rounded-xl border border-border/40 hover:bg-muted/30 transition-all cursor-pointer group"
+                  className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl border border-border/40 hover:bg-muted/30 transition-all cursor-pointer group relative"
                   onClick={() => handleEditProduct(product)}
                 >
-                  <div className="h-16 w-16 rounded-lg overflow-hidden bg-muted border shrink-0">
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden bg-muted border shrink-0">
                     {product.thumbnail ? (
                       <img
                         src={product.thumbnail}
@@ -475,29 +497,38 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                       />
                     ) : (
                       <div className="h-full w-full bg-primary/10 flex items-center justify-center">
-                        <Package className="h-6 w-6 text-primary" />
+                        <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                      <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 bg-muted rounded-md text-muted-foreground">
-                        {product.category?.replace('-', ' ')}
-                      </span>
-                      {product.affiliateEnabled && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 bg-primary/10 text-primary rounded-md">
-                          <Zap className="h-2.5 w-2.5 fill-primary" />
-                          {product.affiliateCommission || 20}%
+                  <div className="flex-1 min-w-0 pr-8 sm:pr-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm truncate">{product.name}</h3>
+                        {product.status === 'draft' && (
+                          <span className="text-[8px] uppercase font-bold px-1.5 py-0.5 bg-yellow-100/50 text-yellow-700 rounded-sm">Draft</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 overflow-hidden">
+                        <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 bg-muted rounded text-muted-foreground whitespace-nowrap">
+                          {product.category?.replace('-', ' ')}
                         </span>
-                      )}
+                        {product.affiliateEnabled && (
+                          <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 bg-primary/10 text-primary rounded whitespace-nowrap">
+                            <Zap className="h-2 w-2 sm:h-2.5 sm:w-2.5 fill-primary" />
+                            {product.affiliateCommission || 20}%
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{product.description}</p>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
-                      <div className="h-1 w-1 rounded-full bg-border" />
-                      <p className="font-bold text-sm text-green-600">
+                    <p className="hidden sm:block text-xs text-muted-foreground line-clamp-1 mt-0.5">{product.description}</p>
+                    <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5">
+                      <div className="scale-90 sm:scale-100 origin-left">
+                        <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                      </div>
+                      <div className="hidden sm:block h-1 w-1 rounded-full bg-border" />
+                      <p className="font-bold text-xs sm:text-sm text-green-600">
                         {formatCurrency(
                           (product.currency || 'USD') === 'USD' && currency === 'NGN'
                             ? product.price * EXCHANGE_RATE
@@ -510,11 +541,11 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 flex items-center gap-1">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 rounded-full"
+                      className="hidden sm:flex h-8 w-8 rounded-full text-muted-foreground"
                       onClick={(e) => { e.stopPropagation(); copyProductLink(product) }}
                     >
                       <Copy className="h-4 w-4" />
@@ -523,7 +554,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                       href={`/${cleanHandle}/product/${product.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-accent text-foreground transition-colors"
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Eye className="h-4 w-4" />
@@ -533,7 +564,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 rounded-full"
+                          className="h-8 w-8 rounded-full text-muted-foreground"
                           aria-label="Product actions"
                         >
                           <MoreVertical className="h-4 w-4" />
@@ -546,6 +577,13 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                         }}>
                           <Settings className="mr-2 h-3.5 w-3.5" />
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(event) => {
+                          event.preventDefault();
+                          copyProductLink(product);
+                        }} className="sm:hidden">
+                          <Copy className="mr-2 h-3.5 w-3.5" />
+                          Copy Link
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={(event) => {
                           event.preventDefault();
