@@ -2,14 +2,13 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getUserProducts, type Product } from '@/services/productsService'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import { getBankingDetails } from '@/services/bankingDetailsService'
-import { Plus, Sparkles, Wand2, Loader2, Search, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
+import { Sparkles, Wand2, Loader2, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
 import { getUser } from '@/services/userService'
 import { createProduct } from '@/services/productsService'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -22,18 +21,15 @@ import { formatCurrency } from '@/utils/currency'
 import { slugify } from '@/utils/slugify'
 import { storage } from '@/lib/firebase'
 
-import CreateTab from './CreateTab'  
 import ManageTab from './ManageTab'
 import InstantCatalogModal from '@/components/products/InstantCatalogModal'
 
 
 
 function ProductCreator() {
+  const router = useRouter()
   const { currency } = useCurrency()
-  const [activeTab, setActiveTab] = useState("manage")
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [hasBankingDetails, setHasBankingDetails] = useState(false)
-  const [selectedCategory] = useState(null)
   const [myProducts, setMyProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
   const [isAIModalOpen, setIsAIModalOpen] = useState(false)
@@ -50,13 +46,11 @@ function ProductCreator() {
     }>
   }>(null)
   const [isInstantCatalogOpen, setIsInstantCatalogOpen] = useState(false)
-  const [initialProductData, setInitialProductData] = useState<any>(null)
   const [brandStyle, setBrandStyle] = useState<string>("")
   const [processingIdx, setProcessingIdx] = useState<number | null>(null)
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null)
   const [acceptedIndices, setAcceptedIndices] = useState<Set<number>>(new Set())
   const { user, loading: authLoading } = useAuth()
-  const searchParams = useSearchParams()
 
   const base64ToBlob = (base64: string, mimeType: string) => {
     const byteCharacters = atob(base64)
@@ -266,13 +260,6 @@ function ProductCreator() {
     setAiResult({ ...aiResult, products: newProducts })
   }
 
-  useEffect(() => {
-    if (searchParams.get('new') === '1') {
-      setIsCreateModalOpen(true)
-      setActiveTab('manage')
-    }
-  }, [searchParams])
-
   return (
     <div className="space-y-6">
       <div className="pt-2">
@@ -281,8 +268,7 @@ function ProductCreator() {
           isLoading={isLoadingProducts}
           onProductsChanged={loadMyProducts}
           onCreateNew={() => {
-            setInitialProductData(null)
-            setIsCreateModalOpen(true)
+            router.push('/dashboard/products/new')
           }}
           onGenAINew={() => setIsAIModalOpen(true)}
           onBulkAINew={() => setIsInstantCatalogOpen(true)}
@@ -296,31 +282,6 @@ function ProductCreator() {
         onProductsCreated={loadMyProducts}
         creatorName={user?.displayName || "Creator"}
       />
-
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-3xl gap-0 overflow-hidden border-border/60 p-0 shadow-2xl">
-          <DialogHeader className="border-b border-border/60 px-4 py-3">
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <Plus className="h-4 w-4" />
-              New Product
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[80vh] overflow-y-auto px-4 py-3 sm:px-5 sm:py-4">
-          <CreateTab
-            user={user}
-            selectedCategory={selectedCategory}
-            existingProducts={myProducts}
-            initialData={initialProductData}
-            onProductCreated={() => {
-              setIsCreateModalOpen(false)
-              setInitialProductData(null)
-              setActiveTab('manage')
-              loadMyProducts()
-            }}
-          />
-        </div>
-        </DialogContent>
-      </Dialog>
 
       {/* AI Modal */}
       <Dialog open={isAIModalOpen} onOpenChange={setIsAIModalOpen}>

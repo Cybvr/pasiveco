@@ -14,7 +14,7 @@ interface NoProductsSectionProps {
 
 export default function NoProductsSection({
   showBankingDetailsAction = false,
-  addProductHref = '/dashboard/products?new=1',
+  addProductHref = '/dashboard/products/new',
   addBankingDetailsHref = '/dashboard/settings/payment-method',
   onAddProduct,
   onAddBankingDetails,

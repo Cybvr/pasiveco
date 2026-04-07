@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Plus,
   Package,
   Copy,
-  Settings,
   Trash2,
   MoreVertical,
   Sparkles,
@@ -12,46 +12,18 @@ import {
   Layers,
   LayoutGrid,
   List,
-  Image as ImageIcon,
-  UploadCloud,
-  Wand2,
-  Loader2,
   Zap,
-  Star
 } from 'lucide-react'
 import StarRating from '@/components/products/StarRating'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { v4 as uuidv4 } from 'uuid'
-import { PRODUCT_TYPE_OPTIONS } from '@/lib/productTypes'
-import { slugify } from '@/utils/slugify'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { storage } from '@/lib/firebase'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { deleteProduct, updateProduct } from '@/services/productsService'
+import { createProduct, deleteProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { useCurrency } from '@/context/CurrencyContext'
@@ -61,47 +33,28 @@ import DashboardPagination from '@/components/dashboard/DashboardPagination'
 
 function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, onBulkAINew, hasBankingDetails = false }) {
   const ITEMS_PER_PAGE = 12
+  const router = useRouter()
   const { user } = useAuth()
   const { currency } = useCurrency()
   const [profile, setProfile] = useState<AppUser | null>(null)
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
+  const [currentPage, setCurrentPage] = useState(1)
 
   React.useEffect(() => {
     const fetchProfile = async () => {
-      if (user?.uid) {
-        try {
-          const fetchedProfile = await getUser(user.uid)
-          setProfile(fetchedProfile)
-        } catch (error) {
-          console.error('Error fetching profile for ManageTab:', error)
-        }
+      if (!user?.uid) return
+      try {
+        const fetchedProfile = await getUser(user.uid)
+        setProfile(fetchedProfile)
+      } catch (error) {
+        console.error('Error fetching profile for ManageTab:', error)
       }
     }
-    fetchProfile()
+
+    void fetchProfile()
   }, [user])
 
   const cleanHandle = (profile?.username || profile?.slug || (user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '') || 'user'
-  const [editingProduct, setEditingProduct] = useState<any>(null)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editForm, setEditForm] = useState<any>({
-    name: '',
-    description: '',
-    price: 0,
-    status: 'draft',
-    slug: '',
-    category: 'digital-download',
-    thumbnail: '',
-    images: [] as string[],
-    affiliateEnabled: false,
-    affiliateCommission: 20
-  })
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState('')
-  const [imageDragging, setImageDragging] = useState(false)
-  const imageInputRef = React.useRef<HTMLInputElement | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
-  const [currentPage, setCurrentPage] = useState(1)
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     toast(`Delete "${productName}"?`, {
@@ -121,178 +74,57 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
       },
       cancel: {
         label: 'Cancel',
-        onClick: () => { },
+        onClick: () => {},
       },
     })
   }
 
-  const handleEditProduct = (product) => {
-    setEditingProduct(product)
-    setEditForm({
-      name: product.name,
-      description: product.description || '',
-      price: product.price,
-      status: product.status || 'draft',
-      slug: product.slug || '',
-      category: product.category || 'digital-download',
-      thumbnail: product.thumbnail || '',
-      images: product.images || [],
-      affiliateEnabled: product.affiliateEnabled || false,
-      affiliateCommission: product.affiliateCommission || 20
-    })
-    setImagePreview(product.thumbnail || '')
-    setShowEditModal(true)
+  const openProductEditor = (product) => {
+    router.push(`/dashboard/products/${product.id}`)
   }
 
-  const handleImageChange = (file: File) => {
-    setImageFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setImagePreview(reader.result?.toString() || '')
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const uploadFileToStorage = async (file: File, folder: string) => {
-    const filename = `${uuidv4()}-${file.name}`
-    const storageRef = ref(storage, `${folder}/${filename}`)
+  const duplicateProduct = async (product) => {
     try {
-      await uploadBytes(storageRef, file, {
-        contentType: file.type || 'application/octet-stream',
+      await createProduct({
+        userId: product.userId,
+        name: `${product.name} Copy`,
+        description: product.description || '',
+        price: product.price || 0,
+        currency: product.currency || 'NGN',
+        category: product.category || 'digital-download',
+        url: product.url || '',
+        images: Array.isArray(product.images) ? product.images : [],
+        thumbnail: product.thumbnail || '',
+        status: 'draft',
+        tags: Array.isArray(product.tags) ? product.tags : [],
+        details: product.details,
+        affiliateEnabled: Boolean(product.affiliateEnabled),
+        affiliateCommission: product.affiliateEnabled ? (product.affiliateCommission || 20) : undefined,
+        inventory: product.inventory || {
+          quantity: 0,
+          trackInventory: false,
+        },
+        shipping: product.shipping || {
+          weight: 0,
+          dimensions: { length: 0, width: 0, height: 0 },
+          shippingRequired: false,
+        },
+        seo: product.seo || {
+          title: `${product.name} Copy`,
+          description: product.description || '',
+          keywords: [],
+        },
+        paymentIntegration: product.paymentIntegration,
+        rating: 0,
+        reviewsCount: 0,
+        slug: product.slug || product.id,
       })
-      return await getDownloadURL(storageRef)
-    } catch (error) {
-      console.error('Error uploading:', {
-        folder,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        error,
-      })
-      toast.error('Failed to upload image')
-      return ''
-    }
-  }
-
-  const handleGenerateAIImage = async () => {
-    if (!editForm.name) {
-      toast.error('Please enter a product title to generate an image')
-      return
-    }
-
-    setIsGeneratingImage(true)
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productName: editForm.name,
-          productDescription: editForm.description || `A high quality product for ${editForm.name}`
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Image generation failed')
-      }
-
-      const data = await response.json();
-      if (data.base64Image) {
-        const response = await fetch(`data:image/jpeg;base64,${data.base64Image}`);
-        const blob = await response.blob();
-        const file = new File([blob], `ai-gen-${uuidv4()}.jpg`, { type: 'image/jpeg' });
-
-        handleImageChange(file);
-        toast.success('Image generated successfully!');
-      } else {
-        throw new Error('No image returned')
-      }
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || 'Failed to generate image');
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  }
-
-  const handleUpdateProduct = async () => {
-    if (!editingProduct || !editForm.name.trim()) {
-      toast.error('Please fill in the product name')
-      return
-    }
-
-    setLoading(true)
-    try {
-      let finalThumbnail = editForm.thumbnail;
-      let finalImages = [...editForm.images];
-
-      if (imageFile) {
-        const uploadedUrl = await uploadFileToStorage(imageFile, 'product-images');
-        if (uploadedUrl) {
-          finalThumbnail = uploadedUrl;
-          finalImages = [uploadedUrl]; // For now we replace the single image
-        }
-      }
-
-      const finalSlug = editForm.slug?.trim() || editingProduct.slug || slugify(editForm.name);
-
-      const updateData: any = {
-        name: editForm.name,
-        description: editForm.description,
-        price: Number(editForm.price) || 0,
-        status: editForm.status,
-        slug: finalSlug,
-        category: editForm.category,
-        thumbnail: finalThumbnail,
-        images: finalImages,
-        affiliateEnabled: editForm.affiliateEnabled
-      }
-
-      if (editForm.affiliateEnabled) {
-        updateData.affiliateCommission = Number(editForm.affiliateCommission) || 20
-      }
-
-      await updateProduct(editingProduct.id, updateData)
-      toast.success('Product updated successfully!')
-      closeEditModal()
+      toast.success('Product duplicated')
       onProductsChanged()
     } catch (error) {
-      console.error('Error updating product:', error)
-      toast.error('Failed to update product')
-    } finally {
-      setLoading(false)
+      console.error('Error duplicating product:', error)
+      toast.error('Failed to duplicate product')
     }
-  }
-
-  const copyProductLink = async (product) => {
-    const productIdentifier = product.slug;
-    const productUrl = `${window.location.origin}/${cleanHandle}/product/${productIdentifier}`;
-    try {
-      await navigator.clipboard.writeText(productUrl);
-      toast.success('Product link copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy link:', error)
-      toast.error('Failed to copy link')
-    }
-  }
-
-  const closeEditModal = () => {
-    setShowEditModal(false)
-    setEditingProduct(null)
-    setEditForm({
-      name: '',
-      description: '',
-      price: 0,
-      status: 'draft',
-      slug: '',
-      category: 'digital-download',
-      thumbnail: '',
-      images: [],
-      affiliateEnabled: false,
-      affiliateCommission: 20
-    })
-    setImageFile(null)
-    setImagePreview('')
   }
 
   React.useEffect(() => {
@@ -306,290 +138,185 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   )
 
   return (
-    <>
-      <div className="space-y-4 ">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
-            <div className="flex items-center p-0.5 bg-muted rounded-lg lg:hidden">
-              <Button
-                variant={viewMode === 'card' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-7 w-7 rounded-md"
-                onClick={() => setViewMode('card')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-7 w-7 rounded-md"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="hidden lg:flex items-center p-0.5 bg-muted rounded-lg mr-2">
-              <Button
-                variant={viewMode === 'card' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-7 w-7 rounded-md"
-                onClick={() => setViewMode('card')}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-7 w-7 rounded-md"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-2 w-full sm:flex sm:w-auto">
-              <Button variant="outline" onClick={onGenAINew} title="Quick Add" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-primary/20 hover:bg-primary/5 text-primary px-2 sm:px-3 rounded-lg overflow-hidden shrink-0">
-                <Sparkles className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline truncate">Quick Add</span>
-              </Button>
-              <Button variant="outline" onClick={onBulkAINew} title="Instant Catalog" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 border-primary/20 hover:bg-primary/5 text-primary px-2 sm:px-3 rounded-lg overflow-hidden shrink-0">
-                <Layers className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline truncate">Instant Catalog</span>
-              </Button>
-              <Button onClick={onCreateNew} title="New Product" className="h-8 text-[10px] sm:text-xs gap-1 sm:gap-1.5 px-2 sm:px-4 rounded-lg overflow-hidden shrink-0">
-                <Plus className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline">New</span>
-              </Button>
-            </div>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold whitespace-nowrap">My Products ({products.length})</h2>
+          <div className="flex items-center rounded-lg bg-muted p-0.5 lg:hidden">
+            <Button
+              variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+              size="icon"
+              className="h-7 w-7 rounded-md"
+              onClick={() => setViewMode('card')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              size="icon"
+              className="h-7 w-7 rounded-md"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
-        {viewMode === 'card' ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-1">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <div key={`product-skeleton-${index}`} className="p-2 space-y-2">
-                  <Skeleton className="w-full aspect-square rounded-md" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/3" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              paginatedProducts.map((product: any) => (
-                <div key={product.id} className="  cursor-pointer space-y-2 group relative" onClick={() => handleEditProduct(product)} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); handleEditProduct(product) } }}>
-                  <div className="w-full aspect-square rounded-md overflow-hidden bg-muted relative">
-                    {product.thumbnail ? (
-                      <img
-                        src={product.thumbnail}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                        <Package className="h-8 w-8 text-primary" />
-                      </div>
-                    )}
-                    {product.affiliateEnabled && (
-                      <div className="absolute top-2 left-2 z-10">
-                        <div className="flex items-center gap-1 bg-zinc-950/80 backdrop-blur-md text-white border-none px-2 py-0.5 text-[10px] font-bold rounded-md">
-                          <Zap className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                          {product.affiliateCommission || 20}%
-                        </div>
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2 sm:opacity-0 group-hover:opacity-100 transition-opacity z-10 duration-200">
-                      <a href={`/${cleanHandle}/product/${product.slug}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur text-muted-foreground hover:bg-background shadow-sm" onClick={(e) => e.stopPropagation()}>
-                        <Eye className="h-4 w-4" />
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1 min-w-0">
-                      <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                      <p className="text-sm font-semibold text-green-600">
-                        {formatCurrency(
-                          (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                            ? product.price * EXCHANGE_RATE
-                            : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                              ? product.price / EXCHANGE_RATE
-                              : product.price,
-                          currency
-                        )}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 -mr-1 -mt-1 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100 transition-opacity duration-200">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-7 w-7 rounded-full text-muted-foreground bg-background/90 backdrop-blur shadow-sm"
-                            aria-label="Product actions"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onSelect={(event) => {
-                            event.preventDefault();
-                            handleEditProduct(product);
-                          }}>
-                            <Settings className="mr-2 h-3.5 w-3.5" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={(event) => {
-                            event.preventDefault();
-                            copyProductLink(product);
-                          }}>
-                            <Copy className="mr-2 h-3.5 w-3.5" />
-                            Copy
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={(event) => {
-                            event.preventDefault();
-                            handleDeleteProduct(product.id, product.name);
-                          }}
-                            className="text-destructive focus:text-destructive">
-                            <Trash2 className="mr-2 h-3.5 w-3.5" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="mr-2 hidden items-center rounded-lg bg-muted p-0.5 lg:flex">
+            <Button
+              variant={viewMode === 'card' ? 'secondary' : 'ghost'}
+              size="icon"
+              className="h-7 w-7 rounded-md"
+              onClick={() => setViewMode('card')}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              size="icon"
+              className="h-7 w-7 rounded-md"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
           </div>
-        ) : (
-          <div className="flex flex-col gap-2 pt-4">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <div key={`product-list-skeleton-${index}`} className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl border border-transparent">
-                  <Skeleton className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-3 w-3/4" />
-                  </div>
+
+          <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
+            <Button variant="outline" onClick={onGenAINew} title="Quick Add" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg border-primary/20 px-2 text-[10px] text-primary hover:bg-primary/5 sm:gap-1.5 sm:px-3 sm:text-xs">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span className="hidden truncate sm:inline">Quick Add</span>
+            </Button>
+            <Button variant="outline" onClick={onBulkAINew} title="Instant Catalog" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg border-primary/20 px-2 text-[10px] text-primary hover:bg-primary/5 sm:gap-1.5 sm:px-3 sm:text-xs">
+              <Layers className="h-3.5 w-3.5" />
+              <span className="hidden truncate sm:inline">Instant Catalog</span>
+            </Button>
+            <Button onClick={onCreateNew} title="New Product" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg px-2 text-[10px] sm:gap-1.5 sm:px-4 sm:text-xs">
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">New</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {viewMode === 'card' ? (
+        <div className="grid grid-cols-2 gap-1 md:grid-cols-3 xl:grid-cols-4">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={`product-skeleton-${index}`} className="space-y-2 p-2">
+                <Skeleton className="aspect-square w-full rounded-md" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/3" />
                 </div>
-              ))
-            ) : (
-              paginatedProducts.map((product: any) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-xl border border-border/40 hover:bg-muted/30 transition-all cursor-pointer group relative"
-                  onClick={() => handleEditProduct(product)}
-                >
-                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden bg-muted border shrink-0">
-                    {product.thumbnail ? (
-                      <img
-                        src={product.thumbnail}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-primary/10 flex items-center justify-center">
-                        <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                      </div>
-                    )}
-                  </div>
+              </div>
+            ))
+          ) : (
+            paginatedProducts.map((product: any) => (
+              <div
+                key={product.id}
+                className="group relative cursor-pointer space-y-2"
+                onClick={() => openProductEditor(product)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    openProductEditor(product)
+                  }
+                }}
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-md bg-muted">
+                  {product.thumbnail ? (
+                    <img
+                      src={product.thumbnail}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+                      <Package className="h-8 w-8 text-primary" />
+                    </div>
+                  )}
 
-                  <div className="flex-1 min-w-0 pr-8 sm:pr-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm truncate">{product.name}</h3>
-                        {product.status === 'draft' && (
-                          <span className="text-[8px] uppercase font-bold px-1.5 py-0.5 bg-yellow-100/50 text-yellow-700 rounded-sm">Draft</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest px-1.5 sm:px-2 py-0.5 bg-muted rounded text-muted-foreground whitespace-nowrap">
-                          {product.category?.replace('-', ' ')}
-                        </span>
-                        {product.affiliateEnabled && (
-                          <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 bg-primary/10 text-primary rounded whitespace-nowrap">
-                            <Zap className="h-2 w-2 sm:h-2.5 sm:w-2.5 fill-primary" />
-                            {product.affiliateCommission || 20}%
-                          </span>
-                        )}
+                  {product.affiliateEnabled && (
+                    <div className="absolute left-2 top-2 z-10">
+                      <div className="flex items-center gap-1 rounded-md bg-zinc-950/80 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-md">
+                        <Zap className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {product.affiliateCommission || 20}%
                       </div>
                     </div>
-                    <p className="hidden sm:block text-xs text-muted-foreground line-clamp-1 mt-0.5">{product.description}</p>
-                    <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5">
-                      <div className="scale-90 sm:scale-100 origin-left">
-                        <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
-                      </div>
-                      <div className="hidden sm:block h-1 w-1 rounded-full bg-border" />
-                      <p className="font-bold text-xs sm:text-sm text-green-600">
-                        {formatCurrency(
-                          (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                            ? product.price * EXCHANGE_RATE
-                            : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                              ? product.price / EXCHANGE_RATE
-                              : product.price,
-                          currency
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 sm:static sm:translate-y-0 flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="hidden sm:flex h-8 w-8 rounded-full text-muted-foreground"
-                      onClick={(e) => { e.stopPropagation(); copyProductLink(product) }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                  <div className="absolute right-2 top-2 z-10 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
                     <a
-                      href={`/${cleanHandle}/product/${product.slug}`}
+                      href={`/${cleanHandle}/product/${product.slug || product.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent transition-colors"
-                      onClick={(e) => e.stopPropagation()}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-muted-foreground shadow-sm backdrop-blur hover:bg-background"
+                      onClick={(event) => event.stopPropagation()}
                     >
                       <Eye className="h-4 w-4" />
                     </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="truncate text-sm font-semibold">{product.name}</h3>
+                    <p className="text-sm font-semibold text-green-600">
+                      {formatCurrency(
+                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                          ? product.price * EXCHANGE_RATE
+                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                            ? product.price / EXCHANGE_RATE
+                            : product.price,
+                        currency
+                      )}
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 -mr-1 -mt-1 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 data-[state=open]:opacity-100">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
                         <Button
                           size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 rounded-full text-muted-foreground"
+                          variant="secondary"
+                          className="h-7 w-7 rounded-full bg-background/90 text-muted-foreground shadow-sm backdrop-blur"
                           aria-label="Product actions"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem onSelect={(event) => {
-                          event.preventDefault();
-                          handleEditProduct(product);
-                        }}>
-                          <Settings className="mr-2 h-3.5 w-3.5" />
-                          Edit
+                      <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                        <DropdownMenuItem
+                          onSelect={(event) => {
+                            event.preventDefault()
+                            openProductEditor(product)
+                          }}
+                        >
+                          <Eye className="mr-2 h-3.5 w-3.5" />
+                          Open
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(event) => {
-                          event.preventDefault();
-                          copyProductLink(product);
-                        }} className="sm:hidden">
+                        <DropdownMenuItem
+                          onSelect={(event) => {
+                            event.preventDefault()
+                            duplicateProduct(product)
+                          }}
+                        >
                           <Copy className="mr-2 h-3.5 w-3.5" />
-                          Copy Link
+                          Duplicate
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(event) => {
-                          event.preventDefault();
-                          handleDeleteProduct(product.id, product.name);
-                        }}
-                          className="text-destructive focus:text-destructive">
+                        <DropdownMenuItem
+                          onSelect={(event) => {
+                            event.preventDefault()
+                            handleDeleteProduct(product.id, product.name)
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
                           <Trash2 className="mr-2 h-3.5 w-3.5" />
                           Delete
                         </DropdownMenuItem>
@@ -597,224 +324,157 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     </DropdownMenu>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {!isLoading && products.length === 0 && (
-          <NoProductsSection
-            showBankingDetailsAction={!hasBankingDetails}
-            onAddProduct={onCreateNew}
-            className="border-dashed shadow-none"
-          />
-        )}
-
-        {!isLoading && products.length > 0 && (
-          <DashboardPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
-
-        <Dialog open={showEditModal} onOpenChange={(open) => { if (!open) closeEditModal() }}>
-          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-border/60 shadow-2xl">
-            <DialogHeader className="px-6 py-4 border-b border-border/60">
-              <DialogTitle className="text-lg font-bold">Edit Product</DialogTitle>
-            </DialogHeader>
-            <div className="p-6 space-y-6">
-
-              {/* Cover Image */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Cover Image</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-[10px] gap-1.5"
-                    onClick={handleGenerateAIImage}
-                    disabled={isGeneratingImage || !editForm.name}
-                  >
-                    {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                    {isGeneratingImage ? 'Generating...' : 'Generate AI Image'}
-                  </Button>
-                </div>
-                <div
-                  onClick={() => imageInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
-                  onDragLeave={() => setImageDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setImageDragging(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file && file.type.startsWith('image/')) handleImageChange(file);
-                  }}
-                  className={`relative flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-all duration-200
-                  ${imageDragging ? 'border-primary bg-primary/[0.03] scale-[0.99]' : 'border-border/60 hover:border-primary/40 hover:bg-muted/30'}`}
-                >
-                  {imagePreview ? (
-                    <div className="relative group/img">
-                      <img src={imagePreview} alt="Cover preview" className="max-h-48 w-auto rounded-lg object-contain shadow-sm" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                        <p className="text-white text-[10px] font-bold uppercase tracking-wider">Replace Image</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted shadow-inner">
-                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold">Click or drop to upload</p>
-                        <p className="mt-1 text-[10px] text-muted-foreground">PNG or JPG — 2MB max</p>
-                      </div>
-                    </>
-                  )}
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageChange(file);
-                    }}
-                    className="hidden"
-                  />
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2 pt-4">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={`product-list-skeleton-${index}`} className="flex items-center gap-3 rounded-xl border border-transparent p-2 sm:gap-4 sm:p-3">
+                <Skeleton className="h-14 w-14 shrink-0 rounded-lg sm:h-16 sm:w-16" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-1/4" />
+                  <Skeleton className="h-3 w-3/4" />
                 </div>
               </div>
-
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Product Title</Label>
-                  <Input
-                    type="text"
-                    placeholder="The Ultimate Guide..."
-                    value={editForm.name}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-                    className="h-11 rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Short Link (Slug)</Label>
-                  <Input
-                    type="text"
-                    value={editForm.slug}
-                    onChange={(e) => setEditForm((prev) => ({ ...prev, slug: e.target.value }))}
-                    className="h-11 rounded-xl"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-6 sm:grid-cols-2 text-right">
-                <div className="space-y-2 text-left">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Category</Label>
-                  <Select
-                    value={editForm.category}
-                    onValueChange={(val) => setEditForm(prev => ({ ...prev, category: val }))}
-                  >
-                    <SelectTrigger className="h-11 rounded-xl">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRODUCT_TYPE_OPTIONS.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 text-left">
-                  <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Price ({currency})</Label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-xs">{currency === 'NGN' ? '₦' : '$'}</span>
-                    <Input
-                      type="number"
-                      value={editForm.price}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
-                      className="h-11 pl-8 rounded-xl"
+            ))
+          ) : (
+            paginatedProducts.map((product: any) => (
+              <div
+                key={product.id}
+                className="group relative flex cursor-pointer items-center gap-3 rounded-xl border border-border/40 p-2 transition-all hover:bg-muted/30 sm:gap-4 sm:p-3"
+                onClick={() => openProductEditor(product)}
+              >
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border bg-muted sm:h-16 sm:w-16">
+                  {product.thumbnail ? (
+                    <img
+                      src={product.thumbnail}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
                     />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Description</Label>
-                <Textarea
-                  rows={3}
-                  value={editForm.description}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
-                  className="rounded-xl resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-bold">Product is {editForm.status === 'active' ? 'Live' : 'Hidden'}</p>
-                  <p className="text-[10px] text-muted-foreground">Toggle visibility on your storefront</p>
-                </div>
-                <Switch
-                  checked={editForm.status === 'active'}
-                  onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, status: checked ? 'active' : 'draft' }))}
-                />
-              </div>
-
-              <div className="space-y-4 pt-2 border-t border-border/40">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                      <Zap className="h-4 w-4 text-primary" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-primary/10">
+                      <Package className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">Affiliate Program</p>
-                      <p className="text-[10px] text-muted-foreground">Allow others to sell this product for a cut.</p>
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1 pr-8 sm:pr-0">
+                  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate text-sm font-semibold">{product.name}</h3>
+                      {product.status === 'draft' && (
+                        <span className="rounded-sm bg-yellow-100/50 px-1.5 py-0.5 text-[8px] font-bold uppercase text-yellow-700">Draft</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                      <span className="whitespace-nowrap rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:px-2 sm:text-[10px]">
+                        {product.category?.replace('-', ' ')}
+                      </span>
+                      {product.affiliateEnabled && (
+                        <span className="flex whitespace-nowrap items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary sm:px-2 sm:text-[10px]">
+                          <Zap className="h-2 w-2 fill-primary sm:h-2.5 sm:w-2.5" />
+                          {product.affiliateCommission || 20}%
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <Switch
-                    checked={editForm.affiliateEnabled}
-                    onCheckedChange={(checked) => setEditForm(prev => ({ ...prev, affiliateEnabled: checked }))}
-                  />
+                  <p className="mt-0.5 hidden line-clamp-1 text-xs text-muted-foreground sm:block">{product.description}</p>
+                  <div className="mt-1 flex items-center gap-2 sm:mt-1.5 sm:gap-3">
+                    <div className="origin-left scale-90 sm:scale-100">
+                      <StarRating rating={product.rating || 0} count={product.reviewsCount || 0} />
+                    </div>
+                    <div className="hidden h-1 w-1 rounded-full bg-border sm:block" />
+                    <p className="text-xs font-bold text-green-600 sm:text-sm">
+                      {formatCurrency(
+                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
+                          ? product.price * EXCHANGE_RATE
+                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
+                            ? product.price / EXCHANGE_RATE
+                            : product.price,
+                        currency
+                      )}
+                    </p>
+                  </div>
                 </div>
 
-                {editForm.affiliateEnabled && (
-                  <div className="pl-11 space-y-2">
-                    <Label className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Commission (%)</Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        type="number"
-                        min="1"
-                        max="80"
-                        value={editForm.affiliateCommission}
-                        onChange={(e) => {
-                          const val = Math.min(80, Math.max(1, parseInt(e.target.value) || 1))
-                          setEditForm(prev => ({ ...prev, affiliateCommission: val }))
+                <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 sm:static sm:translate-y-0">
+                  <a
+                    href={`/${cleanHandle}/product/${product.slug || product.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </a>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 rounded-full text-muted-foreground"
+                        aria-label="Product actions"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                      <DropdownMenuItem
+                        onSelect={(event) => {
+                          event.preventDefault()
+                          openProductEditor(product)
                         }}
-                        className="w-24 h-11 rounded-xl"
-                      />
-                      <span className="text-[10px] text-muted-foreground">Max 80%</span>
-                    </div>
-                  </div>
-                )}
+                      >
+                        <Eye className="mr-2 h-3.5 w-3.5" />
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={(event) => {
+                          event.preventDefault()
+                          duplicateProduct(product)
+                        }}
+                      >
+                        <Copy className="mr-2 h-3.5 w-3.5" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={(event) => {
+                          event.preventDefault()
+                          handleDeleteProduct(product.id, product.name)
+                        }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
+            ))
+          )}
+        </div>
+      )}
 
-            </div>
-            <DialogFooter className="px-6 py-4 border-t border-border/60 bg-muted/10 gap-2">
-              <Button variant="outline" onClick={closeEditModal} className="h-11 px-6 rounded-xl">Cancel</Button>
-              <Button onClick={handleUpdateProduct} disabled={loading} className="h-11 px-8 rounded-xl shadow-lg shadow-primary/20">
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : 'Update Product'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </>
+      {!isLoading && products.length === 0 && (
+        <NoProductsSection
+          showBankingDetailsAction={!hasBankingDetails}
+          onAddProduct={onCreateNew}
+          className="border-dashed shadow-none"
+        />
+      )}
+
+      {!isLoading && products.length > 0 && (
+        <DashboardPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+    </div>
   )
 }
 

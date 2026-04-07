@@ -82,6 +82,7 @@ export default function DashboardHeader() {
     if (pageTitles[pathname]) return pageTitles[pathname]
     if (pathname.startsWith('/dashboard/earnings/')) return 'Earnings Details'
     if (pathname.startsWith('/dashboard/library/')) return 'Order Details'
+    if (pathname.startsWith('/dashboard/products/')) return ''
     if (pathname.startsWith('/dashboard/settings')) return 'Settings'
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
@@ -107,8 +108,10 @@ export default function DashboardHeader() {
   }
 
   const showBackButton = pathname === '/dashboard/posts/new' ||
+                         pathname.startsWith('/dashboard/products/') ||
                          (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
   const showSaveButton = pathname === '/dashboard/edit'
+  const isProductDetailPage = pathname.startsWith('/dashboard/products/')
 
   const handleSaveEditProfile = () => {
     if (typeof window === 'undefined') return
@@ -132,15 +135,16 @@ export default function DashboardHeader() {
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
+              size={isProductDetailPage ? 'sm' : 'icon'}
+              className={isProductDetailPage ? 'h-9 shrink-0 gap-2 px-2' : 'h-9 w-9 shrink-0'}
               onClick={() => router.back()}
               aria-label="Go back"
             >
               <ArrowLeft className="h-4 w-4" />
+              {isProductDetailPage ? <span>Back</span> : null}
             </Button>
           ) : null}
-          <h1 className="truncate text-base font-semibold tracking-tight">{currentTitle}</h1>
+          {currentTitle ? <h1 className="truncate text-base font-semibold tracking-tight">{currentTitle}</h1> : null}
         </div>
 
         <div className="flex items-center gap-2">
