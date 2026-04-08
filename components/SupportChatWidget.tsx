@@ -219,7 +219,7 @@ export default function SupportChatWidget() {
 
   const isDashboard = pathname?.startsWith("/dashboard")
   const bottomOffset = isDashboard
-    ? "calc(env(safe-area-inset-bottom, 0px) + 5.75rem)"
+    ? "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)"
     : "calc(env(safe-area-inset-bottom, 0px) + 0.25rem)"
 
   const needsInfo = !userInfo.name || !userInfo.email
