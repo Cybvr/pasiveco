@@ -7,8 +7,13 @@ const Footer = () => {
   const [email, setEmail] = useState("")
   const [features, setFeatures] = useState<Feature[]>([])
   const [solutions, setSolutions] = useState<Solution[]>([])
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
     const fetchData = async () => {
       try {
         const [featuresData, solutionsData] = await Promise.all([
@@ -23,7 +28,18 @@ const Footer = () => {
     }
 
     void fetchData()
+
+    return () => clearInterval(timer)
   }, [])
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    })
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -133,7 +149,13 @@ const Footer = () => {
                 Cookie Notice
               </a>
             </div>
-            <p className="text-sm text-foreground/60">© 2025 Pasive. All rights reserved.</p>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-sm text-foreground/60">© 2025 Pasive. All rights reserved.</p>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/40 font-medium">
+                <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Lagos, NG — {formatTime(currentTime)}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
