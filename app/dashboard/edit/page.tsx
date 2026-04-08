@@ -107,7 +107,7 @@ function Page() {
             username: profile.username || "user",
             displayName: profile.displayName || "Your Name",
             bio: profile.bio || "Building something amazing ✨",
-            profilePicture: (profile.profilePicture && !profile.profilePicture.includes("googleusercontent.com")) ? profile.profilePicture : null,
+            profilePicture: profile.profilePicture || user.photoURL || null,
             bannerImage: profile.bannerImage || null,
             slug: profile.slug || profile.username || "user",
             iconColor: (profile as any).iconColor || "#6b7280",
@@ -280,6 +280,7 @@ function Page() {
     profileData.profilePicture?.trim()
       ? profileData.profilePicture
       : getDicebearAvatar(profileData.username || "pasive-user");
+  // Note: profilePicture now already includes Google photo as fallback (set above at load time)
 
   return (
     <div className="mx-auto w-full max-w-sm px-4 pb-24 pt-6 sm:px-0 sm:pb-6">

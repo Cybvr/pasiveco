@@ -7,9 +7,12 @@ const Footer = () => {
   const [email, setEmail] = useState("")
   const [features, setFeatures] = useState<Feature[]>([])
   const [solutions, setSolutions] = useState<Solution[]>([])
-  const [currentTime, setCurrentTime] = useState(new Date())
+  const [currentTime, setCurrentTime] = useState<Date | null>(null)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
+    setHydrated(true)
+    setCurrentTime(new Date())
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
@@ -153,7 +156,9 @@ const Footer = () => {
               <p className="text-sm text-foreground/60">© 2025 Pasive. All rights reserved.</p>
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-foreground/40 font-medium">
                 <span className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Lagos, NG — {formatTime(currentTime)}</span>
+                <span suppressHydrationWarning>
+                  Lagos, NG — {hydrated && currentTime ? formatTime(currentTime) : "--:--:--"}
+                </span>
               </div>
             </div>
           </div>

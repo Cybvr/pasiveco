@@ -88,7 +88,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
               isCollapsed ? "h-10 w-10 rounded-xl" : "h-9 w-9 rounded-lg"
             )}>
               <AvatarImage src={getDisplayAvatar({ 
-                image: (profile?.profilePicture && !profile.profilePicture.includes("googleusercontent.com")) ? profile.profilePicture : null, 
+                image: profile?.profilePicture || user.photoURL || null, 
                 displayName, 
                 handle: profile?.username || user.email || displayName 
               })} alt={displayName} />
