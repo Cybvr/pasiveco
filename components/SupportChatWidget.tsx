@@ -54,14 +54,6 @@ function genTicket() {
   return `PSV-${Math.floor(10000 + Math.random() * 90000)}`
 }
 
-function save(k: string, v: unknown) {
-  try { localStorage.setItem(k, JSON.stringify(v)) } catch { }
-}
-
-function load<T>(k: string, fallback: T): T {
-  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback } catch { return fallback }
-}
-
 function buildNewChatSeedMessages(docs: HelpDoc[]) {
   const now = Date.now()
   const getTitle = (id: string, fallback: string) => docs.find((d) => d.id === id)?.title ?? fallback
@@ -141,46 +133,37 @@ export default function SupportChatWidget() {
   const endRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const didLoadRemoteRef = useRef(false)
 
   // ── Persistence & hydration ───────────────────────────────────────────────
 
   useEffect(() => {
-    const savedSessionId = load<string>("psv_support_session", "")
-    const savedTicket = load<string | null>("psv_ticket", null)
-    const nextTicket = savedTicket || genTicket()
-
     setHydrated(true)
-    setUserInfo(load("psv_user", { name: "", email: "" }))
-    setTicketId(nextTicket)
-    save("psv_ticket", nextTicket)
-    setSessionId(savedSessionId)
-
-    if (savedSessionId) {
-      // Fetch messages from Firestore
-      fetch(`/api/support/chat?sessionId=${savedSessionId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (Array.isArray(data.messages) && data.messages.length > 0) {
-            setMessages(data.messages)
-            save("psv_msgs", data.messages)
-          } else {
-            // No DB messages yet — fall back to localStorage
-            setMessages(load("psv_msgs", []))
-          }
-          if (data.ticketId) {
-            setTicketId(data.ticketId)
-            save("psv_ticket", data.ticketId)
-          }
-        })
-        .catch(() => {
-          // Network error — use localStorage
-          setMessages(load("psv_msgs", []))
-        })
-    } else {
-      // No session yet — use localStorage
-      setMessages(load("psv_msgs", []))
-    }
+    setTicketId(genTicket())
   }, [])
+
+  // If we don't have a session on this device, load the latest by userId once auth is ready.
+  useEffect(() => {
+    if (!hydrated || didLoadRemoteRef.current) return
+    if (sessionId || !user?.uid) return
+    didLoadRemoteRef.current = true
+    fetch(`/api/support/chat?userId=${user.uid}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages)
+        }
+        if (data.ticketId) {
+          setTicketId(data.ticketId)
+        }
+        if (data.sessionId) {
+          setSessionId(data.sessionId)
+        }
+      })
+      .catch(() => {
+        setMessages([])
+      })
+  }, [hydrated, sessionId, user?.uid])
 
   // Auto-fill from auth
   useEffect(() => {
@@ -190,14 +173,9 @@ export default function SupportChatWidget() {
       if (name || email) {
         const info = { name, email }
         setUserInfo(info)
-        save("psv_user", info)
       }
     }
   }, [user, userInfo.name, userInfo.email])
-
-  useEffect(() => { if (hydrated) save("psv_msgs", messages) }, [messages, hydrated])
-  useEffect(() => { if (hydrated && ticketId) save("psv_ticket", ticketId) }, [ticketId, hydrated])
-  useEffect(() => { if (hydrated) save("psv_support_session", sessionId) }, [sessionId, hydrated])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -233,7 +211,7 @@ export default function SupportChatWidget() {
     return full
   }
 
-  function submitInfo(e: React.FormEvent) {
+  async function submitInfo(e: React.FormEvent) {
     e.preventDefault()
     const nErr = !nameInput.trim()
     const eErr = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)
@@ -242,7 +220,27 @@ export default function SupportChatWidget() {
     if (nErr || eErr) return
     const info = { name: nameInput.trim(), email: emailInput.trim() }
     setUserInfo(info)
-    save("psv_user", info)
+    if (!sessionId) {
+      try {
+        const res = await fetch("/api/support/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ticketId,
+            userInfo: info,
+            userId: user?.uid || null,
+            path: pathname,
+          }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.sessionId) setSessionId(data.sessionId)
+          if (data?.ticketId) setTicketId(data.ticketId)
+        }
+      } catch {
+        // Lead capture failed; continue UX without blocking
+      }
+    }
     addMsg({ role: "assistant", content: `Hi ${info.name.split(" ")[0]} 👋 What can we help you with today?` })
     setTimeout(() => textareaRef.current?.focus(), 50)
   }
@@ -320,9 +318,6 @@ export default function SupportChatWidget() {
     setSessionId("")
     setTicketId(freshTicket)
     setMessages(seedMessages)
-    save("psv_support_session", "")
-    save("psv_ticket", freshTicket)
-    save("psv_msgs", seedMessages)
   }
 
   function goToMessagesList() {

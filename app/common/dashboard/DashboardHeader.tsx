@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap } from 'lucide-react'
+import { ArrowLeft, BarChart, Blend, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap, Bot } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -22,6 +22,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/library': 'Library',
   '/dashboard/products': 'Products',
   '/dashboard/analytics': 'Analytics',
+  '/dashboard/manager': 'Business Manager',
   '/dashboard/settings': 'Settings',
   '/dashboard/help': 'Help & Support',
   '/dashboard/messages': 'Messages',
@@ -43,6 +44,7 @@ interface QuickLink {
 const quickLinks: QuickLink[] = [
   { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
   { href: '/dashboard/products', label: 'Products', icon: Package },
+  { href: '/dashboard/manager', label: 'Business Manager', icon: Bot },
   { href: '/dashboard/edit', label: 'Storefront', icon: Palette },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
 ]

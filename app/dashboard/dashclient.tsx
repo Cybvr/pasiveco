@@ -16,6 +16,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const { user } = useAuth()
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const isManager = pathname.startsWith('/dashboard/manager')
   
 
   useEffect(() => {
@@ -55,37 +56,43 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
   return (
     <SecurityLock>
-      <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-background">
-        {/* Sidebar - Desktop only */}
-        <aside className={cn(
-          "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
-          isSidebarCollapsed ? "w-12" : "w-48"
-        )}>
-          <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-        </aside>
-
-        {/* Main content area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
-          <DashboardHeader />
-          <main className="flex-1 min-h-0 overflow-y-auto">
-            <div className={cn(
-              pathname !== '/dashboard/edit' && "mx-auto max-w-[1600px] p-4 md:p-8",
-              pathname === '/dashboard/edit' && "min-h-full"
-            )}>
-              {children}
-            </div>
-          </main>
-          <MobileBottomNav />
+      {isManager ? (
+        <div className="h-screen overflow-hidden bg-background">
+          <main className="h-full">{children}</main>
         </div>
-        
-        {showOnboarding && user?.uid && (
-          <UserOnboarding 
-            onComplete={handleOnboardingClose} 
-            userId={user.uid}
-            displayName={user.displayName || ''}
-          />
-        )}
-      </div>
+      ) : (
+        <div className="h-screen flex flex-col md:flex-row overflow-hidden bg-background">
+          {/* Sidebar - Desktop only */}
+          <aside className={cn(
+            "hidden md:block border-r flex-shrink-0 h-full overflow-y-auto bg-card transition-all duration-300 ease-in-out",
+            isSidebarCollapsed ? "w-12" : "w-48"
+          )}>
+            <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+          </aside>
+
+          {/* Main content area */}
+          <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
+            <DashboardHeader />
+            <main className="flex-1 min-h-0 overflow-y-auto">
+              <div className={cn(
+                pathname !== '/dashboard/edit' && "mx-auto max-w-[1600px] p-4 md:p-8",
+                pathname === '/dashboard/edit' && "min-h-full"
+              )}>
+                {children}
+              </div>
+            </main>
+            <MobileBottomNav />
+          </div>
+        </div>
+      )}
+
+      {showOnboarding && user?.uid && (
+        <UserOnboarding 
+          onComplete={handleOnboardingClose} 
+          userId={user.uid}
+          displayName={user.displayName || ''}
+        />
+      )}
     </SecurityLock>
   )
 }

@@ -83,16 +83,16 @@ export default function ProfileCompletionCard({
 
   if (profileProgress >= 100) {
     return (
-      <Alert className="border-[#189e68]/20 bg-[#189e68]/5 dark:bg-[#189e68]/10 py-4">
-        <CheckCircle2 className="h-4 w-4 text-[#189e68]" />
-        <AlertTitle className="text-[#189e68] font-semibold text-sm">Profile Complete!</AlertTitle>
+      <Alert className="border-primary/20 bg-primary/5 dark:bg-primary/10 py-4">
+        <CheckCircle2 className="h-4 w-4 text-primary" />
+        <AlertTitle className="text-primary font-semibold text-sm">Profile Complete!</AlertTitle>
         <AlertDescription className="flex items-center justify-between gap-2 mt-2">
           <span className="text-muted-foreground text-[11px] sm:text-xs">
             You've successfully completed your profile.
           </span>
           <Button 
             size="sm" 
-            className="bg-[#189e68] hover:bg-[#148557] text-white h-8 px-3 text-[11px] shrink-0" 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-3 text-[11px] shrink-0" 
             onClick={handleClaimBonus} 
             disabled={isClaiming}
           >
@@ -119,7 +119,7 @@ export default function ProfileCompletionCard({
             className={`flex items-center gap-3 text-sm transition-colors ${step.completed ? 'text-muted-foreground line-through opacity-70' : 'text-foreground'}`}
           >
             {step.completed ? (
-              <div className="flex bg-[#189e68] rounded-full text-white p-0.5 items-center justify-center shrink-0 w-5 h-5">
+              <div className="flex bg-primary rounded-full text-primary-foreground p-0.5 items-center justify-center shrink-0 w-5 h-5">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="h-3 w-3">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
@@ -134,7 +134,7 @@ export default function ProfileCompletionCard({
 
       <div className="mt-auto">
         <div className="h-1 w-full bg-muted overflow-hidden flex">
-          <div className="h-full bg-[#189e68] transition-all duration-500 ease-out" style={{ width: `${profileProgress}%` }}></div>
+          <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${profileProgress}%` }}></div>
         </div>
         <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 mb-4">
           {profileProgress}% complete - unlock {formatCurrency(maxBonus, currency)} bonus

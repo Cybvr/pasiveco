@@ -129,14 +129,14 @@ export default function DashboardHomePage() {
         {/* Earnings Balance (Green) */}
         <Link
           href="/dashboard/earnings"
-          className="rounded-2xl p-5 sm:p-6 bg-[#189e68] text-white flex flex-col justify-between transition-opacity hover:opacity-95"
+          className="rounded-2xl p-5 sm:p-6 bg-primary text-primary-foreground flex flex-col justify-between transition-opacity hover:opacity-95"
         >
           <div>
             <p className="text-[11px] font-medium uppercase tracking-widest opacity-90 mb-1.5">Earnings Balance</p>
-            <p className="text-2xl sm:text-2xl font-bold text-white">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
+            <p className="text-2xl sm:text-2xl font-bold text-primary-foreground">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-white/20 px-3 py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
+            <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
               View earnings
             </span>
           </div>
@@ -152,7 +152,7 @@ export default function DashboardHomePage() {
             <p className="text-2xl sm:text-2xl font-bold text-foreground">{products.length}</p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-emerald-600">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary">
               View Products
             </span>
           </div>
@@ -176,7 +176,7 @@ export default function DashboardHomePage() {
             </p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-emerald-600">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary">
               Explore Network
             </span>
           </div>
@@ -204,7 +204,7 @@ export default function DashboardHomePage() {
                 href={link.href}
                 className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-2xl bg-card px-2 py-3 text-center"
               >
-                <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                <Icon className="h-5 w-5 text-primary" />
                 <span className="text-[11px] font-medium leading-tight text-foreground">{link.name}</span>
               </Link>
             )

@@ -11,13 +11,37 @@ export const runtime = "nodejs"
 export async function GET(req: NextRequest) {
   try {
     const sessionId = req.nextUrl.searchParams.get("sessionId")
-    if (!sessionId) {
-      return NextResponse.json({ error: "sessionId is required" }, { status: 400 })
+    const userId = req.nextUrl.searchParams.get("userId")
+
+    if (!sessionId && !userId) {
+      return NextResponse.json({ error: "sessionId or userId is required" }, { status: 400 })
     }
 
-    const sessionRef = db.collection("supportSessions").doc(sessionId)
-    const sessionSnap = await sessionRef.get()
-    if (!sessionSnap.exists) {
+    let sessionRef = sessionId ? db.collection("supportSessions").doc(sessionId) : null
+    let sessionSnap = sessionRef ? await sessionRef.get() : null
+
+    if ((!sessionSnap || !sessionSnap.exists) && userId) {
+      let recentSnap
+      try {
+        recentSnap = await db.collection("supportSessions")
+          .where("userId", "==", userId)
+          .orderBy("updatedAt", "desc")
+          .limit(1)
+          .get()
+      } catch {
+        recentSnap = await db.collection("supportSessions")
+          .where("userId", "==", userId)
+          .limit(1)
+          .get()
+      }
+
+      if (!recentSnap.empty) {
+        sessionRef = recentSnap.docs[0].ref
+        sessionSnap = recentSnap.docs[0]
+      }
+    }
+
+    if (!sessionSnap?.exists || !sessionRef) {
       return NextResponse.json({ messages: [], ticketId: null })
     }
 
@@ -44,6 +68,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       messages,
       ticketId: sessionData?.ticketId ?? null,
+      sessionId: sessionSnap.id,
     })
   } catch (error: any) {
     console.error("Support GET error:", error)

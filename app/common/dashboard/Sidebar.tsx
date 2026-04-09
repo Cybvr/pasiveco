@@ -5,6 +5,7 @@ import {
   Home,
   BarChart,
   Coins,
+  Bot,
   ShoppingBag,
   Package,
   PanelLeftClose,
@@ -34,6 +35,7 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/edit', icon: Palette, label: 'Storefront' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
