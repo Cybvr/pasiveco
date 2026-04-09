@@ -1,12 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { Loader2, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { formatCurrency } from '@/utils/currency'
-import { updateUser } from '@/services/userService'
-import { createTransaction } from '@/services/transactionsService'
-import { toast } from '@/hooks/use-toast'
 
 interface ProfileCompletionCardProps {
   user: any
@@ -19,7 +13,6 @@ export default function ProfileCompletionCard({
   user,
   hasBankingDetails,
   productsLength,
-  currency,
 }: ProfileCompletionCardProps) {
   const profileSteps = useMemo(() => [
     { label: 'Add profile photo', completed: Boolean(user?.profilePicture || user?.photoURL), href: '/dashboard/settings/account' },
@@ -31,78 +24,8 @@ export default function ProfileCompletionCard({
   const completedSteps = profileSteps.filter((step) => step.completed).length
   const totalSteps = profileSteps.length
   const profileProgress = Math.round((completedSteps / totalSteps) * 100)
-  const [isClaiming, setIsClaiming] = useState(false)
-  const maxBonus = currency === 'NGN' ? 2500 : 2.5
 
-  if (profileProgress >= 100 && user?.hasClaimedProfileBonus) return null
-
-  const handleClaimBonus = async () => {
-    if (!user?.uid || isClaiming) return
-
-    try {
-      setIsClaiming(true)
-
-      await createTransaction({
-        sellerId: user.uid,
-        productId: 'bonus-profile-completion',
-        productName: 'Profile Completion Bonus',
-        customerName: 'Pasive Rewards',
-        customerEmail: 'rewards@pasive.co',
-        reference: `BNS_${Date.now()}_${user.uid.slice(0, 5)}`,
-        amount: maxBonus,
-        currency,
-        couponDiscount: 0,
-        affiliate: 'bonus',
-        yourProfit: maxBonus,
-        customCharge: 0,
-        payoutDate: null,
-        status: 'success',
-      })
-
-      await updateUser(user.uid, { hasClaimedProfileBonus: true })
-
-      toast({
-        title: 'Bonus Claimed!',
-        description: `${formatCurrency(maxBonus, currency)} has been added to your earnings.`,
-      })
-
-      if (user) {
-        user.hasClaimedProfileBonus = true
-      }
-    } catch (error) {
-      console.error(error)
-      toast({
-        title: 'Error',
-        description: 'Failed to claim your bonus. Try again.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsClaiming(false)
-    }
-  }
-
-  if (profileProgress >= 100) {
-    return (
-      <Alert className="flex items-center gap-3 border-primary/20 bg-primary/5 py-3">
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-        <AlertDescription className="mt-0 flex min-w-0 flex-1 items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-xs font-semibold text-primary">Profile Complete!</span>
-            <span className="ml-1 text-xs text-muted-foreground">You've successfully completed your profile.</span>
-          </div>
-          <Button
-            size="sm"
-            className="h-7 shrink-0 bg-primary px-3 text-xs text-primary-foreground hover:bg-primary/90"
-            onClick={handleClaimBonus}
-            disabled={isClaiming}
-          >
-            {isClaiming ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : null}
-            {isClaiming ? 'Claiming...' : 'Claim Prize'}
-          </Button>
-        </AlertDescription>
-      </Alert>
-    )
-  }
+  if (profileProgress >= 100) return null
 
   return (
     <div className="w-full flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
@@ -136,9 +59,7 @@ export default function ProfileCompletionCard({
         <div className="h-1 w-full bg-muted overflow-hidden flex">
           <div className="h-full bg-primary transition-all duration-500 ease-out" style={{ width: `${profileProgress}%` }}></div>
         </div>
-        <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 mb-4">
-          {profileProgress}% complete - unlock {formatCurrency(maxBonus, currency)} bonus
-        </p>
+        <p className="text-[11px] sm:text-xs text-muted-foreground mt-2 mb-4">{profileProgress}% complete</p>
         <Button asChild className="w-full">
           <Link href={profileSteps.find((step) => !step.completed)?.href || '/dashboard/settings/account'}>
             Continue setup

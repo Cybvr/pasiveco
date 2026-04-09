@@ -54,6 +54,17 @@ function genTicket() {
   return `PSV-${Math.floor(10000 + Math.random() * 90000)}`
 }
 
+function isWithinSupportHours() {
+  const lagosTime = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Lagos",
+    hour: "numeric",
+    hour12: false,
+  }).format(new Date())
+
+  const hour = Number.parseInt(lagosTime, 10)
+  return hour >= 9 && hour < 18
+}
+
 function buildNewChatSeedMessages(docs: HelpDoc[]) {
   const now = Date.now()
   const getTitle = (id: string, fallback: string) => docs.find((d) => d.id === id)?.title ?? fallback
@@ -72,27 +83,34 @@ function buildNewChatSeedMessages(docs: HelpDoc[]) {
     if (item.label === "Affiliates") return { ...item, label: getTitle("affiliate-network", item.label) }
     return item
   })
-  return [
-    {
+  const seedMessages: ChatMessage[] = []
+
+  if (!isWithinSupportHours()) {
+    seedMessages.push({
       id: makeId(),
       role: "assistant" as const,
       content: "We're online to assist you Monday – Sunday from 9:00 am – 6:00 pm (WAT). If you reach us outside these hours, don't worry — we'll reply as soon as we're back.",
       ts: now,
-    },
+    })
+  }
+
+  seedMessages.push(
     {
       id: makeId(),
       role: "assistant" as const,
       content: "We are currently experiencing a high volume of requests, which may delay our response. Rest assured, we'll get back to you as soon as possible.",
-      ts: now + 1,
+      ts: now + (seedMessages.length ? 1 : 0),
     },
     {
       id: makeId(),
       role: "assistant" as const,
       content: "For faster assistance, please select the option that best matches your inquiry. Thank you!",
-      ts: now + 2,
+      ts: now + (seedMessages.length ? 2 : 1),
       quickReplies,
-    },
-  ]
+    }
+  )
+
+  return seedMessages
 }
 
 // ── Single Avatar ─────────────────────────────────────────────────────────
