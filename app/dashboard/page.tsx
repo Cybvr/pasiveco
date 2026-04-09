@@ -265,7 +265,7 @@ export default function DashboardHomePage() {
             <ScrollArea className="w-full whitespace-nowrap">
               <div className="flex w-max gap-4 pb-4 px-1">
                 {featuredProducts.map((product) => (
-                  <Link key={product.id} href="/dashboard/products" className={`${CARD_W} flex flex-col gap-2 bg-card border-border overflow-auto`}>
+                  <Link key={product.id} href="/dashboard/products" className={`${CARD_W} flex flex-col gap-2 bg-card border-border overflow-auto rounded-xl`}>
                     <div className="aspect-video w-full overflow-hidden">
                       <img
                         src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
