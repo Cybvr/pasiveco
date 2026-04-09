@@ -346,15 +346,21 @@ export default function SupportChatWidget() {
   return (
     <div
       className={cn(
-        "fixed right-4 z-[70] flex flex-col items-end gap-3 sm:right-6 bottom-[var(--support-offset)]",
+        "fixed right-4 z-[100] flex flex-col items-end gap-3 sm:right-6 bottom-[var(--support-offset)]",
         offsetClass
       )}
     >
       {/* ── Widget ───────────────────────────────────────────────────────── */}
       {open && (
         <div
-          className="flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl sm:w-80"
-          style={{ height: "min(38rem, calc(100dvh - var(--support-offset) - 5rem))" }}
+          className="fixed inset-0 z-[101] flex h-dvh w-screen flex-col overflow-hidden bg-background sm:absolute sm:bottom-0 sm:right-0 sm:inset-auto sm:w-80 sm:rounded-2xl sm:border sm:border-border sm:bg-background sm:shadow-2xl"
+          style={{
+            height: typeof window === "undefined"
+              ? "100dvh"
+              : window.innerWidth < 640
+                ? "100dvh"
+                : "min(38rem, calc(100dvh - var(--support-offset) - 5rem))",
+          }}
         >
 
           {/* ════════════════════ HOME TAB ════════════════════ */}
@@ -537,6 +543,7 @@ export default function SupportChatWidget() {
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
+                    <SupportAvatar />
                     <div className="flex-1">
                       <p className="text-sm font-bold text-primary-foreground">{TEAM_LABEL}</p>
                       <div className="flex items-center gap-1.5">
@@ -572,7 +579,14 @@ export default function SupportChatWidget() {
                         )
                       }
                       return (
-                        <div key={msg.id} className={cn("flex flex-col gap-1", msg.role === "user" ? "items-end" : "items-start")}>
+                        <div
+                          key={msg.id}
+                          className={cn(
+                            "flex",
+                            msg.role === "user" ? "justify-end" : "justify-start"
+                          )}
+                        >
+                          <div className={cn("flex flex-col gap-1", msg.role === "user" ? "items-end" : "items-start")}>
                           <div className={cn(
                             "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
                             msg.role === "assistant"
@@ -604,6 +618,7 @@ export default function SupportChatWidget() {
                             </div>
                           )}
                           <span className="px-1 text-[10px] text-muted-foreground/50">{fmtTime(msg.ts)}</span>
+                          </div>
                         </div>
                       )
                     })}
@@ -781,14 +796,16 @@ export default function SupportChatWidget() {
       )}
 
       {/* ── FAB ───────────────────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
-        aria-label={open ? "Close support" : "Open support"}
-      >
-        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
-      </button>
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
+          aria-label="Open support"
+        >
+          <MessageCircle className="h-5 w-5" />
+        </button>
+      )}
     </div>
   )
 }
