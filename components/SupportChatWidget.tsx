@@ -196,9 +196,9 @@ export default function SupportChatWidget() {
   if (!hydrated) return null
 
   const isDashboard = pathname?.startsWith("/dashboard")
-  const bottomOffset = isDashboard
-    ? "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)"
-    : "calc(env(safe-area-inset-bottom, 0px) + 0.25rem)"
+  const offsetClass = isDashboard
+    ? "[--support-offset:calc(env(safe-area-inset-bottom,0px)+5.5rem)] sm:[--support-offset:calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
+    : "[--support-offset:calc(env(safe-area-inset-bottom,0px)+0.25rem)]"
 
   const needsInfo = !userInfo.name || !userInfo.email
   const firstName = userInfo.name?.split(" ")[0] || user?.displayName?.split(" ")[0] || ""
@@ -328,14 +328,16 @@ export default function SupportChatWidget() {
 
   return (
     <div
-      className="fixed right-4 z-[70] flex flex-col items-end gap-3 sm:right-6"
-      style={{ bottom: bottomOffset }}
+      className={cn(
+        "fixed right-4 z-[70] flex flex-col items-end gap-3 sm:right-6 bottom-[var(--support-offset)]",
+        offsetClass
+      )}
     >
       {/* ── Widget ───────────────────────────────────────────────────────── */}
       {open && (
         <div
           className="flex w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl sm:w-80"
-          style={{ height: `min(38rem, calc(100dvh - ${bottomOffset} - 5rem))` }}
+          style={{ height: "min(38rem, calc(100dvh - var(--support-offset) - 5rem))" }}
         >
 
           {/* ════════════════════ HOME TAB ════════════════════ */}
