@@ -27,9 +27,8 @@ type UserInfo = { name: string; email: string }
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-const TEAM_NAME = "Pasive"
-
-const SINGLE_AVATAR = { initials: "PS" }
+const TEAM_NAME = "Ronke"
+const TEAM_LABEL = "Ronke (bot)"
 
 const keywordMap: Record<string, string[]> = {
   "getting-started": ["start", "setup", "set up", "begin", "profile", "page", "onboarding"],
@@ -117,8 +116,8 @@ function buildNewChatSeedMessages(docs: HelpDoc[]) {
 
 function SupportAvatar() {
   return (
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/20 text-[11px] font-bold text-primary-foreground ring-2 ring-primary-foreground/20">
-      {SINGLE_AVATAR.initials}
+    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/15 ring-2 ring-primary-foreground/20">
+      <img src="/images/ronke.jpg" alt="Ronke" className="h-full w-full rounded-full object-cover" />
     </div>
   )
 }
@@ -365,7 +364,7 @@ export default function SupportChatWidget() {
               <div className="flex-shrink-0 bg-primary px-4 pb-4 pt-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img src="/images/logo.svg" alt="Pasive" className="h-6 w-6 brightness-0 invert" />
+                    <img src="/images/ronke.jpg" alt="Ronke" className="h-6 w-6 rounded-full object-cover" />
                     <span className="text-[14px] font-bold text-primary-foreground">{TEAM_NAME}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -491,12 +490,12 @@ export default function SupportChatWidget() {
                           onClick={() => setMessagesView("chat")}
                           className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/50"
                         >
-                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                            PS
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-muted">
+                            <img src="/images/ronke.jpg" alt="Ronke" className="h-full w-full rounded-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <p className="text-[13px] font-semibold text-foreground">{TEAM_NAME} Support</p>
+                              <p className="text-[13px] font-semibold text-foreground">{TEAM_LABEL}</p>
                               {lastMsg && (
                                 <span className="text-[10px] text-muted-foreground flex-shrink-0">{fmtTime(lastMsg.ts)}</span>
                               )}
@@ -539,7 +538,7 @@ export default function SupportChatWidget() {
                       <ArrowLeft className="h-4 w-4" />
                     </button>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-primary-foreground">{TEAM_NAME} Support</p>
+                      <p className="text-sm font-bold text-primary-foreground">{TEAM_LABEL}</p>
                       <div className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         <span className="text-[10px] text-primary-foreground/60">Online</span>
