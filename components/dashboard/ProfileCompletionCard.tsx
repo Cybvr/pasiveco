@@ -83,17 +83,17 @@ export default function ProfileCompletionCard({
 
   if (profileProgress >= 100) {
     return (
-      <Alert className="border-primary/20 bg-primary/5 dark:bg-primary/10 py-4">
-        <CheckCircle2 className="h-4 w-4 text-primary" />
-        <AlertTitle className="text-primary font-semibold text-sm">Profile Complete!</AlertTitle>
-        <AlertDescription className="flex items-center justify-between gap-2 mt-2">
-          <span className="text-muted-foreground text-[11px] sm:text-xs">
-            You've successfully completed your profile.
-          </span>
-          <Button 
-            size="sm" 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-3 text-[11px] shrink-0" 
-            onClick={handleClaimBonus} 
+      <Alert className="flex items-center gap-3 border-primary/20 bg-primary/5 py-3">
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+        <AlertDescription className="mt-0 flex min-w-0 flex-1 items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="text-xs font-semibold text-primary">Profile Complete!</span>
+            <span className="ml-1 text-xs text-muted-foreground">You've successfully completed your profile.</span>
+          </div>
+          <Button
+            size="sm"
+            className="h-7 shrink-0 bg-primary px-3 text-xs text-primary-foreground hover:bg-primary/90"
+            onClick={handleClaimBonus}
             disabled={isClaiming}
           >
             {isClaiming ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : null}

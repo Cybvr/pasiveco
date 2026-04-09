@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,10 +144,12 @@ export function ManagerShell({
 
 export default function ManagerHomePage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useAuth();
     const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
     const [input, setInput] = useState("");
     const [starting, setStarting] = useState(false);
+    const startedFromPromptRef = useRef(false);
 
     const timeOfDay = useMemo(() => {
         const hour = new Date().getHours();
@@ -212,6 +214,13 @@ export default function ManagerHomePage() {
         if (!user?.uid) return;
         void loadSessions(user.uid);
     }, [user?.uid]);
+
+    useEffect(() => {
+        const prompt = searchParams?.get("prompt")?.trim();
+        if (!prompt || !user?.uid || starting || startedFromPromptRef.current) return;
+        startedFromPromptRef.current = true;
+        void startChat(prompt);
+    }, [searchParams, user?.uid, starting]);
 
     const handleSend = () => {
         if (!input.trim()) return;

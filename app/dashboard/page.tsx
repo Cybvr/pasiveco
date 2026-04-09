@@ -28,6 +28,7 @@ import { Community } from '@/types/community'
 import { Transaction } from '@/types/transaction'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
 import InviteCard from '@/components/dashboard/InviteCard'
+import IgFeatureBanner from '@/components/dashboard/IgFeatureBanner'
 import { checkAndQualifyReferral } from '@/services/referralService'
 
 const CARD_W = 'w-[200px]'
@@ -124,6 +125,7 @@ export default function DashboardHomePage() {
           currency={currency}
         />
       </section>
+
       {/* ── Top Stats Grid ───────────────────────────── */}
       <section className="px-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Earnings Balance (Green) */}
@@ -181,6 +183,41 @@ export default function DashboardHomePage() {
             </span>
           </div>
         </Link>
+
+        <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 flex flex-col transition-colors hover:bg-muted/30">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80 mb-1.5">Business Manager</p>
+            <p className="text-2xl font-bold text-foreground">Ask a question</p>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              Get answers about your products, sales, payouts, and account activity.
+            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {[
+              { label: 'Recent sale', prompt: 'Show me my recent sale' },
+              { label: 'Product count', prompt: 'How many products do I have?' },
+              { label: 'Payout setup', prompt: 'Do I have a payout account set up?' },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={`/dashboard/manager?prompt=${encodeURIComponent(item.prompt)}`}
+                className="inline-flex rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] sm:text-xs font-medium text-muted-foreground hover:bg-muted transition-colors whitespace-nowrap"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-auto pt-5 border-t border-border/40">
+            <Link
+              href="/dashboard/manager"
+              className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary whitespace-nowrap"
+            >
+              Open Manager
+            </Link>
+          </div>
+        </div>
+
+        <IgFeatureBanner />
       </section>
 
       {/* ── Profile & Invite Row ───────────────────────────── */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -46,9 +47,10 @@ export default function InviteCard({ userId, username, currency }: InviteCardPro
       <div className="flex h-full min-w-0 flex-col justify-between gap-6">
         <div className="space-y-4">
           <div className="space-y-2">
-            <h3 className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">
               Invite & Earn
-            </h3>
+            </p>
+            <p className="text-2xl font-bold text-foreground">Share your link</p>
             <p className="text-sm leading-relaxed text-muted-foreground">
               Invite friends to Pasive and earn rewards when they complete their profile.
             </p>
@@ -63,17 +65,23 @@ export default function InviteCard({ userId, username, currency }: InviteCardPro
             />
             <Button
               variant="outline"
-              className="h-auto shrink-0 rounded-l-none border-l-0 px-4 text-sm"
+              size="icon"
+              className="h-auto shrink-0 rounded-l-none border-l-0 px-3"
               onClick={copyLink}
+              aria-label={copied ? 'Copied' : 'Copy invite link'}
             >
-              {copied ? 'Copied!' : 'Copy'}
+              <Copy className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <Button className="w-full" onClick={shareLink}>
-          Share invite link
-        </Button>
+        <div>
+          <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary whitespace-nowrap">
+            <button type="button" onClick={shareLink}>
+              Share invite link
+            </button>
+          </span>
+        </div>
       </div>
     </div>
   )
