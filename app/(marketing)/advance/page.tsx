@@ -1,7 +1,8 @@
 
 'use client'
 import React from 'react'
-import { CheckCircle2, DollarSign, Rocket, Clock, ShieldCheck, Mail, Info, TrendingUp, Wallet, ArrowRight, Zap, Target, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { CheckCircle2, DollarSign, Rocket, Clock, ShieldCheck, Mail, Info, TrendingUp, Wallet, ArrowRight, Zap, Target, Plus, Star } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 
 export default function AdvancePage() {
@@ -198,6 +199,59 @@ export default function AdvancePage() {
                 <li className="flex items-center gap-3"><CheckCircle2 className="w-3 h-3" /> Expense Buffer</li>
                 <li className="flex items-center gap-3"><CheckCircle2 className="w-3 h-3" /> High Velocity</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── About Pasive ── */}
+      <section className="px-6 py-40 border-b border-border bg-background relative overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-24 items-center">
+            <div className="space-y-12">
+              <div className="space-y-4">
+                <div className="text-[10px] uppercase tracking-[0.5em] font-mono opacity-40">The Ecosystem</div>
+                <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none uppercase">
+                  More than <br /><span className="italic font-light opacity-30">Just funding</span>
+                </h2>
+              </div>
+              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+                Pasive is the infrastructure for creative independence. We provide creators with the tools to build their own digital headquarters—free from the noise of social algorithms.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <div className="w-10 h-10 bg-muted flex items-center justify-center">
+                    <Star className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h4 className="font-bold uppercase tracking-widest text-xs">Digital Spaces</h4>
+                  <p className="text-sm text-muted-foreground">Community-first hubs for your most loyal supporters.</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="w-10 h-10 bg-muted flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <h4 className="font-bold uppercase tracking-widest text-xs">Direct Commerce</h4>
+                  <p className="text-sm text-muted-foreground">Sell templates, courses, and assets with one-click checkouts.</p>
+                </div>
+              </div>
+              <div className="pt-4">
+                <Button variant="outline" className="rounded-none border-foreground px-8 hover:bg-foreground hover:text-background transition-all group" asChild>
+                  <Link href="/">
+                    Visit Home <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="aspect-[3/4] bg-muted overflow-hidden">
+                  <img src="/images/redesign/hero.png" alt="Creator Hub" className="w-full h-full object-cover grayscale" />
+                </div>
+                <div className="aspect-[3/4] bg-muted mt-12 overflow-hidden border border-border">
+                  <img src="/images/redesign/fitness.png" alt="Creator Activity" className="w-full h-full object-cover" />
+                </div>
+              </div>
+              <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-primary/10 blur-[120px] -z-10" />
             </div>
           </div>
         </div>

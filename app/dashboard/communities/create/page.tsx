@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Save, Info, Camera, UploadCloud } from "lucide-react"
+import { Loader2, Save, Info, Camera, UploadCloud, X } from "lucide-react"
 import { toast } from "sonner"
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
@@ -15,6 +15,9 @@ import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/useAuth"
 import { createCommunity } from "@/services/communityService"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { POPULAR_COMMUNITY_CATEGORIES, normalizeCommunityTags } from "@/lib/communityCategories"
 
 export default function CreateCommunityPage() {
   const { user } = useAuth()
@@ -26,7 +29,8 @@ export default function CreateCommunityPage() {
     name: "",
     description: "",
     privacy: "public" as "public" | "private",
-    category: "other",
+    category: "",
+    tags: "",
     price: 0,
     isPaid: false,
     image: "",
@@ -97,17 +101,22 @@ export default function CreateCommunityPage() {
     setLoading(true)
     setError(null)
 
-    const slug = formData.name.toLowerCase().trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-
     try {
+      const resolvedCategory = formData.category.trim()
+      const normalizedTags = normalizeCommunityTags(formData.tags)
+
       const communityId = await createCommunity({
-        ...formData, slug,
+        name: formData.name,
+        description: formData.description,
+        privacy: formData.privacy,
+        price: formData.price,
+        isPaid: formData.isPaid,
+        image: formData.image,
+        bannerImage: formData.bannerImage,
         creatorId: user.uid,
         creatorName: user.displayName || "Unknown Creator",
-        tags: []
+        category: resolvedCategory || "General",
+        tags: normalizedTags
       })
       router.push(`/dashboard/communities/${communityId}`)
     } catch (err: any) {
@@ -215,7 +224,69 @@ export default function CreateCommunityPage() {
           </div>
         </div>
 
-        {/* Privacy */}
+        <div className="space-y-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="category" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</Label>
+            <Select
+              value={formData.category || "unselected"}
+              onValueChange={(value) => setFormData((prev) => ({
+                ...prev,
+                category: value === "unselected" ? "" : value,
+              }))}
+            >
+              <SelectTrigger id="category" className="h-9 text-sm">
+                <SelectValue placeholder="Select topic" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unselected" className="text-sm">No category</SelectItem>
+                {POPULAR_COMMUNITY_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category} className="text-sm">{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="tags" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Tags</Label>
+            <div className="flex flex-wrap gap-2 p-1.5 border rounded-md bg-background focus-within:ring-1 focus-within:ring-primary min-h-[36px] transition-all">
+              {normalizeCommunityTags(formData.tags).map((tag) => (
+                <Badge key={tag} variant="secondary" className="rounded-full flex items-center gap-1 py-0.5 pl-2 pr-1 text-[11px] font-medium animate-in zoom-in-95 duration-200">
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const tags = normalizeCommunityTags(formData.tags).filter((t) => t !== tag)
+                      setFormData({ ...formData, tags: tags.join(", ") })
+                    }}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full p-0.5 transition-colors"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </Badge>
+              ))}
+              <input
+                placeholder={normalizeCommunityTags(formData.tags).length === 0 ? "Add tags..." : ""}
+                className="flex-1 bg-transparent border-none outline-none text-sm px-1.5 py-0.5 min-w-[80px] placeholder:text-muted-foreground/60"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === ",") {
+                    e.preventDefault()
+                    const val = (e.target as HTMLInputElement).value.trim().replace(/^#/, "")
+                    const tags = normalizeCommunityTags(formData.tags)
+                    if (val && !tags.includes(val)) {
+                      setFormData({ ...formData, tags: [...tags, val].join(", ") })
+                    }
+                    ;(e.target as HTMLInputElement).value = ""
+                  } else if (e.key === "Backspace" && !(e.target as HTMLInputElement).value && normalizeCommunityTags(formData.tags).length > 0) {
+                    const tags = normalizeCommunityTags(formData.tags).slice(0, -1)
+                    setFormData({ ...formData, tags: tags.join(", ") })
+                  }
+                }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground">Press Enter or comma to add.</p>
+          </div>
+        </div>
+
         <div className="space-y-1.5">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Privacy</Label>
           <RadioGroup

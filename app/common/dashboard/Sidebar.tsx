@@ -23,6 +23,8 @@ import {
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import UserMenu from './user-menu'
+import { useNetworkActivity } from '@/hooks/useNetworkActivity'
+
 
 interface NavItem {
   href: string
@@ -70,6 +72,7 @@ export default function Sidebar({
 }) {
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
+  const { count: networkCount } = useNetworkActivity()
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
   const isItemActive = (href: string) => {
@@ -135,21 +138,36 @@ export default function Sidebar({
           {!isAdmin && !navItems && DASHBOARD_EXPLORE_NAV_ITEMS.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
+            const showBadge = item.label === 'Network' && networkCount > 0
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
-                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",
+                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative group/nav",
                   isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
-                {!isCollapsed && <span className="truncate">{item.label}</span>}
+                <div className="relative">
+                  <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                  {showBadge && isCollapsed && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
+                  )}
+                </div>
+                {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+                {showBadge && !isCollapsed && (
+                  <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {networkCount > 9 ? '9+' : networkCount}
+                  </span>
+                )}
               </Link>
             )
           })}

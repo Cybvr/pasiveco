@@ -2,27 +2,28 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Users, Search, ArrowRight } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { Users, Search, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { getUserCommunities, getAllCommunities } from "@/services/communityService"
 import { Community } from "@/types/community"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import CommunityFeed from "@/components/communities/CommunityFeed"
 import { getGlobalFeed, Post } from "@/services/postService"
-import { MessageSquare, LayoutGrid, Activity } from "lucide-react"
+import { Activity } from "lucide-react"
 import StarRating from "@/components/products/StarRating"
+import { Badge } from "@/components/ui/badge"
 
 export default function CommunitiesPage() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
   const [myCommunities, setMyCommunities] = useState<Community[]>([])
   const [exploreCommunities, setExploreCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
   const [globalPosts, setGlobalPosts] = useState<Post[]>([])
 
   useEffect(() => {
@@ -47,10 +48,24 @@ export default function CommunitiesPage() {
     fetchData()
   }, [user])
 
-  const filteredExplore = exploreCommunities.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "")
+  }, [searchParams])
+
+  const matchesSearch = (community: Community) => {
+    const normalizedQuery = searchQuery.toLowerCase()
+    return (
+      community.name.toLowerCase().includes(normalizedQuery) ||
+      community.description.toLowerCase().includes(normalizedQuery)
+    )
+  }
+
+  const filteredMyCommunities = myCommunities.filter(matchesSearch)
+  const filteredExplore = exploreCommunities.filter(matchesSearch)
+  const hasActiveSearch = !!searchQuery
+  const popularSpaces = [...myCommunities, ...exploreCommunities]
+    .sort((a, b) => b.memberCount - a.memberCount)
+    .slice(0, 5)
 
   if (loading) {
     return (
@@ -70,110 +85,67 @@ export default function CommunitiesPage() {
   }
 
   return (
-    <div className="space-y-4 pb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Spaces</h1>
-          <p className="text-sm text-muted-foreground">Hub for networking and sharing.</p>
-        </div>
-        <Link href="/dashboard/communities/create" className="shrink-0">
-          <Button size="sm">
-            <Plus className="w-4 h-4 mr-1.5" />
-            Create
-          </Button>
-        </Link>
-      </div>
-
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 border">
-          <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
-            <LayoutGrid className="w-3.5 h-3.5" /> Overview
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-1.5 text-xs sm:text-sm">
-            <Activity className="w-3.5 h-3.5" /> Recent Activity
-            {globalPosts.length > 0 && (
-              <span className="flex h-1.5 w-1.5 rounded-full bg-primary" />
-            )}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-5 m-0">
-          {myCommunities.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Your Spaces</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {myCommunities.map(community => (
-                  <CommunityCard key={community.id} community={community} isMember={true} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Explore New Networks</h2>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or niche..."
-                  className="pl-10 h-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {filteredExplore.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {filteredExplore.map(community => (
-                  <CommunityCard key={community.id} community={community} isMember={false} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 rounded-2xl border-2 border-dashed bg-muted/5">
-                <Users className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-bold">No new networks found</h3>
-                <p className="text-muted-foreground text-xs mt-1">
-                  {searchQuery ? `Nothing matches "${searchQuery}"` : "You've joined all available spaces!"}
-                </p>
-              </div>
-            )}
-          </section>
-        </TabsContent>
-
-        <TabsContent value="activity" className="m-0 max-w-2xl">
+    <div className="pb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Main layout: content left, sidebar right */}
+      <div className="flex gap-6 items-start">
+        {/* Content */}
+        <div className="min-w-0 flex-1">
           <div className="space-y-3">
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Social Stream</h2>
-              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Live</span>
+            <div className="flex items-center justify-between gap-3 pb-1">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Latest</h2>
+              <Link href="/dashboard/communities/explore" className="shrink-0">
+                <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs">
+                  Explore
+                </Button>
+              </Link>
             </div>
 
             {globalPosts.length > 0 ? (
               <div className="space-y-3">
                 {globalPosts.map(post => {
                   const community = [...myCommunities, ...exploreCommunities].find(c => c.id === post.communityId)
+                  const authorHandle = (post.authorUsername || post.authorSlug || "").replace(/^@/, "").trim()
+                  const authorHref = authorHandle ? `/${authorHandle}` : null
                   return (
-                    <div key={post.id} className="relative">
-                      {community && (
-                        <div className="absolute -left-2 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
-                      )}
+                    <div key={post.id}>
                       <div className="bg-card border border-border/50 rounded-xl p-3 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/5 rounded-md uppercase tracking-wide">
-                            {community?.name || 'Space'}
-                          </span>
+                          {community ? (
+                            <Link
+                              href={`/dashboard/communities/${community.id}`}
+                              className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/5 rounded-md uppercase tracking-wide transition-colors hover:bg-primary/10"
+                            >
+                              {community.name}
+                            </Link>
+                          ) : (
+                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/5 rounded-md uppercase tracking-wide">
+                              Space
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm leading-relaxed mb-3">{post.message}</p>
                         <div className="flex items-center justify-between pt-2 border-t border-border/30">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={post.authorImage} />
-                              <AvatarFallback className="text-[10px] font-bold">
-                                {post.authorName?.[0] || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-[11px] font-semibold">{post.authorName}</span>
-                          </div>
+                          {authorHref ? (
+                            <Link href={authorHref} className="flex items-center gap-2 rounded-md transition-opacity hover:opacity-80">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={post.authorImage} />
+                                <AvatarFallback className="text-[10px] font-bold">
+                                  {post.authorName?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-[11px] font-semibold">{post.authorName}</span>
+                            </Link>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarImage src={post.authorImage} />
+                                <AvatarFallback className="text-[10px] font-bold">
+                                  {post.authorName?.[0] || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-[11px] font-semibold">{post.authorName}</span>
+                            </div>
+                          )}
                           <span className="text-[10px] text-muted-foreground font-medium italic">Just now</span>
                         </div>
                       </div>
@@ -189,8 +161,62 @@ export default function CommunitiesPage() {
               </div>
             )}
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+
+        {/* Right sidebar — desktop only */}
+        <aside className="hidden lg:flex flex-col gap-5 w-48 shrink-0 sticky top-4">
+          {/* Search */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Search Spaces</p>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Name or niche..."
+                className="pl-8 h-8 text-xs"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Popular</p>
+            <div className="space-y-0.5">
+              {popularSpaces.map((community) => (
+                <Link
+                  key={community.id}
+                  href={`/dashboard/communities/${community.id}`}
+                  className="flex items-center gap-2 rounded-md px-1 py-1.5 transition-colors hover:bg-accent/50"
+                >
+                  <Avatar className="h-7 w-7 shrink-0">
+                    <AvatarImage src={community.image || community.bannerImage} alt={community.name} />
+                    <AvatarFallback className="text-[10px] font-semibold">
+                      {community.name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-[11px] font-medium leading-none text-foreground">{community.name}</p>
+                    <p className="mt-1 text-[10px] leading-none text-muted-foreground">
+                      {community.memberCount.toLocaleString()} {community.memberCount === 1 ? "member" : "members"}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Clear search */}
+          {hasActiveSearch && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 text-left transition-colors"
+            >
+              Clear search
+            </button>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

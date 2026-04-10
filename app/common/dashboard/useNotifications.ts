@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { Users, Rss, ShoppingBag } from 'lucide-react'
+import { Users, Rss, ShoppingBag, Zap, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { getAllUsers, getUser } from '@/services/userService'
 import { blogService } from '@/services/blogService'
 import { getSellerTransactions } from '@/services/transactionsService'
+import { getRecentCommentsCount } from '@/services/postService'
 import {
   getBaseNotificationsForAudience,
   type NotificationAudience,
@@ -117,6 +118,29 @@ async function buildSaleNotifications(userId: string): Promise<NotificationItem[
   }
 }
 
+async function buildNetworkNotifications(userId: string): Promise<NotificationItem[]> {
+  try {
+    const count = await getRecentCommentsCount(userId, 3)
+    if (count === 0) return []
+
+    return [
+      {
+        id: `network-comments-${Date.now()}`,
+        icon: MessageSquare,
+        title: 'Network Activity',
+        body: `There are ${count} new comment${count === 1 ? '' : 's'} in your Spaces from the last 3 days.`,
+        time: 'Just now',
+        status: 'new' as const,
+        category: 'activity' as const,
+        visibility: 'creator' as const,
+      },
+    ]
+  } catch (error) {
+    console.warn('Error building network notifications:', error)
+    return []
+  }
+}
+
 export function useNotifications(forcedAudience?: NotificationAudience) {
   const { user } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
@@ -159,6 +183,7 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
         // Always show sales to the current user (if any exist)
         if (user?.uid) {
           promises.push(buildSaleNotifications(user.uid))
+          promises.push(buildNetworkNotifications(user.uid))
         }
 
         const results = await Promise.all(promises)
