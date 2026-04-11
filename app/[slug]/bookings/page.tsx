@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Calendar, Clock, MapPin, Video, Users } from 'lucide-react';
+import { Clock, MapPin, Video, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getUserByUsername } from '@/services/userService';
 import { getUserProducts, Product } from '@/services/productsService';
@@ -68,18 +68,7 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero banner */}
-      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-6 text-center">
-        <div className="flex justify-center mb-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
-            <Calendar className="h-6 w-6 text-primary" />
-          </div>
-        </div>
-        <h2 className="text-xl font-bold text-foreground">Book a Session</h2>
-        <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
-          Schedule a 1:1 meeting, consultation, or class directly. Pick a session below and choose your preferred time.
-        </p>
-      </div>
+      <h2 className="text-xl font-bold text-foreground">Book a Session</h2>
 
       {/* Session grid */}
       <section className="space-y-4">

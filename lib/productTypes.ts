@@ -1,4 +1,4 @@
-import { Calendar, Download, GraduationCap, Layers3, LucideIcon, Package, Ticket, UserRound } from 'lucide-react'
+import { BookOpen, Calendar, Download, GraduationCap, Layers3, LucideIcon, Package, Ticket, UserRound } from 'lucide-react'
 
 export const PRODUCT_TYPE_OPTIONS: Array<{
   id: ProductTypeId
