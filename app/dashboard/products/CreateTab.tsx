@@ -3,7 +3,7 @@ import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Image as TiptapImage } from '@tiptap/extension-image'
 import Dropcursor from '@tiptap/extension-dropcursor'
-import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Zap, Loader2, Sparkles } from 'lucide-react'
+import { Image as ImageIcon, Package, Plus, Trash2, UploadCloud, Video, Zap, Loader2, Sparkles, MapPin, Video as VideoIcon, Phone, Mail, AlignLeft, CheckSquare, Radio, Calendar as CalIcon, ChevronDown, GripVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import EditorContent from '@/app/(admin)/admin/content/EditorContent'
 import { createProduct, updateProduct, type Product } from '@/services/productsService'
 import { getProductTypeLabel, PRODUCT_TYPE_OPTIONS, type ProductTypeId } from '@/lib/productTypes'
+import type { IntakeFormField, IntakeFieldType, BookingLocationType } from '@/services/productsService'
 import { toast } from 'sonner'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { v4 as uuidv4 } from 'uuid'
@@ -52,6 +53,17 @@ type CreateProductFormData = {
   availability: AvailabilityForm[]
   videoLink: string
   bundleProductIds: string[]
+  // Physical
+  weight: string
+  sku: string
+  // Ebook
+  ebookFormat: string
+  enableReader: boolean
+  // Booking – location
+  locationType: BookingLocationType
+  locationDetail: string
+  // Booking – intake form
+  intakeForm: IntakeFormField[]
 }
 
 interface CreateTabProps {
@@ -82,6 +94,13 @@ const DEFAULT_FORM_DATA: CreateProductFormData = {
   availability: [{ day: 'monday', start: '', end: '' }],
   videoLink: '',
   bundleProductIds: [],
+  weight: '',
+  sku: '',
+  ebookFormat: 'PDF',
+  enableReader: true,
+  locationType: 'zoom',
+  locationDetail: '',
+  intakeForm: [],
 }
 
 const DAYS: AvailabilityForm['day'][] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -127,6 +146,13 @@ const mapProductToFormData = (product: Product): CreateProductFormData => {
       : [{ day: 'monday', start: '', end: '' }],
     videoLink: details.videoLink || '',
     bundleProductIds: details.includedProducts?.map((included) => included.id).filter(Boolean) || [],
+    weight: details.weight?.toString() || '',
+    sku: details.sku || '',
+    ebookFormat: details.ebookFormat || 'PDF',
+    enableReader: details.enableReader ?? true,
+    locationType: (details.locationType as BookingLocationType) || 'zoom',
+    locationDetail: details.locationDetail || '',
+    intakeForm: details.intakeForm || [],
   }
 }
 
@@ -391,6 +417,16 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       return false
     }
 
+    if (productType === 'ebook' && !downloadFile && !existingDownloadUrl) {
+      toast.error('Please upload your ebook file')
+      return false
+    }
+
+    if (productType === 'physical' && !formData.quantityAvailable) {
+      toast.error('Please specify the quantity for physical goods')
+      return false
+    }
+
     if (productType === 'bundle' && formData.bundleProductIds.length === 0) {
       toast.error('Please select at least one product to include in the bundle')
       return false
@@ -450,12 +486,28 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           sessionLength: formData.sessionLength ? parseInt(formData.sessionLength, 10) : undefined,
           availability: formData.availability.filter((slot) => slot.start && slot.end),
           videoLink: formData.videoLink.trim(),
+          locationType: formData.locationType,
+          locationDetail: formData.locationDetail.trim(),
+          intakeForm: formData.intakeForm,
         }
       case 'bundle':
         return {
           includedProducts: bundleCandidates
             .filter((product) => formData.bundleProductIds.includes(product.id))
             .map((product) => ({ id: product.id, name: product.name })),
+        }
+      case 'physical':
+        return {
+          weight: parseFloat(formData.weight) || 0,
+          sku: formData.sku.trim(),
+          quantityAvailable: parseInt(formData.quantityAvailable, 10) || 0,
+        }
+      case 'ebook':
+        return {
+          fileName: resolvedDownloadName,
+          fileUrl: resolvedDownloadUrl,
+          ebookFormat: formData.ebookFormat,
+          enableReader: formData.enableReader,
         }
       default:
         return undefined
@@ -504,13 +556,13 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
         tags: productToEdit?.tags?.length ? productToEdit.tags : [getProductTypeLabel(productType)],
         details: buildProductDetails(downloadUrl),
         inventory: {
-          quantity: productType === 'tickets' ? quantityAvailable : 0,
-          trackInventory: productType === 'tickets' && quantityAvailable > 0,
+          quantity: productType === 'tickets' || productType === 'physical' ? quantityAvailable : 0,
+          trackInventory: (productType === 'tickets' || productType === 'physical') && quantityAvailable > 0,
         },
         shipping: {
-          weight: 0,
+          weight: productType === 'physical' ? parseFloat(formData.weight) || 0 : 0,
           dimensions: { length: 0, width: 0, height: 0 },
-          shippingRequired: false,
+          shippingRequired: productType === 'physical',
         },
         seo: {
           title: formData.name.trim(),
@@ -893,26 +945,75 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
         )}
 
         {productType === 'booking' && (
-          <div className="space-y-4 rounded-lg border border-border/60 p-4">
+          <div className="space-y-6 rounded-lg border border-border/60 p-4">
             <div>
               <p className="text-sm font-medium">1:1 booking settings</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Set session length, the times you&apos;re available, and where the call should happen.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Set session length, availability, meeting location, and optional intake questions.</p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Session length (minutes)</Label>
-                <Input type="number" min="1" value={formData.sessionLength} onChange={(e) => handleInputChange('sessionLength', e.target.value)} />
+
+            {/* Session length */}
+            <div>
+              <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Session length (minutes)</Label>
+              <Input type="number" min="1" value={formData.sessionLength} onChange={(e) => handleInputChange('sessionLength', e.target.value)} className="max-w-[160px]" />
+            </div>
+
+            {/* Meeting location */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Meeting location</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {(
+                  [
+                    { id: 'zoom', label: 'Zoom' },
+                    { id: 'google_meet', label: 'Google Meet' },
+                    { id: 'skype', label: 'Skype' },
+                    { id: 'physical', label: 'In-Person' },
+                    { id: 'other', label: 'Other' },
+                  ] as { id: BookingLocationType; label: string }[]
+                ).map((loc) => (
+                  <button
+                    key={loc.id}
+                    type="button"
+                    onClick={() => handleInputChange('locationType', loc.id)}
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                      formData.locationType === loc.id
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                    }`}
+                  >
+                    {loc.id === 'physical' ? <MapPin className="h-3.5 w-3.5 shrink-0" /> : <VideoIcon className="h-3.5 w-3.5 shrink-0" />}
+                    {loc.label}
+                  </button>
+                ))}
               </div>
               <div>
-                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Video link</Label>
-                <Input type="url" placeholder="https://meet.google.com/..." value={formData.videoLink} onChange={(e) => handleInputChange('videoLink', e.target.value)} />
+                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {formData.locationType === 'physical' ? 'Physical address' : 'Meeting link'}
+                </Label>
+                <Input
+                  type={formData.locationType === 'physical' ? 'text' : 'url'}
+                  placeholder={
+                    formData.locationType === 'physical'
+                      ? '12, Baker Street, Lagos'
+                      : formData.locationType === 'zoom'
+                      ? 'https://zoom.us/j/...'
+                      : formData.locationType === 'google_meet'
+                      ? 'https://meet.google.com/...'
+                      : formData.locationType === 'skype'
+                      ? 'https://join.skype.com/...'
+                      : 'https://...'
+                  }
+                  value={formData.locationDetail}
+                  onChange={(e) => handleInputChange('locationDetail', e.target.value)}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Shared with the customer only after a confirmed booking.</p>
               </div>
             </div>
 
+            {/* Availability */}
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">Availability</p>
+                  <p className="text-sm font-medium">Weekly availability</p>
                   <p className="text-xs text-muted-foreground">Add the days and hours customers can book.</p>
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={addAvailabilitySlot} className="gap-1.5 shrink-0">
@@ -952,6 +1053,157 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
                 </div>
               ))}
             </div>
+
+            {/* Intake form builder */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Intake form</p>
+                  <p className="text-xs text-muted-foreground">Collect information from customers before the session.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 shrink-0"
+                  onClick={() => {
+                    const newField: IntakeFormField = {
+                      id: uuidv4(),
+                      label: '',
+                      type: 'text',
+                      required: false,
+                    }
+                    handleInputChange('intakeForm', [...formData.intakeForm, newField])
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add question
+                </Button>
+              </div>
+
+              {formData.intakeForm.length === 0 && (
+                <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                  No intake questions yet. Add questions to collect info from your clients before the session.
+                </div>
+              )}
+
+              {formData.intakeForm.map((field, idx) => (
+                <div key={field.id} className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-muted-foreground w-5">{idx + 1}.</span>
+                    <div className="flex-1 grid gap-2 sm:grid-cols-[1fr_140px]">
+                      <Input
+                        placeholder="Question label (e.g. What is your goal?)"
+                        value={field.label}
+                        onChange={(e) => {
+                          const updated = formData.intakeForm.map((f, i) =>
+                            i === idx ? { ...f, label: e.target.value } : f
+                          )
+                          handleInputChange('intakeForm', updated)
+                        }}
+                      />
+                      <Select
+                        value={field.type}
+                        onValueChange={(val) => {
+                          const updated = formData.intakeForm.map((f, i) =>
+                            i === idx ? { ...f, type: val as IntakeFieldType, options: ['checkbox','radio','select'].includes(val) ? (f.options?.length ? f.options : ['']) : undefined } : f
+                          )
+                          handleInputChange('intakeForm', updated)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Short text</SelectItem>
+                          <SelectItem value="textarea">Long text</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Phone</SelectItem>
+                          <SelectItem value="date">Date</SelectItem>
+                          <SelectItem value="radio">Single choice</SelectItem>
+                          <SelectItem value="checkbox">Multi-select</SelectItem>
+                          <SelectItem value="select">Dropdown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center gap-2 ml-1">
+                      <label className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          className="h-3.5 w-3.5 accent-primary"
+                          onChange={(e) => {
+                            const updated = formData.intakeForm.map((f, i) =>
+                              i === idx ? { ...f, required: e.target.checked } : f
+                            )
+                            handleInputChange('intakeForm', updated)
+                          }}
+                        />
+                        Required
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          handleInputChange('intakeForm', formData.intakeForm.filter((_, i) => i !== idx))
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Options for radio/checkbox/select */}
+                  {['radio', 'checkbox', 'select'].includes(field.type) && (
+                    <div className="space-y-2 pl-5">
+                      <p className="text-xs text-muted-foreground font-medium">Options</p>
+                      {(field.options || ['']).map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          <Input
+                            placeholder={`Option ${optIdx + 1}`}
+                            value={opt}
+                            className="h-8 text-xs"
+                            onChange={(e) => {
+                              const newOptions = (field.options || ['']).map((o, oi) => oi === optIdx ? e.target.value : o)
+                              const updated = formData.intakeForm.map((f, i) => i === idx ? { ...f, options: newOptions } : f)
+                              handleInputChange('intakeForm', updated)
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              const newOptions = (field.options || []).filter((_, oi) => oi !== optIdx)
+                              const updated = formData.intakeForm.map((f, i) => i === idx ? { ...f, options: newOptions.length ? newOptions : [''] } : f)
+                              handleInputChange('intakeForm', updated)
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1 text-muted-foreground"
+                        onClick={() => {
+                          const newOptions = [...(field.options || ['']), '']
+                          const updated = formData.intakeForm.map((f, i) => i === idx ? { ...f, options: newOptions } : f)
+                          handleInputChange('intakeForm', updated)
+                        }}
+                      >
+                        <Plus className="h-3 w-3" /> Add option
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -984,6 +1236,96 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {productType === 'physical' && (
+          <div className="space-y-4 rounded-lg border border-border/60 p-4">
+            <div>
+              <p className="text-sm font-medium">Physical goods settings</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Manage your stock and shipping requirements for physical items.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Opening Stock (Quantity)</Label>
+                <Input type="number" min="0" placeholder="100" value={formData.quantityAvailable} onChange={(e) => handleInputChange('quantityAvailable', e.target.value)} />
+              </div>
+              <div>
+                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">SKU (Stock Keeping Unit)</Label>
+                <Input type="text" placeholder="e.g. T-SHIRT-BLK-L" value={formData.sku} onChange={(e) => handleInputChange('sku', e.target.value)} />
+              </div>
+              <div>
+                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Weight (kg)</Label>
+                <Input type="number" min="0" step="0.1" placeholder="0.5" value={formData.weight} onChange={(e) => handleInputChange('weight', e.target.value)} />
+              </div>
+              <div className="flex flex-col justify-end pb-1 text-[10px] text-muted-foreground italic">
+                * Shipping address will be collected during checkout.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {productType === 'ebook' && (
+          <div className="space-y-4 rounded-lg border border-border/60 p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium">Ebook settings</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Upload your book and configure reading options.</p>
+              </div>
+            </div>
+
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); setFileDragging(true) }}
+              onDragLeave={() => setFileDragging(false)}
+              onDrop={handleFileDrop}
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors
+                ${fileDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </div>
+              {downloadFile ? (
+                <div>
+                  <p className="text-sm font-medium">{downloadFile.name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground text-primary font-bold">READY TO UPLOAD</p>
+                </div>
+              ) : existingDownloadName ? (
+                <div>
+                  <p className="text-sm font-medium">{existingDownloadName}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Click to replace current file</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm font-medium">Upload ebook file</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">PDF or EPUB (Max 50MB)</p>
+                </div>
+              )}
+              <input ref={fileInputRef} type="file" accept=".pdf,.epub" onChange={(e) => setDownloadFile(e.target.files?.[0] || null)} className="hidden" id="ebookFileUpload" />
+            </div>
+
+            <div className="grid gap-6 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Non-downloadable Read Mode</Label>
+                  <p className="text-xs text-muted-foreground italic">Enable a built-in viewer to prevent direct file downloads.</p>
+                </div>
+                <Switch checked={formData.enableReader} onCheckedChange={(checked) => handleInputChange('enableReader', checked)} />
+              </div>
+
+              <div>
+                <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Format</Label>
+                <Select value={formData.ebookFormat} onValueChange={(v) => handleInputChange('ebookFormat', v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PDF">PDF</SelectItem>
+                    <SelectItem value="EPUB">EPUB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         )}
 

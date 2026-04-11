@@ -61,6 +61,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
     { label: 'Links', href: `/${slug}` },
     { label: 'Shop', href: `/${slug}/shop` },
     { label: 'Posts', href: `/${slug}/posts` },
+    { label: 'Bookings', href: `/${slug}/bookings` },
     ...(isOwnUser ? [{ label: 'Dashboard', href: '/dashboard' }] : []),
   ];
 

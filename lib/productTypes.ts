@@ -43,6 +43,20 @@ export const PRODUCT_TYPE_OPTIONS: Array<{
     badge: 'Calendar ready',
   },
   {
+    id: 'physical',
+    name: 'Physical Goods',
+    icon: Package,
+    description: 'Clothing, books, electronics, and physical items',
+    badge: 'Inventory + Shipping',
+  },
+  {
+    id: 'ebook',
+    name: 'Ebooks',
+    icon: BookOpen,
+    description: 'Digital books with optional non-downloadable reader',
+    badge: 'Reading mode',
+  },
+  {
     id: 'bundle',
     name: 'Bundle',
     icon: Layers3,
@@ -51,7 +65,7 @@ export const PRODUCT_TYPE_OPTIONS: Array<{
   },
 ]
 
-export type ProductTypeId = 'tickets' | 'courses' | 'digital-download' | 'membership' | 'booking' | 'bundle'
+export type ProductTypeId = 'tickets' | 'courses' | 'digital-download' | 'membership' | 'booking' | 'bundle' | 'physical' | 'ebook'
 
 export const getProductTypeLabel = (type?: string) => {
   const match = PRODUCT_TYPE_OPTIONS.find((option) => option.id === type)

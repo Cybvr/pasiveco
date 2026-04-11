@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     - "name": a short listing title
     - "description": 1-2 sentences of punchy copy
     - "price": suggest a price in USD (number)
-    - "productType": one of ["digital-download", "courses", "tickets", "membership", "booking", "bundle"]
+    - "productType": one of ["digital-download", "courses", "tickets", "membership", "booking", "bundle", "physical", "ebook"]
     - "reasoning": a brief note on why this fits their brand
 
     TONE: Professional, visionary, and perfectly aligned with the creator's brand voice.

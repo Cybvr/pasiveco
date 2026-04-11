@@ -77,8 +77,8 @@ export const websiteData = {
     },
     {
       id: "courses-memberships",
-      title: "Courses",
-      description: "You can host your courses & membership sites with unlimited videos & files, unlimited storage, and have unlimited students.",
+      title: "Courses & Memberships",
+      description: "You can host your courses & membership sites with unlimited videos & files, unlimited storage, and have unlimited students, plus you get content security to prevent theft.",
       icon: "GraduationCap",
       color: "green-500",
       image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&crop=center",

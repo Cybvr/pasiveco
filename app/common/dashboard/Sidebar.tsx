@@ -18,7 +18,8 @@ import {
   FileText,
   QrCode,
   Zap,
-  Library
+  Library,
+  CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -36,6 +37,7 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
   { href: '/dashboard/edit', icon: Palette, label: 'Storefront' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
+  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
   { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },

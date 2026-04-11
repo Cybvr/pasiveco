@@ -14,7 +14,13 @@ import {
   Zap,
   Globe,
   Star,
-  Plus
+  Plus,
+  Package,
+  BookOpen,
+  Video,
+  Ticket,
+  Briefcase,
+  ShoppingBag
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
@@ -210,51 +216,67 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Feature: Passions into Businesses ── */}
+      {/* ── Feature: One Platform. Every Product. ── */}
       <section className="px-6 py-40 bg-muted/30 border-y border-border">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-24 gap-6">
-            <h2 className="text-4xl md:text-7xl font-bold tracking-tight">Turning passions <br /> into businesses</h2>
-            <p className="text-xl text-muted-foreground max-w-sm">From digital products to affiliate networks, we provide the infrastructure.</p>
+            <h2 className="text-4xl md:text-7xl font-bold tracking-tight">One platform. <br /> Every product.</h2>
+            <p className="text-xl text-muted-foreground max-w-sm">From digital assets to physical goods, we provide the infrastructure for every kind of creator.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border border border-border">
             {[
               {
                 title: "Digital Products",
-                desc: "Sell courses, templates, and assets with one-click checkouts.",
-                icon: DollarSign,
+                desc: "Sell any and every kind of digital product, from content packs to designs to bundles and more without stress.",
+                icon: Package,
+                color: "text-blue-500"
+              },
+              {
+                title: "Ebooks",
+                desc: "Pasive is the best platform to sell your ebooks both downloadable and non-downloadable in any format.",
+                icon: BookOpen,
                 color: "text-amber-500"
               },
               {
-                title: "Spaces",
-                desc: "Build a dedicated hub for your most passionate fans.",
-                icon: Star,
+                title: "Courses & Memberships",
+                desc: "You can host your courses & membership sites with unlimited videos & files, unlimited storage, and have unlimited students, plus you get content security to prevent theft.",
+                icon: Video,
                 color: "text-purple-500"
               },
               {
-                title: "Affiliate Network",
-                desc: "Earn commissions selling others products, or have others sell yours.",
-                icon: Zap,
+                title: "Event Tickets & Training",
+                desc: "Sell tickets for events and access to masterclasses, workshops, training, webinars, and more.",
+                icon: Ticket,
+                color: "text-rose-500"
+              },
+              {
+                title: "Services",
+                desc: "Sell any kind of service, from coaching and consultations to counseling sessions and design services.",
+                icon: Briefcase,
                 color: "text-emerald-500"
+              },
+              {
+                title: "Physical Goods",
+                desc: "Use Pasive to sell your physical products from clothing to books to electronics and appliances.",
+                icon: ShoppingBag,
+                color: "text-orange-500"
               }
             ].map((feature, i) => (
-              <div key={i} className="group p-10 bg-background rounded-none border border-border hover:border-foreground transition-all duration-500 space-y-6">
-                <div className={`w-12 h-12 rounded-none bg-muted flex items-center justify-center ${feature.color}`}>
-                  <feature.icon className="w-6 h-6" />
+              <div key={i} className="group p-12 bg-background hover:bg-muted/10 transition-all duration-500 space-y-8 flex flex-col h-full relative overflow-hidden">
+                <div className={`w-14 h-14 flex items-center justify-center bg-muted/50 transition-colors group-hover:bg-background ${feature.color}`}>
+                  <feature.icon className="w-7 h-7" />
                 </div>
-                <h3 className="text-2xl font-bold">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
-                <div className="pt-4 overflow-hidden h-6">
-                  <div className="group-hover:-translate-y-full transition-transform duration-500">
-                    <div className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                      Learn more <Plus className="w-3 h-3" />
-                    </div>
-                    <div className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2 pt-2">
-                      Let's go <ArrowRight className="w-3 h-3" />
-                    </div>
+                <div className="space-y-4 flex-grow">
+                  <h3 className="text-2xl font-bold tracking-tight uppercase">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-lg">{feature.desc}</p>
+                </div>
+                <div className="pt-6">
+                  <div className="text-xs font-mono uppercase tracking-[0.2em] opacity-40 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                    Start selling <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-transparent to-muted/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             ))}
           </div>

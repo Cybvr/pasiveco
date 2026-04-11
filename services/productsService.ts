@@ -36,6 +36,19 @@ export interface ProductAvailabilitySlot {
   end: string;
 }
 
+export type IntakeFieldType = 'text' | 'textarea' | 'checkbox' | 'radio' | 'date' | 'phone' | 'email' | 'select';
+
+export interface IntakeFormField {
+  id: string;
+  label: string;
+  type: IntakeFieldType;
+  placeholder?: string;
+  options?: string[]; // for checkbox, radio, select
+  required: boolean;
+}
+
+export type BookingLocationType = 'zoom' | 'google_meet' | 'skype' | 'physical' | 'other';
+
 export interface ProductDetails {
   eventDateTime?: string;
   eventLocation?: string;
@@ -50,11 +63,21 @@ export interface ProductDetails {
   sessionLength?: number;
   availability?: ProductAvailabilitySlot[];
   videoLink?: string;
+  // Booking-specific
+  locationType?: BookingLocationType;
+  locationDetail?: string; // meeting link or physical address
+  intakeForm?: IntakeFormField[];
   includedProducts?: Array<{
     id: string;
     name: string;
   }>;
   deliveryMode?: 'silent_email' | 'silent_qr_email';
+  // Physical goods
+  weight?: number;
+  sku?: string;
+  // Ebook
+  ebookFormat?: string;
+  enableReader?: boolean;
 }
 
 export interface Product {
