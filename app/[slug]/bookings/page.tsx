@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Clock, MapPin, Video, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Video, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getUserByUsername } from '@/services/userService';
 import { getUserProducts, Product } from '@/services/productsService';
