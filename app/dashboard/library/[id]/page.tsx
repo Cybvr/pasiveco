@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import MuxPlayer from "@mux/mux-player-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,10 @@ export default function PurchaseDetailPage() {
   const { user } = useAuth()
   const [transaction, setTransaction] = useState<Transaction | null>(null)
   const [product, setProduct] = useState<Product | null>(null)
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
+  const [muxPlayback, setMuxPlayback] = useState<any>(null)
+  const [muxLoading, setMuxLoading] = useState(false)
+  const [muxError, setMuxError] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -53,6 +58,10 @@ export default function PurchaseDetailPage() {
         if (tx.productId) {
           const p = await getProduct(tx.productId)
           setProduct(p)
+          const firstMuxLesson = p?.details?.lessons?.find((lesson) => lesson.muxPlaybackId || lesson.muxUploadId)
+          if (firstMuxLesson?.id) {
+            setActiveLessonId(firstMuxLesson.id)
+          }
         }
       } catch (e: any) {
         setError(e.message || "Failed to load order.")
@@ -62,6 +71,51 @@ export default function PurchaseDetailPage() {
     }
     void fetchTx()
   }, [id, user?.email])
+
+  useEffect(() => {
+    const loadMuxPlayback = async () => {
+      if (!product?.id || !activeLessonId) {
+        setMuxPlayback(null)
+        setMuxError("")
+        return
+      }
+
+      const lesson = product.details?.lessons?.find((item) => item.id === activeLessonId)
+      if (!lesson?.muxPlaybackId) {
+        setMuxPlayback(null)
+        setMuxError("")
+        return
+      }
+
+      setMuxLoading(true)
+      setMuxError("")
+
+      try {
+        const response = await fetch("/api/mux/playback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productId: product.id,
+            lessonId: activeLessonId,
+          }),
+        })
+
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load video")
+        }
+
+        setMuxPlayback(data)
+      } catch (playbackError: any) {
+        setMuxPlayback(null)
+        setMuxError(playbackError.message || "Failed to load video")
+      } finally {
+        setMuxLoading(false)
+      }
+    }
+
+    void loadMuxPlayback()
+  }, [activeLessonId, product?.id, product?.details?.lessons])
 
   if (loading) {
     return (
@@ -148,19 +202,53 @@ export default function PurchaseDetailPage() {
                 {product.details?.lessons && product.details.lessons.length > 0 && (
                   <div className="space-y-3">
                     <p className="text-sm font-bold px-1">Course Content</p>
+                    {activeLessonId && (
+                      <div className="overflow-hidden rounded-xl border bg-background">
+                        {muxLoading ? (
+                          <div className="flex aspect-video items-center justify-center">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : muxPlayback?.playbackId ? (
+                          <MuxPlayer
+                            className="aspect-video w-full"
+                            playbackId={muxPlayback.playbackId}
+                            tokens={muxPlayback.tokens}
+                            metadata={{
+                              video_title: product.name,
+                              viewer_user_id: user?.uid || "guest",
+                            }}
+                          />
+                        ) : activeLessonId ? (
+                          <div className="flex aspect-video items-center justify-center px-4 text-sm text-muted-foreground">
+                            {muxError || "This lesson video is still processing."}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
                     <div className="grid gap-2">
                       {product.details.lessons.map((lesson, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border bg-background text-sm">
+                        <div key={lesson.id || idx} className="flex items-center gap-3 p-3 rounded-lg border bg-background text-sm">
                           <span className="text-xs font-mono text-muted-foreground">0{idx + 1}</span>
                           <span className="flex-1 font-medium">{lesson.title}</span>
-                          {lesson.videoUrl && (
+                          {lesson.muxPlaybackId || lesson.muxUploadId ? (
+                            <Button
+                              size="sm"
+                              variant={activeLessonId === lesson.id ? "default" : "ghost"}
+                              className="h-8 gap-2"
+                              onClick={() => setActiveLessonId(lesson.id || null)}
+                              disabled={!lesson.id}
+                            >
+                              <Play className="h-3 w-3" />
+                              {lesson.muxPlaybackId ? "Play" : "Processing"}
+                            </Button>
+                          ) : lesson.videoUrl ? (
                             <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer">
                               <Button size="sm" variant="ghost" className="h-8 gap-2">
                                 <Play className="h-3 w-3" />
                                 Watch
                               </Button>
                             </a>
-                          )}
+                          ) : null}
                         </div>
                       ))}
                     </div>

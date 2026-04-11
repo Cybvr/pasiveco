@@ -82,7 +82,10 @@ export interface User {
   notificationPreferences?: {
     email: boolean;
     push: boolean;
+    sales?: boolean;
     updates: boolean;
+    spaces?: boolean;
+    security?: boolean;
   };
   hasClaimedProfileBonus?: boolean;
   iconColor?: string;
@@ -108,6 +111,14 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     isVerified: Boolean(user.isVerified),
     tags: Array.isArray(user.tags) ? user.tags : [],
     brandPreferences: user.brandPreferences || '',
+    notificationPreferences: {
+      email: user.notificationPreferences?.email ?? true,
+      push: user.notificationPreferences?.push ?? true,
+      sales: user.notificationPreferences?.sales ?? true,
+      updates: user.notificationPreferences?.updates ?? true,
+      spaces: user.notificationPreferences?.spaces ?? true,
+      security: user.notificationPreferences?.security ?? true,
+    },
   };
 };
 
@@ -229,11 +240,15 @@ export const updateUser = async (userId: string, updates: Partial<User>) => {
   }
 };
 
-export const updateUserLastLogin = async (userId: string) => {
+export const updateUserLastLogin = async (userId: string, loginAt?: Timestamp | Date) => {
   try {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
-      lastLoginAt: Timestamp.now(),
+      lastLoginAt: loginAt instanceof Timestamp
+        ? loginAt
+        : loginAt instanceof Date
+          ? Timestamp.fromDate(loginAt)
+          : Timestamp.now(),
       updatedAt: Timestamp.now()
     });
   } catch (error) {

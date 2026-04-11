@@ -20,7 +20,19 @@ import { useCurrency } from '@/context/CurrencyContext'
 import { slugify } from '@/utils/slugify'
 import { storage } from '@/lib/firebase'
 
-type LessonForm = { title: string; content: string; videoUrl: string }
+type LessonForm = {
+  id: string
+  title: string
+  content: string
+  videoUrl: string
+  muxUploadId?: string
+  muxAssetId?: string
+  muxPlaybackId?: string
+  muxStatus?: 'waiting' | 'asset_created' | 'ready' | 'errored'
+  muxError?: string
+  muxPassthroughSlug?: string
+  duration?: number
+}
 type AvailabilityForm = { day: string; start: string; end: string }
 type CreateProductFormData = {
   name: string
@@ -61,7 +73,7 @@ const DEFAULT_FORM_DATA: CreateProductFormData = {
   eventDateTime: '',
   eventLocation: '',
   quantityAvailable: '',
-  lessons: [{ title: '', content: '', videoUrl: '' }],
+  lessons: [{ id: uuidv4(), title: '', content: '', videoUrl: '' }],
   dripSchedule: '',
   enrollmentLimit: '',
   billingInterval: 'monthly',
@@ -88,11 +100,19 @@ const mapProductToFormData = (product: Product): CreateProductFormData => {
     quantityAvailable: details.quantityAvailable?.toString?.() || '',
     lessons: details.lessons?.length
       ? details.lessons.map((lesson) => ({
+          id: lesson.id || uuidv4(),
           title: lesson.title || '',
           content: lesson.content || '',
           videoUrl: lesson.videoUrl || '',
+          muxUploadId: lesson.muxUploadId,
+          muxAssetId: lesson.muxAssetId,
+          muxPlaybackId: lesson.muxPlaybackId,
+          muxStatus: lesson.muxStatus,
+          muxError: lesson.muxError,
+          muxPassthroughSlug: lesson.muxPassthroughSlug,
+          duration: lesson.duration,
         }))
-      : [{ title: '', content: '', videoUrl: '' }],
+      : [{ id: uuidv4(), title: '', content: '', videoUrl: '' }],
     dripSchedule: details.dripSchedule || '',
     enrollmentLimit: details.enrollmentLimit?.toString?.() || '',
     billingInterval: details.billingInterval || 'monthly',
@@ -131,6 +151,7 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [affiliateEnabled, setAffiliateEnabled] = useState(Boolean(productToEdit?.affiliateEnabled))
   const [affiliateCommission, setAffiliateCommission] = useState(String(productToEdit?.affiliateCommission || 20))
+  const [uploadingLessonId, setUploadingLessonId] = useState<string | null>(null)
   const descriptionEditor = useEditor({
     extensions: [StarterKit, TiptapImage, Dropcursor],
     content: formData.description,
@@ -177,7 +198,10 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   )
 
   const resetForm = () => {
-    setFormData(DEFAULT_FORM_DATA)
+    setFormData({
+      ...DEFAULT_FORM_DATA,
+      lessons: [{ id: uuidv4(), title: '', content: '', videoUrl: '' }],
+    })
     setImageFile(null)
     setImagePreview('')
     setDownloadFile(null)
@@ -298,7 +322,7 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
   const addLesson = () => {
     setFormData((prev) => ({
       ...prev,
-      lessons: [...prev.lessons, { title: '', content: '', videoUrl: '' }],
+      lessons: [...prev.lessons, { id: uuidv4(), title: '', content: '', videoUrl: '' }],
     }))
   }
 
@@ -392,9 +416,17 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
           lessons: formData.lessons
             .filter((lesson) => lesson.title.trim())
             .map((lesson) => ({
+              id: lesson.id,
               title: lesson.title.trim(),
               content: lesson.content.trim(),
               videoUrl: lesson.videoUrl.trim(),
+              muxUploadId: lesson.muxUploadId,
+              muxAssetId: lesson.muxAssetId,
+              muxPlaybackId: lesson.muxPlaybackId,
+              muxStatus: lesson.muxStatus,
+              muxError: lesson.muxError,
+              muxPassthroughSlug: lesson.muxPassthroughSlug,
+              duration: lesson.duration,
             })),
           dripSchedule: formData.dripSchedule.trim(),
           enrollmentLimit: formData.enrollmentLimit ? parseInt(formData.enrollmentLimit, 10) : null,
@@ -454,10 +486,13 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       const productStatus: Product['status'] = isPublished ? 'active' : 'draft'
       const existingImages = productToEdit?.images || []
       const existingThumbnail = productToEdit?.thumbnail || ''
+      const muxLessonSlug =
+        formData.lessons.find((lesson) => lesson.muxUploadId && lesson.muxPassthroughSlug)?.muxPassthroughSlug || ''
+      const resolvedSlug = muxLessonSlug || formData.slug.trim() || slugify(formData.name)
       const productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
         userId: currentUserId,
         name: formData.name.trim(),
-        slug: formData.slug.trim() || slugify(formData.name),
+        slug: resolvedSlug,
         description: formData.description.trim(),
         price: parseFloat(formData.price) || 0,
         currency: formData.currency,
@@ -513,6 +548,95 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
       toast.error(mode === 'edit' ? 'Failed to update product' : 'Failed to create product')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLessonVideoUpload = async (lessonIndex: number, file: File) => {
+    const lesson = formData.lessons[lessonIndex]
+    const currentUserId = user?.uid
+    if (!lesson || !currentUserId) return
+
+    const resolvedSlug = formData.slug.trim() || slugify(formData.name) || `course-${uuidv4().slice(0, 8)}`
+
+    setFormData((prev) => ({
+      ...prev,
+      slug: prev.slug || resolvedSlug,
+      lessons: prev.lessons.map((currentLesson, index) =>
+        index === lessonIndex
+          ? {
+              ...currentLesson,
+              muxStatus: 'waiting',
+              muxError: '',
+              muxPassthroughSlug: resolvedSlug,
+            }
+          : currentLesson
+      ),
+    }))
+
+    setUploadingLessonId(lesson.id)
+
+    try {
+      const uploadResponse = await fetch('/api/mux/uploads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lessonId: lesson.id,
+          productId: productToEdit?.id,
+          productSlug: productToEdit?.id ? undefined : resolvedSlug,
+        }),
+      })
+
+      const uploadData = await uploadResponse.json()
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData.error || 'Failed to create upload')
+      }
+
+      const muxUploadResponse = await fetch(uploadData.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      })
+
+      if (!muxUploadResponse.ok) {
+        throw new Error('Failed to upload video to Mux')
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        lessons: prev.lessons.map((currentLesson, index) =>
+          index === lessonIndex
+            ? {
+                ...currentLesson,
+                videoUrl: '',
+                muxUploadId: uploadData.uploadId,
+                muxStatus: 'waiting',
+                muxError: '',
+                muxPassthroughSlug: resolvedSlug,
+              }
+            : currentLesson
+        ),
+      }))
+
+      toast.success('Video uploaded. Mux is processing it now.')
+    } catch (error: any) {
+      console.error('Error uploading lesson video:', error)
+      setFormData((prev) => ({
+        ...prev,
+        lessons: prev.lessons.map((currentLesson, index) =>
+          index === lessonIndex
+            ? {
+                ...currentLesson,
+                muxStatus: 'errored',
+                muxError: error.message || 'Upload failed',
+              }
+            : currentLesson
+        ),
+      }))
+      toast.error(error.message || 'Failed to upload lesson video')
+    } finally {
+      setUploadingLessonId(null)
     }
   }
 
@@ -647,9 +771,44 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
                   </div>
                   <Input placeholder="Lesson title" value={lesson.title} onChange={(e) => handleLessonChange(index, 'title', e.target.value)} />
                   <Textarea placeholder="Lesson content" value={lesson.content} onChange={(e) => handleLessonChange(index, 'content', e.target.value)} className="min-h-[80px] resize-none" />
+                  <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-medium">Lesson video</p>
+                        <p className="text-xs text-muted-foreground">Upload to Mux for secure playback in the library.</p>
+                      </div>
+                      <Label
+                        htmlFor={`lesson-video-${lesson.id}`}
+                        className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border px-3 text-sm font-medium"
+                      >
+                        {uploadingLessonId === lesson.id ? 'Uploading...' : 'Upload video'}
+                      </Label>
+                    </div>
+                    <input
+                      id={`lesson-video-${lesson.id}`}
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      disabled={uploadingLessonId === lesson.id}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0]
+                        if (file) {
+                          void handleLessonVideoUpload(index, file)
+                        }
+                        event.currentTarget.value = ''
+                      }}
+                    />
+                    {(lesson.muxStatus || lesson.muxPlaybackId) && (
+                      <div className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                        <p>Status: {lesson.muxStatus || 'ready'}</p>
+                        {lesson.muxPlaybackId ? <p className="mt-1 break-all">Playback ID: {lesson.muxPlaybackId}</p> : null}
+                        {lesson.muxError ? <p className="mt-1 text-destructive">{lesson.muxError}</p> : null}
+                      </div>
+                    )}
+                  </div>
                   <div className="relative">
                     <Video className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Optional video URL" value={lesson.videoUrl} onChange={(e) => handleLessonChange(index, 'videoUrl', e.target.value)} className="pl-9" />
+                    <Input placeholder="Legacy external video URL" value={lesson.videoUrl} onChange={(e) => handleLessonChange(index, 'videoUrl', e.target.value)} className="pl-9" />
                   </div>
                 </div>
               ))}

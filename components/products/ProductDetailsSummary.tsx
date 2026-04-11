@@ -105,11 +105,11 @@ export default function ProductDetailsSummary({ product }: { product: Product })
         <div className="space-y-2">
           <p className="text-sm font-medium">Course lessons</p>
           <div className="space-y-2">
-            {lessons.map((lesson: { title: string; content?: string; videoUrl?: string }, index: number) => (
+            {lessons.map((lesson: { title: string; content?: string; videoUrl?: string; muxPlaybackId?: string; muxUploadId?: string }, index: number) => (
               <div key={`${lesson.title}-${index}`} className="rounded-xl border bg-background p-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium">{index + 1}. {lesson.title}</p>
-                  {lesson.videoUrl ? <Badge variant="outline">Video</Badge> : null}
+                  {lesson.videoUrl || lesson.muxPlaybackId || lesson.muxUploadId ? <Badge variant="outline">Video</Badge> : null}
                 </div>
                 {lesson.content ? <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">{lesson.content}</p> : null}
               </div>

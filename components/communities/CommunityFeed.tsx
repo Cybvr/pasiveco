@@ -127,9 +127,11 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
     return handle ? `/${handle}` : null;
   };
 
+  const getPostHref = (postId: string) => `/dashboard/communities/${communityId}/spaces/${postId}`;
+
   const handleCopyPostLink = async (postId: string) => {
     try {
-      const postUrl = `${window.location.origin}${window.location.pathname}#post-${postId}`;
+      const postUrl = `${window.location.origin}${getPostHref(postId)}`;
       await navigator.clipboard.writeText(postUrl);
       toast.success('Link copied');
     } catch (error) {
@@ -430,11 +432,13 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
                 </div>
 
                 <div className="text-sm text-foreground/90 leading-normal whitespace-pre-wrap break-words">
-                  {post.message}
+                  <Link href={getPostHref(post.id)} className="block rounded-md transition-colors hover:text-foreground">
+                    {post.message}
+                  </Link>
                   {post.mediaUrl && (
-                    <div className="my-1.5 rounded-md overflow-hidden border border-border/30 max-w-sm">
+                    <Link href={getPostHref(post.id)} className="my-1.5 block max-w-sm overflow-hidden rounded-md border border-border/30">
                       <img src={post.mediaUrl} alt="Shared media" className="w-full h-auto object-contain max-h-[300px]" />
-                    </div>
+                    </Link>
                   )}
                 </div>
 
@@ -450,9 +454,9 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
                     <MessageSquare className="w-3 h-3" />
                     <span className="text-[10px] font-bold tabular-nums">{postReplies.length}</span>
                   </button>
-                  <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={getPostHref(post.id)} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground">
                     <Share2 className="w-3 h-3" />
-                  </button>
+                  </Link>
                 </div>
 
                 {postReplies.length > 0 && (
@@ -505,13 +509,13 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
                             </DropdownMenu>
                           </div>
                           <div className="pl-[2.125rem]">
-                            <div className="text-sm text-foreground/90 whitespace-pre-wrap break-words leading-normal">
+                            <Link href={getPostHref(reply.id)} className="block text-sm text-foreground/90 whitespace-pre-wrap break-words leading-normal transition-colors hover:text-foreground">
                               {reply.message}
-                            </div>
+                            </Link>
                             {reply.mediaUrl && (
-                              <div className="mt-1.5 rounded-md overflow-hidden border border-border/30 max-w-sm">
+                              <Link href={getPostHref(reply.id)} className="mt-1.5 block max-w-sm overflow-hidden rounded-md border border-border/30">
                                 <img src={reply.mediaUrl} alt="Reply media" className="w-full h-auto object-contain max-h-[300px]" />
-                              </div>
+                              </Link>
                             )}
                           </div>
                         </div>

@@ -5,6 +5,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import nookies from 'nookies';
+import { updateUserLastLogin } from '@/services/userService';
 
 interface User extends FirebaseUser {
   displayName: string | null;
@@ -46,6 +47,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Get additional user data from Firestore
           const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
           const userData = userDoc.data();
+          const lastSignInAt = firebaseUser.metadata.lastSignInTime
+            ? new Date(firebaseUser.metadata.lastSignInTime)
+            : null;
+          const storedLastLoginAt = userData?.lastLoginAt?.toDate?.() ?? null;
+
+          if (
+            lastSignInAt &&
+            (!storedLastLoginAt || Math.abs(lastSignInAt.getTime() - storedLastLoginAt.getTime()) > 60 * 1000)
+          ) {
+            await updateUserLastLogin(firebaseUser.uid, lastSignInAt);
+          }
 
           setUser({
             ...firebaseUser,

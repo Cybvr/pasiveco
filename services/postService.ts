@@ -76,6 +76,38 @@ export const getCommunityPosts = async (communityId: string): Promise<Post[]> =>
   }
 };
 
+export const getPostById = async (postId: string): Promise<Post | null> => {
+  try {
+    const postSnap = await getDoc(doc(db, 'posts', postId));
+
+    if (!postSnap.exists()) {
+      return null;
+    }
+
+    const post = { id: postSnap.id, ...postSnap.data() } as Post;
+
+    if (!post.authorName || !post.authorImage) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', post.authorId));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          post.authorName = userData.displayName;
+          post.authorUsername = userData.username;
+          post.authorSlug = userData.slug || userData.username;
+          post.authorImage = userData.photoURL || userData.image;
+        }
+      } catch (err) {
+        console.error(`Error fetching author data for post ${post.id}:`, err);
+      }
+    }
+
+    return post;
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    throw error;
+  }
+};
+
 /**
  * Creates a new post in a community.
  */
@@ -204,3 +236,38 @@ export const getRecentCommentsCount = async (userId: string, days: number = 3): 
   }
 };
 
+export const getRecentPostsCount = async (userId: string, days: number = 1): Promise<number> => {
+  try {
+    const membershipsSnap = await getDocs(
+      query(collection(db, 'communityMembers'), where('userId', '==', userId))
+    );
+    const communityIds = membershipsSnap.docs.map(doc => doc.data().communityId);
+
+    if (communityIds.length === 0) return 0;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const timestamp = Timestamp.fromDate(startDate);
+
+    let postCount = 0;
+    const chunks: string[][] = [];
+    for (let i = 0; i < communityIds.length; i += 30) {
+      chunks.push(communityIds.slice(i, i + 30));
+    }
+
+    for (const chunk of chunks) {
+      const q = query(
+        postsCollection,
+        where('communityId', 'in', chunk),
+        where('createdAt', '>=', timestamp)
+      );
+      const snap = await getDocs(q);
+      postCount += snap.docs.filter(doc => !doc.data().parentId).length;
+    }
+
+    return postCount;
+  } catch (error) {
+    console.error('Error counting recent posts:', error);
+    return 0;
+  }
+};

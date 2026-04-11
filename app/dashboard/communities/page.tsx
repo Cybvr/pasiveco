@@ -16,6 +16,7 @@ import { getGlobalFeed, Post } from "@/services/postService"
 import { Activity } from "lucide-react"
 import StarRating from "@/components/products/StarRating"
 import { Badge } from "@/components/ui/badge"
+import { formatDistanceToNow } from "date-fns"
 
 export default function CommunitiesPage() {
   const { user } = useAuth()
@@ -106,6 +107,7 @@ export default function CommunitiesPage() {
                   const community = [...myCommunities, ...exploreCommunities].find(c => c.id === post.communityId)
                   const authorHandle = (post.authorUsername || post.authorSlug || "").replace(/^@/, "").trim()
                   const authorHref = authorHandle ? `/${authorHandle}` : null
+                  const postHref = `/dashboard/communities/${community?.slug || post.communityId}/spaces/${post.id}`
                   return (
                     <div key={post.id}>
                       <div className="bg-card border border-border/50 rounded-xl p-3 shadow-sm">
@@ -123,7 +125,14 @@ export default function CommunitiesPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm leading-relaxed mb-3">{post.message}</p>
+                        <Link href={postHref} className="mb-3 block text-sm leading-relaxed transition-colors hover:text-foreground/80">
+                          {post.message}
+                          {post.mediaUrl && (
+                            <div className="mt-2 overflow-hidden rounded-lg border border-border/40">
+                              <img src={post.mediaUrl} alt="Shared media" className="h-auto max-h-[300px] w-full object-contain" />
+                            </div>
+                          )}
+                        </Link>
                         <div className="flex items-center justify-between pt-2 border-t border-border/30">
                           {authorHref ? (
                             <Link href={authorHref} className="flex items-center gap-2 rounded-md transition-opacity hover:opacity-80">
@@ -146,7 +155,9 @@ export default function CommunitiesPage() {
                               <span className="text-[11px] font-semibold">{post.authorName}</span>
                             </div>
                           )}
-                          <span className="text-[10px] text-muted-foreground font-medium italic">Just now</span>
+                          <Link href={postHref} className="text-[10px] text-muted-foreground font-medium italic transition-colors hover:text-foreground">
+                            {formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true })}
+                          </Link>
                         </div>
                       </div>
                     </div>

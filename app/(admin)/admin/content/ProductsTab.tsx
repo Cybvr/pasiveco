@@ -89,7 +89,7 @@ const EMPTY_FORM: ProductFormState = {
   quantityAvailable: "",
   eventDateTime: "",
   eventLocation: "",
-  lessons: [{ title: "", content: "", videoUrl: "" }],
+  lessons: [{ id: uuidv4(), title: "", content: "", videoUrl: "" }],
   dripSchedule: "",
   enrollmentLimit: "",
   fileName: "",
@@ -133,11 +133,19 @@ const mapProductToForm = (product: Product): ProductFormState => {
     eventLocation: details.eventLocation || "",
     lessons: Array.isArray(details.lessons) && details.lessons.length > 0
       ? details.lessons.map((lesson) => ({
+          id: lesson.id || uuidv4(),
           title: lesson.title || "",
           content: lesson.content || "",
           videoUrl: lesson.videoUrl || "",
+          muxUploadId: lesson.muxUploadId,
+          muxAssetId: lesson.muxAssetId,
+          muxPlaybackId: lesson.muxPlaybackId,
+          muxStatus: lesson.muxStatus,
+          muxError: lesson.muxError,
+          muxPassthroughSlug: lesson.muxPassthroughSlug,
+          duration: lesson.duration,
         }))
-      : [{ title: "", content: "", videoUrl: "" }],
+      : [{ id: uuidv4(), title: "", content: "", videoUrl: "" }],
     dripSchedule: details.dripSchedule || "",
     enrollmentLimit: details.enrollmentLimit !== null && details.enrollmentLimit !== undefined ? String(details.enrollmentLimit) : "",
     fileName: details.fileName || "",
@@ -289,7 +297,7 @@ export default function ProductsTab() {
   }
 
   const addLesson = () => {
-    setCurrentProduct((prev) => prev ? { ...prev, lessons: [...prev.lessons, { title: "", content: "", videoUrl: "" }] } : prev)
+    setCurrentProduct((prev) => prev ? { ...prev, lessons: [...prev.lessons, { id: uuidv4(), title: "", content: "", videoUrl: "" }] } : prev)
   }
 
   const updateLesson = (index: number, field: keyof LessonForm, value: string) => {
@@ -378,9 +386,17 @@ export default function ProductsTab() {
           lessons: product.lessons
             .filter((lesson) => lesson.title.trim())
             .map((lesson) => ({
+              id: lesson.id,
               title: lesson.title.trim(),
               content: lesson.content?.trim() || "",
               videoUrl: lesson.videoUrl?.trim() || "",
+              muxUploadId: lesson.muxUploadId,
+              muxAssetId: lesson.muxAssetId,
+              muxPlaybackId: lesson.muxPlaybackId,
+              muxStatus: lesson.muxStatus,
+              muxError: lesson.muxError,
+              muxPassthroughSlug: lesson.muxPassthroughSlug,
+              duration: lesson.duration,
             })),
           dripSchedule: product.dripSchedule.trim(),
           enrollmentLimit: product.enrollmentLimit ? parseInt(product.enrollmentLimit, 10) : null,

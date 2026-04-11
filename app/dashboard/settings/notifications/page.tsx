@@ -15,6 +15,8 @@ export default function NotificationsSettings() {
     push: true,
     sales: true,
     updates: true,
+    spaces: true,
+    security: true,
   })
 
   useEffect(() => {
@@ -107,6 +109,32 @@ export default function NotificationsSettings() {
             <Switch
               checked={preferences.updates}
               onCheckedChange={(checked) => handleUpdatePreference('updates', checked)}
+            />
+          </div>
+
+          <Separator className="bg-border/60" />
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Spaces Activity</p>
+              <p className="text-xs text-muted-foreground">Daily summaries for new posts and recent replies in your spaces</p>
+            </div>
+            <Switch
+              checked={preferences.spaces}
+              onCheckedChange={(checked) => handleUpdatePreference('spaces', checked)}
+            />
+          </div>
+
+          <Separator className="bg-border/60" />
+
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">Login & Security Alerts</p>
+              <p className="text-xs text-muted-foreground">Show recent sign-in session activity for your account</p>
+            </div>
+            <Switch
+              checked={preferences.security}
+              onCheckedChange={(checked) => handleUpdatePreference('security', checked)}
             />
           </div>
         </div>

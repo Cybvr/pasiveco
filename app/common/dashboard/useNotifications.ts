@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { Users, Rss, ShoppingBag, Zap, MessageSquare } from 'lucide-react'
+import { Users, Rss, ShoppingBag, MessageSquare, Shield } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { getAllUsers, getUser } from '@/services/userService'
 import { blogService } from '@/services/blogService'
 import { getSellerTransactions } from '@/services/transactionsService'
-import { getRecentCommentsCount } from '@/services/postService'
+import { getRecentCommentsCount, getRecentPostsCount } from '@/services/postService'
 import {
   getBaseNotificationsForAudience,
   type NotificationAudience,
@@ -120,23 +120,71 @@ async function buildSaleNotifications(userId: string): Promise<NotificationItem[
 
 async function buildNetworkNotifications(userId: string): Promise<NotificationItem[]> {
   try {
-    const count = await getRecentCommentsCount(userId, 3)
-    if (count === 0) return []
+    const [postsToday, commentsCount] = await Promise.all([
+      getRecentPostsCount(userId, 1),
+      getRecentCommentsCount(userId, 3),
+    ])
+
+    const items: NotificationItem[] = []
+
+    if (postsToday > 0) {
+      items.push({
+        id: `network-posts-${userId}`,
+        icon: MessageSquare,
+        title: 'New posts in your spaces',
+        body: `There ${postsToday === 1 ? 'is' : 'are'} ${postsToday} new ${postsToday === 1 ? 'post' : 'posts'} in your Spaces today.`,
+        time: 'Today',
+        status: 'new' as const,
+        category: 'activity' as const,
+        visibility: 'creator' as const,
+      })
+    }
+
+    if (commentsCount > 0) {
+      items.push({
+        id: `network-comments-${userId}`,
+        icon: MessageSquare,
+        title: 'Recent replies in your spaces',
+        body: `There ${commentsCount === 1 ? 'is' : 'are'} ${commentsCount} new ${commentsCount === 1 ? 'reply' : 'replies'} across your Spaces from the last 3 days.`,
+        time: 'Recent',
+        status: 'new' as const,
+        category: 'activity' as const,
+        visibility: 'creator' as const,
+      })
+    }
+
+    return items
+  } catch (error) {
+    console.warn('Error building network notifications:', error)
+    return []
+  }
+}
+
+async function buildLoginSessionNotifications(userId: string): Promise<NotificationItem[]> {
+  try {
+    const profile = await getUser(userId)
+    if (!profile?.lastLoginAt) return []
+
+    const loginAt = profile.lastLoginAt.toDate()
+    const ageMs = Date.now() - loginAt.getTime()
+    const sevenDays = 7 * 24 * 60 * 60 * 1000
+
+    if (ageMs > sevenDays) return []
 
     return [
       {
-        id: `network-comments-${Date.now()}`,
-        icon: MessageSquare,
-        title: 'Network Activity',
-        body: `There are ${count} new comment${count === 1 ? '' : 's'} in your Spaces from the last 3 days.`,
-        time: 'Just now',
-        status: 'new' as const,
+        id: `login-session-${userId}-${profile.lastLoginAt.toMillis()}`,
+        icon: Shield,
+        title: 'Recent login session',
+        body: 'Your account signed in successfully. Review this if the session was not you.',
+        time: formatRelativeTime(profile.lastLoginAt),
+        status: ageMs < 24 * 60 * 60 * 1000 ? 'new' as const : 'done' as const,
         category: 'activity' as const,
         visibility: 'creator' as const,
       },
     ]
   } catch (error) {
-    console.warn('Error building network notifications:', error)
+    console.warn('Error building login session notifications:', error)
     return []
   }
 }
@@ -146,6 +194,14 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [dynamicItems, setDynamicItems] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(false)
+  const [preferences, setPreferences] = useState({
+    email: true,
+    push: true,
+    sales: true,
+    updates: true,
+    spaces: true,
+    security: true,
+  })
 
   // Resolve user role
   useEffect(() => {
@@ -156,6 +212,14 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
         const profile = await getUser(user.uid)
         if (isMounted) {
           setIsAdmin(profile?.isAdmin || profile?.role === 'admin')
+          setPreferences({
+            email: profile?.notificationPreferences?.email ?? true,
+            push: profile?.notificationPreferences?.push ?? true,
+            sales: profile?.notificationPreferences?.sales ?? true,
+            updates: profile?.notificationPreferences?.updates ?? true,
+            spaces: profile?.notificationPreferences?.spaces ?? true,
+            security: profile?.notificationPreferences?.security ?? true,
+          })
         }
       } catch (error) {
         console.error('Error resolving notifications audience:', error)
@@ -173,7 +237,11 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
     const loadDynamicNotifications = async () => {
       setLoading(true)
       try {
-        const promises: Promise<NotificationItem[]>[] = [buildBlogNotifications()]
+        const promises: Promise<NotificationItem[]>[] = []
+
+        if (preferences.updates) {
+          promises.push(buildBlogNotifications())
+        }
 
         // Always show signups to admins
         if (isAdmin) {
@@ -181,9 +249,16 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
         }
         
         // Always show sales to the current user (if any exist)
-        if (user?.uid) {
+        if (user?.uid && preferences.sales) {
           promises.push(buildSaleNotifications(user.uid))
+        }
+
+        if (user?.uid && preferences.spaces) {
           promises.push(buildNetworkNotifications(user.uid))
+        }
+
+        if (user?.uid && preferences.security) {
+          promises.push(buildLoginSessionNotifications(user.uid))
         }
 
         const results = await Promise.all(promises)
@@ -209,7 +284,7 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
     return () => {
       isMounted = false
     }
-  }, [isAdmin, user?.uid])
+  }, [isAdmin, preferences.sales, preferences.security, preferences.spaces, preferences.updates, user?.uid])
 
   const items = useMemo(() => {
     // Merge dynamic items with any hardcoded base notifications for this audience

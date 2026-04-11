@@ -17,9 +17,17 @@ import {
 import { slugify } from '@/utils/slugify';
 
 export interface ProductLesson {
+  id?: string;
   title: string;
   content?: string;
   videoUrl?: string;
+  muxUploadId?: string;
+  muxAssetId?: string;
+  muxPlaybackId?: string;
+  muxStatus?: 'waiting' | 'asset_created' | 'ready' | 'errored';
+  muxError?: string;
+  muxPassthroughSlug?: string;
+  duration?: number;
 }
 
 export interface ProductAvailabilitySlot {
@@ -101,7 +109,7 @@ export const createProduct = async (productData: Omit<Product, 'id' | 'createdAt
     console.log('Creating product in Firebase:', productData.name);
     console.log('User ID:', productData.userId);
     
-    const slug = `${slugify(productData.name)}-${Math.random().toString(36).substring(2, 7)}`;
+    const slug = productData.slug?.trim() || `${slugify(productData.name)}-${Math.random().toString(36).substring(2, 7)}`;
     
     const docRef = await addDoc(collection(db, 'products'), {
       ...productData,
