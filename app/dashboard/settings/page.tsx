@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, HelpCircle, Bell } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
+import { getUserProducts } from '@/services/productsService'
+import { getPayoutAccounts } from '@/services/bankingDetailsService'
 import md5 from 'md5'
 import {
   AlertDialog,
@@ -44,7 +45,6 @@ interface UserData {
   email: string
   profilePicture?: string
   plan: string
-  isVerified: boolean
   createdAt: Date
   lastLoginAt: Date
   phone?: string
@@ -53,19 +53,25 @@ interface UserData {
 
 export default function GeneralSettings() {
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [hasProducts, setHasProducts] = useState(false)
+  const [hasPayoutAccount, setHasPayoutAccount] = useState(false)
   const [userData, setUserData] = useState<UserData>({
     displayName: "User",
     firstName: "User",
     lastName: "",
     email: "user@example.com",
     plan: "free",
-    isVerified: false,
     createdAt: new Date(),
     lastLoginAt: new Date(),
   })
   const [firebaseProfile, setFirebaseProfile] = useState<AppUser | null>(null)
   const { user } = useAuth()
   const router = useRouter()
+  const isCreatorVerified =
+    Boolean(userData.profilePicture || firebaseProfile?.profilePicture || user?.photoURL) &&
+    Boolean((firebaseProfile?.bio || '').trim()) &&
+    hasProducts &&
+    hasPayoutAccount
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -75,16 +81,22 @@ export default function GeneralSettings() {
       }
 
       try {
-        const firebaseProfile = await getUser(user.uid)
+        const [firebaseProfile, products, payoutAccounts] = await Promise.all([
+          getUser(user.uid),
+          getUserProducts(user.uid),
+          getPayoutAccounts(user.uid),
+        ])
         if (firebaseProfile) {
           setFirebaseProfile(firebaseProfile)
+          setHasProducts(products.length > 0)
+          setHasPayoutAccount(payoutAccounts.length > 0)
           setUserData(prev => ({
             ...prev,
             displayName: firebaseProfile.displayName || prev.displayName,
             firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
             lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
-            isVerified: Boolean(firebaseProfile.isVerified),
+            profilePicture: firebaseProfile.profilePicture || prev.profilePicture,
           }))
         }
       } catch (error) {
@@ -140,9 +152,9 @@ export default function GeneralSettings() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1">
                 <h3 className="text-md font-medium text-foreground">{userData.displayName}</h3>
-                <Badge variant={userData.isVerified ? 'default' : 'secondary'} className="text-xs">
-                  {userData.isVerified ? 'Verified' : 'Unverified'}
-                </Badge>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isCreatorVerified ? 'bg-emerald-500/10 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+                  {isCreatorVerified ? 'Verified' : 'Unverified'}
+                </span>
               </div>
               <p className="text-muted-foreground mt-1 text-sm">{userData.email}</p>
             </div>
