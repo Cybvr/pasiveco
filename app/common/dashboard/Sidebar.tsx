@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   Home,
@@ -8,8 +9,11 @@ import {
   Bot,
   ShoppingBag,
   Package,
+  Library,
   PanelLeftClose,
   PanelLeftOpen,
+  ChevronDown,
+  ChevronRight,
   Palette,
   Blend,
   LifeBuoy,
@@ -32,18 +36,26 @@ interface NavItem {
   href: string
   icon: LucideIcon
   label: string
+  subItems?: NavItem[]
 }
 
 const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/edit', icon: Palette, label: 'Storefront' },
-  { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
-  { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  {
+    href: '/dashboard/products',
+    icon: ShoppingBag,
+    label: 'Store',
+    subItems: [
+      { href: '/dashboard/products', icon: Package, label: 'Products' },
+      { href: '/dashboard/edit', icon: Palette, label: 'Storefront' },
+      { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+      { href: '/dashboard/customers', icon: Users, label: 'Customers' },
+      { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
+      { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
+    ],
+  },
   { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
-  { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
-  { href: '/dashboard/customers', icon: Users, label: 'Customers' },
-  { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
 ]
 
 const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
@@ -78,6 +90,7 @@ export default function Sidebar({
   const isAdmin = pathname.startsWith('/admin')
   const { count: networkCount } = useNetworkActivity()
   const { unreadCount: messagesCount } = useMessageActivity()
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
   const isItemActive = (href: string) => {
@@ -85,6 +98,28 @@ export default function Sidebar({
     if (href === '/admin') return pathname === href
     return pathname === href || pathname.startsWith(`${href}/`)
   }
+  const isNavItemActive = (item: NavItem) => {
+    if (isItemActive(item.href)) return true
+    return item.subItems?.some((subItem) => isItemActive(subItem.href)) || false
+  }
+
+  useEffect(() => {
+    setExpandedGroups((current) => {
+      const next = { ...current }
+      let changed = false
+
+      currentNavItems.forEach((item) => {
+        if (!item.subItems?.length) return
+        const shouldBeOpen = isNavItemActive(item)
+        if (shouldBeOpen && !next[item.label]) {
+          next[item.label] = true
+          changed = true
+        }
+      })
+
+      return changed ? next : current
+    })
+  }, [currentNavItems, pathname])
 
   return (
     <div className="flex flex-col h-full bg-card">
@@ -114,38 +149,90 @@ export default function Sidebar({
         <nav className="space-y-px">
           {currentNavItems.map((item) => {
             const Icon = item.icon
-            const isActive = isItemActive(item.href)
+            const isActive = isNavItemActive(item)
             const isMessages = item.label === 'Messages'
             const hasUnread = isMessages && messagesCount > 0
+            const isExpandable = Boolean(item.subItems?.length)
+            const isExpanded = isExpandable && !isCollapsed && Boolean(expandedGroups[item.label])
+            const GroupChevron = isExpanded ? ChevronDown : ChevronRight
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={isCollapsed ? item.label : ""}
-                className={cn(
-                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative",
-                  isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
-                  isActive
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              <div key={item.label} className="space-y-px">
+                {isExpandable && !isCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpandedGroups((current) => ({
+                        ...current,
+                        [item.label]: !current[item.label],
+                      }))
+                    }}
+                    className={cn(
+                      "flex w-full items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200 relative",
+                      isActive
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
+                  >
+                    <div className="relative">
+                      <Icon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
+                    </div>
+                    <span className="truncate flex-1 text-left">{item.label}</span>
+                    <GroupChevron className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href}
+                    title={isCollapsed ? item.label : ""}
+                    className={cn(
+                      "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative",
+                      isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
+                      isActive
+                        ? "bg-muted text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
+                  >
+                    <div className="relative">
+                      <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                      {hasUnread && isCollapsed && (
+                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                      )}
+                    </div>
+                    {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+                    {hasUnread && !isCollapsed && (
+                      <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {messagesCount > 9 ? '9+' : messagesCount}
+                      </span>
+                    )}
+                  </Link>
                 )}
-              >
-                <div className="relative">
-                  <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
-                  {hasUnread && isCollapsed && (
-                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                    </span>
-                  )}
-                </div>
-                {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-                {hasUnread && !isCollapsed && (
-                  <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                    {messagesCount > 9 ? '9+' : messagesCount}
-                  </span>
-                )}
-              </Link>
+                {isExpanded ? (
+                  <div className="ml-4 space-y-px border-l border-border/60 pl-2">
+                    {item.subItems.map((subItem) => {
+                      const SubIcon = subItem.icon
+                      const isSubItemActive = isItemActive(subItem.href)
+
+                      return (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          className={cn(
+                            "flex min-h-8 items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200",
+                            isSubItemActive
+                              ? "bg-muted text-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                          )}
+                        >
+                          <SubIcon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
+                          <span className="truncate">{subItem.label}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
             )
           })}
           {!isAdmin && !navItems && !isCollapsed && (

@@ -13,6 +13,7 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  where,
   writeBatch,
   addDoc,
   limit,
@@ -513,11 +514,21 @@ export async function getMessageThreads(currentUserId: string): Promise<SocialTh
   const profiles = await getSocialProfiles()
   const profileMap = new Map(profiles.map((profile) => [profile.id, profile]))
 
-  return threadSnapshot.docs
-    .map<SocialThreadWithParticipant | null>((item) => {
+  const hydratedThreads = await Promise.all(
+    threadSnapshot.docs.map(async (item) => {
       const data = item.data()
       const participantId = data.participants.find((id: string) => id !== currentUserId)
-      const participant = profileMap.get(participantId)
+      if (!participantId) {
+        return null
+      }
+
+      let participant = profileMap.get(participantId)
+      if (!participant) {
+        participant = await ensureAuthorProfile(participantId) || undefined
+        if (participant) {
+          profileMap.set(participantId, participant)
+        }
+      }
       
       if (!participant || !data.lastMessage) {
         return null
@@ -535,17 +546,25 @@ export async function getMessageThreads(currentUserId: string): Promise<SocialTh
         hasUnread: Array.isArray(data.unreadParticipants) && data.unreadParticipants.includes(currentUserId)
       } as any
     })
-    .filter((thread): thread is SocialThreadWithParticipant => Boolean(thread))
+  )
+
+  return hydratedThreads.filter((thread): thread is SocialThreadWithParticipant => Boolean(thread))
 }
 
 export function onUnreadCountSnapshot(userId: string, callback: (count: number) => void) {
   const q = query(
     threadsCollection(),
-    where('participants', 'array-contains', userId),
-    where('unreadParticipants', 'array-contains', userId)
+    where('participants', 'array-contains', userId)
   )
   return onSnapshot(q, (snapshot) => {
-    callback(snapshot.size)
+    const unreadCount = snapshot.docs.reduce((count, threadDoc) => {
+      const data = threadDoc.data()
+      return Array.isArray(data.unreadParticipants) && data.unreadParticipants.includes(userId)
+        ? count + 1
+        : count
+    }, 0)
+
+    callback(unreadCount)
   })
 }
 

@@ -1,7 +1,7 @@
 'use client'
  
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/i18n/routing'
 import { Home, Compass, Package, Users, Palette, Coins, User, LucideIcon, Zap, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useMessageActivity } from '@/hooks/useMessageActivity'
@@ -20,6 +20,7 @@ const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
  
+export default function MobileBottomNav() {
   const { unreadCount: messagesCount } = useMessageActivity()
   const pathname = usePathname()
  

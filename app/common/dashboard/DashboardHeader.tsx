@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronRight, Coins, Compass, LifeBuoy, LogOut, Package, Palette, Save, ShoppingBag, Zap, Bot } from 'lucide-react'
+import { usePathname, useRouter } from '@/i18n/routing'
+import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { getUser } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
-import { LucideIcon } from 'lucide-react'
 import Image from 'next/image'
 import NotificationsDialog from './NotificationsDialog'
+import { cn } from '@/lib/utils'
+import { useMessageActivity } from '@/hooks/useMessageActivity'
+import { useNetworkActivity } from '@/hooks/useNetworkActivity'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
@@ -40,19 +42,30 @@ interface QuickLink {
   href: string
   label: string
   icon: LucideIcon
+  subItems?: QuickLink[]
 }
 
-const quickLinks: QuickLink[] = [
-  { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
+const primaryLinks: QuickLink[] = [
+  { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/dashboard/bookings', label: 'Bookings', icon: CalendarDays },
-  { href: '/dashboard/manager', label: 'Business Manager', icon: Bot },
-  { href: '/dashboard/edit', label: 'Storefront', icon: Palette },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
+  {
+    href: '/dashboard/products',
+    label: 'Store',
+    icon: ShoppingBag,
+    subItems: [
+      { href: '/dashboard/products', label: 'Products', icon: Package },
+      { href: '/dashboard/edit', label: 'Storefront', icon: Palette },
+      { href: '/dashboard/earnings', label: 'Earnings', icon: Coins },
+      { href: '/dashboard/customers', label: 'Customers', icon: Users },
+      { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart },
+      { href: '/dashboard/manager', label: 'Business Manager', icon: Bot },
+    ],
+  },
+  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
 ]
 
 const exploreLinks: QuickLink[] = [
-  { href: '/dashboard/library', label: 'Library', icon: ShoppingBag },
+  { href: '/dashboard/library', label: 'Library', icon: Package },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
   { href: '/dashboard/communities', label: 'Spaces', icon: Blend },
 ]
@@ -61,10 +74,13 @@ export default function DashboardHeader() {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useAuth()
+  const { unreadCount: messagesCount } = useMessageActivity()
+  const { count: networkCount } = useNetworkActivity()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [profilePicture, setProfilePicture] = useState<string>('')
   const [displayName, setDisplayName] = useState<string>('Creator')
   const [profileHandle, setProfileHandle] = useState<string>('')
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -105,6 +121,34 @@ export default function DashboardHeader() {
 
   const publicProfileHref = profileHandle ? `/${profileHandle}` : ''
   const publicProfileLabel = profileHandle ? `pasive.co/${profileHandle}` : ''
+
+  const isItemActive = (href: string) => {
+    if (href === '/dashboard') return pathname === href
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
+  const isNavItemActive = (item: QuickLink) => {
+    if (isItemActive(item.href)) return true
+    return item.subItems?.some((subItem) => isItemActive(subItem.href)) || false
+  }
+
+  useEffect(() => {
+    setExpandedGroups((current) => {
+      const next = { ...current }
+      let changed = false
+
+      primaryLinks.forEach((item) => {
+        if (!item.subItems?.length) return
+        const shouldBeOpen = isNavItemActive(item)
+        if (shouldBeOpen && !next[item.label]) {
+          next[item.label] = true
+          changed = true
+        }
+      })
+
+      return changed ? next : current
+    })
+  }, [pathname])
 
   const handleNavigate = (href: string) => {
     setIsSheetOpen(false)
@@ -206,35 +250,131 @@ export default function DashboardHeader() {
 
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                   <div className="flex-1 space-y-0.5 overflow-y-auto pt-3 px-2">
-                    {quickLinks.map((item) => (
-                      <Button
-                        key={item.href}
-                        variant="ghost"
-                        className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
-                        onClick={() => handleNavigate(item.href)}
-                      >
-                        <item.icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
-                      </Button>
-                    ))}
+                    {primaryLinks.map((item) => {
+                      const isActive = isNavItemActive(item)
+                      const isExpandable = Boolean(item.subItems?.length)
+                      const isExpanded = isExpandable && Boolean(expandedGroups[item.label])
+                      const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
+
+                      if (isExpandable) {
+                        return (
+                          <div key={item.href} className="space-y-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className={cn(
+                                "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                                isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                              )}
+                              onClick={() => {
+                                setExpandedGroups((current) => ({
+                                  ...current,
+                                  [item.label]: !current[item.label],
+                                }))
+                              }}
+                            >
+                              <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                              <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                              <ChevronIcon className={cn("h-3.5 w-3.5", isActive ? "text-foreground/70" : "text-muted-foreground/40")} />
+                            </Button>
+                            {isExpanded ? (
+                              <div className="ml-4 space-y-1 border-l border-border/60 pl-3">
+                                {item.subItems?.map((subItem) => {
+                                  const isSubItemActive = isItemActive(subItem.href)
+
+                                  return (
+                                    <Button
+                                      key={subItem.href}
+                                      type="button"
+                                      variant="ghost"
+                                      className={cn(
+                                        "w-full justify-start gap-3 h-9 px-3 transition-colors",
+                                        isSubItemActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                                      )}
+                                      onClick={() => handleNavigate(subItem.href)}
+                                    >
+                                      <subItem.icon className={cn("h-4 w-4", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
+                                      <span className="flex-1 text-[13px] text-left font-medium">{subItem.label}</span>
+                                    </Button>
+                                  )
+                                })}
+                              </div>
+                            ) : null}
+                          </div>
+                        )
+                      }
+
+                      const showMessagesBadge = item.href === '/dashboard/messages' && messagesCount > 0
+
+                      return (
+                        <Button
+                          key={item.href}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                          )}
+                          onClick={() => handleNavigate(item.href)}
+                        >
+                          <div className="relative">
+                            <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                            {showMessagesBadge ? (
+                              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary"></span>
+                              </span>
+                            ) : null}
+                          </div>
+                          <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                          {showMessagesBadge ? (
+                            <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                              {messagesCount > 9 ? '9+' : messagesCount}
+                            </span>
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                          )}
+                        </Button>
+                      )
+                    })}
                     <div className="px-3 pt-3 pb-1">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
                         Explore
                       </p>
                     </div>
-                    {exploreLinks.map((item) => (
-                      <Button
-                        key={item.href}
-                        variant="ghost"
-                        className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
-                        onClick={() => handleNavigate(item.href)}
-                      >
-                        <item.icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
-                      </Button>
-                    ))}
+                    {exploreLinks.map((item) => {
+                      const isActive = isItemActive(item.href)
+                      const showNetworkBadge = item.href === '/dashboard/network' && networkCount > 0
+
+                      return (
+                        <Button
+                          key={item.href}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                          )}
+                          onClick={() => handleNavigate(item.href)}
+                        >
+                          <div className="relative">
+                            <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                            {showNetworkBadge ? (
+                              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary"></span>
+                              </span>
+                            ) : null}
+                          </div>
+                          <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                          {showNetworkBadge ? (
+                            <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
+                              {networkCount > 9 ? '9+' : networkCount}
+                            </span>
+                          ) : (
+                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                          )}
+                        </Button>
+                      )
+                    })}
                   </div>
  
                   <div className="mt-auto border-t p-2">
