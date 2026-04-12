@@ -28,14 +28,24 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { User as UserIcon, Settings, LogOut, Shield } from 'lucide-react'
+import { User as UserIcon, Settings, LogOut, Shield, Languages, Check } from 'lucide-react'
 import { getUser, type User as AppUser } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import { useEffect } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
+import { routing, usePathname, useRouter } from '@/i18n/routing'
+import {
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu"
 
 export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
+  const t = useTranslations('UserMenu')
+  const locale = useLocale()
   const { user } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [profile, setProfile] = useState<AppUser | null>(null)
 
@@ -124,19 +134,42 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings/account')}>
             <UserIcon className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>{t('profile')}</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
             <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>{t('settings')}</span>
           </DropdownMenuItem>
           {canAccessAdmin && (
             <DropdownMenuItem onClick={() => router.push('/admin')}>
               <Shield className="mr-2 h-4 w-4" />
-              <span>Admin</span>
+              <span>{t('admin')}</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
+          
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Languages className="mr-2 h-4 w-4" />
+              <span>{t('language')}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {routing.locales.map((loc) => (
+                <DropdownMenuItem 
+                  key={loc} 
+                  onClick={() => router.replace(pathname, { locale: loc })}
+                  className="flex items-center justify-between"
+                >
+                  <span className="flex items-center">
+                    <span className="mr-2 text-xs uppercase text-muted-foreground w-4">{loc}</span>
+                    <span>{t(loc === 'en' ? 'english' : 'french')}</span>
+                  </span>
+                  {locale === loc && <Check className="h-4 w-4 ml-2" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+
           <ThemeToggle />
           <DropdownMenuSeparator />
           <DropdownMenuItem 
@@ -144,7 +177,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
             className="text-red-600 focus:text-red-600"
           >
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+            <span>{t('logout')}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -152,15 +185,15 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogTitle>{t('logoutConfirm')}</AlertDialogTitle>
             <AlertDialogDescription>
-              You will need to login again to access your account.
+              {t('logoutDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleLogout}>
-              Logout
+              {t('logout')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

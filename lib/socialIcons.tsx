@@ -15,6 +15,7 @@ import {
   FaWhatsapp,
   FaTelegram,
   FaRedditAlien,
+  FaEnvelope,
 } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 import { IconType } from 'react-icons'
@@ -36,6 +37,7 @@ const platformIconMap: Record<string, IconType> = {
   whatsapp: FaWhatsapp,
   telegram: FaTelegram,
   reddit: FaRedditAlien,
+  email: FaEnvelope,
 }
 
 export function getSocialIcon(platform: string): IconType {

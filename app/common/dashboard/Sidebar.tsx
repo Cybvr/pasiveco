@@ -18,13 +18,14 @@ import {
   FileText,
   QrCode,
   Zap,
-  Library,
   CalendarDays,
+  MessageSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import UserMenu from './user-menu'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
+import { useMessageActivity } from '@/hooks/useMessageActivity'
 
 
 interface NavItem {
@@ -39,6 +40,7 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
   { href: '/dashboard/customers', icon: Users, label: 'Customers' },
   { href: '/dashboard/analytics', icon: BarChart, label: 'Analytics' },
@@ -75,6 +77,7 @@ export default function Sidebar({
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
   const { count: networkCount } = useNetworkActivity()
+  const { unreadCount: messagesCount } = useMessageActivity()
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
   const isItemActive = (href: string) => {
@@ -112,21 +115,36 @@ export default function Sidebar({
           {currentNavItems.map((item) => {
             const Icon = item.icon
             const isActive = isItemActive(item.href)
+            const isMessages = item.label === 'Messages'
+            const hasUnread = isMessages && messagesCount > 0
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
-                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",
+                  "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative",
                   isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
-                {!isCollapsed && <span className="truncate">{item.label}</span>}
+                <div className="relative">
+                  <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                  {hasUnread && isCollapsed && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
+                  )}
+                </div>
+                {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+                {hasUnread && !isCollapsed && (
+                  <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {messagesCount > 9 ? '9+' : messagesCount}
+                  </span>
+                )}
               </Link>
             )
           })}

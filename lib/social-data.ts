@@ -8,11 +8,14 @@ import {
   getDoc,
   getDocs,
   orderBy,
+  onSnapshot,
   query,
   runTransaction,
   serverTimestamp,
   setDoc,
   writeBatch,
+  addDoc,
+  limit,
 } from 'firebase/firestore'
 
 export interface SocialLinkItem {
@@ -103,6 +106,7 @@ const SOCIAL_META_DOCUMENT = 'default'
 const SOCIAL_PROFILES_COLLECTION = 'socialProfiles'
 const SOCIAL_POSTS_COLLECTION = 'socialPosts'
 const SOCIAL_THREADS_COLLECTION = 'socialThreads'
+const SOCIAL_MESSAGES_SUBCOLLECTION = 'messages'
 const SOCIAL_SEED_VERSION = 1
 const viewerProfileId = 'viewer-me'
 
@@ -264,6 +268,10 @@ function postsCollection() {
 
 function threadsCollection() {
   return collection(db, SOCIAL_THREADS_COLLECTION)
+}
+
+function messagesCollection(threadId: string) {
+  return collection(db, SOCIAL_THREADS_COLLECTION, threadId, SOCIAL_MESSAGES_SUBCOLLECTION)
 }
 
 function socialMetaRef() {
@@ -490,71 +498,127 @@ export async function addPostComment(postId: string, message: string, authorId =
   })
 }
 
-export async function getMessageThreads(): Promise<SocialThreadWithParticipant[]> {
+export function getThreadId(uid1: string, uid2: string) {
+  return [uid1, uid2].sort().join('_')
+}
+
+export async function getMessageThreads(currentUserId: string): Promise<SocialThreadWithParticipant[]> {
   await seedSocialDataIfNeeded()
-  const [threadSnapshot, profiles] = await Promise.all([
-    getDocs(threadsCollection()),
-    getSocialProfiles(),
-  ])
+  const q = query(
+    threadsCollection(),
+    where('participants', 'array-contains', currentUserId),
+    orderBy('updatedAt', 'desc')
+  )
+  const threadSnapshot = await getDocs(q)
+  const profiles = await getSocialProfiles()
   const profileMap = new Map(profiles.map((profile) => [profile.id, profile]))
 
   return threadSnapshot.docs
     .map<SocialThreadWithParticipant | null>((item) => {
-      const data = item.data() as SocialThreadDocument
-      const participant = profileMap.get(data.participantId)
-      const messages = Array.isArray(data.messages)
-        ? [...data.messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-        : []
-      const lastMessage = messages[messages.length - 1]
-
-      if (!participant || !lastMessage) {
+      const data = item.data()
+      const participantId = data.participants.find((id: string) => id !== currentUserId)
+      const participant = profileMap.get(participantId)
+      
+      if (!participant || !data.lastMessage) {
         return null
       }
 
       return {
         id: item.id,
-        participantId: data.participantId,
+        participantId: participantId,
         participant,
-        messages,
-        lastMessage,
-      }
+        messages: [],
+        lastMessage: {
+          ...data.lastMessage,
+          createdAt: data.lastMessage.createdAt?.toDate?.()?.toISOString() || data.lastMessage.createdAt
+        },
+        hasUnread: Array.isArray(data.unreadParticipants) && data.unreadParticipants.includes(currentUserId)
+      } as any
     })
     .filter((thread): thread is SocialThreadWithParticipant => Boolean(thread))
-    .sort((a, b) => new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime())
 }
 
-export async function getThreadForProfile(profileId: string) {
-  const threads = await getMessageThreads()
-  return threads.find((thread) => thread?.participantId === profileId) || null
+export function onUnreadCountSnapshot(userId: string, callback: (count: number) => void) {
+  const q = query(
+    threadsCollection(),
+    where('participants', 'array-contains', userId),
+    where('unreadParticipants', 'array-contains', userId)
+  )
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.size)
+  })
 }
 
-export async function sendMessage(profileId: string, text: string) {
-  await seedSocialDataIfNeeded()
-  const trimmedText = text.trim()
-  if (!trimmedText) return getThreadForProfile(profileId)
-
+export async function markThreadAsRead(threadId: string, userId: string) {
+  const threadRef = doc(threadsCollection(), threadId)
   return runTransaction(db, async (transaction) => {
-    const threadRef = doc(db, SOCIAL_THREADS_COLLECTION, `thread-${profileId}`)
     const snapshot = await transaction.get(threadRef)
-    const data = snapshot.exists()
-      ? (snapshot.data() as SocialThreadDocument)
-      : { participantId: profileId, messages: [] }
-
-    const nextMessage: SocialMessage = {
-      id: `message-${Date.now()}`,
-      senderId: viewerProfileId,
-      text: trimmedText,
-      createdAt: new Date().toISOString(),
+    if (!snapshot.exists()) return
+    
+    const data = snapshot.data()
+    const unreadParticipants = Array.isArray(data.unreadParticipants) ? [...data.unreadParticipants] : []
+    const index = unreadParticipants.indexOf(userId)
+    
+    if (index >= 0) {
+      unreadParticipants.splice(index, 1)
+      transaction.update(threadRef, { unreadParticipants })
     }
+  })
+}
 
-    const messages = [...(Array.isArray(data.messages) ? data.messages : []), nextMessage]
-    transaction.set(threadRef, {
-      participantId: profileId,
-      messages,
-    }, { merge: true })
+export async function getThreadMessages(threadId: string) {
+  const q = query(messagesCollection(threadId), orderBy('createdAt', 'asc'))
+  const snapshot = await getDocs(q)
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+  } as SocialMessage))
+}
 
-    return null
-  }).then(() => getThreadForProfile(profileId))
+export function onMessagesSnapshot(threadId: string, callback: (messages: SocialMessage[]) => void) {
+  const q = query(messagesCollection(threadId), orderBy('createdAt', 'asc'))
+  return onSnapshot(q, (snapshot) => {
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt
+    } as SocialMessage))
+    callback(messages)
+  })
+}
+
+export async function sendMessage(senderId: string, receiverId: string, text: string) {
+  const trimmedText = text.trim()
+  if (!trimmedText) return
+  
+  const threadId = getThreadId(senderId, receiverId)
+  const now = serverTimestamp()
+  
+  const messageData = {
+    senderId,
+    text: trimmedText,
+    createdAt: now,
+  }
+
+  const batch = writeBatch(db)
+  
+  // 1. Add message to subcollection
+  const msgRef = doc(messagesCollection(threadId))
+  batch.set(msgRef, messageData)
+  
+  // 2. Update thread meta
+  batch.set(doc(threadsCollection(), threadId), {
+    participants: [senderId, receiverId],
+    lastMessage: {
+      ...messageData,
+      id: msgRef.id
+    },
+    updatedAt: now,
+    unreadParticipants: [receiverId] // Mark as unread for the receiver
+  }, { merge: true })
+
+  await batch.commit()
 }
 
 export function formatSocialDate(dateValue: string, options?: Intl.DateTimeFormatOptions) {

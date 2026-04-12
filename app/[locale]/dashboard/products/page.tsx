@@ -1,0 +1,437 @@
+
+"use client"
+
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { getUserProducts, type Product } from '@/services/productsService'
+import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'sonner'
+import { getBankingDetails } from '@/services/bankingDetailsService'
+import { Sparkles, Wand2, Loader2, X, Check, CheckCircle2, RefreshCw, ImagePlus } from 'lucide-react'
+import { getUser } from '@/services/userService'
+import { createProduct } from '@/services/productsService'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { v4 as uuidv4 } from 'uuid'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { useCurrency } from '@/context/CurrencyContext'
+import { formatCurrency } from '@/utils/currency'
+import { slugify } from '@/utils/slugify'
+import { storage } from '@/lib/firebase'
+
+import ManageTab from './ManageTab'
+import InstantCatalogModal from '@/components/products/InstantCatalogModal'
+
+
+
+function ProductCreator() {
+  const router = useRouter()
+  const { currency } = useCurrency()
+  const [hasBankingDetails, setHasBankingDetails] = useState(false)
+  const [myProducts, setMyProducts] = useState<Product[]>([])
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true)
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false)
+  const [aiDescription, setAiDescription] = useState("")
+  const [isAIGenerating, setIsAIGenerating] = useState(false)
+  const [aiResult, setAiResult] = useState<null | {
+    products: Array<{
+      name: string;
+      description: string;
+      price: number;
+      productType: any;
+      reasoning: string;
+      imageUrl?: string;
+    }>
+  }>(null)
+  const [isInstantCatalogOpen, setIsInstantCatalogOpen] = useState(false)
+  const [brandStyle, setBrandStyle] = useState<string>("")
+  const [processingIdx, setProcessingIdx] = useState<number | null>(null)
+  const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null)
+  const [acceptedIndices, setAcceptedIndices] = useState<Set<number>>(new Set())
+  const { user, loading: authLoading } = useAuth()
+
+  const base64ToBlob = (base64: string, mimeType: string) => {
+    const byteCharacters = atob(base64)
+    const byteNumbers = new Array(byteCharacters.length)
+
+    for (let i = 0; i < byteCharacters.length; i += 1) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i)
+    }
+
+    return new Blob([new Uint8Array(byteNumbers)], { type: mimeType })
+  }
+
+  const loadMyProducts = async () => {
+    // If auth is still loading, stay in loading state
+    if (authLoading) return
+
+    if (!user) {
+      setMyProducts([])
+      setHasBankingDetails(false)
+      setIsLoadingProducts(false)
+      return
+    }
+
+    setIsLoadingProducts(true)
+    try {
+      const [products, bankingDetails] = await Promise.all([
+        getUserProducts(user.uid),
+        getBankingDetails(user.uid),
+      ])
+      setMyProducts(products)
+      setHasBankingDetails(Boolean(bankingDetails))
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      toast.error('Failed to fetch products')
+    } finally {
+      setIsLoadingProducts(false)
+    }
+  }
+
+  useEffect(() => {
+    loadMyProducts()
+  }, [user, authLoading])
+
+  useEffect(() => {
+    const fetchBrand = async () => {
+      if (user?.uid && isAIModalOpen) {
+        const profile = await getUser(user.uid)
+        const prefs = profile?.brandPreferences || ""
+        setBrandStyle(prefs)
+        // Only pre-fill if the user hasn't typed their own idea yet
+        if (!aiDescription) {
+          setAiDescription(prefs)
+        }
+      }
+    }
+    fetchBrand()
+  }, [user, isAIModalOpen])
+
+  const handleGenAIGenerate = async () => {
+    if (!aiDescription.trim()) {
+      toast.error("Please describe your product idea")
+      return
+    }
+
+    if (!user) return
+    setAcceptedIndices(new Set())
+
+    setIsAIGenerating(true)
+    try {
+      const res = await fetch('/api/generate-products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: aiDescription,
+          brandPreferences: brandStyle,
+          creatorName: user?.displayName || "Creator",
+        }),
+      })
+
+      if (!res.ok) throw new Error("Failed to generate")
+      const data = await res.json()
+      
+      // Pre-generating images for each product
+      const productsWithImages = await Promise.all(
+        data.products.map(async (p: any) => {
+          const imageRes = await generateAIImage(p.name, p.description)
+          return { ...p, imageUrl: imageRes.imageUrl || null }
+        })
+      )
+      
+      setAiResult({ ...data, products: productsWithImages })
+    } catch (error) {
+      console.error(error)
+      toast.error("AI generation failed. Please try again.")
+    } finally {
+      setIsAIGenerating(false)
+    }
+  }
+
+  const handleManualGenerateImage = async (index: number, name: string, desc: string) => {
+    if (regeneratingIdx !== null) return
+    setRegeneratingIdx(index)
+    try {
+      const res = await generateAIImage(name, desc)
+      if (res.imageUrl && aiResult) {
+        const newProducts = [...aiResult.products]
+        newProducts[index] = { ...newProducts[index], imageUrl: res.imageUrl }
+        setAiResult({ ...aiResult, products: newProducts })
+      } else {
+        const errorDetail = (res as any).details?.error || res.error || "Generation failed"
+        toast.error(`Image failed: ${errorDetail}`)
+      }
+    } finally {
+      setRegeneratingIdx(null)
+    }
+  }
+
+  const generateAIImage = async (productName: string, productDescription: string) => {
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName, productDescription }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return { error: errorData.error || "Generation failed", details: errorData.details };
+      }
+      const data = await response.json();
+      
+      if (data.base64Image) {
+        const filename = `ai-gen-${uuidv4()}.jpg`;
+        const storageRef = ref(storage, `product-images/${filename}`);
+        const blob = base64ToBlob(data.base64Image, 'image/jpeg')
+
+        await uploadBytes(storageRef, blob, {
+          contentType: 'image/jpeg',
+          cacheControl: 'public,max-age=3600',
+        })
+
+        const imageUrl = await getDownloadURL(storageRef);
+        return { imageUrl };
+      }
+
+      return { imageUrl: data.imageUrl || null };
+    } catch (err) {
+      console.error("Image generation proxy error:", err);
+      return { error: err instanceof Error ? err.message : "Network error" };
+    }
+  }
+
+  const handleApplyAI = async (selectedProduct: any, index: number) => {
+    if (!user) return
+    if (acceptedIndices.has(index)) {
+      toast.info("This product has already been created")
+      return
+    }
+
+    setProcessingIdx(index)
+    try {
+      const generatedImageUrl = selectedProduct.imageUrl
+      
+      await createProduct({
+        userId: user.uid,
+        name: selectedProduct.name,
+        slug: slugify(selectedProduct.name),
+        description: selectedProduct.description,
+        price: selectedProduct.price,
+        currency: currency,
+        category: selectedProduct.productType,
+        images: generatedImageUrl ? [generatedImageUrl] : [],
+        thumbnail: generatedImageUrl || "",
+        status: 'active',
+        tags: [],
+        inventory: {
+          quantity: 999,
+          trackInventory: false
+        },
+        shipping: {
+          weight: 0,
+          dimensions: { length: 0, width: 0, height: 0 },
+          shippingRequired: false
+        },
+        seo: {
+          title: selectedProduct.name,
+          description: selectedProduct.description,
+          keywords: []
+        }
+      })
+      
+      setAcceptedIndices(prev => new Set(prev).add(index))
+      toast.success(`"${selectedProduct.name}" created successfully!`)
+      loadMyProducts() // Refresh the background list
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to create product")
+    } finally {
+      setProcessingIdx(null)
+    }
+  }
+
+  const handleDeclineAI = (index: number) => {
+    if (!aiResult) return
+    const newProducts = [...aiResult.products]
+    newProducts.splice(index, 1)
+    setAiResult({ ...aiResult, products: newProducts })
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="pt-2">
+        <ManageTab 
+          products={myProducts}
+          isLoading={isLoadingProducts}
+          onProductsChanged={loadMyProducts}
+          onCreateNew={() => {
+            router.push('/dashboard/products/new')
+          }}
+          onGenAINew={() => setIsAIModalOpen(true)}
+          onBulkAINew={() => setIsInstantCatalogOpen(true)}
+          hasBankingDetails={hasBankingDetails}
+        />
+      </div>
+
+      <InstantCatalogModal 
+        open={isInstantCatalogOpen}
+        onOpenChange={setIsInstantCatalogOpen}
+        onProductsCreated={loadMyProducts}
+        creatorName={user?.displayName || "Creator"}
+      />
+
+      {/* AI Modal */}
+      <Dialog open={isAIModalOpen} onOpenChange={setIsAIModalOpen}>
+        <DialogContent className="max-w-2xl gap-0 overflow-hidden border-border/60 p-0 shadow-2xl">
+          <DialogHeader className="border-b border-border/60 px-4 py-3">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Quick Add
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[80vh] overflow-y-auto p-6 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">What are you planning to create?</Label>
+              <Textarea 
+                placeholder="E.g., A 4-week fitness guide for beginners, or a set of 10 photography presets for Lightroom..."
+                value={aiDescription}
+                onChange={(e) => setAiDescription(e.target.value)}
+                className="min-h-[100px] text-sm"
+              />
+              <div className="flex flex-wrap gap-2 items-center">
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 ">
+                  <Sparkles className="h-3 w-3" />
+                  AI will suggest products based on your persona.
+                </p>
+              </div>
+            </div>
+
+            {aiResult && aiResult.products && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Suggested for you:</p>
+                <div className="grid gap-3">
+                  {aiResult.products.map((product, idx) => (
+                    <div 
+                      key={idx} 
+                      className="group relative p-4 rounded-lg bg-card border border-border hover:border-primary/50 hover:bg-primary/[0.02] transition-all flex flex-col sm:flex-row gap-4"
+                    >
+                      <div className="w-full sm:w-24 h-48 sm:h-24 shrink-0 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center relative group/img">
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center gap-1.5 p-2 text-center">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleManualGenerateImage(idx, product.name, product.description)}
+                              disabled={regeneratingIdx === idx}
+                              className="h-full w-full absolute inset-0 flex flex-col items-center justify-center gap-1 hover:bg-primary/5 transition-colors"
+                            >
+                              {regeneratingIdx === idx ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              ) : (
+                                <>
+                                  <ImagePlus className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-[9px] uppercase font-bold tracking-tight text-muted-foreground">Generate</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                        {product.imageUrl && (
+                          <Button 
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => handleManualGenerateImage(idx, product.name, product.description)}
+                            disabled={regeneratingIdx === idx}
+                            className="absolute bottom-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white border-none shadow-lg"
+                          >
+                            <RefreshCw className={`h-3 w-3 ${regeneratingIdx === idx ? 'animate-spin' : ''}`} />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-2 gap-4">
+                            <div className="space-y-1 min-w-0">
+                              <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{product.name}</h4>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                                  {product.productType.replace('-', ' ')}
+                                </span>
+                                <span className="text-sm font-bold text-primary">{formatCurrency(product.price, currency)}</span>
+                              </div>
+                            </div>
+                            <div className="flex gap-1 sm:gap-1.5 shrink-0">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleDeclineAI(idx)}
+                                className="h-7 w-7 rounded-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                title="Decline"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                onClick={() => handleApplyAI(product, idx)}
+                                disabled={processingIdx === idx || acceptedIndices.has(idx)}
+                                className={`h-7 px-2.5 gap-1.5 text-xs font-medium ${acceptedIndices.has(idx) ? 'bg-green-50 text-green-700 border-green-200' : ''}`}
+                                title="Accept"
+                              >
+                                {processingIdx === idx ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : acceptedIndices.has(idx) ? (
+                                  <CheckCircle2 className="h-3 w-3" />
+                                ) : (
+                                  <Check className="h-3 w-3" />
+                                )}
+                                {acceptedIndices.has(idx) ? 'Added' : 'Accept'}
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2 italic">"{product.description}"</p>
+                          <div className="flex items-center gap-1.5 text-[10px] text-green-600 font-medium bg-green-50 w-fit px-2 py-0.5 rounded">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {product.reasoning}
+                          </div>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+            <div className="pt-2">
+              <Button 
+                onClick={handleGenAIGenerate} 
+                disabled={isAIGenerating || !aiDescription.trim()}
+                variant={aiResult ? "outline" : "default"}
+                className="w-full gap-2 transition-all"
+              >
+                {isAIGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generating Products & Images...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-4 w-4" />
+                    {aiResult ? "Try different ideas" : "Generate Product Ideas"}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+export default ProductCreator
