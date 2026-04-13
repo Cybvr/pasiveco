@@ -74,6 +74,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const isManager = pathname.startsWith('/dashboard/manager')
+  const isMessagesPage = pathname === '/dashboard/messages'
   
   useEffect(() => {
     document.title = getDashboardPageTitle(pathname)
@@ -133,15 +134,16 @@ export default function DashboardClientLayout({ children }: { children: React.Re
           {/* Main content area */}
           <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
             <DashboardHeader />
-            <main className="flex-1 min-h-0 overflow-y-auto">
+            <main className={cn("flex-1 min-h-0", isMessagesPage ? "overflow-hidden" : "overflow-y-auto")}>
               <div className={cn(
-                pathname !== '/dashboard/edit' && "mx-auto max-w-[1600px] p-4 md:p-8",
+                isMessagesPage && "h-full p-2 md:p-8",
+                pathname !== '/dashboard/edit' && !isMessagesPage && "mx-auto max-w-[1600px] p-4 md:p-8",
                 pathname === '/dashboard/edit' && "min-h-full"
               )}>
                 {children}
               </div>
             </main>
-            <MobileBottomNav />
+            {!isMessagesPage ? <MobileBottomNav /> : null}
           </div>
         </div>
       )}

@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
 import { Users, Rss, ShoppingBag, MessageSquare, Shield } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
-import { getAllUsers, getUser } from '@/services/userService'
+import { useAuth } from '@/hooks/useAuth'
+import { markThreadAsRead, onMessageThreadsSnapshot } from '@/lib/social-data'
+import { getAllUsers, getUser, updateUser } from '@/services/userService'
 import { blogService } from '@/services/blogService'
 import { getSellerTransactions } from '@/services/transactionsService'
 import { getRecentCommentsCount, getRecentPostsCount } from '@/services/postService'
@@ -15,7 +16,6 @@ import {
 } from './NotificationsList'
 
 const MAX_ADMIN_SIGNUP_NOTIFICATIONS = 5
-
 function formatRelativeTime(value?: Timestamp | Date | string | number) {
   if (!value) return 'Just now'
 
@@ -193,7 +193,10 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
   const { user } = useAuth()
   const [isAdmin, setIsAdmin] = useState(false)
   const [dynamicItems, setDynamicItems] = useState<NotificationItem[]>([])
+  const [messageItems, setMessageItems] = useState<NotificationItem[]>([])
+  const [clearedNotificationIds, setClearedNotificationIds] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [markingAllRead, setMarkingAllRead] = useState(false)
   const [preferences, setPreferences] = useState({
     email: true,
     push: true,
@@ -230,6 +233,63 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
   }, [user])
 
   const audience: NotificationAudience = forcedAudience ?? (isAdmin ? 'admin' : 'creator')
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadClearedNotifications = async () => {
+      if (!user?.uid) {
+        setClearedNotificationIds([])
+        return
+      }
+
+      try {
+        const profile = await getUser(user.uid)
+        if (!isMounted) return
+        setClearedNotificationIds(profile?.notificationState?.clearedIds || [])
+      } catch (error) {
+        console.error('Error loading cleared notifications:', error)
+        if (isMounted) {
+          setClearedNotificationIds([])
+        }
+      }
+    }
+
+    void loadClearedNotifications()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user?.uid])
+
+  useEffect(() => {
+    if (!user?.uid || isAdmin) {
+      setMessageItems([])
+      return
+    }
+
+    const unsubscribe = onMessageThreadsSnapshot(user.uid, (threads) => {
+      const nextMessageItems = threads
+        .filter((thread) => thread.hasUnread)
+        .slice(0, 5)
+        .map((thread) => ({
+          id: `message-${thread.id}-${thread.lastMessage.id}`,
+          threadId: thread.id,
+          icon: MessageSquare,
+          title: thread.participant.name || thread.participant.handle || 'New message',
+          body: thread.lastMessage.text || 'Sent you a new message.',
+          time: formatRelativeTime(thread.lastMessage.createdAt),
+          status: 'new' as const,
+          category: 'activity' as const,
+          visibility: 'creator' as const,
+          unreadAmount: thread.unreadCount || 1,
+        }))
+
+      setMessageItems(nextMessageItems)
+    })
+
+    return () => unsubscribe()
+  }, [isAdmin, user?.uid])
 
   useEffect(() => {
     let isMounted = true
@@ -287,9 +347,39 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
   }, [isAdmin, preferences.sales, preferences.security, preferences.spaces, preferences.updates, user?.uid])
 
   const items = useMemo(() => {
-    // Merge dynamic items with any hardcoded base notifications for this audience
-    return [...dynamicItems, ...getBaseNotificationsForAudience(audience)]
-  }, [audience, dynamicItems])
+    // Hide notifications the user has already cleared in this session.
+    return [...messageItems, ...dynamicItems, ...getBaseNotificationsForAudience(audience)].filter(
+      (item) => !clearedNotificationIds.includes(item.id)
+    )
+  }, [audience, clearedNotificationIds, dynamicItems, messageItems])
 
-  return { audience, items, loading }
+  const markAllRead = async () => {
+    if (!user?.uid) return
+
+    const visibleItems = items
+    if (visibleItems.length === 0) return
+
+    setMarkingAllRead(true)
+    try {
+      await Promise.all(
+        visibleItems
+          .filter((item) => item.threadId)
+          .map((item) => markThreadAsRead(item.threadId as string, user.uid))
+      )
+
+      const nextClearedIds = Array.from(new Set([...clearedNotificationIds, ...visibleItems.map((item) => item.id)]))
+      setClearedNotificationIds(nextClearedIds)
+      await updateUser(user.uid, {
+        notificationState: {
+          clearedIds: nextClearedIds,
+        },
+      })
+    } catch (error) {
+      console.error('Error marking notifications as read:', error)
+    } finally {
+      setMarkingAllRead(false)
+    }
+  }
+
+  return { audience, items, loading, markAllRead, markingAllRead }
 }

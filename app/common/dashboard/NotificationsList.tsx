@@ -25,6 +25,8 @@ export interface NotificationItem {
   status: NotificationStatus
   category: NotificationCategory
   visibility: NotificationVisibility
+  threadId?: string
+  unreadAmount?: number
 }
 
 export const DASHBOARD_NOTIFICATIONS: NotificationItem[] = []
@@ -38,7 +40,10 @@ export function getBaseNotificationsForAudience(audience: NotificationAudience) 
 }
 
 export function getUnreadNotificationsCount(items: NotificationItem[]) {
-  return items.filter((item) => item.status === 'new').length
+  return items.reduce((count, item) => {
+    if (item.status !== 'new') return count
+    return count + (typeof item.unreadAmount === 'number' ? item.unreadAmount : 1)
+  }, 0)
 }
 
 interface NotificationsListProps {

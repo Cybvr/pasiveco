@@ -29,7 +29,7 @@ export default function NotificationsDialog({
 }: NotificationsDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const { items } = useNotifications(audience)
+  const { items, markAllRead, markingAllRead } = useNotifications(audience)
   const unreadNotifications = getUnreadNotificationsCount(items)
 
   return (
@@ -45,9 +45,11 @@ export default function NotificationsDialog({
           <Bell className="h-4 w-4" />
           {unreadNotifications > 0 ? (
             <span
-              className="absolute right-2 top-2 flex h-2 w-2 rounded-full bg-primary"
-              aria-hidden="true"
-            />
+              className="absolute -right-1 -top-1 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-primary px-1 py-0.5 text-[10px] font-bold leading-none text-primary-foreground"
+              aria-label={`${unreadNotifications} unread notifications`}
+            >
+              {unreadNotifications > 9 ? '9+' : unreadNotifications}
+            </span>
           ) : null}
         </Button>
       </DialogTrigger>
@@ -79,8 +81,10 @@ export default function NotificationsDialog({
                 variant="ghost"
                 size="sm"
                 className="h-9 flex-1 text-xs font-semibold text-primary hover:bg-primary/5 hover:text-primary/80"
+                onClick={() => void markAllRead()}
+                disabled={markingAllRead}
               >
-                Mark all read
+                {markingAllRead ? 'Marking...' : 'Mark all read'}
               </Button>
             </>
           ) : null}

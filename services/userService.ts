@@ -87,6 +87,9 @@ export interface User {
     spaces?: boolean;
     security?: boolean;
   };
+  notificationState?: {
+    clearedIds?: string[];
+  };
   hasClaimedProfileBonus?: boolean;
   iconColor?: string;
   themeColor?: string;
@@ -118,6 +121,9 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
       updates: user.notificationPreferences?.updates ?? true,
       spaces: user.notificationPreferences?.spaces ?? true,
       security: user.notificationPreferences?.security ?? true,
+    },
+    notificationState: {
+      clearedIds: Array.isArray(user.notificationState?.clearedIds) ? user.notificationState.clearedIds : [],
     },
   };
 };

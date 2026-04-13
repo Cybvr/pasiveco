@@ -16,6 +16,7 @@ export default function ClientLayout({
 
   // Check if current path is a slug page (not dashboard, auth, marketing, etc.)
   const isDashboardRoute = pathname?.startsWith('/dashboard')
+  const isMessagesRoute = pathname === '/dashboard/messages'
   const isAuthRoute = pathname?.startsWith('/auth')
   const isAdminRoute = pathname?.startsWith('/admin')
   const isApiRoute = pathname?.startsWith('/api')
@@ -30,7 +31,7 @@ export default function ClientLayout({
                      !pathname.startsWith('/pricing') &&
                      !pathname.startsWith('/about') &&
                      !pathname.startsWith('/legal')
-  const shouldShowSupportChat = !isSlugPage && !isAuthRoute && !isAdminRoute && !isApiRoute
+  const shouldShowSupportChat = !isSlugPage && !isAuthRoute && !isAdminRoute && !isApiRoute && !isMessagesRoute
 
   useEffect(() => {
     // Register service worker
