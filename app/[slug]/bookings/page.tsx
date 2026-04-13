@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { getUserByUsername } from '@/services/userService';
 import { getUserProducts, Product } from '@/services/productsService';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
+import { formatCurrency, convertAmount } from '@/utils/currency';
 
 const LOCATION_LABELS: Record<string, string> = {
   zoom: 'Zoom',
@@ -20,7 +20,7 @@ const LOCATION_LABELS: Record<string, string> = {
 
 export default function BookingsPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency, rates } = useCurrency();
   const [bookings, setBookings] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,16 +46,7 @@ export default function BookingsPage() {
 
   const formatPrice = (price: number, productCurrency: string) => {
     if (price === 0) return 'Free';
-    let displayPrice = price;
-    let displayCurrency = productCurrency as any;
-    if (productCurrency === 'NGN' && userCurrency === 'USD') {
-      displayPrice = price / EXCHANGE_RATE;
-      displayCurrency = 'USD';
-    } else if (productCurrency === 'USD' && userCurrency === 'NGN') {
-      displayPrice = price * EXCHANGE_RATE;
-      displayCurrency = 'NGN';
-    }
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(convertAmount(price, (productCurrency || 'NGN') as any, userCurrency, rates), userCurrency);
   };
 
   if (loading) {

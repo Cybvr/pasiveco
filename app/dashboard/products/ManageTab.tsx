@@ -27,7 +27,7 @@ import { createProduct, deleteProduct } from '@/services/productsService'
 import { toast } from 'sonner'
 import NoProductsSection from '@/app/common/dashboard/NoProductsSection'
 import { useCurrency } from '@/context/CurrencyContext'
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
+import { formatCurrency, convertAmount } from '@/utils/currency'
 import { getUser, type User as AppUser } from '@/services/userService'
 import DashboardPagination from '@/components/dashboard/DashboardPagination'
 
@@ -35,7 +35,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
   const ITEMS_PER_PAGE = 12
   const router = useRouter()
   const { user } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
   const [profile, setProfile] = useState<AppUser | null>(null)
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   const [currentPage, setCurrentPage] = useState(1)
@@ -266,11 +266,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     <h3 className="truncate text-sm font-semibold">{product.name}</h3>
                     <p className="text-sm font-semibold text-green-600">
                       {formatCurrency(
-                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                          ? product.price * EXCHANGE_RATE
-                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                            ? product.price / EXCHANGE_RATE
-                            : product.price,
+                        convertAmount(product.price, (product.currency || 'USD') as any, currency, rates),
                         currency
                       )}
                     </p>
@@ -389,11 +385,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
                     <div className="hidden h-1 w-1 rounded-full bg-border sm:block" />
                     <p className="text-xs font-bold text-green-600 sm:text-sm">
                       {formatCurrency(
-                        (product.currency || 'USD') === 'USD' && currency === 'NGN'
-                          ? product.price * EXCHANGE_RATE
-                          : (product.currency || 'USD') === 'NGN' && currency === 'USD'
-                            ? product.price / EXCHANGE_RATE
-                            : product.price,
+                        convertAmount(product.price, (product.currency || 'USD') as any, currency, rates),
                         currency
                       )}
                     </p>

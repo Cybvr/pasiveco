@@ -16,6 +16,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { featuresService, Feature } from '@/services/featuresService';
 import { solutionsService, Solution } from '@/services/solutionsService';
+import { CurrencySelector } from '@/components/currency-selector';
 
 const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
   isMenuOpen?: boolean;
@@ -156,6 +157,7 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
 
             {/* User Actions */}
             <div className="hidden md:flex items-center space-x-3">
+              <CurrencySelector className="h-8 w-[105px] rounded-none border-border/70" />
               {user ? (
                 <>
                   <Link href="/dashboard">
@@ -197,6 +199,12 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                 </SheetHeader>
                 <div className="py-6 space-y-6">
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        Currency
+                      </div>
+                      <CurrencySelector className="w-full" showLabel />
+                    </div>
                     <Link 
                       href="/features" 
                       className="block text-sm font-medium hover:text-primary transition-colors"

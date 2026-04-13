@@ -9,12 +9,12 @@ import { getUserByUsername } from '@/services/userService';
 import { getUserProducts, Product, getProduct } from '@/services/productsService';
 import { getProductTypeLabel } from '@/lib/productTypes';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
+import { formatCurrency, convertAmount } from '@/utils/currency';
 import StarRating from '@/components/products/StarRating';
 
 export default function ShopPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency, rates } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [affiliateProducts, setAffiliateProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,11 +48,10 @@ export default function ShopPage() {
   }, [slug]);
 
   const formatPrice = (price: number, productCurrency: string) => {
-    let displayPrice = price;
-    let displayCurrency = productCurrency as any;
-    if (productCurrency === 'NGN' && userCurrency === 'USD') { displayPrice = price / EXCHANGE_RATE; displayCurrency = 'USD'; }
-    else if (productCurrency === 'USD' && userCurrency === 'NGN') { displayPrice = price * EXCHANGE_RATE; displayCurrency = 'NGN'; }
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(
+      convertAmount(price, (productCurrency || 'NGN') as any, userCurrency, rates),
+      userCurrency
+    );
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;

@@ -22,7 +22,7 @@ import { getSellerTransactions, getAffiliateTransactions } from '@/services/tran
 import { useAuth } from '@/hooks/useAuth'
 
 import { useCurrency } from '@/context/CurrencyContext'
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency'
+import { formatCurrency, convertAmount as convertAmountUtil } from '@/utils/currency'
 import { getAllCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
 import { Transaction } from '@/types/transaction'
@@ -35,7 +35,7 @@ const CARD_W = 'w-[200px]'
 
 export default function DashboardHomePage() {
   const { user, loading: authLoading } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
 
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
@@ -98,12 +98,8 @@ export default function DashboardHomePage() {
     const displayCurrency = currency.toUpperCase()
 
     const convertAmount = (amountValue: number, sourceCurrency?: string) => {
-      const sourceCurrencyCode = (sourceCurrency || "NGN").toUpperCase()
-
-      if (sourceCurrencyCode === displayCurrency) return amountValue
-      if (sourceCurrencyCode === "NGN" && displayCurrency === "USD") return amountValue / EXCHANGE_RATE
-      if (sourceCurrencyCode === "USD" && displayCurrency === "NGN") return amountValue * EXCHANGE_RATE
-      return amountValue
+      const sourceCurrencyCode = (sourceCurrency || "NGN").toUpperCase() as any
+      return convertAmountUtil(amountValue, sourceCurrencyCode, displayCurrency as any, rates)
     }
 
     return {
@@ -111,7 +107,7 @@ export default function DashboardHomePage() {
         .filter((tx) => !tx.payoutDate)
         .reduce((sum, tx) => sum + convertAmount(tx.yourProfit || tx.amount || 0, tx.currency), 0),
     }
-  }, [affiliateTransactions, currency, sellerTransactions])
+  }, [affiliateTransactions, currency, rates, sellerTransactions])
 
   if (loading || authLoading) return <HomeSkeleton />
 

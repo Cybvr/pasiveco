@@ -16,15 +16,14 @@ import { getProductTypeLabel } from '@/lib/productTypes';
 import StarRating from '@/components/products/StarRating';
 import ProductReviewSection from '@/components/products/ProductReviewSection';
 import { useCurrency } from "@/context/CurrencyContext";
-import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency";
+import { formatCurrency, convertAmount, type ExchangeRates } from "@/utils/currency";
 
-const formatPrice = (amount: number, productCurrency: string, userCurrency: string) => {
+const formatPrice = (amount: number, productCurrency: string, userCurrency: string, rates: ExchangeRates) => {
   try {
-    let displayPrice = amount;
-    let displayCurrency = productCurrency as any;
-    if (productCurrency === 'NGN' && userCurrency === 'USD') { displayPrice = amount / EXCHANGE_RATE; displayCurrency = 'USD'; }
-    else if (productCurrency === 'USD' && userCurrency === 'NGN') { displayPrice = amount * EXCHANGE_RATE; displayCurrency = 'NGN'; }
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(
+      convertAmount(amount, (productCurrency || 'NGN') as any, userCurrency as any, rates),
+      userCurrency as any
+    );
   } catch { return `${productCurrency} ${amount}`; }
 };
 
@@ -38,7 +37,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [isPinned, setIsPinned] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [hasPurchased, setHasPurchased] = useState(false);
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency, rates } = useCurrency();
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -102,7 +101,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   }
 
   const checkoutHref = `/${routeParams.slug}/product/${product.slug || product.id || productId}/checkout`;
-  const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency);
+  const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency, rates);
   const hasDirectLink = Boolean(product.url);
   // Allow checkout for any priced product — the global Paystack key handles the actual payment.
   // Only fall back to "Unavailable" if price is 0 and there's no direct link.
@@ -348,7 +347,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                 <div>
                   <p className="line-clamp-1 text-sm font-bold">{p.name}</p>
                   <StarRating rating={p.rating} count={p.reviewsCount} />
-                  <p className="text-xs text-muted-foreground mt-1">{formatPrice(p.price, p.currency || 'NGN', userCurrency)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formatPrice(p.price, p.currency || 'NGN', userCurrency, rates)}</p>
                 </div>
               </Link>
             ))}

@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import MiniPageModal from "./MiniPageModal"
 import ShareModal from "./ShareModal"
 import { useCurrency } from "@/context/CurrencyContext"
-import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
+import { formatCurrency, convertAmount } from "@/utils/currency"
 
 interface SocialLink {
   id: string
@@ -59,7 +59,7 @@ interface BioPagePreviewProps {
 
 const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, profileOwnerId, posts = [], emptyStateMessage }) => {
   const { user } = useAuth()
-  const { currency: userCurrency } = useCurrency()
+  const { currency: userCurrency, rates } = useCurrency()
   const [isPageModalOpen, setIsPageModalOpen] = React.useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
   const [products, setProducts] = React.useState<Product[]>([])
@@ -85,21 +85,7 @@ const BioPagePreview: React.FC<BioPagePreviewProps> = ({ profileData, links, pro
   }, [user, profileOwnerId])
 
   const formatProductPrice = (price: number, productCurrency: string) => {
-    let displayPrice = price;
-    let displayCurrency = productCurrency as any;
-
-    // If product is in NGN but user prefers USD, convert it
-    if (productCurrency === 'NGN' && userCurrency === 'USD') {
-      displayPrice = price / EXCHANGE_RATE;
-      displayCurrency = 'USD';
-    } 
-    // If product is in USD but user prefers NGN, convert it (optional, but keep consistent)
-    else if (productCurrency === 'USD' && userCurrency === 'NGN') {
-      displayPrice = price * EXCHANGE_RATE;
-      displayCurrency = 'NGN';
-    }
-
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(convertAmount(price, (productCurrency || 'NGN') as any, userCurrency, rates), userCurrency);
   };
 
   const socialLinksToDisplay = profileData.socialLinks || []

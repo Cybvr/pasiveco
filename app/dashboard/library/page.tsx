@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useState, useMemo, useEffect } from "react"
 import { useCurrency } from "@/context/CurrencyContext"
-import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
+import { formatCurrency, convertAmount as convertAmountUtil } from "@/utils/currency"
 import { getCustomerTransactions } from "@/services/transactionsService"
 import { useAuth } from "@/hooks/useAuth"
 import { Transaction } from "@/types/transaction"
@@ -33,7 +33,7 @@ export default function LibraryPage() {
   const ITEMS_PER_PAGE = 10
   const router = useRouter()
   const { user } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -64,29 +64,15 @@ export default function LibraryPage() {
 
   const formatAmount = (amount: number | string, txCurrency?: string) => {
     if (typeof amount === "string") return amount
-
-    const sourceCurrency = (txCurrency || "NGN").toUpperCase()
-    const displayCurrency = currency.toUpperCase()
-
-    let displayAmount = amount
-
-    if (sourceCurrency === "NGN" && displayCurrency === "USD") {
-      displayAmount = amount / EXCHANGE_RATE
-    } else if (sourceCurrency === "USD" && displayCurrency === "NGN") {
-      displayAmount = amount * EXCHANGE_RATE
-    }
-
-    return formatCurrency(displayAmount, displayCurrency as any)
+    const sourceCurrency = (txCurrency || "NGN").toUpperCase() as any
+    const displayCurrency = currency.toUpperCase() as any
+    return formatCurrency(convertAmountUtil(amount, sourceCurrency, displayCurrency, rates), displayCurrency)
   }
 
   const convertAmount = (amountValue: number, sourceCurrency?: string) => {
-    const sourceCurrencyCode = (sourceCurrency || "NGN").toUpperCase()
-    const displayCurrency = currency.toUpperCase()
-
-    if (sourceCurrencyCode === displayCurrency) return amountValue
-    if (sourceCurrencyCode === "NGN" && displayCurrency === "USD") return amountValue / EXCHANGE_RATE
-    if (sourceCurrencyCode === "USD" && displayCurrency === "NGN") return amountValue * EXCHANGE_RATE
-    return amountValue
+    const sourceCurrencyCode = (sourceCurrency || "NGN").toUpperCase() as any
+    const displayCurrency = currency.toUpperCase() as any
+    return convertAmountUtil(amountValue, sourceCurrencyCode, displayCurrency, rates)
   }
 
   const handleSort = (key: keyof Transaction) => {
@@ -149,7 +135,7 @@ export default function LibraryPage() {
       ],
       filteredAndSortedTransactions: result,
     }
-  }, [transactions, search, sortConfig, statusFilter, currency])
+  }, [transactions, search, sortConfig, statusFilter, currency, rates])
 
   const SortIcon = ({ columnKey }: { columnKey: keyof Transaction }) => {
     if (sortConfig?.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />

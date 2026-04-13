@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog"
 import { getAffiliateProducts, Product } from "@/services/productsService"
 import { useCurrency } from "@/context/CurrencyContext"
-import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
+import { formatCurrency, convertAmount as convertAmountUtil } from "@/utils/currency"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { getDicebearAvatar } from "@/lib/avatar"
@@ -75,7 +75,7 @@ function countActiveFilters(filters: FilterState): number {
 export default function NetworkPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
   const [products, setProducts] = useState<NetworkProduct[]>([])
   const [merchants, setMerchants] = useState<AppUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -128,11 +128,7 @@ export default function NetworkPage() {
   }, [])
 
   const formatPrice = (amount: number, prodCurrency: string = 'USD') => {
-    let displayAmount = amount
-    if (currency === 'NGN' && prodCurrency === 'USD') {
-      displayAmount = amount * EXCHANGE_RATE
-    }
-    return formatCurrency(displayAmount, currency)
+    return formatCurrency(convertAmountUtil(amount, prodCurrency as any, currency, rates), currency)
   }
 
   const applyPriceRangeFilter = (p: NetworkProduct, range: PriceRange): boolean => {

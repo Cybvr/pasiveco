@@ -18,7 +18,7 @@ import { getSellerTransactions } from "@/services/transactionsService"
 import { Transaction } from "@/types/transaction"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useCurrency } from "@/context/CurrencyContext"
-import { formatCurrency, EXCHANGE_RATE } from "@/utils/currency"
+import { formatCurrency, convertAmount } from "@/utils/currency"
 import DashboardPagination from "@/components/dashboard/DashboardPagination"
  
 interface Customer {
@@ -33,7 +33,7 @@ interface Customer {
 export default function CustomersPage() {
   const ITEMS_PER_PAGE = 10
   const { user } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
@@ -118,11 +118,7 @@ export default function CustomersPage() {
   }, [customers, search, sortConfig])
  
   const formatAmount = (amount: number) => {
-    let displayAmount = amount
-    if (currency === 'NGN') {
-      displayAmount = amount * EXCHANGE_RATE
-    }
-    return formatCurrency(displayAmount, currency)
+    return formatCurrency(convertAmount(amount, 'NGN', currency, rates), currency)
   }
  
   const handleSort = (key: keyof Customer) => {

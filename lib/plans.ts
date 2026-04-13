@@ -1,4 +1,6 @@
 // Plan configuration with trial support
+import { convertAmount, type CurrencyCode } from '@/utils/currency';
+
 interface BasePricingPlan {
   name: string;
   description: string;
@@ -148,16 +150,14 @@ export const pricingPlans = {
 export type PlanId = keyof typeof pricingPlans;
 export type BillingPeriod = 'monthly' | 'quarterly' | 'biannual' | 'annual';
 
-export const getPlanPrice = (planId: PlanId, billingPeriod: BillingPeriod, currency: 'NGN' | 'USD' = 'NGN'): number => {
+export const getPlanPrice = (planId: PlanId, billingPeriod: BillingPeriod, currency: CurrencyCode = 'NGN'): number => {
   const plan = pricingPlans[planId];
   if (plan.type === 'free') return 0;
   
   const periodData = plan[billingPeriod];
   if (!periodData) return 0; // Or handle N/A cases appropriately
 
-  // If currency is USD, we might need a generic conversion if priceUsd isn't defined
-  // For now, assume we focus on NGN until plan-specific USD pricing is added
-  return (periodData as any).price || 0;
+  return Math.round(convertAmount((periodData as any).price || 0, 'NGN', currency));
 };
 
 export const getPlanStripePriceId = (planId: PlanId, billingPeriod: BillingPeriod): string | null => {

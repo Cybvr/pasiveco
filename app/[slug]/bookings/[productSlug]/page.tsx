@@ -17,7 +17,7 @@ import { getUserProducts, Product } from '@/services/productsService';
 import type { IntakeFormField } from '@/services/productsService';
 import { getAvailableSlots, createAppointment } from '@/services/bookingService';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
+import { formatCurrency, convertAmount } from '@/utils/currency';
 import Link from 'next/link';
 
 const LOCATION_LABELS: Record<string, string> = {
@@ -187,7 +187,7 @@ function IntakeField({
 export default function BookingDetailPage() {
   const { slug, productSlug } = useParams<{ slug: string; productSlug: string }>();
   const router = useRouter();
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency, rates } = useCurrency();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [creatorId, setCreatorId] = useState('');
@@ -258,11 +258,7 @@ export default function BookingDetailPage() {
 
   const formatPrice = (price: number, cur: string) => {
     if (price === 0) return 'Free';
-    let displayPrice = price;
-    let displayCurrency = cur as any;
-    if (cur === 'NGN' && userCurrency === 'USD') { displayPrice = price / EXCHANGE_RATE; displayCurrency = 'USD'; }
-    else if (cur === 'USD' && userCurrency === 'NGN') { displayPrice = price * EXCHANGE_RATE; displayCurrency = 'NGN'; }
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(convertAmount(price, (cur || 'NGN') as any, userCurrency, rates), userCurrency);
   };
 
   const validateIntakeForm = () => {

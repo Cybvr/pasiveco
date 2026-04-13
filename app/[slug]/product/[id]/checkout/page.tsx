@@ -14,23 +14,15 @@ import { getPaymentSettings, PaymentSettings, defaultPaymentSettings } from '@/s
 import { createTransaction } from '@/services/transactionsService';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatCurrency, EXCHANGE_RATE } from '@/utils/currency';
+import { formatCurrency, convertAmount, type ExchangeRates } from '@/utils/currency';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-const formatPrice = (amount: number, productCurrency: string, userCurrency: string) => {
+const formatPrice = (amount: number, productCurrency: string, userCurrency: string, rates: ExchangeRates) => {
   try {
-    let displayPrice = amount;
-    let displayCurrency = productCurrency as any;
-
-    if (productCurrency === 'NGN' && userCurrency === 'USD') {
-      displayPrice = amount / EXCHANGE_RATE;
-      displayCurrency = 'USD';
-    } else if (productCurrency === 'USD' && userCurrency === 'NGN') {
-      displayPrice = amount * EXCHANGE_RATE;
-      displayCurrency = 'NGN';
-    }
-
-    return formatCurrency(displayPrice, displayCurrency);
+    return formatCurrency(
+      convertAmount(amount, (productCurrency || 'NGN') as any, userCurrency as any, rates),
+      userCurrency as any
+    );
   } catch {
     return `${productCurrency} ${amount}`;
   }
@@ -95,11 +87,11 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
     resolveParams();
   }, [params]);
 
-  const { currency: userCurrency } = useCurrency();
+  const { currency: userCurrency, rates } = useCurrency();
   const formattedPrice = useMemo(() => {
     if (!product) return '';
-    return formatPrice(product.price, product.currency || 'NGN', userCurrency);
-  }, [product, userCurrency]);
+    return formatPrice(product.price, product.currency || 'NGN', userCurrency, rates);
+  }, [product, userCurrency, rates]);
   
   const buttonLabel = useMemo(() => {
     if (selectedMethod === 'card') return 'Card ending ***4242';

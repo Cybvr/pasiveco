@@ -16,6 +16,7 @@ import NotificationsDialog from './NotificationsDialog'
 import { cn } from '@/lib/utils'
 import { useMessageActivity } from '@/hooks/useMessageActivity'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
+import { CurrencySelector } from '@/components/currency-selector'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Home',
@@ -206,6 +207,9 @@ export default function DashboardHeader() {
               {publicProfileLabel}
             </Link>
           ) : null}
+
+          {/* Currency switcher – visible on desktop only */}
+          <CurrencySelector className="hidden md:flex h-8 w-[100px]" />
 
           <NotificationsDialog viewAllHref="/dashboard/notifications" />
 

@@ -39,7 +39,7 @@ import { getPayoutAccounts, type BankingDetails } from "@/services/bankingDetail
 import { Transaction } from "@/types/transaction"
 import { PayoutRequest } from "@/types/payout"
 import { useCurrency } from "@/context/CurrencyContext"
-import { EXCHANGE_RATE, formatCurrency, type CurrencyCode } from "@/utils/currency"
+import { formatCurrency, convertAmount as convertAmountUtil, type CurrencyCode } from "@/utils/currency"
 import { toast } from "sonner"
 import { Timestamp } from "firebase/firestore"
 import DashboardPagination from "@/components/dashboard/DashboardPagination"
@@ -48,7 +48,7 @@ export default function PayoutsPage() {
   const ITEMS_PER_PAGE = 10
   const router = useRouter()
   const { user } = useAuth()
-  const { currency } = useCurrency()
+  const { currency, rates } = useCurrency()
 
   const [sellerTransactions, setSellerTransactions] = useState<Transaction[]>([])
   const [affiliateTransactions, setAffiliateTransactions] = useState<Transaction[]>([])
@@ -95,12 +95,8 @@ export default function PayoutsPage() {
   }, [user])
 
   const convertAmount = (amountValue: number, sourceCurrency?: string) => {
-    const source = (sourceCurrency || "NGN").toUpperCase()
-    const target = currency.toUpperCase()
-    if (source === target) return amountValue
-    if (source === "NGN" && target === "USD") return amountValue / EXCHANGE_RATE
-    if (source === "USD" && target === "NGN") return amountValue * EXCHANGE_RATE
-    return amountValue
+    const from = ((sourceCurrency || "NGN").toUpperCase()) as any
+    return convertAmountUtil(amountValue, from, currency, rates)
   }
 
   const getEarningValue = (tx: Transaction) => tx.yourProfit || tx.amount || 0
@@ -116,7 +112,7 @@ export default function PayoutsPage() {
       .reduce((sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency), 0)
 
     return { totalEarnings, pendingPayout, paidOut, requests: payoutRequests.length }
-  }, [affiliateTransactions, currency, payoutRequests.length, sellerTransactions])
+  }, [affiliateTransactions, currency, rates, payoutRequests.length, sellerTransactions])
 
   const stats = [
     { title: "Total Earnings", value: formatCurrency(summary.totalEarnings, currency) },
