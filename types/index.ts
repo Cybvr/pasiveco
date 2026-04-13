@@ -1,4 +1,3 @@
+export type BillingPeriod = 'monthly' | 'quarterly' | 'biannual' | 'annual'
 
-export type BillingPeriod = 'monthly' | 'annual'
-
-export type PlanId = 'free' | 'pro' | 'basic'
+export type PlanId = 'starter' | 'pro' | 'growth' | 'free'

@@ -8,6 +8,22 @@ import { headers } from 'next/headers';
 import { doc, getDoc, updateDoc, collection, setDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { pricingPlans } from '@/lib/plans';
+
+function getPlanIdFromPriceId(priceId: string): string {
+  for (const [planId, plan] of Object.entries(pricingPlans)) {
+    if (plan.type === 'free') continue;
+    
+    // Check all billing periods for this plan
+    const periods = ['monthly', 'quarterly', 'biannual', 'annual'] as const;
+    for (const period of periods) {
+      if (plan[period]?.stripePriceId === priceId) {
+        return planId;
+      }
+    }
+  }
+  return 'free';
+}
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -115,20 +131,11 @@ async function handleSubscriptionChange(subscription: any) {
 
   // Determine the plan from the subscription
   const priceId = subscription.items.data[0].price.id;
-  let planId = 'free';
+  let planId = getPlanIdFromPriceId(priceId);
 
-  // Map from Stripe price ID back to our plan IDs - ensure lowercase consistently
-  const proPriceIds = ['price_1RAT0fHfPlG49dwk4CcCpZBi', 'price_1RF4fVHfPlG49dwk9fdm70xg'];
   // Handle trial conversion to paid plan
   if (subscription.status === 'trialing' && subscription.trial_end) {
-    planId = 'free';
-  }
-  const basicPriceIds = ['price_1RF4cgHfPlG49dwkGq2vydvf', 'price_1RF4e4HfPlG49dwkrfag8upM'];
-
-  if (proPriceIds.includes(priceId)) {
-    planId = 'pro';
-  } else if (basicPriceIds.includes(priceId)) {
-    planId = 'basic';
+    // We can keep the planId but mark status as trialing
   }
 
   // Log subscription changes
@@ -231,14 +238,7 @@ async function handleInvoicePaid(invoice: any) {
   if (invoice.subscription) {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
     const priceId = subscription.items.data[0].price.id;
-
-    // Map from Stripe price ID back to our plan IDs - ensure lowercase consistently
-    const proPriceIds = ['price_1RAT0fHfPlG49dwk4CcCpZBi', 'price_1RF4fVHfPlG49dwk9fdm70xg'];
-    const basicPriceIds = ['price_1RF4cgHfPlG49dwkGq2vydvf', 'price_1RF4e4HfPlG49dwkrfag8upM'];
-    let planId = 'free';
-
-    if (proPriceIds.includes(priceId)) planId = 'pro';
-    else if (basicPriceIds.includes(priceId)) planId = 'basic';
+    let planId = getPlanIdFromPriceId(priceId);
 
     // Update the user document with the new plan
     await updateDoc(doc(db, 'users', userId), { 
