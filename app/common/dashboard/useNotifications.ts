@@ -263,7 +263,7 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
   }, [user?.uid])
 
   useEffect(() => {
-    if (!user?.uid || isAdmin) {
+    if (!user?.uid) {
       setMessageItems([])
       return
     }

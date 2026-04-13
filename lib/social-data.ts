@@ -441,18 +441,16 @@ export async function sendMessage(senderId: string, receiverId: string, text: st
       ? { ...threadData.unreadMessageCounts }
       : {}
 
+    const currentUnreadCount = (threadData.unreadMessageCounts && typeof threadData.unreadMessageCounts[receiverId] === 'number')
+      ? threadData.unreadMessageCounts[receiverId]
+      : (unreadParticipants.includes(receiverId) ? 1 : 0)
+    
+    const nextUnreadCount = currentUnreadCount + 1
+    unreadMessageCounts[receiverId] = nextUnreadCount
+
     if (!unreadParticipants.includes(receiverId)) {
       unreadParticipants.push(receiverId)
     }
-
-    const currentUnreadCount =
-      typeof unreadMessageCounts[receiverId] === 'number'
-        ? unreadMessageCounts[receiverId]
-        : unreadParticipants.includes(receiverId)
-          ? 1
-          : 0
-    const nextUnreadCount = currentUnreadCount + 1
-    unreadMessageCounts[receiverId] = nextUnreadCount
 
     const now = serverTimestamp()
     const messageData = {
