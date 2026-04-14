@@ -53,13 +53,13 @@ export default function NotificationsDialog({
           ) : null}
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[min(85vh,540px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[400px]">
+      <DialogContent className="flex max-h-[min(85vh,540px)] min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-w-[400px]">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 border-b px-4 py-3 pr-10">
           <DialogTitle className="text-sm font-semibold text-foreground/90">
             Notifications
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="min-h-0 flex-1">
           <NotificationsList items={items} />
         </ScrollArea>
         <div className="flex items-center gap-2 border-t bg-muted/20 p-2">

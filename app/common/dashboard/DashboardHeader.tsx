@@ -232,16 +232,19 @@ export default function DashboardHeader() {
                 <SheetHeader className="sr-only">
                   <SheetTitle>Dashboard Navigation</SheetTitle>
                 </SheetHeader>
-                <div className="pt-6 px-4 pb-4">
-                  <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setIsSheetOpen(false)}>
-                    <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm">
-                      <Image src="/images/monster.png" alt="Pasive" width={20} height={20} />
-                    </div>
-                    <span className="text-base font-black tracking-tighter leading-none">pasive</span>
-                  </Link>
+                <div className="pt-6 px-4 pb-4 border-b border-border/60">
+                  <div className="flex items-center justify-between gap-3">
+                    <Link href="/dashboard" className="flex items-center gap-2 min-w-0" onClick={() => setIsSheetOpen(false)}>
+                      <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm">
+                        <Image src="/images/monster.png" alt="Pasive" width={20} height={20} />
+                      </div>
+                      <span className="text-base font-black tracking-tighter leading-none">pasive</span>
+                    </Link>
+                    <CurrencySelector className="h-9 w-[100px] shrink-0 rounded-md" />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 px-4 py-3 bg-muted/10 border-y">
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/10 border-b">
                   <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
                     <AvatarImage src={profilePicture} alt={displayName} />
                     <AvatarFallback className="bg-primary/5 text-primary text-sm font-medium">{displayName.slice(0, 1).toUpperCase()}</AvatarFallback>
@@ -253,7 +256,7 @@ export default function DashboardHeader() {
                 </div>
 
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
-                  <div className="flex-1 space-y-0.5 overflow-y-auto pt-3 px-2">
+                  <div className="flex-1 space-y-0 overflow-y-auto pt-2 px-2">
                     {primaryLinks.map((item) => {
                       const isActive = isNavItemActive(item)
                       const isExpandable = Boolean(item.subItems?.length)
@@ -262,12 +265,12 @@ export default function DashboardHeader() {
 
                       if (isExpandable) {
                         return (
-                          <div key={item.href} className="space-y-1">
+                          <div key={item.href} className="space-y-0.5">
                             <Button
                               type="button"
                               variant="ghost"
                               className={cn(
-                                "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                                "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
                                 isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
                               )}
                               onClick={() => {
@@ -278,11 +281,11 @@ export default function DashboardHeader() {
                               }}
                             >
                               <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
-                              <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                              <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
                               <ChevronIcon className={cn("h-3.5 w-3.5", isActive ? "text-foreground/70" : "text-muted-foreground/40")} />
                             </Button>
                             {isExpanded ? (
-                              <div className="ml-4 space-y-1 border-l border-border/60 pl-3">
+                              <div className="ml-4 space-y-0.5 border-l border-border/60 pl-3">
                                 {item.subItems?.map((subItem) => {
                                   const isSubItemActive = isItemActive(subItem.href)
 
@@ -292,13 +295,13 @@ export default function DashboardHeader() {
                                       type="button"
                                       variant="ghost"
                                       className={cn(
-                                        "w-full justify-start gap-3 h-9 px-3 transition-colors",
+                                        "w-full justify-start gap-2.5 h-8.5 px-2.5 transition-colors",
                                         isSubItemActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
                                       )}
                                       onClick={() => handleNavigate(subItem.href)}
                                     >
                                       <subItem.icon className={cn("h-4 w-4", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
-                                      <span className="flex-1 text-[13px] text-left font-medium">{subItem.label}</span>
+                                      <span className="flex-1 text-[12px] text-left font-medium">{subItem.label}</span>
                                     </Button>
                                   )
                                 })}
@@ -315,7 +318,7 @@ export default function DashboardHeader() {
                           key={item.href}
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                            "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
                             isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
                           )}
                           onClick={() => handleNavigate(item.href)}
@@ -329,7 +332,7 @@ export default function DashboardHeader() {
                               </span>
                             ) : null}
                           </div>
-                          <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                          <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
                           {showMessagesBadge ? (
                             <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
                               {messagesCount > 9 ? '9+' : messagesCount}
@@ -340,7 +343,7 @@ export default function DashboardHeader() {
                         </Button>
                       )
                     })}
-                    <div className="px-3 pt-3 pb-1">
+                    <div className="px-2.5 pt-2 pb-1">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
                         Explore
                       </p>
@@ -354,7 +357,7 @@ export default function DashboardHeader() {
                           key={item.href}
                           variant="ghost"
                           className={cn(
-                            "w-full justify-start gap-3 h-10 px-3 transition-colors",
+                            "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
                             isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
                           )}
                           onClick={() => handleNavigate(item.href)}
@@ -368,7 +371,7 @@ export default function DashboardHeader() {
                               </span>
                             ) : null}
                           </div>
-                          <span className="flex-1 text-[13px] text-left font-semibold">{item.label}</span>
+                          <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
                           {showNetworkBadge ? (
                             <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
                               {networkCount > 9 ? '9+' : networkCount}
@@ -384,21 +387,21 @@ export default function DashboardHeader() {
                   <div className="mt-auto border-t p-2">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3 h-10 px-3 hover:bg-muted/40 transition-colors"
+                      className="w-full justify-start gap-2.5 h-9 px-2.5 hover:bg-muted/40 transition-colors"
                       onClick={() => handleNavigate('/dashboard/help')}
                     >
                       <LifeBuoy className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1 text-[13px] text-left font-semibold">Help & Support</span>
+                      <span className="flex-1 text-[12px] text-left font-semibold">Help & Support</span>
                       <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
                     </Button>
                     <div className="h-[1px] bg-border/50 my-1 mx-2" />
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3 h-10 px-3 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full justify-start gap-2.5 h-9 px-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                       onClick={handleLogout}
                     >
                       <LogOut className="h-4 w-4" />
-                      <span className="flex-1 text-[13px] text-left font-bold">Logout</span>
+                      <span className="flex-1 text-[12px] text-left font-bold">Logout</span>
                       <ChevronRight className="h-3.5 w-3.5 opacity-20" />
                     </Button>
                   </div>

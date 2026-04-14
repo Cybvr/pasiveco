@@ -61,12 +61,21 @@
     --chart-4: 142 30% 30%;
     --chart-5: 142 70% 45%;
   }
+
+  :root,
+  .dark {
+    --border: transparent;
+    --input: transparent;
+    --ring: transparent;
+  }
 }
 
 
 @layer base {
   * {
     @apply border-border;
+    border-color: transparent !important;
+    --tw-ring-color: transparent !important;
   }
 
   html {

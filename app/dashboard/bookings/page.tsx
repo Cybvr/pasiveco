@@ -169,10 +169,6 @@ export default function BookingsDashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage all appointments booked with you.</p>
-      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -205,11 +201,10 @@ export default function BookingsDashboardPage() {
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
-                statusFilter === s
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${statusFilter === s
+                ? 'bg-primary text-primary-foreground'
+                : 'border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                }`}
             >
               {s} {s !== 'all' && `(${counts[s]})`}
             </button>
