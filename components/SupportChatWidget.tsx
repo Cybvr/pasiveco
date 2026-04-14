@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Check, MessageCircle, X, Send, ChevronRight, Search, HelpCircle, Home, ArrowLeft, Plus } from "lucide-react"
+import { RiWhatsappFill } from "react-icons/ri"
 import { getHelpDocs, type HelpDoc } from "@/lib/help-docs"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/AuthContext"
@@ -27,7 +28,6 @@ type UserInfo = { name: string; email: string }
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-const TEAM_NAME = "Ronke"
 const TEAM_LABEL = "Ronke (bot)"
 
 const keywordMap: Record<string, string[]> = {
@@ -370,8 +370,7 @@ export default function SupportChatWidget() {
               <div className="flex-shrink-0 bg-primary px-4 pb-4 pt-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img src="/images/ronke.jpg" alt="Ronke" className="h-6 w-6 rounded-full object-cover" />
-                    <span className="text-[14px] font-bold text-primary-foreground">{TEAM_NAME}</span>
+                    <img src="/images/logo.svg" alt="Pasive" className="h-6 w-6" />
                   </div>
                   <div className="flex items-center gap-2">
                     <SupportAvatar />
@@ -779,6 +778,16 @@ export default function SupportChatWidget() {
               <MessageCircle className="h-4 w-4" />
               <span className="text-[9px] font-semibold">Messages</span>
             </button>
+
+            <a
+              href="https://wa.me/2349053066692?text=Hi%20%F0%9F%91%8B"
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center gap-0.5 px-5 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <RiWhatsappFill className="h-4 w-4" />
+              <span className="text-[9px] font-semibold">Whatsapp</span>
+            </a>
 
             <button
               type="button"

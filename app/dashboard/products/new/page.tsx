@@ -51,22 +51,12 @@ export default function NewProductPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="space-y-3">
-        <Button variant="ghost" className="w-fit gap-2 px-0 hover:bg-transparent" onClick={() => router.push("/dashboard/products")}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to products
-        </Button>
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">New product</h1>
         </div>
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <PackagePlus className="h-4 w-4" />
-            Create product
-          </CardTitle>
-        </CardHeader>
         <CardContent>
           <CreateTab
             user={user}

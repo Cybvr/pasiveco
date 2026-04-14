@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, MapPin, Video, CheckCircle2, XCircle,
@@ -220,7 +221,14 @@ export default function BookingsDashboardPage() {
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
           {appointments.length === 0
-            ? 'No bookings yet. Share your booking link to start receiving appointments.'
+            ? (
+              <>
+                No bookings yet.{' '}
+                <Link href="/dashboard/products/new" className="font-medium text-primary hover:underline">
+                  Create booking
+                </Link>
+              </>
+            )
             : 'No bookings match your current filters.'}
         </div>
       ) : (
