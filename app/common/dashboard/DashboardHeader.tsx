@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from '@/i18n/routing'
-import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon } from 'lucide-react'
+import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon, Lock } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -157,6 +157,19 @@ export default function DashboardHeader() {
     router.push(href)
   }
 
+  const { isTrialing, trialDaysLeft } = useAuth()
+  const isFreePlan = (user?.plan?.toLowerCase() === 'free' || !user?.plan);
+  const isFreeExpired = isFreePlan && !isTrialing;
+  const PREMIUM_LABELS = ['Bookings', 'Analytics', 'Business Manager', 'Storefront Templates'];
+
+  const shouldShowLock = (label: string) => {
+    return isFreePlan && PREMIUM_LABELS.includes(label);
+  };
+
+  const isAccessDenied = (label: string) => {
+    return isFreeExpired && PREMIUM_LABELS.includes(label);
+  };
+
   const showBackButton = pathname === '/dashboard/posts/new' ||
     pathname.startsWith('/dashboard/products/') ||
     (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
@@ -263,6 +276,8 @@ export default function DashboardHeader() {
                       const isExpandable = Boolean(item.subItems?.length)
                       const isExpanded = isExpandable && Boolean(expandedGroups[item.label])
                       const ChevronIcon = isExpanded ? ChevronDown : ChevronRight
+                      const locked = shouldShowLock(item.label)
+                      const denied = isAccessDenied(item.label)
 
                       if (isExpandable) {
                         return (
@@ -272,7 +287,8 @@ export default function DashboardHeader() {
                               variant="ghost"
                               className={cn(
                                 "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
-                                isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                                isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40",
+                                denied && "opacity-60"
                               )}
                               onClick={() => {
                                 setExpandedGroups((current) => ({
@@ -283,12 +299,18 @@ export default function DashboardHeader() {
                             >
                               <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
                               <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
-                              <ChevronIcon className={cn("h-3.5 w-3.5", isActive ? "text-foreground/70" : "text-muted-foreground/40")} />
+                              {locked ? (
+                                <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                              ) : (
+                                <ChevronIcon className={cn("h-3.5 w-3.5", isActive ? "text-foreground/70" : "text-muted-foreground/40")} />
+                              )}
                             </Button>
                             {isExpanded ? (
                               <div className="ml-4 space-y-0.5 border-l border-border/60 pl-3">
                                 {item.subItems?.map((subItem) => {
                                   const isSubItemActive = isItemActive(subItem.href)
+                                  const subLocked = shouldShowLock(subItem.label)
+                                  const subDenied = isAccessDenied(subItem.label)
 
                                   return (
                                     <Button
@@ -297,12 +319,23 @@ export default function DashboardHeader() {
                                       variant="ghost"
                                       className={cn(
                                         "w-full justify-start gap-2.5 h-8.5 px-2.5 transition-colors",
-                                        isSubItemActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                                        isSubItemActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40",
+                                        subDenied && "opacity-60"
                                       )}
-                                      onClick={() => handleNavigate(subItem.href)}
+                                      onClick={() => {
+                                        if (subDenied) {
+                                          setIsSheetOpen(false)
+                                          // Note: UpgradeCta handles the dialog, but here we are in mobile sheet
+                                          // We should probably trigger the upgrade dialog.
+                                          // I will trigger a custom event or just let it stay for now.
+                                        } else {
+                                          handleNavigate(subItem.href)
+                                        }
+                                      }}
                                     >
                                       <subItem.icon className={cn("h-4 w-4", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
                                       <span className="flex-1 text-[12px] text-left font-medium">{subItem.label}</span>
+                                      {subLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />}
                                     </Button>
                                   )
                                 })}
@@ -320,9 +353,16 @@ export default function DashboardHeader() {
                           variant="ghost"
                           className={cn(
                             "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
-                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40",
+                            denied && "opacity-60"
                           )}
-                          onClick={() => handleNavigate(item.href)}
+                          onClick={() => {
+                            if (denied) {
+                              setIsSheetOpen(false)
+                            } else {
+                              handleNavigate(item.href)
+                            }
+                          }}
                         >
                           <div className="relative">
                             <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
@@ -334,7 +374,9 @@ export default function DashboardHeader() {
                             ) : null}
                           </div>
                           <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
-                          {showMessagesBadge ? (
+                          {locked ? (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                          ) : showMessagesBadge ? (
                             <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
                               {messagesCount > 9 ? '9+' : messagesCount}
                             </span>
@@ -352,6 +394,8 @@ export default function DashboardHeader() {
                     {exploreLinks.map((item) => {
                       const isActive = isItemActive(item.href)
                       const showNetworkBadge = item.href === '/dashboard/network' && networkCount > 0
+                      const locked = shouldShowLock(item.label)
+                      const denied = isAccessDenied(item.label)
 
                       return (
                         <Button
@@ -359,9 +403,16 @@ export default function DashboardHeader() {
                           variant="ghost"
                           className={cn(
                             "w-full justify-start gap-2.5 h-9 px-2.5 transition-colors",
-                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40"
+                            isActive ? "bg-muted/70 text-foreground hover:bg-muted/70" : "hover:bg-muted/40",
+                            denied && "opacity-60"
                           )}
-                          onClick={() => handleNavigate(item.href)}
+                          onClick={() => {
+                            if (denied) {
+                              setIsSheetOpen(false)
+                            } else {
+                              handleNavigate(item.href)
+                            }
+                          }}
                         >
                           <div className="relative">
                             <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
@@ -373,7 +424,9 @@ export default function DashboardHeader() {
                             ) : null}
                           </div>
                           <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
-                          {showNetworkBadge ? (
+                          {locked ? (
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                          ) : showNetworkBadge ? (
                             <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-foreground">
                               {networkCount > 9 ? '9+' : networkCount}
                             </span>

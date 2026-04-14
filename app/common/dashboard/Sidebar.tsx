@@ -98,15 +98,21 @@ export default function Sidebar({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false)
 
-  const isFreeExpired = (user?.plan?.toLowerCase() === 'free' || !user?.plan) && !isTrialing;
+  const isFreePlan = (user?.plan?.toLowerCase() === 'free' || !user?.plan);
+  const isFreeExpired = isFreePlan && !isTrialing;
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
+  
+  const PREMIUM_LABELS = ['Bookings', 'Analytics', 'Business Manager', 'Storefront Templates'];
 
-  const isItemLocked = (label: string) => {
+  const shouldShowLock = (label: string) => {
     if (isAdmin) return false;
-    if (!isFreeExpired) return false;
-    const lockedLabels = ['Bookings', 'Analytics', 'Business Manager', 'Storefront Templates'];
-    return lockedLabels.includes(label);
+    return isFreePlan && PREMIUM_LABELS.includes(label);
+  };
+
+  const isAccessDenied = (label: string) => {
+    if (isAdmin) return false;
+    return isFreeExpired && PREMIUM_LABELS.includes(label);
   };
 
   const isItemActive = (href: string) => {
@@ -171,7 +177,8 @@ export default function Sidebar({
             const isExpandable = Boolean(item.subItems?.length)
             const isExpanded = isExpandable && !isCollapsed && Boolean(expandedGroups[item.label])
             const GroupChevron = isExpanded ? ChevronDown : ChevronRight
-            const isLocked = isItemLocked(item.label)
+            const locked = shouldShowLock(item.label)
+            const denined = isAccessDenied(item.label)
 
             return (
               <div key={item.label} className="space-y-px">
@@ -189,14 +196,14 @@ export default function Sidebar({
                       isActive
                         ? "bg-muted text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      isLocked && "opacity-60"
+                      denined && "opacity-60"
                     )}
                   >
                     <div className="relative">
                       <Icon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
                     </div>
                     <span className="truncate flex-1 text-left">{item.label}</span>
-                    {isLocked ? (
+                    {locked ? (
                       <Lock className="h-3 w-3 shrink-0 text-muted-foreground/50" />
                     ) : (
                       <GroupChevron className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
@@ -204,9 +211,9 @@ export default function Sidebar({
                   </button>
                 ) : (
                   <Link
-                    href={isLocked ? "#" : item.href}
+                    href={denined ? "#" : item.href}
                     onClick={(e) => {
-                      if (isLocked) {
+                      if (denined) {
                         e.preventDefault();
                         setIsUpgradeDialogOpen(true);
                       }
@@ -218,7 +225,7 @@ export default function Sidebar({
                       isActive
                         ? "bg-muted text-foreground"
                         : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      isLocked && "opacity-60"
+                      denined && "opacity-60"
                     )}
                   >
                     <div className="relative">
@@ -230,7 +237,7 @@ export default function Sidebar({
                       )}
                     </div>
                     {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-                    {isLocked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
+                    {locked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                     {hasUnread && !isCollapsed && (
                       <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {messagesCount > 9 ? '9+' : messagesCount}
@@ -243,14 +250,15 @@ export default function Sidebar({
                     {item.subItems!.map((subItem) => {
                       const SubIcon = subItem.icon
                       const isSubItemActive = isItemActive(subItem.href)
-                      const isSubLocked = isItemLocked(subItem.label)
+                      const subLocked = shouldShowLock(subItem.label)
+                      const subDenied = isAccessDenied(subItem.label)
 
                       return (
                         <Link
                           key={subItem.href}
-                          href={isSubLocked ? "#" : subItem.href}
+                          href={subDenied ? "#" : subItem.href}
                           onClick={(e) => {
-                            if (isSubLocked) {
+                            if (subDenied) {
                               e.preventDefault();
                               setIsUpgradeDialogOpen(true);
                             }
@@ -260,12 +268,12 @@ export default function Sidebar({
                             isSubItemActive
                               ? "bg-muted text-foreground"
                               : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                            isSubLocked && "opacity-60"
+                            subDenied && "opacity-60"
                           )}
                         >
                           <SubIcon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
                           <span className="truncate flex-1">{subItem.label}</span>
-                          {isSubLocked && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
+                          {subLocked && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                         </Link>
                       )
                     })}
@@ -285,14 +293,15 @@ export default function Sidebar({
             const Icon = item.icon
             const isActive = isItemActive(item.href)
             const showBadge = item.label === 'Network' && networkCount > 0
-            const isLocked = isItemLocked(item.label)
+            const locked = shouldShowLock(item.label)
+            const denined = isAccessDenied(item.label)
 
             return (
               <Link
                 key={item.href}
-                href={isLocked ? "#" : item.href}
+                href={denined ? "#" : item.href}
                 onClick={(e) => {
-                  if (isLocked) {
+                  if (denined) {
                     e.preventDefault();
                     setIsUpgradeDialogOpen(true);
                   }
@@ -304,7 +313,7 @@ export default function Sidebar({
                   isActive
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                  isLocked && "opacity-60"
+                  denined && "opacity-60"
                 )}
               >
                 <div className="relative">
@@ -317,7 +326,7 @@ export default function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-                {isLocked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
+                {locked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                 {showBadge && !isCollapsed && (
                   <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                     {networkCount > 9 ? '9+' : networkCount}
