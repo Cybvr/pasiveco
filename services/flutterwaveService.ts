@@ -21,6 +21,7 @@ export interface FlutterwaveInitializeData {
     logo?: string;
   };
   meta?: Record<string, any>;
+  payment_plan?: string;
 }
 
 export class FlutterwaveService {
@@ -29,7 +30,7 @@ export class FlutterwaveService {
    */
   static async initializePayment(data: FlutterwaveInitializeData) {
     try {
-      const payload = {
+      const payload: any = {
         tx_ref: data.tx_ref,
         amount: data.amount,
         currency: data.currency,
@@ -37,10 +38,14 @@ export class FlutterwaveService {
         customer: data.customer,
         customizations: data.customizations || {
           title: 'Pasive',
-          description: 'Payment for product',
+          description: 'Payment for subscription',
         },
         meta: data.meta,
       };
+
+      if (data.payment_plan) {
+        payload.payment_plan = data.payment_plan;
+      }
 
       const response = await fetch('https://api.flutterwave.com/v3/payments', {
         method: 'POST',

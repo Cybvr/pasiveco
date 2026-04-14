@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit, DocumentData } from 'firebase/firestore';
 import { stripe } from '@/lib/stripe';
-import { isInTrialPeriod } from '@/lib/plans';
+import { isInTrialPeriod, getTrialEndDate, pricingPlans } from '@/lib/plans';
 
 export async function GET(
   request: NextRequest,
@@ -16,11 +16,6 @@ export async function GET(
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    if (!stripe) {
-      console.error('Stripe is not configured');
-      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
     }
 
     // Default response for error cases
@@ -43,77 +38,43 @@ export async function GET(
     }
 
     const userData = userSnap.data();
-    const isTrialing = isInTrialPeriod(userData.createdAt.toDate());
+    const createdAt = userData.createdAt?.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
+    const isTrialing = isInTrialPeriod(createdAt);
 
     // Return trial status if user is in trial period
     if (isTrialing) {
       return NextResponse.json({
         plan: 'free',
         status: 'trialing',
-        trialEnd: new Date(userData.createdAt.toDate().getTime() + (14 * 24 * 60 * 60 * 1000))
+        trialEnd: getTrialEndDate(createdAt)
       });
     }
 
     // Regular subscription check logic
     const subscriptionId = userData.subscriptionId;
     const stripeCustomerId = userData.stripeCustomerId;
+    const subscriptionType = userData.subscriptionType || (stripeCustomerId ? 'stripe' : null);
 
-    // Get subscription data
-    let subscriptionData = null;
-    if (subscriptionId) {
-      try {
-        const subscriptionSnap = await getDoc(doc(db, 'subscriptions', subscriptionId));
-        if (subscriptionSnap.exists()) {
-          subscriptionData = subscriptionSnap.data();
-        }
-      } catch (error) {
-        console.error('Error fetching subscription:', error);
-      }
-    }
-
-    // Get invoices - try all possible query methods in order of preference
+    // Get invoices from Firestore
     let invoices: DocumentData[] = [];
     try {
-      // Try queries in sequence - by userId, subscriptionId, then customerId
-      const queryOptions = [
-        userId ? query(
-          collection(db, 'invoices'),
-          where('userId', '==', userId),
-          orderBy('createdAt', 'desc'),
-          limit(10)
-        ) : null,
-        subscriptionId ? query(
-          collection(db, 'invoices'),
-          where('subscriptionId', '==', subscriptionId),
-          orderBy('createdAt', 'desc'),
-          limit(10)
-        ) : null,
-        stripeCustomerId ? query(
-          collection(db, 'invoices'),
-          where('customerId', '==', stripeCustomerId),
-          orderBy('createdAt', 'desc'),
-          limit(10)
-        ) : null
-      ].filter(Boolean);
-
-      // Try each query until we find invoices
-      for (const q of queryOptions) {
-        if (!q) continue;
-        const snap = await getDocs(q);
-        if (snap.size > 0) {
-          invoices = snap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          break;
-        }
-      }
+      const q = query(
+        collection(db, 'invoices'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(10)
+      );
+      const snap = await getDocs(q);
+      invoices = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
     } catch (error) {
       console.error('Error fetching invoices from Firestore:', error);
     }
 
-    // Fallback to Stripe API if no invoices found in Firestore
-    if (invoices.length === 0 && stripeCustomerId) {
+    // Fallback to Stripe API if no invoices found in Firestore and it's a Stripe user
+    if (invoices.length === 0 && stripeCustomerId && stripe) {
       try {
         const stripeInvoices = await stripe.invoices.list({
           customer: stripeCustomerId,
@@ -131,7 +92,6 @@ export async function GET(
             currency: invoice.currency,
             invoiceUrl: invoice.hosted_invoice_url,
             pdfUrl: invoice.invoice_pdf,
-            // Ensure createdAt has the right format expected by the frontend
             createdAt: { seconds: invoice.created, nanoseconds: 0 }
           }));
         }
@@ -140,40 +100,32 @@ export async function GET(
       }
     }
 
-    // Get Stripe subscription details if needed
-    let stripeSubscription = null;
-    if (subscriptionId) {
+    // Get subscription details
+    let externalSubscription = null;
+    if (subscriptionId && subscriptionType === 'stripe' && stripe) {
       try {
-        stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+        externalSubscription = await stripe.subscriptions.retrieve(subscriptionId);
       } catch (error) {
         console.error('Error fetching Stripe subscription:', error);
       }
     }
 
-    // Validate subscription status
-    let status = userData.subscriptionStatus;
-    let plan = userData.plan;
+    // Validate status
+    let status = userData.subscriptionStatus || 'no_subscription';
+    let plan = (userData.plan || 'free').toLowerCase();
 
-    // Double check with Stripe data
-    if (stripeSubscription?.status === 'active') {
+    // Double check with Stripe data if applicable
+    if (subscriptionType === 'stripe' && (externalSubscription as any)?.status === 'active') {
       status = 'active';
-      // Get current price ID
-      const priceId = stripeSubscription.items.data[0]?.price.id;
-
-      // Validate plan based on price
-      const proPriceIds = ['price_1RAT0fHfPlG49dwk4CcCpZBi', 'price_1RF4fVHfPlG49dwk9fdm70xg'];
-      if (proPriceIds.includes(priceId)) {
-        plan = 'pro';
-      }
     }
 
     return NextResponse.json({
       userId,
-      plan: plan || 'free',
-      status: status || 'no_subscription',
+      plan,
+      status,
       subscriptionId,
-      subscription: subscriptionData,
-      stripeSubscription,
+      subscriptionType,
+      subscription: externalSubscription,
       invoices,
       updatedAt: userData.updatedAt
     });

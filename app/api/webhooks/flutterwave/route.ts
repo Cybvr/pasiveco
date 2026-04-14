@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { db } from '@/lib/firebase';
+import { doc, updateDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,24 +34,61 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleSuccessfulPayment(data: any) {
-  const { tx_ref, amount, currency, customer, meta } = data;
+  const { tx_ref, amount, currency, customer, meta, id: transactionId, plan: flutterwavePlanId } = data;
 
   console.log('Flutterwave Payment Successful:', {
     tx_ref,
-    productId: meta?.productId,
+    userId: meta?.userId,
+    planId: meta?.planId,
     customerEmail: customer?.email,
     amount,
   });
 
-  // Business logic: Update Firestore, grant access, etc.
+  // Handle Subscription Upgrades
+  if (meta?.userId && meta?.planId) {
+    const userId = meta.userId;
+    const planId = meta.planId;
+    const billingPeriod = meta.billingPeriod;
 
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        plan: planId,
+        subscriptionStatus: 'active',
+        subscriptionId: transactionId.toString(),
+        subscriptionType: 'flutterwave',
+        flutterwavePlanId: flutterwavePlanId || null,
+        billingPeriod: billingPeriod,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Log the transaction
+      await addDoc(collection(db, 'invoices'), {
+        userId,
+        amountPaid: amount,
+        currency: currency,
+        status: 'paid',
+        planId,
+        billingPeriod,
+        transactionId: transactionId.toString(),
+        gateway: 'flutterwave',
+        createdAt: serverTimestamp(),
+      });
+
+      console.log(`✅ User ${userId} upgraded to ${planId} via Flutterwave`);
+    } catch (dbError) {
+      console.error('Error updating user subscription in Firestore:', dbError);
+    }
+  }
+
+  // Business logic: Send confirmation email
   if (loops && customer?.email) {
     try {
       await loops.sendTransactionalEmail({
         transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
         email: customer.email,
         dataVariables: {
-          productId: meta?.productId || '',
+          productId: meta?.planId || meta?.productId || 'Subscription Upgrade',
           amount: amount.toString(),
         },
       });

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { BriefcaseBusiness, Plus } from 'lucide-react'
 import {
   RiShoppingBag3Fill,
   RiShareForwardFill,
@@ -263,11 +263,25 @@ export default function DashboardHomePage() {
                 {featuredProducts.map((product) => (
                   <Link key={product.id} href="/dashboard/products" className={`${CARD_W} flex flex-col gap-2 bg-card border-border overflow-auto rounded-xl`}>
                     <div className="aspect-video w-full overflow-hidden">
-                      <img
-                        src={product.thumbnail || getDicebearAvatar(product.id || product.name)}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.nextElementSibling as HTMLDivElement | null
+                            if (fallback) fallback.style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="hidden h-full w-full items-center justify-center bg-muted text-muted-foreground"
+                        style={{ display: product.thumbnail ? 'none' : 'flex' }}
+                        aria-hidden={Boolean(product.thumbnail)}
+                      >
+                        <BriefcaseBusiness className="h-6 w-6" />
+                      </div>
                     </div>
                     <div className="text-left p-2">
                       <p className="truncate text-sm font-semibold text-foreground leading-tight">{product.name}</p>

@@ -18,21 +18,15 @@ interface FreePlan extends BasePricingPlan {
 
 interface SubscriptionPlan extends BasePricingPlan {
   type: 'subscription';
-  monthly?: {
+  monthly: {
     price: number;
     stripePriceId: string;
-  };
-  quarterly?: {
-    price: number;
-    stripePriceId: string;
-  };
-  biannual?: {
-    price: number;
-    stripePriceId: string;
+    flutterwavePlanId: string;
   };
   annual: {
     price: number;
     stripePriceId: string;
+    flutterwavePlanId: string;
   };
 }
 
@@ -63,19 +57,13 @@ export const pricingPlans = {
     credits: 'Unlimited',
     monthly: {
       price: 5000,
-      stripePriceId: 'price_starter_monthly'
-    },
-    quarterly: {
-      price: 15000,
-      stripePriceId: 'price_starter_quarterly'
-    },
-    biannual: {
-      price: 20000,
-      stripePriceId: 'price_starter_biannual'
+      stripePriceId: 'price_starter_monthly',
+      flutterwavePlanId: '157543'
     },
     annual: {
       price: 30000,
-      stripePriceId: 'price_starter_annual'
+      stripePriceId: 'price_starter_annual',
+      flutterwavePlanId: '157546'
     },
     features: [
       "Simple Website",
@@ -85,7 +73,7 @@ export const pricingPlans = {
       "Email Support",
     ] as const,
     isTrial: true,
-    trialDays: 14
+    trialDays: 7
   },
   pro: {
     type: 'subscription' as const,
@@ -94,29 +82,23 @@ export const pricingPlans = {
     credits: 'Unlimited',
     monthly: {
       price: 10000,
-      stripePriceId: 'price_pro_monthly'
-    },
-    quarterly: {
-      price: 30000,
-      stripePriceId: 'price_pro_quarterly'
-    },
-    biannual: {
-      price: 45000,
-      stripePriceId: 'price_pro_biannual'
+      stripePriceId: 'price_pro_monthly',
+      flutterwavePlanId: '157544'
     },
     annual: {
       price: 75000,
-      stripePriceId: 'price_pro_annual'
+      stripePriceId: 'price_pro_annual',
+      flutterwavePlanId: '157547'
     },
     features: [
       "Everything in Starter",
-      "Sales System",
-      "Customer Base Management",
-      "Staff Accounts",
+      "Business Manager",
+      "Analytics",
+      "Storefront Templates",
       "Priority Support",
     ] as const,
     isTrial: true,
-    trialDays: 14
+    trialDays: 7
   },
   growth: {
     type: 'subscription' as const,
@@ -125,15 +107,13 @@ export const pricingPlans = {
     credits: 'Unlimited',
     monthly: {
       price: 25000,
-      stripePriceId: 'price_growth_monthly'
-    },
-    biannual: {
-      price: 150000,
-      stripePriceId: 'price_growth_biannual'
+      stripePriceId: 'price_growth_monthly',
+      flutterwavePlanId: '157545'
     },
     annual: {
       price: 250000,
-      stripePriceId: 'price_growth_annual'
+      stripePriceId: 'price_growth_annual',
+      flutterwavePlanId: '157548'
     },
     features: [
       "Everything in Pro",
@@ -143,18 +123,18 @@ export const pricingPlans = {
       "Dedicated Account Manager",
     ] as const,
     isTrial: true,
-    trialDays: 14
+    trialDays: 7
   }
 };
 
 export type PlanId = keyof typeof pricingPlans;
-export type BillingPeriod = 'monthly' | 'quarterly' | 'biannual' | 'annual';
+export type BillingPeriod = 'monthly' | 'annual';
 
 export const getPlanPrice = (planId: PlanId, billingPeriod: BillingPeriod, currency: CurrencyCode = 'NGN'): number => {
   const plan = pricingPlans[planId];
   if (plan.type === 'free') return 0;
   
-  const periodData = plan[billingPeriod];
+  const periodData = (plan as any)[billingPeriod];
   if (!periodData) return 0; // Or handle N/A cases appropriately
 
   return Math.round(convertAmount((periodData as any).price || 0, 'NGN', currency));
@@ -164,14 +144,48 @@ export const getPlanStripePriceId = (planId: PlanId, billingPeriod: BillingPerio
   const plan = pricingPlans[planId];
   if (plan.type === 'free') return null;
   
-  const periodData = plan[billingPeriod];
+  const periodData = (plan as any)[billingPeriod];
   return periodData ? periodData.stripePriceId : null;
 };
 
-export const isInTrialPeriod = (createdAt: Date, planId: PlanId = 'free'): boolean => {
+export const getPlanFlutterwaveId = (planId: PlanId, billingPeriod: BillingPeriod): string | null => {
+  const plan = pricingPlans[planId];
+  if (plan.type === 'free') return null;
+  
+  const periodData = (plan as any)[billingPeriod];
+  return periodData ? periodData.flutterwavePlanId : null;
+};
+
+// Global trial reset date - any user who signed up before this date 
+// will have their trial start from this date instead.
+const TRIAL_RESET_DATE = new Date('2026-04-14T00:00:00Z');
+
+export const getTrialEndDate = (createdAt: Date, planId: PlanId = 'free'): Date | null => {
   const plan = pricingPlans[planId];
   const trialDays = plan.trialDays || 0;
-  const trialEnd = new Date(createdAt);
+  if (trialDays === 0) return null;
+
+  // Use the signup date or the reset date, whichever is later
+  const effectiveStartDate = new Date(Math.max(createdAt.getTime(), TRIAL_RESET_DATE.getTime()));
+  
+  const trialEnd = new Date(effectiveStartDate);
   trialEnd.setDate(trialEnd.getDate() + trialDays);
+  return trialEnd;
+};
+
+export const isInTrialPeriod = (createdAt: Date, planId: PlanId = 'free'): boolean => {
+  const trialEnd = getTrialEndDate(createdAt, planId);
+  if (!trialEnd) return false;
   return new Date() < trialEnd;
+};
+
+export const getTrialDaysLeft = (createdAt: Date, planId: PlanId = 'free'): number => {
+  const trialEnd = getTrialEndDate(createdAt, planId);
+  if (!trialEnd) return 0;
+
+  const now = new Date();
+  const diffTime = trialEnd.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return Math.max(0, diffDays);
 };

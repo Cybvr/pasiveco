@@ -30,6 +30,10 @@ import Image from 'next/image'
 import UserMenu from './user-menu'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
 import { useMessageActivity } from '@/hooks/useMessageActivity'
+import { useAuth } from '@/hooks/useAuth'
+import PricingPlans from '@/app/common/website/PricingPlans'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 
 interface NavItem {
@@ -90,7 +94,9 @@ export default function Sidebar({
   const isAdmin = pathname.startsWith('/admin')
   const { count: networkCount } = useNetworkActivity()
   const { unreadCount: messagesCount } = useMessageActivity()
+  const { user, trialDaysLeft, isTrialing } = useAuth()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false)
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
   const isItemActive = (href: string) => {
@@ -210,7 +216,7 @@ export default function Sidebar({
                 )}
                 {isExpanded ? (
                   <div className="ml-4 space-y-px border-l border-border/60 pl-2">
-                    {item.subItems.map((subItem) => {
+                    {item.subItems!.map((subItem) => {
                       const SubIcon = subItem.icon
                       const isSubItemActive = isItemActive(subItem.href)
 
@@ -305,6 +311,33 @@ export default function Sidebar({
             )
           })}
         </nav>
+        {!isAdmin && (
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size={isCollapsed ? "icon" : "sm"}
+              onClick={() => setIsUpgradeDialogOpen(true)}
+              className={cn(
+                "w-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300",
+                isCollapsed ? "mx-auto h-8 w-8" : "rounded-md px-2 py-1.5 text-xs font-semibold"
+              )}
+              title={isCollapsed ? "Upgrade" : undefined}
+            >
+              <span className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "justify-between")}>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Zap className="h-3.5 w-3.5 shrink-0" />
+                  {!isCollapsed && <span className="truncate">Upgrade</span>}
+                </div>
+                {!isCollapsed && (user?.plan === 'free' || !user?.plan) && isTrialing && (
+                  <span className="text-[9px] bg-primary/10 px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap">
+                    {trialDaysLeft} days left
+                  </span>
+                )}
+              </span>
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className={cn(
@@ -313,6 +346,25 @@ export default function Sidebar({
       )}>
         <UserMenu isCollapsed={isCollapsed} />
       </div>
+
+      <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
+        <DialogContent className="w-[96vw] max-w-6xl max-h-[90vh] p-0 flex flex-col gap-0 overflow-hidden">
+          <div className="shrink-0 p-4 sm:p-6 border-b">
+            <DialogHeader className="pr-8">
+              <DialogTitle>Upgrade your plan</DialogTitle>
+              <DialogDescription>
+                Pick the plan that fits your business and unlock more tools as you grow.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
+            <PricingPlans
+              currentPlan={user?.plan?.toLowerCase() ?? 'free'}
+              embedded
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
