@@ -13,6 +13,7 @@ import { getUser } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
 import Image from 'next/image'
 import NotificationsDialog from './NotificationsDialog'
+import UpgradeCta from './UpgradeCta'
 import { cn } from '@/lib/utils'
 import { useMessageActivity } from '@/hooks/useMessageActivity'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
@@ -108,8 +109,8 @@ export default function DashboardHeader() {
     if (pathname.startsWith('/dashboard/help')) return 'Help & Support'
     if (pathname.startsWith('/dashboard/posts/')) return 'Post'
     if (pathname.startsWith('/dashboard/communities/')) {
-        if (pathname === '/dashboard/communities/create') return 'Create Space'
-        return 'Space Details'
+      if (pathname === '/dashboard/communities/create') return 'Create Space'
+      return 'Space Details'
     }
 
     const segments = pathname.split('/').filter(Boolean)
@@ -157,8 +158,8 @@ export default function DashboardHeader() {
   }
 
   const showBackButton = pathname === '/dashboard/posts/new' ||
-                         pathname.startsWith('/dashboard/products/') ||
-                         (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
+    pathname.startsWith('/dashboard/products/') ||
+    (pathname.startsWith('/dashboard/communities/') && pathname !== '/dashboard/communities')
   const showSaveButton = pathname === '/dashboard/edit'
   const isProductDetailPage = pathname.startsWith('/dashboard/products/')
 
@@ -234,11 +235,11 @@ export default function DashboardHeader() {
                 </SheetHeader>
                 <div className="pt-6 px-4 pb-4 border-b border-border/60">
                   <div className="flex items-center justify-between gap-3">
-                    <Link href="/dashboard" className="flex items-center gap-2 min-w-0" onClick={() => setIsSheetOpen(false)}>
-                      <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm">
-                        <Image src="/images/monster.png" alt="Pasive" width={20} height={20} />
+                    <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" onClick={() => setIsSheetOpen(false)}>
+                      <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm transition-transform duration-200 group-hover:scale-110">
+                        <Image src="/images/logo.svg" alt="Pasive" width={20} height={20} />
                       </div>
-                      <span className="text-base font-black tracking-tighter leading-none">pasive</span>
+                      <span className="text-xl font-chunko leading-none text-foreground translate-y-[1px]">PASIVE</span>
                     </Link>
                     <CurrencySelector className="h-9 w-[100px] shrink-0 rounded-md" />
                   </div>
@@ -343,7 +344,7 @@ export default function DashboardHeader() {
                         </Button>
                       )
                     })}
-                    <div className="px-2.5 pt-2 pb-1">
+                    <div className="px-2.5 py-1">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/60">
                         Explore
                       </p>
@@ -383,8 +384,11 @@ export default function DashboardHeader() {
                       )
                     })}
                   </div>
- 
-                  <div className="mt-auto border-t p-2">
+                  <div className="border-t px-2 ">
+                    <UpgradeCta className="h-9 rounded-lg px-3 text-[12px]" />
+                  </div>
+
+                  <div className="mt-auto border-t ">
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-2.5 h-9 px-2.5 hover:bg-muted/40 transition-colors"
@@ -394,7 +398,7 @@ export default function DashboardHeader() {
                       <span className="flex-1 text-[12px] text-left font-semibold">Help & Support</span>
                       <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" />
                     </Button>
-                    <div className="h-[1px] bg-border/50 my-1 mx-2" />
+                    <div className="h-[1px] bg-border/50  mx-2" />
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-2.5 h-9 px-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors"

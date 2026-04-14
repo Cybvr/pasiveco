@@ -30,12 +30,10 @@ import {
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import UserMenu from './user-menu'
+import UpgradeCta from './UpgradeCta'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
 import { useMessageActivity } from '@/hooks/useMessageActivity'
 import { useAuth } from '@/hooks/useAuth'
-import PricingPlans from '@/app/common/website/PricingPlans'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 
 interface NavItem {
@@ -96,14 +94,14 @@ export default function Sidebar({
   const isAdmin = pathname.startsWith('/admin')
   const { count: networkCount } = useNetworkActivity()
   const { unreadCount: messagesCount } = useMessageActivity()
-  const { user, trialDaysLeft, isTrialing } = useAuth()
+  const { user, isTrialing } = useAuth()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false)
 
   const isFreeExpired = (user?.plan?.toLowerCase() === 'free' || !user?.plan) && !isTrialing;
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
-  
+
   const isItemLocked = (label: string) => {
     if (isAdmin) return false;
     if (!isFreeExpired) return false;
@@ -148,7 +146,7 @@ export default function Sidebar({
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="p-1 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
-              <Image src="/images/monster.png" alt="Monster" width={20} height={20} />
+              <Image src="/images/logo.svg" alt="Pasive" width={20} height={20} />
             </div>
             <div>
               <h1 className="text-xl font-chunko text-foreground leading-none translate-y-[1px]">PASIVE</h1>
@@ -227,7 +225,7 @@ export default function Sidebar({
                       <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
                       {hasUnread && isCollapsed && (
                         <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
                       )}
                     </div>
@@ -313,8 +311,8 @@ export default function Sidebar({
                   <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
                   {showBadge && isCollapsed && (
                     <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span>
                   )}
                 </div>
@@ -357,29 +355,11 @@ export default function Sidebar({
         </nav>
         {!isAdmin && (
           <div className="pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size={isCollapsed ? "icon" : "sm"}
-              onClick={() => setIsUpgradeDialogOpen(true)}
-              className={cn(
-                "w-full border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary transition-all duration-300",
-                isCollapsed ? "mx-auto h-8 w-8" : "rounded-md px-2 py-1.5 text-xs font-semibold"
-              )}
-              title={isCollapsed ? "Upgrade" : undefined}
-            >
-              <span className={cn("flex items-center w-full", isCollapsed ? "justify-center" : "justify-between")}>
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <Zap className="h-3.5 w-3.5 shrink-0" />
-                  {!isCollapsed && <span className="truncate">Upgrade</span>}
-                </div>
-                {!isCollapsed && (user?.plan?.toLowerCase() === 'free' || !user?.plan) && isTrialing && (
-                  <span className="text-[9px] bg-primary/10 px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap">
-                    {trialDaysLeft} days left
-                  </span>
-                )}
-              </span>
-            </Button>
+            <UpgradeCta
+              isCollapsed={isCollapsed}
+              open={isUpgradeDialogOpen}
+              onOpenChange={setIsUpgradeDialogOpen}
+            />
           </div>
         )}
       </div>
@@ -390,25 +370,6 @@ export default function Sidebar({
       )}>
         <UserMenu isCollapsed={isCollapsed} />
       </div>
-
-      <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
-        <DialogContent className="w-[96vw] max-w-6xl max-h-[90vh] p-0 flex flex-col gap-0 overflow-hidden">
-          <div className="shrink-0 p-4 sm:p-6 border-b">
-            <DialogHeader className="pr-8">
-              <DialogTitle>Upgrade your plan</DialogTitle>
-              <DialogDescription>
-                Pick the plan that fits your business and unlock more tools as you grow.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
-            <PricingPlans
-              currentPlan={user?.plan?.toLowerCase() ?? 'free'}
-              embedded
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
