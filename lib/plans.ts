@@ -161,8 +161,8 @@ export const getPlanFlutterwaveId = (planId: PlanId, billingPeriod: BillingPerio
 const TRIAL_RESET_DATE = new Date('2026-04-14T00:00:00Z');
 
 export const getTrialEndDate = (createdAt: Date, planId: PlanId = 'free'): Date | null => {
-  const plan = pricingPlans[planId];
-  const trialDays = plan.trialDays || 0;
+  // If the user is on 'free', we check their trial against the standard 7-day period
+  const trialDays = planId === 'free' ? 7 : (pricingPlans[planId]?.trialDays || 0);
   if (trialDays === 0) return null;
 
   // Use the signup date or the reset date, whichever is later

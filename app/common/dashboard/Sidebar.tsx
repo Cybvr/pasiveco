@@ -24,7 +24,9 @@ import {
   Zap,
   CalendarDays,
   MessageSquare,
+  Lock,
 } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import UserMenu from './user-menu'
@@ -98,7 +100,17 @@ export default function Sidebar({
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false)
 
+  const isFreeExpired = (user?.plan?.toLowerCase() === 'free' || !user?.plan) && !isTrialing;
+
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
+  
+  const isItemLocked = (label: string) => {
+    if (isAdmin) return false;
+    if (!isFreeExpired) return false;
+    const lockedLabels = ['Bookings', 'Analytics', 'Business Manager', 'Storefront Templates'];
+    return lockedLabels.includes(label);
+  };
+
   const isItemActive = (href: string) => {
     if (href === '/dashboard') return pathname === href
     if (href === '/admin') return pathname === href
@@ -161,6 +173,7 @@ export default function Sidebar({
             const isExpandable = Boolean(item.subItems?.length)
             const isExpanded = isExpandable && !isCollapsed && Boolean(expandedGroups[item.label])
             const GroupChevron = isExpanded ? ChevronDown : ChevronRight
+            const isLocked = isItemLocked(item.label)
 
             return (
               <div key={item.label} className="space-y-px">
@@ -177,25 +190,37 @@ export default function Sidebar({
                       "flex w-full items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200 relative",
                       isActive
                         ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      isLocked && "opacity-60"
                     )}
                   >
                     <div className="relative">
                       <Icon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
                     </div>
                     <span className="truncate flex-1 text-left">{item.label}</span>
-                    <GroupChevron className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
+                    {isLocked ? (
+                      <Lock className="h-3 w-3 shrink-0 text-muted-foreground/50" />
+                    ) : (
+                      <GroupChevron className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
+                    )}
                   </button>
                 ) : (
                   <Link
-                    href={item.href}
+                    href={isLocked ? "#" : item.href}
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.preventDefault();
+                        setIsUpgradeDialogOpen(true);
+                      }
+                    }}
                     title={isCollapsed ? item.label : ""}
                     className={cn(
                       "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative",
                       isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                       isActive
                         ? "bg-muted text-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      isLocked && "opacity-60"
                     )}
                   >
                     <div className="relative">
@@ -207,6 +232,7 @@ export default function Sidebar({
                       )}
                     </div>
                     {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+                    {isLocked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                     {hasUnread && !isCollapsed && (
                       <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {messagesCount > 9 ? '9+' : messagesCount}
@@ -219,20 +245,29 @@ export default function Sidebar({
                     {item.subItems!.map((subItem) => {
                       const SubIcon = subItem.icon
                       const isSubItemActive = isItemActive(subItem.href)
+                      const isSubLocked = isItemLocked(subItem.label)
 
                       return (
                         <Link
                           key={subItem.href}
-                          href={subItem.href}
+                          href={isSubLocked ? "#" : subItem.href}
+                          onClick={(e) => {
+                            if (isSubLocked) {
+                              e.preventDefault();
+                              setIsUpgradeDialogOpen(true);
+                            }
+                          }}
                           className={cn(
                             "flex min-h-8 items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200",
                             isSubItemActive
                               ? "bg-muted text-foreground"
-                              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                            isSubLocked && "opacity-60"
                           )}
                         >
                           <SubIcon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
-                          <span className="truncate">{subItem.label}</span>
+                          <span className="truncate flex-1">{subItem.label}</span>
+                          {isSubLocked && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                         </Link>
                       )
                     })}
@@ -252,18 +287,26 @@ export default function Sidebar({
             const Icon = item.icon
             const isActive = isItemActive(item.href)
             const showBadge = item.label === 'Network' && networkCount > 0
+            const isLocked = isItemLocked(item.label)
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={isLocked ? "#" : item.href}
+                onClick={(e) => {
+                  if (isLocked) {
+                    e.preventDefault();
+                    setIsUpgradeDialogOpen(true);
+                  }
+                }}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
                   "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none relative group/nav",
                   isCollapsed ? "justify-center h-8 w-8 mx-auto" : "px-2 py-1.5 min-h-8",
                   isActive
                     ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  isLocked && "opacity-60"
                 )}
               >
                 <div className="relative">
@@ -276,6 +319,7 @@ export default function Sidebar({
                   )}
                 </div>
                 {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
+                {isLocked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                 {showBadge && !isCollapsed && (
                   <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                     {networkCount > 9 ? '9+' : networkCount}
@@ -329,7 +373,7 @@ export default function Sidebar({
                   <Zap className="h-3.5 w-3.5 shrink-0" />
                   {!isCollapsed && <span className="truncate">Upgrade</span>}
                 </div>
-                {!isCollapsed && (user?.plan === 'free' || !user?.plan) && isTrialing && (
+                {!isCollapsed && (user?.plan?.toLowerCase() === 'free' || !user?.plan) && isTrialing && (
                   <span className="text-[9px] bg-primary/10 px-1.5 py-0.5 rounded-full font-bold whitespace-nowrap">
                     {trialDaysLeft} days left
                   </span>

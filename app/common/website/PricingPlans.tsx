@@ -41,7 +41,7 @@ export default function PricingPlans({
       : 'annual';
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>(initialBillingPeriod);
 
-  const plans = Object.entries(pricingPlans);
+  const plans = Object.entries(pricingPlans).filter(([id]) => id !== 'free');
 
   // Detect active plan simply from props or user state
   const activePlan = (
@@ -134,7 +134,7 @@ export default function PricingPlans({
         </div>
       </div>
 
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4", embedded ? "gap-5 mb-8" : "gap-8 mb-12")}>
+      <div className={cn("grid grid-cols-1 md:grid-cols-3", embedded ? "gap-5 mb-8" : "gap-8 mb-12")}>
         {plans.map(([planId, plan]: [string, any]) => {
           const isPlanAvailable = plan[billingPeriod] !== undefined;
           const price = getPlanPrice(planId as PlanId, billingPeriod, currency);
