@@ -142,8 +142,31 @@ export default function RootLayout({
             gtag('config', 'AW-16978252898');
           `}
         </Script>
+        <Script id="facebook-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '1138878812634716');
+            fbq('track', 'PageView');
+          `}
+        </Script>
       </head>
       <body className={`${aeonik.variable} ${chunko.variable} font-sans antialiased font-normal`}>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=1138878812634716&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
