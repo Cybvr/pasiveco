@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Check, MessageCircle, X, Send, ChevronRight, Search, HelpCircle, Home, ArrowLeft, Plus } from "lucide-react"
-import { RiWhatsappFill } from "react-icons/ri"
 import { getHelpDocs, type HelpDoc } from "@/lib/help-docs"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/AuthContext"
@@ -119,6 +118,19 @@ function SupportAvatar() {
     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/15 ring-2 ring-primary-foreground/20">
       <img src="/images/ronke.jpg" alt="Ronke" className="h-full w-full rounded-full object-cover" />
     </div>
+  )
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+    >
+      <path d="M12.04 2C6.52 2 2.05 6.46 2.05 11.96c0 1.76.46 3.49 1.33 5.01L2 22l5.19-1.36a9.94 9.94 0 0 0 4.85 1.24h.01c5.51 0 9.98-4.46 9.98-9.96A9.95 9.95 0 0 0 12.04 2Zm0 18.23h-.01a8.26 8.26 0 0 1-4.21-1.15l-.3-.18-3.08.81.82-3-.2-.31a8.27 8.27 0 0 1-1.27-4.42 8.3 8.3 0 0 1 8.31-8.29 8.3 8.3 0 0 1 8.29 8.3 8.3 8.3 0 0 1-8.35 8.24Zm4.55-6.18c-.25-.12-1.5-.74-1.73-.83-.23-.08-.4-.12-.57.12-.17.25-.65.83-.8 1-.15.17-.3.19-.56.07-.25-.12-1.07-.39-2.04-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.1-.51.11-.11.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.76-1.85-.2-.48-.4-.41-.56-.42h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.11s.91 2.46 1.03 2.63c.12.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.43.54.6.19 1.14.16 1.57.1.48-.07 1.5-.61 1.71-1.2.21-.59.21-1.1.15-1.2-.06-.1-.23-.15-.48-.27Z" />
+    </svg>
   )
 }
 
@@ -785,7 +797,7 @@ export default function SupportChatWidget() {
               rel="noreferrer"
               className="flex flex-col items-center gap-0.5 px-5 text-muted-foreground transition-colors hover:text-foreground"
             >
-              <RiWhatsappFill className="h-4 w-4" />
+              <WhatsAppIcon className="h-4 w-4" />
               <span className="text-[9px] font-semibold">Whatsapp</span>
             </a>
 

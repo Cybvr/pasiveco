@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Instagram, X } from 'lucide-react'
+import { Camera, Instagram, X } from 'lucide-react'
 
 const IG_HANDLE = '@visualafrica__'
 const IG_URL = 'https://instagram.com/visualafrica__'
@@ -15,21 +15,34 @@ const steps = [
 
 export default function IgFeatureBanner() {
   const [open, setOpen] = useState(false)
+  const [imageFailed, setImageFailed] = useState(false)
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-full w-full flex-col justify-between rounded-2xl border border-border/60 bg-card p-5 text-left transition-colors hover:bg-muted/30 sm:p-6"
+        className="grid h-full w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-2xl border border-border/60 bg-card p-2 text-left whitespace-normal transition-colors hover:bg-muted/30 sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:p-2.5"
       >
-        <div>
+        <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl sm:h-14 sm:w-14">
+          {imageFailed ? (
+            <Camera className="h-4 w-4 text-primary" />
+          ) : (
+            <img
+              src="/images/cards/camera.png"
+              alt=""
+              className="h-full w-full object-contain"
+              onError={() => setImageFailed(true)}
+            />
+          )}
+        </div>
+
+        <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">Creator Spotlight</p>
-          <p className="mt-1 text-2xl font-bold">Your work deserves an audience</p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            We spotlight African creators weekly. Tag us and you could be next.
+          <p className="mt-0.5 whitespace-normal text-[11px] leading-relaxed text-muted-foreground">
+            We feature African creators weekly. Tag us to get seen.
           </p>
         </div>
-        <span className="mt-6 text-xs font-semibold text-primary">See how it works →</span>
+        <span className="text-xs font-semibold text-primary">Explore</span>
       </button>
 
       {open && (

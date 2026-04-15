@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { BriefcaseBusiness, Plus } from 'lucide-react'
+import { BriefcaseBusiness, Megaphone, Plus } from 'lucide-react'
 import {
   RiShoppingBag3Fill,
   RiShareForwardFill,
@@ -42,6 +42,8 @@ export default function DashboardHomePage() {
   const [hasBankingDetails, setHasBankingDetails] = useState(true)
   const [sellerTransactions, setSellerTransactions] = useState<Transaction[]>([])
   const [affiliateTransactions, setAffiliateTransactions] = useState<Transaction[]>([])
+  const [promoteImageFailed, setPromoteImageFailed] = useState(false)
+  const [managerImageFailed, setManagerImageFailed] = useState(false)
 
   const [communities, setCommunities] = useState<Community[]>([])
   const [communitiesLoading, setCommunitiesLoading] = useState(true)
@@ -112,7 +114,7 @@ export default function DashboardHomePage() {
   if (loading || authLoading) return <HomeSkeleton />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <section className="px-1 md:max-w-2xl">
         <ProfileCompletionCard
           user={user}
@@ -122,19 +124,93 @@ export default function DashboardHomePage() {
         />
       </section>
 
+      <section className="px-1">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex w-max gap-4 pb-4">
+            <div className="w-[280px] sm:w-[320px]">
+              <InviteCard
+                userId={user?.uid || ''}
+                username={((user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
+              />
+            </div>
+
+            <Link
+              href="/dashboard/network"
+              className="grid w-[280px] grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-2xl border border-border/60 bg-card p-2 whitespace-normal transition-colors hover:bg-muted/30 sm:w-[320px] sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:p-2.5"
+            >
+              <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl sm:h-14 sm:w-14">
+                {promoteImageFailed ? (
+                  <Megaphone className="h-4 w-4 text-primary" />
+                ) : (
+                  <img
+                    src="/images/cards/promote.png"
+                    alt=""
+                    className="h-full w-full object-contain"
+                    onError={() => setPromoteImageFailed(true)}
+                  />
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">Promote & Earn</p>
+                <p className="whitespace-normal text-[11px] leading-relaxed text-muted-foreground">
+                  Promote products in our affiliate network and earn commissions.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-primary">
+                Explore
+              </span>
+            </Link>
+
+            <div className="w-[280px] sm:w-[320px]">
+              <IgFeatureBanner />
+            </div>
+
+            <div className="grid w-[280px] grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-2xl border border-border/60 bg-card p-2 whitespace-normal transition-colors hover:bg-muted/30 sm:w-[320px] sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:p-2.5">
+              <div className="flex h-[52px] w-[52px] items-center justify-center rounded-xl sm:h-14 sm:w-14">
+                {managerImageFailed ? (
+                  <BriefcaseBusiness className="h-4 w-4 text-primary" />
+                ) : (
+                  <img
+                    src="/images/cards/briefcase.png"
+                    alt=""
+                    className="h-full w-full object-contain"
+                    onError={() => setManagerImageFailed(true)}
+                  />
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">Business Manager</p>
+                <p className="mt-0.5 whitespace-normal text-[11px] leading-relaxed text-muted-foreground">
+                  Get quick answers about sales, payouts, and account activity.
+                </p>
+              </div>
+              <Link
+                href="/dashboard/manager"
+                className="text-xs font-semibold text-primary"
+              >
+                Open
+              </Link>
+            </div>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </section>
+
       {/* ── Top Stats Grid ───────────────────────────── */}
-      <section className="px-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="px-1 grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Earnings Balance (Green) */}
         <Link
           href="/dashboard/earnings"
-          className="rounded-2xl p-5 sm:p-6 bg-primary text-primary-foreground flex flex-col justify-between transition-opacity hover:opacity-95"
+          className="rounded-2xl bg-card p-5 text-primary-foreground transition-opacity hover:opacity-95 sm:p-6"
         >
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest opacity-90 mb-1.5">Earnings Balance</p>
-            <p className="text-2xl sm:text-2xl font-bold text-primary-foreground">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest opacity-90">Earnings Balance</p>
+            <p className="text-2xl font-bold text-primary-foreground sm:text-2xl">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
+            <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] font-semibold whitespace-nowrap sm:text-xs">
               View earnings
             </span>
           </div>
@@ -143,80 +219,19 @@ export default function DashboardHomePage() {
         {/* Products Listed */}
         <Link
           href="/dashboard/products"
-          className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 flex flex-col justify-between transition-colors hover:bg-muted/30"
+          className="flex flex-col justify-between rounded-2xl border border-border/60 bg-card p-5 transition-colors hover:bg-muted/30 sm:p-6"
         >
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80 mb-1.5">Products Listed</p>
-            <p className="text-2xl sm:text-2xl font-bold text-foreground">{products.length}</p>
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80">Products Listed</p>
+            <p className="text-2xl font-bold text-foreground sm:text-2xl">{products.length}</p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary sm:text-xs">
               View Products
             </span>
           </div>
         </Link>
-
-        <InviteCard
-          userId={user?.uid || ''}
-          username={((user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
-          currency={currency}
-        />
-
-        <Link
-          href="/dashboard/network"
-          className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 flex flex-col justify-between transition-colors hover:bg-muted/30"
-        >
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80 mb-1.5">Promote & Earn</p>
-            <p className="text-2xl sm:text-2xl font-bold text-foreground">Up to 50% Comm.</p>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Join our affiliate network and earn high commissions by promoting top products.
-            </p>
-          </div>
-          <div className="mt-6">
-            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary">
-              Explore Network
-            </span>
-          </div>
-        </Link>
-
-        <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 flex flex-col transition-colors hover:bg-muted/30">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground/80 mb-1.5">Business Manager</p>
-            <p className="text-2xl font-bold text-foreground">Ask a question</p>
-            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-              Get answers about your products, sales, payouts, and account activity.
-            </p>
-          </div>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {[
-              { label: 'Recent sale', prompt: 'Show me my recent sale' },
-              { label: 'Product count', prompt: 'How many products do I have?' },
-              { label: 'Payout setup', prompt: 'Do I have a payout account set up?' },
-            ].map((item) => (
-              <Link
-                key={item.label}
-                href={`/dashboard/manager?prompt=${encodeURIComponent(item.prompt)}`}
-                className="inline-flex rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] sm:text-xs font-medium text-muted-foreground hover:bg-muted transition-colors whitespace-nowrap"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-          <div className="mt-auto pt-5 border-t border-border/40">
-            <Link
-              href="/dashboard/manager"
-              className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] sm:text-xs font-semibold text-primary whitespace-nowrap"
-            >
-              Open Manager
-            </Link>
-          </div>
-        </div>
-
-        <IgFeatureBanner />
       </section>
-
-      {/* ── Profile & Invite Row ───────────────────────────── */}
 
 
       {/* ── Quick Links Grid ───────────────────────────── */}

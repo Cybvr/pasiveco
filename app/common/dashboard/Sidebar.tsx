@@ -28,7 +28,6 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 import UserMenu from './user-menu'
 import UpgradeCta from './UpgradeCta'
 import { useNetworkActivity } from '@/hooks/useNetworkActivity'
@@ -152,7 +151,7 @@ export default function Sidebar({
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="p-1 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
-              <Image src="/images/logo.svg" alt="Pasive" width={20} height={20} />
+              <img src="/images/logo.svg" alt="Pasive" className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-xl font-chunko text-foreground leading-none translate-y-[1px]">PASIVE</h1>

@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { getUser } from '@/services/userService'
 import { getDisplayAvatar } from '@/lib/avatar'
-import Image from 'next/image'
 import NotificationsDialog from './NotificationsDialog'
 import UpgradeCta from './UpgradeCta'
 import { cn } from '@/lib/utils'
@@ -250,7 +249,7 @@ export default function DashboardHeader() {
                   <div className="flex items-center justify-between gap-3">
                     <Link href="/dashboard" className="flex items-center gap-2 min-w-0 group" onClick={() => setIsSheetOpen(false)}>
                       <div className="rounded-lg bg-primary/10 p-1.5 shadow-sm transition-transform duration-200 group-hover:scale-110">
-                        <Image src="/images/logo.svg" alt="Pasive" width={20} height={20} />
+                        <img src="/images/logo.svg" alt="Pasive" className="h-5 w-5" />
                       </div>
                       <span className="text-xl font-chunko leading-none text-foreground translate-y-[1px]">PASIVE</span>
                     </Link>

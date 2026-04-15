@@ -8,7 +8,6 @@ import { Lock, ShieldAlert, LogOut } from "lucide-react"
 import { auth } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30 minutes
 
 export default function SecurityLock({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
@@ -22,42 +21,8 @@ export default function SecurityLock({ children }: { children: React.ReactNode }
     router.push("/auth/login")
   }, [router])
 
-  const checkLock = useCallback(() => {
-    if (!user || !user.isPinEnabled) {
-        setIsLocked(false)
-        return
-    }
+  // Inactivity timeout logic removed
 
-    const lastActive = localStorage.getItem("lastActive")
-    const now = Date.now()
-
-    if (lastActive && now - parseInt(lastActive) > INACTIVITY_TIMEOUT) {
-      setIsLocked(true)
-    }
-  }, [user])
-
-  useEffect(() => {
-    if (!user?.isPinEnabled) {
-        setIsLocked(false)
-        return
-    }
-
-    checkLock()
-
-    const updateActivity = () => {
-      localStorage.setItem("lastActive", Date.now().toString())
-    }
-
-    const events = ["mousedown", "keydown", "scroll", "touchstart"]
-    events.forEach(event => window.addEventListener(event, updateActivity))
-
-    // Initial activity set
-    updateActivity()
-
-    return () => {
-      events.forEach(event => window.removeEventListener(event, updateActivity))
-    }
-  }, [user?.isPinEnabled, checkLock])
 
   const handleVerify = () => {
     if (pin === user?.pin) {
