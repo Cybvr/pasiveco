@@ -34,24 +34,30 @@ type Country =
   | "united kingdom"
   | "europe"
 
-const COUNTRIES: { value: Country; label: string; currency: string; gateway: "flutterwave" | "stripe_connect" }[] = [
-  { value: "nigeria", label: "Nigeria", currency: "NGN", gateway: "flutterwave" },
-  { value: "ghana", label: "Ghana", currency: "GHS", gateway: "flutterwave" },
-  { value: "kenya", label: "Kenya", currency: "KES", gateway: "flutterwave" },
-  { value: "south africa", label: "South Africa", currency: "ZAR", gateway: "flutterwave" },
-  { value: "uganda", label: "Uganda", currency: "UGX", gateway: "flutterwave" },
-  { value: "tanzania", label: "Tanzania", currency: "TZS", gateway: "flutterwave" },
-  { value: "rwanda", label: "Rwanda", currency: "RWF", gateway: "flutterwave" },
-  { value: "egypt", label: "Egypt", currency: "EGP", gateway: "flutterwave" },
-  { value: "senegal", label: "Senegal", currency: "XOF", gateway: "flutterwave" },
-  { value: "ivory coast", label: "Ivory Coast", currency: "XOF", gateway: "flutterwave" },
-  { value: "cameroon", label: "Cameroon", currency: "XAF", gateway: "flutterwave" },
+const COUNTRIES: { value: Country; label: string; currency: string; gateway: "paystack" | "stripe_connect" }[] = [
+  { value: "nigeria", label: "Nigeria", currency: "NGN", gateway: "paystack" },
+  { value: "ghana", label: "Ghana", currency: "GHS", gateway: "paystack" },
+  { value: "kenya", label: "Kenya", currency: "KES", gateway: "paystack" },
+  { value: "south africa", label: "South Africa", currency: "ZAR", gateway: "paystack" },
+  { value: "uganda", label: "Uganda", currency: "UGX", gateway: "paystack" },
+  { value: "tanzania", label: "Tanzania", currency: "TZS", gateway: "paystack" },
+  { value: "rwanda", label: "Rwanda", currency: "RWF", gateway: "paystack" },
+  { value: "egypt", label: "Egypt", currency: "EGP", gateway: "paystack" },
+  { value: "senegal", label: "Senegal", currency: "XOF", gateway: "paystack" },
+  { value: "ivory coast", label: "Ivory Coast", currency: "XOF", gateway: "paystack" },
+  { value: "cameroon", label: "Cameroon", currency: "XAF", gateway: "paystack" },
   { value: "united states", label: "United States (Stripe)", currency: "USD", gateway: "stripe_connect" },
   { value: "united kingdom", label: "United Kingdom (Stripe)", currency: "GBP", gateway: "stripe_connect" },
   { value: "europe", label: "Europe (Stripe)", currency: "EUR", gateway: "stripe_connect" },
 ]
 
-const initialBankingForm = { country: "nigeria" as Country, bankName: "", bankCode: "", accountName: "", accountNumber: "" }
+const initialBankingForm = { 
+  country: "nigeria" as Country, 
+  accountNumber: "", 
+  payoutSchedule: "manual" as "manual" | "automatic",
+  cryptoWallet: "",
+  cryptoNetwork: "TRX" // Default to TRC20 (Tron)
+}
 const isKenyaMobileMoney = (country: Country) => country === "kenya"
 
 export default function PaymentMethodsPage() {
@@ -211,7 +217,7 @@ export default function PaymentMethodsPage() {
     setCountryDropdownOpen(false)
     setAccountResolveError("")
     setAccountNameResolved(false)
-    if (gateway === "flutterwave") void fetchBanks(country)
+    if (gateway === "paystack") void fetchBanks(country)
   }
 
   const handleEdit = (account: BankingDetails) => {
@@ -221,6 +227,9 @@ export default function PaymentMethodsPage() {
       bankCode: account.bankCode || "",
       accountName: account.accountName,
       accountNumber: account.accountNumber,
+      payoutSchedule: account.payoutSchedule || "manual",
+      cryptoWallet: account.cryptoWallet || "",
+      cryptoNetwork: account.cryptoNetwork || "TRX",
     })
     setEditingId(account.id || null)
     setAddingNew(true)
@@ -277,12 +286,64 @@ export default function PaymentMethodsPage() {
     if (!user?.uid) return
     setBankingSaving(true)
     try {
+      let recipientCode = editingId ? payoutAccounts.find((account) => account.id === editingId)?.recipientCode : null
+      let subaccountCode = editingId ? payoutAccounts.find((account) => account.id === editingId)?.subaccountCode : null
+
+      // Create Paystack recipient code if needed (for Manual withdrawals)
+      if (!isStripeCountry && bankingForm.bankCode && bankingForm.accountNumber && !recipientCode) {
+        try {
+          const res = await fetch("/api/banks/recipient", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: bankingForm.accountName,
+              accountNumber: bankingForm.accountNumber,
+              bankCode: bankingForm.bankCode,
+            }),
+          })
+          const json = await res.json()
+          if (json.success && json.data?.recipientCode) {
+            recipientCode = json.data.recipientCode
+          }
+        } catch (err) {
+          console.error("Failed to create recipient code:", err)
+        }
+      }
+
+      // Create Paystack subaccount if needed (for Automatic payouts)
+      if (!isStripeCountry && bankingForm.payoutSchedule === "automatic" && bankingForm.bankCode && bankingForm.accountNumber && !subaccountCode) {
+        try {
+          const res = await fetch("/api/banks/subaccount", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              businessName: bankingForm.accountName,
+              bankCode: bankingForm.bankCode,
+              accountNumber: bankingForm.accountNumber,
+              percentageCharge: 10, // Example 10% platform fee
+            }),
+          })
+          const json = await res.json()
+          if (json.success && json.data?.subaccountCode) {
+            subaccountCode = json.data.subaccountCode
+          }
+        } catch (err) {
+          console.error("Failed to create subaccount:", err)
+        }
+      }
+
+      const isCrypto = bankingForm.bankName === "Crypto"
+
       const payload: BankingDetails = {
         ...bankingForm,
-        country: bankingForm.country,
-        payoutGateway: isStripeCountry ? "stripe_connect" : "flutterwave",
+        country: isCrypto ? "Global" : bankingForm.country,
+        payoutGateway: isStripeCountry ? "stripe_connect" : isCrypto ? "bitnob" : "paystack",
+        recipientCode: recipientCode || undefined,
+        subaccountCode: subaccountCode || undefined,
         id: editingId || undefined,
         isDefault: editingId ? payoutAccounts.find((account) => account.id === editingId)?.isDefault : payoutAccounts.length === 0,
+        // SECURITY MITIGATION: Lock payout for 24 hours if details changed
+        payoutLockedUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       }
       await savePayoutAccount(user.uid, payload)
       setPayoutAccounts(await getPayoutAccounts(user.uid))
@@ -337,9 +398,12 @@ export default function PaymentMethodsPage() {
         ))}
 
         {!addingNew ? (
-          <div className="flex justify-start">
+          <div className="flex justify-start gap-3">
             <Button size="sm" variant="outline" className="h-9 rounded-lg px-4 font-medium" onClick={() => { setAddingNew(true); setEditingId(null); setManualBankEntry(false); setBankingForm(initialBankingForm); setAccountResolveError(""); setAccountNameResolved(false) }}>
               <Plus className="mr-2 h-4 w-4" />Add Payout Account
+            </Button>
+            <Button size="sm" variant="outline" className="h-9 rounded-lg px-4 font-medium" onClick={() => { setAddingNew(true); setEditingId(null); setManualBankEntry(true); setBankingForm({ ...initialBankingForm, bankName: "Crypto" }); setAccountResolveError(""); setAccountNameResolved(false) }}>
+              <Plus className="mr-2 h-4 w-4" />Add Crypto Wallet
             </Button>
           </div>
         ) : (
@@ -356,6 +420,26 @@ export default function PaymentMethodsPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-[10px] font-bold uppercase opacity-50">Payout Schedule</Label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setBankingForm((current) => ({ ...current, payoutSchedule: "manual" }))}
+                    className={`flex-1 rounded-lg border p-3 text-left transition-all ${bankingForm.payoutSchedule === "manual" ? "border-primary bg-primary/[0.03]" : "hover:border-muted-foreground/30"}`}
+                  >
+                    <div className="text-xs font-bold">Manual</div>
+                    <div className="text-[10px] text-muted-foreground leading-tight mt-1">Settled to your Pasive wallet. Withdraw at any time.</div>
+                  </button>
+                  <button
+                    onClick={() => setBankingForm((current) => ({ ...current, payoutSchedule: "automatic" }))}
+                    className={`flex-1 rounded-lg border p-3 text-left transition-all ${bankingForm.payoutSchedule === "automatic" ? "border-primary bg-primary/[0.03]" : "hover:border-muted-foreground/30"}`}
+                  >
+                    <div className="text-xs font-bold">Automatic</div>
+                    <div className="text-[10px] text-muted-foreground leading-tight mt-1">Settled directly to your bank account automatically.</div>
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-2 md:col-span-2">
                 <Label className="text-[10px] font-bold uppercase opacity-50">Country</Label>
                 <div className="relative" ref={countryDropdownRef}>
@@ -384,6 +468,31 @@ export default function PaymentMethodsPage() {
                     {bankingSaving ? "Redirecting..." : "Connect with Stripe"}
                   </Button>
                 </div>
+              ) : bankingForm.bankName === "Crypto" ? (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase opacity-50">USDT Network</Label>
+                    <select 
+                      className="flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 text-sm"
+                      value={bankingForm.cryptoNetwork}
+                      onChange={(e) => setBankingForm(curr => ({ ...curr, cryptoNetwork: e.target.value }))}
+                    >
+                      <option value="TRX">TRC20 (Tron) - Lower Fees</option>
+                      <option value="ETH">ERC20 (Ethereum) - Higher Fees</option>
+                      <option value="BSC">BEP20 (Binance Smart Chain)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase opacity-50">USDT Wallet Address</Label>
+                    <Input
+                      className="h-10 text-sm"
+                      placeholder="e.g. T...",
+                      value={bankingForm.cryptoWallet}
+                      onChange={(e) => setBankingForm(curr => ({ ...curr, cryptoWallet: e.target.value, accountNumber: e.target.value, accountName: "USDT Wallet" }))}
+                    />
+                    <p className="text-[10px] text-destructive font-bold uppercase">Double check your address. Crypto transfers are irreversible.</p>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="space-y-2">

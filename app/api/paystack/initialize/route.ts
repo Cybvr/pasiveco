@@ -28,9 +28,27 @@ export async function POST(request: NextRequest) {
     }
 
     let customerId: string | null = null;
+    let subaccount: string | null = null;
 
     if (userId && typeof userId === 'string' && currency && ['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(String(currency).toUpperCase())) {
       customerId = await StripeService.ensureCustomer({ userId, email });
+    }
+
+    // Handle Paystack Subaccount for Automatic Payouts
+    try {
+      const { getProduct } = await import('@/services/productsService');
+      const { getBankingDetails } = await import('@/services/bankingDetailsService');
+      
+      const product = await getProduct(productId);
+      if (product?.userId) {
+        const banking = await getBankingDetails(product.userId);
+        if (banking?.payoutSchedule === 'automatic' && banking?.subaccountCode) {
+          subaccount = banking.subaccountCode;
+          console.log(`Using subaccount ${subaccount} for automatic payout to creator ${product.userId}`);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to resolve subaccount for product creator:', err);
     }
 
     const initialization = await PaymentGatewayService.initializeCheckout({
@@ -42,6 +60,7 @@ export async function POST(request: NextRequest) {
       slug: slug || '',
       hostname: request.nextUrl.host,
       customerId,
+      subaccount,
       metadata: {
         ...metadata,
         productId,

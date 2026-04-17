@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { useCurrency } from '@/context/CurrencyContext';
-import { pricingPlans, type PlanId, type BillingPeriod, getPlanPrice } from "@/lib/plans";
+import { pricingPlans, type PlanId, type BillingPeriod, getPlanPrice, isInTrialPeriod } from "@/lib/plans";
 import { Switch } from "@/components/ui/switch";
 import { formatCurrency } from '@/utils/currency';
 import { cn } from '@/lib/utils';
@@ -50,6 +50,12 @@ export default function PricingPlans({
     user?.plan || 
     'free'
   ).toLowerCase();
+
+  // Check if user is already in their initial soft trial
+  const isCurrentlyInTrial = user?.createdAt ? isInTrialPeriod(
+    (user.createdAt as any).toDate ? (user.createdAt as any).toDate() : new Date(user.createdAt),
+    'free'
+  ) : false;
 
   const handleUpgrade = async (planId: string) => {
     if (!user?.uid) {
@@ -211,7 +217,11 @@ export default function PricingPlans({
                   handleUpgrade(planId);
                 }}
               >
-                {activePlan === planId ? 'CURRENT PLAN' : plan.isTrial ? 'START 7-DAY FREE TRIAL' : 'UPGRADE NOW'}
+                {activePlan === planId 
+                  ? 'CURRENT PLAN' 
+                  : (plan.isTrial && !isCurrentlyInTrial) 
+                    ? 'START 7-DAY FREE TRIAL' 
+                    : 'UPGRADE NOW'}
               </Button>
             </div>
           );

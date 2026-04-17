@@ -12,6 +12,7 @@ export interface CheckoutOptions {
   hostname: string; // To build callback URLs
   metadata?: Record<string, string>;
   customerId?: string | null;
+  subaccount?: string | null;
 }
 
 export class PaymentGatewayService {
@@ -66,6 +67,7 @@ export class PaymentGatewayService {
         email: options.email,
         currency: options.currency,
         callback_url: `${origin}${callbackPath}?reference=${reference}`,
+        subaccount: options.subaccount || undefined,
         metadata: {
           productId: options.productId,
           ...options.metadata,
@@ -81,9 +83,8 @@ export class PaymentGatewayService {
     gateway: PaymentGateway;
     amount: number;
     currency: string;
-    destination: string; // Account ID for Stripe, Account Number for Flw
-    bankCode?: string; // Only for Flw
-    reference: string;
+    recipientCode: string;
+    reason?: string;
   }) {
     if (params.gateway === 'stripe') {
       // Amount in cents
@@ -91,18 +92,15 @@ export class PaymentGatewayService {
       return await StripeService.createTransfer(
         amountInCents, 
         params.currency, 
-        params.destination
+        params.recipientCode
       );
     } else {
-      // Flutterwave
-      return await FlutterwaveService.createTransfer({
-        account_bank: params.bankCode!,
-        account_number: params.destination,
-        amount: params.amount,
-        currency: params.currency,
-        narration: 'Pasive Payout',
-        reference: params.reference,
-      });
+      // Paystack
+      return await PaystackService.initiateTransfer(
+        params.amount,
+        params.recipientCode,
+        params.reason || 'Pasive Payout'
+      );
     }
   }
 }

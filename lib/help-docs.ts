@@ -198,7 +198,7 @@ export const HELP_DOCS: HelpDoc[] = [
   {
     id: 'payment-payout-integration',
     title: 'Payment and payout integration',
-    summary: 'Understand how Stripe, Flutterwave, and webhooks work together for global collections and localized payouts.',
+    summary: 'Understand how Stripe and Paystack work together for global collections and localized payouts.',
     category: 'Payments',
     readTime: '6 min read',
     sections: [
@@ -206,7 +206,7 @@ export const HELP_DOCS: HelpDoc[] = [
         id: 'how-it-works',
         title: 'How it works',
         paragraphs: [
-          'Pasive uses a multi-layered payment system. Western buyers are routed to Stripe, African buyers are routed to Flutterwave, and webhooks from both providers update Firestore to grant product access or subscription status.',
+          'Pasive uses a multi-layered payment system. Western buyers and sellers are routed to Stripe, while African buyers and sellers are routed to Paystack. Webhooks from both providers update Firestore to grant product access or subscription status.',
         ],
       },
       {
@@ -217,9 +217,9 @@ export const HELP_DOCS: HelpDoc[] = [
         ],
         bullets: [
           'Western buyers -> Stripe',
-          'African buyers -> Flutterwave',
+          'African buyers -> Paystack',
           'Stripe supports USD, EUR, GBP, and similar currencies via card wallets and card payments.',
-          'Flutterwave supports NGN, GHS, KES, ZAR, and similar local currencies via mobile money, bank transfer, and local cards.',
+          'Paystack supports NGN, GHS, KES, ZAR, and similar local currencies via mobile money, bank transfer, and local cards.',
         ],
       },
       {
@@ -227,9 +227,9 @@ export const HELP_DOCS: HelpDoc[] = [
         title: 'Seller payouts',
         paragraphs: [
           "Money flows into Pasive's balance first. We then distribute payouts based on the seller's location:",
-          'Payout to African sellers -> Flutterwave Payouts',
+          'Payout to African sellers -> Paystack Transfers',
           'Payout to Western-based African sellers -> Stripe Connect',
-          'African sellers are paid through Flutterwave directly to supported bank accounts or mobile money wallets.',
+          'African sellers are paid through Paystack directly to supported bank accounts or mobile money wallets.',
           'Western-based African sellers are paid through Stripe Connect and must connect their Stripe account in settings.',
         ],
       },
@@ -240,11 +240,11 @@ export const HELP_DOCS: HelpDoc[] = [
           headers: ['Layer', 'Role'],
           rows: [
             ['Stripe', 'Western buyer collections and payouts to Western-based African sellers via Stripe Connect'],
-            ['Flutterwave', 'African buyer collections and payouts to African sellers via Flutterwave Payouts'],
+            ['Paystack', 'African buyer collections and payouts to African sellers via Paystack Transfers'],
             ['Webhooks', 'Bridge between processors and Firestore'],
           ],
         },
-        note: 'Without webhooks writing to Firestore, our systems would not know when a payment is successful. The webhook handlers for both Stripe and Flutterwave are critical for unlocking product access.',
+        note: 'Without webhooks writing to Firestore, our systems would not know when a payment is successful. The webhook handlers for both Stripe and Paystack are critical for unlocking product access.',
       },
     ],
   },

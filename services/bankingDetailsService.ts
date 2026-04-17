@@ -8,10 +8,15 @@ export interface BankingDetails {
   accountName: string
   accountNumber: string
   recipientCode?: string
+  subaccountCode?: string
+  cryptoWallet?: string
+  cryptoNetwork?: string
+  payoutSchedule?: 'manual' | 'automatic'
   country?: string
-  payoutGateway?: 'flutterwave' | 'stripe_connect'
+  payoutGateway?: 'flutterwave' | 'paystack' | 'stripe_connect' | 'bitnob'
   stripeConnectId?: string
   isDefault?: boolean
+  payoutLockedUntil?: string // ISO date string for security lock
   updatedAt?: any
 }
 

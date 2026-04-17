@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
+import { PaystackService } from '@/services/paystackService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,39 +13,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Bank code is required.' }, { status: 400 })
     }
 
-    const flutterwaveKey = process.env.FLUTTERWAVE_SECRET_KEY
+    const data = await PaystackService.resolveAccount(accountNumber.trim(), bankCode.trim())
 
-    if (!flutterwaveKey) {
-      return NextResponse.json({ success: false, message: 'Flutterwave key missing.' }, { status: 500 })
-    }
-
-    const response = await fetch('https://api.flutterwave.com/v3/accounts/resolve', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${flutterwaveKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        account_number: accountNumber.trim(),
-        account_bank: bankCode.trim(),
-      }),
-      cache: 'no-store',
-    })
-
-    const raw = await response.text()
-    let data: any = null
-
-    try {
-      data = raw ? JSON.parse(raw) : null
-    } catch {
-      console.error('Bank resolve non-JSON response:', raw.slice(0, 200))
-      return NextResponse.json(
-        { success: false, message: 'Flutterwave returned an invalid account resolution response.' },
-        { status: 502 }
-      )
-    }
-
-    if (response.ok && data?.status === 'success' && data.data?.account_name) {
+    if (data?.status && data.data?.account_name) {
       return NextResponse.json({
         success: true,
         data: {
@@ -57,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, message: data?.message || 'Unable to resolve account name.' },
-      { status: response.status || 400 }
+      { status: 400 }
     )
   } catch (error: any) {
     console.error('Bank resolve API error:', error)

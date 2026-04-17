@@ -145,25 +145,58 @@ export default function PayoutsPage() {
       return
     }
 
-    const payload = {
-      userId: user.uid,
-      amount: numericAmount,
-      currency,
-      status: "pending",
-      bankName: account.bankName || null,
-      accountName: account.accountName || null,
-      accountNumber: account.accountNumber || null,
-      recipientCode: account.recipientCode || null,
+    // Check security lock
+    if (account.payoutLockedUntil) {
+      const lockDate = new Date(account.payoutLockedUntil)
+      if (lockDate > new Date()) {
+        const hoursLeft = Math.ceil((lockDate.getTime() - new Date().getTime()) / (1000 * 60 * 60))
+        toast.error(`Account locked for security. Available in ${hoursLeft}h.`)
+        return
+      }
+    }
+
+    if (account.payoutGateway === 'paystack' && !account.recipientCode) {
+      toast.error("Payout recipient not verified. Please re-add your bank account.")
+      return
     }
 
     setSubmitting(true)
     try {
-      const requestId = await createPayoutRequest(payload as any)
+      const response = await fetch("/api/payouts/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.uid,
+          amount: numericAmount,
+          currency,
+          recipientCode: account.recipientCode,
+          accountName: account.accountName,
+          bankName: account.bankName,
+          accountNumber: account.accountNumber,
+          gateway: account.payoutGateway,
+          cryptoWallet: account.cryptoWallet,
+          cryptoNetwork: account.cryptoNetwork,
+          payoutLockedUntil: account.payoutLockedUntil,
+          email: user.email,
+        }),
+      })
+
+      const json = await response.json()
+
+      if (!json.success) {
+        throw new Error(json.message || "Failed to process withdrawal")
+      }
 
       setPayoutRequests((current) => [
         {
-          id: requestId,
-          ...payload,
+          id: json.payoutId,
+          userId: user.uid,
+          amount: numericAmount,
+          currency,
+          status: "paid",
+          bankName: account.bankName || 'Crypto Wallet',
+          accountName: account.accountName || 'USDT',
+          accountNumber: account.accountNumber || account.cryptoWallet,
           createdAt: Timestamp.now(),
         } as any,
         ...current,
@@ -171,9 +204,9 @@ export default function PayoutsPage() {
 
       setAmount("")
       setDialogOpen(false)
-      toast.success("Withdrawal submitted")
-    } catch {
-      toast.error("Failed to submit")
+      toast.success("Withdrawal successful! Funds have been sent.")
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit")
     } finally {
       setSubmitting(false)
     }
