@@ -1,7 +1,6 @@
-import { StripeService } from './stripeService';
-import { FlutterwaveService } from './flutterwaveService';
+import { PaystackService } from './paystackService';
 
-export type PaymentGateway = 'stripe' | 'flutterwave';
+export type PaymentGateway = 'stripe' | 'paystack';
 
 export interface CheckoutOptions {
   email: string;
@@ -24,7 +23,7 @@ export class PaymentGatewayService {
     if (westernCurrencies.includes(currency.toUpperCase())) {
       return 'stripe';
     }
-    return 'flutterwave';
+    return 'paystack';
   }
 
   /**
@@ -58,22 +57,16 @@ export class PaymentGatewayService {
         customerId: options.customerId,
       });
     } else {
-      // Flutterwave
-      const txRef = `flw_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      // Paystack
+      const reference = `pay_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       
-      return await FlutterwaveService.initializePayment({
-        tx_ref: txRef,
+      return await PaystackService.initializeTransaction({
+        reference,
         amount: options.amount,
+        email: options.email,
         currency: options.currency,
-        redirect_url: `${origin}${callbackPath}?tx_ref=${txRef}`,
-        customer: {
-          email: options.email,
-        },
-        customizations: {
-          title: 'Pasive',
-          description: options.productName,
-        },
-        meta: {
+        callback_url: `${origin}${callbackPath}?reference=${reference}`,
+        metadata: {
           productId: options.productId,
           ...options.metadata,
         },

@@ -21,12 +21,12 @@ interface SubscriptionPlan extends BasePricingPlan {
   monthly: {
     price: number;
     stripePriceId: string;
-    flutterwavePlanId: string;
+    paystackPlanCode: string;
   };
   annual: {
     price: number;
     stripePriceId: string;
-    flutterwavePlanId: string;
+    paystackPlanCode: string;
   };
 }
 
@@ -58,12 +58,12 @@ export const pricingPlans = {
     monthly: {
       price: 5000,
       stripePriceId: 'price_starter_monthly',
-      flutterwavePlanId: '157543'
+      paystackPlanCode: 'PLN_cn9ywc08gxm8wqe'
     },
     annual: {
       price: 30000,
       stripePriceId: 'price_starter_annual',
-      flutterwavePlanId: '157546'
+      paystackPlanCode: 'PLN_yd64hmhf2fyz45p'
     },
     features: [
       "Simple Website",
@@ -83,12 +83,12 @@ export const pricingPlans = {
     monthly: {
       price: 10000,
       stripePriceId: 'price_pro_monthly',
-      flutterwavePlanId: '157544'
+      paystackPlanCode: 'PLN_7ivvmwtrbpibtel'
     },
     annual: {
       price: 75000,
       stripePriceId: 'price_pro_annual',
-      flutterwavePlanId: '157547'
+      paystackPlanCode: 'PLN_tarcn4v0y04m6zf'
     },
     features: [
       "Everything in Starter",
@@ -97,8 +97,8 @@ export const pricingPlans = {
       "Storefront Templates",
       "Priority Support",
     ] as const,
-    isTrial: true,
-    trialDays: 7
+    isTrial: false,
+    trialDays: 0
   },
   growth: {
     type: 'subscription' as const,
@@ -108,12 +108,12 @@ export const pricingPlans = {
     monthly: {
       price: 25000,
       stripePriceId: 'price_growth_monthly',
-      flutterwavePlanId: '157545'
+      paystackPlanCode: 'PLN_jpswvs9uha511ar'
     },
     annual: {
       price: 250000,
       stripePriceId: 'price_growth_annual',
-      flutterwavePlanId: '157548'
+      paystackPlanCode: 'PLN_zpgzagpq5x1tt97'
     },
     features: [
       "Everything in Pro",
@@ -122,8 +122,8 @@ export const pricingPlans = {
       "Advanced Inventory",
       "Dedicated Account Manager",
     ] as const,
-    isTrial: true,
-    trialDays: 7
+    isTrial: false,
+    trialDays: 0
   }
 };
 
@@ -148,12 +148,12 @@ export const getPlanStripePriceId = (planId: PlanId, billingPeriod: BillingPerio
   return periodData ? periodData.stripePriceId : null;
 };
 
-export const getPlanFlutterwaveId = (planId: PlanId, billingPeriod: BillingPeriod): string | null => {
+export const getPlanPaystackCode = (planId: PlanId, billingPeriod: BillingPeriod): string | null => {
   const plan = pricingPlans[planId];
   if (plan.type === 'free') return null;
   
   const periodData = (plan as any)[billingPeriod];
-  return periodData ? periodData.flutterwavePlanId : null;
+  return periodData ? periodData.paystackPlanCode : null;
 };
 
 // Global trial reset date - any user who signed up before this date 

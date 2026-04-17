@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { FlutterwaveService } from '@/services/flutterwaveService';
+import { PaystackService } from '@/services/paystackService';
 import { getPlanPaystackCode, getPlanPrice, type PlanId, type BillingPeriod } from '@/lib/plans';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export async function POST(request: Request) {
@@ -23,48 +23,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, redirect: '/dashboard/settings/plan-billing' });
     }
 
-    // Get Paystack plan code (renamed from flutterwavePlanId for build compatibility)
-    const flutterwavePlanId = getPlanPaystackCode(planId as PlanId, billingPeriod as BillingPeriod);
+    // Get Paystack plan code
+    const paystackPlanCode = getPlanPaystackCode(planId as PlanId, billingPeriod as BillingPeriod);
     const amount = getPlanPrice(planId as PlanId, billingPeriod as BillingPeriod, 'NGN');
 
-    if (!flutterwavePlanId) {
-      return NextResponse.json({ error: 'Invalid plan selected or plan not available' }, { status: 400 });
+    if (!paystackPlanCode) {
+      return NextResponse.json({ error: 'Invalid plan selected or plan not available for Paystack' }, { status: 400 });
     }
 
-    const tx_ref = `sub_${userId}_${planId}_${billingPeriod}_${Date.now()}`;
+    const reference = `sub_${userId}_${planId}_${billingPeriod}_${Date.now()}`;
     const origin = request.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     const initializationData = {
-      tx_ref,
+      reference,
       amount,
+      email,
       currency: 'NGN',
-      redirect_url: `${origin}/dashboard/settings/plan-billing?status=success`,
-      customer: {
-        email: email,
-        name: name || 'User',
-      },
-      meta: {
+      callback_url: `${origin}/dashboard/settings/plan-billing?status=success&reference=${reference}`,
+      plan: paystackPlanCode,
+      metadata: {
         userId,
         planId,
         billingPeriod,
-      },
-      payment_plan: flutterwavePlanId,
-      customizations: {
-        title: 'Pasive Subscription',
-        description: `Upgrade to ${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
-        logo: `${origin}/logo.png`, // Update with actual logo URL
+        custom_fields: [
+          {
+            display_name: "Customer Name",
+            variable_name: "customer_name",
+            value: name || 'User'
+          },
+          {
+            display_name: "Plan",
+            variable_name: "plan",
+            value: planId
+          }
+        ]
       },
     };
 
-    const result = await FlutterwaveService.initializePayment(initializationData);
+    const result = await PaystackService.initializeTransaction(initializationData);
 
-    if (result.status && result.link) {
-      return NextResponse.json({ link: result.link });
+    if (result.status && result.url) {
+      return NextResponse.json({ link: result.url });
     } else {
       return NextResponse.json({ error: result.message || 'Failed to initialize payment' }, { status: 500 });
     }
   } catch (error) {
-    console.error('Flutterwave Checkout Error:', error);
+    console.error('Paystack Checkout Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StripeService } from '@/services/stripeService';
-import { FlutterwaveService } from '@/services/flutterwaveService';
+import { PaystackService } from '@/services/paystackService';
 import { createTransaction } from '@/services/transactionsService';
 
 export async function POST(request: NextRequest) {
@@ -21,18 +21,16 @@ export async function POST(request: NextRequest) {
     }
 
     let verification: any;
-    let gateway: 'stripe' | 'flutterwave' | null = null;
+    let gateway: 'stripe' | 'paystack' | null = null;
 
     if (reference?.startsWith('cs_')) {
       // Stripe Checkout Session
       gateway = 'stripe';
       verification = await StripeService.verifySession(reference);
-    } else if (transactionId || reference?.startsWith('flw_')) {
-      // Flutterwave
-      gateway = 'flutterwave';
-      verification = await FlutterwaveService.verifyPayment(transactionId || reference);
     } else {
-      return NextResponse.json({ error: 'Unsupported reference format' }, { status: 400 });
+      // Paystack
+      gateway = 'paystack';
+      verification = await PaystackService.verifyTransaction(reference || transactionId);
     }
 
     if (!verification.status || !verification.data) {
@@ -56,10 +54,11 @@ export async function POST(request: NextRequest) {
       metadata = data.metadata || {};
       customerEmail = data.customer_email || '';
     } else {
-      status = data.status === 'successful' ? 'success' : 'failed';
-      amount = data.amount || 0;
-      currency = (data.currency || 'USD').toUpperCase();
-      metadata = data.meta || {};
+      // Paystack
+      status = data.status === 'success' ? 'success' : 'failed';
+      amount = data.amount / 100; // Paystack returns amount in kobo
+      currency = (data.currency || 'NGN').toUpperCase();
+      metadata = data.metadata || {};
       customerEmail = data.customer?.email || '';
     }
 

@@ -58,7 +58,7 @@ export default function PricingPlans({
     }
 
     try {
-      const response = await fetch('/api/create-flutterwave-checkout', {
+      const response = await fetch('/api/create-paystack-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -94,8 +94,7 @@ export default function PricingPlans({
       return;
     }
 
-    // For Flutterwave, we might want to guide them to a dashboard or show them their current status
-    // since there's no direct equivalent to Stripe's Customer Portal.
+    // For Paystack, we might want to guide them to a dashboard or show them their current status
     toast.message('Subscription management', {
       description: 'Please contact support to cancel or change your subscription, or stay tuned for our upcoming billing dashboard.'
     });
