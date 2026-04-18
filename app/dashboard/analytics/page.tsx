@@ -1,14 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { 
-  BarChart3, 
-  Download, 
-  Wallet, 
-  Users, 
-  Calendar, 
-  Gift, 
-  ArrowUpRight, 
+import {
+  BarChart3,
+  Download,
+  Wallet,
+  Users,
+  Calendar,
+  Gift,
+  ArrowUpRight,
   ShoppingBag,
   CircleDollarSign,
   TrendingUp,
@@ -18,13 +18,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -96,48 +96,49 @@ function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-            Business Insights
-            <Badge variant="outline" className="text-[10px] uppercase tracking-widest border-primary/20 text-primary">Live</Badge>
+            Analytics
           </h1>
           <p className="text-muted-foreground">Track your revenue, customers, and business growth</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" className="h-10 px-4 gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
             <Download className="w-4 h-4" />
-            Export Report
+            Export
           </Button>
         </div>
       </div>
 
       {/* Primary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Revenue', value: data?.totalRevenue || 0, color: 'text-primary' },
-          { label: 'Total Customers', value: data?.customerCount || 0, color: 'text-foreground' },
-          { label: 'Gifts & Support', value: data?.revenueBySource.gifts || 0, color: 'text-foreground' },
-          { label: 'Bookings', value: data?.revenueBySource.bookings || 0, color: 'text-foreground' },
-        ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 bg-background">
-            <CardContent className="p-6">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <div className={`text-3xl font-black mt-2 tracking-tighter ${stat.color}`}>
-                {typeof stat.value === 'number' && stat.label !== 'Total Customers' ? formatAmount(stat.value) : stat.value}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
+        <div className="flex gap-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: 'Total Revenue', value: data?.totalRevenue || 0, color: 'text-primary' },
+            { label: 'Total Customers', value: data?.customerCount || 0, color: 'text-foreground' },
+            { label: 'Gifts & Support', value: data?.revenueBySource.gifts || 0, color: 'text-foreground' },
+            { label: 'Bookings', value: data?.revenueBySource.bookings || 0, color: 'text-foreground' },
+          ].map((stat, i) => (
+            <Card key={i} className="min-w-[280px] snap-start border-primary/5 bg-background md:min-w-0">
+              <CardContent className="p-6">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                <div className={`text-3xl font-black mt-2 tracking-tighter ${stat.color}`}>
+                  {typeof stat.value === 'number' && stat.label !== 'Total Customers' ? formatAmount(stat.value) : stat.value}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Revenue Chart Section */}
       <Card className="border-primary/5 shadow-2xl shadow-primary/5">
         <CardHeader className="flex flex-row items-center justify-between border-b border-primary/5 bg-muted/20 px-6 py-4">
           <div>
-            <CardTitle className="text-sm font-black uppercase tracking-tight">Revenue Timeline</CardTitle>
+            <CardTitle className="text-sm font-black uppercase tracking-tight">Revenue </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Products</div>
@@ -151,23 +152,23 @@ function AnalyticsPage() {
               <AreaChart data={data?.revenueTimeline || []} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorProducts" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorGifts" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#d946ef" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#d946ef" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#d946ef" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: '#888888', fontSize: 10, fontWeight: 'bold' }}
                   tickFormatter={(str) => {
                     const date = new Date(str);
@@ -175,41 +176,41 @@ function AnalyticsPage() {
                   }}
                   minTickGap={30}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fill: '#888888', fontSize: 10, fontWeight: 'bold' }}
                   tickFormatter={(val) => `₦${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(139, 92, 246, 0.2)', strokeWidth: 2 }} />
-                <Area 
-                  type="monotone" 
-                  dataKey="products" 
-                  name="Products" 
-                  stroke="#8b5cf6" 
+                <Area
+                  type="monotone"
+                  dataKey="products"
+                  name="Products"
+                  stroke="#8b5cf6"
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorProducts)" 
+                  fillOpacity={1}
+                  fill="url(#colorProducts)"
                   stackId="1"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="bookings" 
-                  name="Bookings" 
-                  stroke="#f97316" 
+                <Area
+                  type="monotone"
+                  dataKey="bookings"
+                  name="Bookings"
+                  stroke="#f97316"
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorBookings)" 
+                  fillOpacity={1}
+                  fill="url(#colorBookings)"
                   stackId="1"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="gifts" 
-                  name="Gifts" 
-                  stroke="#d946ef" 
+                <Area
+                  type="monotone"
+                  dataKey="gifts"
+                  name="Gifts"
+                  stroke="#d946ef"
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorGifts)" 
+                  fillOpacity={1}
+                  fill="url(#colorGifts)"
                   stackId="1"
                 />
               </AreaChart>
@@ -239,8 +240,8 @@ function AnalyticsPage() {
                       <span className="font-black">{formatAmount(item.value)}</span>
                     </div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${item.color} transition-all duration-1000 ease-out`} 
+                      <div
+                        className={`h-full ${item.color} transition-all duration-1000 ease-out`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -285,7 +286,7 @@ function AnalyticsPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="p-4 border-t border-primary/5">
               <Button variant="ghost" className="w-full h-8 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5" asChild>
                 <Link href="/dashboard/earnings">
