@@ -260,28 +260,28 @@ export default function EarningsPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent bg-muted/20">
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("productName")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("productName")}>
                     <div className="flex items-center">Product(s) <SortIcon columnKey="productName" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("customerName")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("customerName")}>
                     <div className="flex items-center">Full Name <SortIcon columnKey="customerName" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("customerEmail")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("customerEmail")}>
                     <div className="flex items-center">Email <SortIcon columnKey="customerEmail" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("customerPhone")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("customerPhone")}>
                     <div className="flex items-center">Phone <SortIcon columnKey="customerPhone" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("createdAt")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("createdAt")}>
                     <div className="flex items-center">Transaction Date <SortIcon columnKey="createdAt" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12 text-right" onClick={() => handleSort("amount")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10 text-right" onClick={() => handleSort("amount")}>
                     <div className="flex items-center justify-end">Total <SortIcon columnKey="amount" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("affiliate")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("affiliate")}>
                     <div className="flex items-center">Affiliate <SortIcon columnKey="affiliate" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer whitespace-nowrap h-12" onClick={() => handleSort("payoutDate")}>
+                  <TableHead className="cursor-pointer whitespace-nowrap h-10" onClick={() => handleSort("payoutDate")}>
                     <div className="flex items-center">Payout Date <SortIcon columnKey="payoutDate" /></div>
                   </TableHead>
                 </TableRow>

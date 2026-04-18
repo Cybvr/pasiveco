@@ -173,20 +173,20 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent bg-muted/10 border-b">
-                  <TableHead className="cursor-pointer h-12" onClick={() => handleSort('name')}>
+                  <TableHead className="cursor-pointer h-10" onClick={() => handleSort('name')}>
                     <div className="flex items-center">Customer <SortIcon columnKey="name" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer h-12" onClick={() => handleSort('email')}>
+                  <TableHead className="cursor-pointer h-10" onClick={() => handleSort('email')}>
                     <div className="flex items-center">Email <SortIcon columnKey="email" /></div>
                   </TableHead>
-                  <TableHead className="h-12">Phone</TableHead>
-                  <TableHead className="cursor-pointer h-12 text-center" onClick={() => handleSort('orderCount')}>
+                  <TableHead className="h-10">Phone</TableHead>
+                  <TableHead className="cursor-pointer h-10 text-center" onClick={() => handleSort('orderCount')}>
                     <div className="flex items-center justify-center">Orders <SortIcon columnKey="orderCount" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer h-12 text-right" onClick={() => handleSort('totalSpent')}>
+                  <TableHead className="cursor-pointer h-10 text-right" onClick={() => handleSort('totalSpent')}>
                     <div className="flex items-center justify-end">Total Spent <SortIcon columnKey="totalSpent" /></div>
                   </TableHead>
-                  <TableHead className="cursor-pointer h-12 text-right" onClick={() => handleSort('lastOrderDate')}>
+                  <TableHead className="cursor-pointer h-10 text-right" onClick={() => handleSort('lastOrderDate')}>
                     <div className="flex items-center justify-end">Last Order <SortIcon columnKey="lastOrderDate" /></div>
                   </TableHead>
                 </TableRow>
