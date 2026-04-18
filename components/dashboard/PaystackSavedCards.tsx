@@ -34,7 +34,6 @@ export default function PaystackSavedCards() {
   const [savedCards, setSavedCards] = useState<SavedCard[]>([])
   const [cardsLoading, setCardsLoading] = useState(true)
   const [cardBusyId, setCardBusyId] = useState<string | null>(null)
-  const [isAddingCard, setIsAddingCard] = useState(false)
 
   const loadSavedCards = async () => {
     if (!user?.uid) {
@@ -108,30 +107,6 @@ export default function PaystackSavedCards() {
     }
   }
 
-  const handleAddCard = async () => {
-    if (!user?.uid || !user?.email) {
-      toast.error("You must be logged in with an email to add a card.")
-      return
-    }
-
-    setIsAddingCard(true)
-    try {
-      const res = await fetch("/api/paystack/tokenize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.uid, email: user.email }),
-      })
-      const json = await res.json()
-      if (!res.ok || !json.success) throw new Error(json.message || "Unable to setup card")
-
-      // Redirect to Paystack to complete the tokenization charge
-      window.location.href = json.url
-    } catch (error: any) {
-      toast.error(error.message || "Failed to start card setup")
-      setIsAddingCard(false)
-    }
-  }
-
   if (cardsLoading) {
     return (
       <div className="space-y-3">
@@ -147,19 +122,11 @@ export default function PaystackSavedCards() {
         <div className="space-y-1">
           <h2 className="text-base font-semibold">Saved cards</h2>
         </div>
-        <Button onClick={handleAddCard} disabled={isAddingCard} size="sm">
-          {isAddingCard ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="mr-2 h-4 w-4" />
-          )}
-          Add new card
-        </Button>
       </div>
 
       {savedCards.length === 0 ? (
         <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-          No saved cards. Add a card below or make a purchase.
+          No saved cards. Cards are saved automatically when you make a purchase.
         </div>
       ) : (
         <div className="space-y-3">
