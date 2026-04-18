@@ -31,6 +31,7 @@ function getDashboardPageTitle(pathname: string) {
     { match: (path) => path.startsWith("/dashboard/earnings/"), title: "Earnings Details" },
     { match: (path) => path === "/dashboard/edit", title: "Edit Profile" },
     { match: (path) => path === "/dashboard/help", title: "Help & Support" },
+    { match: (path) => path === "/dashboard/help/faq", title: "FAQ" },
     { match: (path) => path.startsWith("/dashboard/help/"), title: "Help Article" },
     { match: (path) => path === "/dashboard/library", title: "Library" },
     { match: (path) => path.startsWith("/dashboard/library/"), title: "Library Item" },

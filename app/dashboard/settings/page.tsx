@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, HelpCircle, Bell } from 'lucide-react'
+import { LogOut, User, CreditCard, ArrowUpRight, ChevronRight, ShieldCheck, Palette, Bell } from 'lucide-react'
 import { getUser, type User as AppUser } from "@/services/userService"
 import { useAuth } from "@/hooks/useAuth"
 import { getUserProducts } from '@/services/productsService'
@@ -35,7 +35,6 @@ const settingsLinks = [
   { href: '/dashboard/payouts', label: 'Withdrawals', icon: ArrowUpRight },
   { href: '/dashboard/settings/payment-method', label: 'Payout Methods', icon: CreditCard },
   { href: '/dashboard/settings/plan-billing', label: 'Billing', icon: CreditCard },
-  { href: '/dashboard/help', label: 'Help & Support', icon: HelpCircle },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ]
 interface UserData {

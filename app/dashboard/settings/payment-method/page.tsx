@@ -486,7 +486,7 @@ export default function PaymentMethodsPage() {
                     <Label className="text-[10px] font-bold uppercase opacity-50">USDT Wallet Address</Label>
                     <Input
                       className="h-10 text-sm"
-                      placeholder="e.g. T...",
+                      placeholder="e.g. T..."
                       value={bankingForm.cryptoWallet}
                       onChange={(e) => setBankingForm(curr => ({ ...curr, cryptoWallet: e.target.value, accountNumber: e.target.value, accountName: "USDT Wallet" }))}
                     />

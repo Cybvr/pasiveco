@@ -21,6 +21,14 @@ export interface HelpDoc {
   sections: HelpDocSection[]
 }
 
+export interface HelpFaq {
+  id: string
+  question: string
+  answer: string
+  category: string
+  docId?: string
+}
+
 export const HELP_DOCS: HelpDoc[] = [
   {
     id: 'getting-started',
@@ -308,8 +316,87 @@ export const HELP_DOCS: HelpDoc[] = [
   },
 ]
 
+export const HELP_FAQS: HelpFaq[] = [
+  {
+    id: 'faq-booking-session-types',
+    question: 'What types of sessions can be booked?',
+    answer:
+      'Pasive supports 1:1 booking sessions. Sellers can offer them as Zoom, Google Meet, Skype, another custom meeting link, or in-person sessions, and they can set the session length and weekly availability.',
+    category: 'Products',
+    docId: 'products-and-sales',
+  },
+  {
+    id: 'faq-what-can-pasive-do',
+    question: 'What does Pasive help me do?',
+    answer:
+      'Pasive gives creators one place to publish a profile page, sell products, manage audience activity, and handle payouts from a single dashboard.',
+    category: 'General',
+    docId: 'getting-started',
+  },
+  {
+    id: 'faq-first-steps',
+    question: 'What should I set up first on Pasive?',
+    answer:
+      'Start by completing your profile, customizing your public page, adding products or offers, and setting up your payout details before you begin monetizing.',
+    category: 'General',
+    docId: 'getting-started',
+  },
+  {
+    id: 'faq-page-content',
+    question: 'What can I place on my public page?',
+    answer:
+      'You can feature lead magnets, email capture offers, digital products, booking links, testimonials, community links, and your important social profiles.',
+    category: 'General',
+    docId: 'profile-and-page-setup',
+  },
+  {
+    id: 'faq-products-before-publish',
+    question: 'What should I check before publishing a product?',
+    answer:
+      'Confirm the title, description, price, delivery flow, and any files or access instructions. It also helps to preview how the product appears on your public page before you publish.',
+    category: 'Products',
+    docId: 'products-and-sales',
+  },
+  {
+    id: 'faq-analytics-usage',
+    question: 'How should I use analytics on Pasive?',
+    answer:
+      'Use analytics to decide what to feature, what copy to improve, and which traffic sources send the highest-quality visitors. Review trends consistently instead of reacting to one-day spikes alone.',
+    category: 'Growth',
+    docId: 'analytics-and-growth',
+  },
+  {
+    id: 'faq-payment-routing',
+    question: 'How does Pasive decide between Stripe and Paystack?',
+    answer:
+      'Pasive routes Western buyers and sellers through Stripe and African buyers and sellers through Paystack, using webhooks from both providers to update access and payment status in Firestore.',
+    category: 'Payments',
+    docId: 'payment-payout-integration',
+  },
+  {
+    id: 'faq-affiliate-network',
+    question: 'What is the Pasive affiliate network?',
+    answer:
+      'It is a marketplace where merchants list products for affiliates to discover and promote. Affiliates earn commissions when people buy through their unique referral links.',
+    category: 'Affiliates',
+    docId: 'affiliate-network',
+  },
+  {
+    id: 'faq-affiliate-join',
+    question: 'How do I join the affiliate network?',
+    answer:
+      'Create a Pasive account, subscribe to the affiliate plan, browse available products, and start sharing your affiliate links to earn on successful sales.',
+    category: 'Affiliates',
+    docId: 'affiliate-network',
+  },
+]
+
 export function getHelpDocs() {
   return HELP_DOCS
+}
+
+export function getHelpFaqs() {
+  return HELP_FAQS
 }
 
 export function getHelpDocById(id: string) {
