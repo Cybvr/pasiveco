@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         ...metadata,
         productId,
+        userId: userId,
       },
     });
 

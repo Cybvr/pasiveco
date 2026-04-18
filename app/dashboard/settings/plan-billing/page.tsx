@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import PricingPlans from "@/app/common/website/PricingPlans";
 import Invoices from "./invoices";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import SavedCardsSection from '@/components/dashboard/SavedCardsSection'
+// import SavedCardsSection from '@/components/dashboard/SavedCardsSection'
+import PaystackSavedCards from '@/components/dashboard/PaystackSavedCards'
 
 function BillingPageContent() {
   const { user } = useAuth();
@@ -191,12 +192,8 @@ function BillingPageContent() {
       </Dialog>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Payment Methods</CardTitle>
-          <CardDescription>Manage saved cards for your purchases.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SavedCardsSection />
+        <CardContent className="pt-6">
+          <PaystackSavedCards />
         </CardContent>
       </Card>
 

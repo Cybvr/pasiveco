@@ -8,10 +8,10 @@ import { isInTrialPeriod, getTrialEndDate, pricingPlans } from '@/lib/plans';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId = params.userId;
+    const { userId } = await params;
     console.log('🔍 Subscription API called for userId:', userId);
 
     if (!userId) {

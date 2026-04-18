@@ -18,6 +18,17 @@ interface Bank {
   code: string
 }
 
+interface BankingFormState {
+  country: Country
+  bankName: string
+  bankCode: string
+  accountName: string
+  accountNumber: string
+  payoutSchedule: "manual" | "automatic"
+  cryptoWallet: string
+  cryptoNetwork: string
+}
+
 type Country =
   | "nigeria"
   | "ghana"
@@ -51,12 +62,15 @@ const COUNTRIES: { value: Country; label: string; currency: string; gateway: "pa
   { value: "europe", label: "Europe (Stripe)", currency: "EUR", gateway: "stripe_connect" },
 ]
 
-const initialBankingForm = { 
-  country: "nigeria" as Country, 
-  accountNumber: "", 
-  payoutSchedule: "manual" as "manual" | "automatic",
+const initialBankingForm: BankingFormState = {
+  country: "nigeria",
+  bankName: "",
+  bankCode: "",
+  accountName: "",
+  accountNumber: "",
+  payoutSchedule: "manual",
   cryptoWallet: "",
-  cryptoNetwork: "TRX" // Default to TRC20 (Tron)
+  cryptoNetwork: "TRX", // Default to TRC20 (Tron)
 }
 const isKenyaMobileMoney = (country: Country) => country === "kenya"
 
@@ -71,7 +85,7 @@ export default function PaymentMethodsPage() {
   const [bankingSaving, setBankingSaving] = useState(false)
   const [addingNew, setAddingNew] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [bankingForm, setBankingForm] = useState(initialBankingForm)
+  const [bankingForm, setBankingForm] = useState<BankingFormState>(initialBankingForm)
   const [banks, setBanks] = useState<Bank[]>([])
   const [banksLoading, setBanksLoading] = useState(false)
   const [banksLoadFailed, setBanksLoadFailed] = useState(false)
@@ -211,7 +225,7 @@ export default function PaymentMethodsPage() {
 
   const handleSelectCountry = (country: Country) => {
     const gateway = COUNTRIES.find((item) => item.value === country)?.gateway || "flutterwave"
-    setBankingForm({ country, bankName: "", bankCode: "", accountName: "", accountNumber: "" })
+    setBankingForm({ ...initialBankingForm, country })
     setBankSearch("")
     setManualBankEntry(false)
     setCountryDropdownOpen(false)

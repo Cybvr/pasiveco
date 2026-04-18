@@ -205,6 +205,12 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdmin());
     }
 
+    match /saved_cards/{cardId} {
+      allow read, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if false; // Only created via Admin SDK / Webhook
+    }
+
     match /{document=**} {
       allow read, write: if isAdmin();
     }

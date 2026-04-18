@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { PaystackService } from '@/services/paystackService';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, query, where, getDocs, Timestamp, limit } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,6 +76,45 @@ async function handleSuccessfulPayment(data: any) {
         });
       } catch (err) {
         console.error('[Loops] Failed to send purchase confirmation:', err);
+      }
+    }
+    // Save Card Authorization for "Saved Cards" feature
+    if (data.authorization && metadata?.userId) {
+      try {
+        const { authorization } = data;
+        const userId = metadata.userId;
+        
+        // Check if this card is already saved (by last4 and exp date to be safe)
+        const cardsRef = collection(db, 'saved_cards');
+        const q = query(
+          cardsRef, 
+          where('userId', '==', userId), 
+          where('last4', '==', authorization.last4),
+          where('expMonth', '==', Number(authorization.exp_month)),
+          where('expYear', '==', Number(authorization.exp_year)),
+          limit(1)
+        );
+        const existing = await getDocs(q);
+        
+        if (existing.empty) {
+          await addDoc(cardsRef, {
+            userId,
+            authorizationCode: authorization.authorization_code,
+            last4: authorization.last4,
+            brand: (authorization.brand || 'card').toLowerCase(),
+            expMonth: Number(authorization.exp_month),
+            expYear: Number(authorization.exp_year),
+            bank: authorization.bank || null,
+            email: customer.email,
+            gateway: 'paystack',
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+            isDefault: false
+          });
+          console.log('💳 Card saved for user:', userId);
+        }
+      } catch (cardErr) {
+        console.error('Error saving card authorization:', cardErr);
       }
     }
   } catch (error) {
