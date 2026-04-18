@@ -157,6 +157,7 @@ export class StripeService {
         cancel_url: data.cancelUrl,
         metadata: {
           productId: data.productId,
+          productName: data.productName,
           ...data.metadata,
         },
       });

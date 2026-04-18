@@ -9,6 +9,7 @@ import { doc, getDoc, updateDoc, collection, setDoc, Timestamp, query, where, ge
 import { db } from '@/lib/firebase';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
 import { pricingPlans } from '@/lib/plans';
+import { IntegrationService } from '@/services/integrationService';
 
 function getPlanIdFromPriceId(priceId: string): string {
   for (const [planId, plan] of Object.entries(pricingPlans)) {
@@ -276,8 +277,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   });
 
   // 1. Log transaction in Firestore
-  // 2. Grant access to product
   // 3. Send confirmation email
+  
+  // Trigger Integrations (Mailchimp, Zapier, etc.)
+  if (metadata?.creatorId) {
+    void IntegrationService.handlePurchase(metadata.creatorId, {
+      email: customer_email || '',
+      name: session.customer_details?.name || '',
+      amount: (amount_total || 0) / 100,
+      currency: session.currency?.toUpperCase() || 'USD',
+      productId: metadata?.productId || '',
+      productName: metadata?.productName || 'Product'
+    });
+  }
 
   if (loops && customer_email) {
     try {

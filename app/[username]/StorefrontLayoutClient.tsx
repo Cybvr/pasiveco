@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import VerifiedBadge from '@/components/common/VerifiedBadge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import PixelTracker from '@/components/common/PixelTracker';
 
 export default function StorefrontLayoutClient({ username, children }: { username: string; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -108,6 +109,7 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
 
   return (
     <div className="min-h-screen bg-background">
+      <PixelTracker integrations={profileData?.integrations} />
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-3 pointer-events-none">
         <button onClick={() => setIsPageModalOpen(true)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors pointer-events-auto">

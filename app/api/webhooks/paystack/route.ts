@@ -6,6 +6,7 @@ import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { trackServerEvent } from '@/services/serverAnalyticsService';
+import { IntegrationService } from '@/services/integrationService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,6 +59,18 @@ async function handleSuccessfulPayment(data: any) {
       customerEmail: customer?.email,
       amount: amount / 100, // Convert from kobo
     });
+
+    // Trigger Integrations (Mailchimp, Zapier, etc.)
+    if (metadata?.creatorId) {
+      void IntegrationService.handlePurchase(metadata.creatorId, {
+        email: customer?.email,
+        name: metadata?.custom_fields?.find((f: any) => f.variable_name === 'customer_name')?.value || '',
+        amount: amount / 100,
+        currency: 'NGN',
+        productId: metadata?.product_id || '',
+        productName: metadata?.custom_fields?.find((f: any) => f.variable_name === 'product_name')?.value || 'Product'
+      });
+    }
 
     // TODO: Implement your business logic here
     // Example: Update order in Firebase

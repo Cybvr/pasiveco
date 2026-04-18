@@ -111,6 +111,52 @@ function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string
     verifyPayment();
   }, [reference]);
 
+  // Track Purchase Event for Seller Pixels
+  useEffect(() => {
+    if (verificationMessage === 'Payment verified' && product && seller?.integrations) {
+      const { integrations } = seller;
+      
+      // Meta Pixel
+      if (integrations.metaPixelId && typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'Purchase', {
+          value: paidAmount || product.price,
+          currency: product.currency || 'NGN',
+          content_ids: [product.id],
+          content_name: product.name,
+          content_type: 'product'
+        });
+      }
+
+      // TikTok Pixel
+      if (integrations.tiktokPixelId && typeof window !== 'undefined' && (window as any).ttq) {
+        (window as any).ttq.track('CompletePayment', {
+          content_id: product.id,
+          content_name: product.name,
+          value: paidAmount || product.price,
+          currency: product.currency || 'NGN',
+        });
+      }
+
+      // GTM / DataLayer
+      if (integrations.gtmId && typeof window !== 'undefined' && (window as any).dataLayer) {
+        (window as any).dataLayer.push({
+          event: 'purchase',
+          ecommerce: {
+            transaction_id: reference,
+            value: paidAmount || product.price,
+            currency: product.currency || 'NGN',
+            items: [{
+              item_id: product.id,
+              item_name: product.name,
+              price: paidAmount || product.price,
+              quantity: 1
+            }]
+          }
+        });
+      }
+    }
+  }, [verificationMessage, product, seller, paidAmount, reference]);
+
   const orderTotal = useMemo(() => {
     if (paidAmount && product?.currency) {
       return formatPrice(paidAmount, product.currency);

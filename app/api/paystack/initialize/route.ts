@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         ...metadata,
         productId,
         userId: userId,
+        creatorId: product?.userId || '',
       },
     });
 

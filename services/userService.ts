@@ -36,6 +36,22 @@ export interface UserSocialLink {
   active?: boolean;
 }
 
+export interface UserIntegrations {
+  metaPixelId?: string;
+  tiktokPixelId?: string;
+  gtmId?: string;
+  mailchimp?: {
+    apiKey: string;
+    listId: string;
+    connected: boolean;
+  };
+  zapierWebhookUrl?: string;
+  convertkit?: {
+    apiKey: string;
+    connected: boolean;
+  };
+}
+
 export interface User {
   id?: string;
   userId?: string;
@@ -94,6 +110,7 @@ export interface User {
   hasClaimedProfileBonus?: boolean;
   iconColor?: string;
   themeColor?: string;
+  integrations?: UserIntegrations;
 }
 
 const usersCollection = collection(db, 'users');
@@ -126,6 +143,7 @@ const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
     notificationState: {
       clearedIds: Array.isArray(user.notificationState?.clearedIds) ? user.notificationState.clearedIds : [],
     },
+    integrations: user.integrations || {},
   };
 };
 

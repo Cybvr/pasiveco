@@ -1,4 +1,5 @@
 import { PaystackService } from './paystackService';
+import { StripeService } from './stripeService';
 
 export type PaymentGateway = 'stripe' | 'paystack';
 
@@ -70,6 +71,7 @@ export class PaymentGatewayService {
         subaccount: options.subaccount || undefined,
         metadata: {
           productId: options.productId,
+          productName: options.productName,
           ...options.metadata,
         },
       });

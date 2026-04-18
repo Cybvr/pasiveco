@@ -98,15 +98,15 @@ function AnalyticsPage() {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
             Analytics
           </h1>
-          <p className="text-muted-foreground">Track your revenue, customers, and business growth</p>
+          <p className="text-sm text-muted-foreground mt-1">Track your revenue, customers, and business growth</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="h-10 px-4 gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <Button variant="outline" size="sm" className="w-full md:w-auto h-10 px-4 gap-2 border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
             <Download className="w-4 h-4" />
             Export
           </Button>
@@ -114,40 +114,38 @@ function AnalyticsPage() {
       </div>
 
       {/* Primary Stats */}
-      <div className="-mx-4 overflow-x-auto px-4 pb-2 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
-        <div className="flex gap-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: 'Total Revenue', value: data?.totalRevenue || 0, color: 'text-primary' },
-            { label: 'Total Customers', value: data?.customerCount || 0, color: 'text-foreground' },
-            { label: 'Gifts & Support', value: data?.revenueBySource.gifts || 0, color: 'text-foreground' },
-            { label: 'Bookings', value: data?.revenueBySource.bookings || 0, color: 'text-foreground' },
-          ].map((stat, i) => (
-            <Card key={i} className="min-w-[280px] snap-start border-primary/5 bg-background md:min-w-0">
-              <CardContent className="p-6">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-                <div className={`text-3xl font-black mt-2 tracking-tighter ${stat.color}`}>
-                  {typeof stat.value === 'number' && stat.label !== 'Total Customers' ? formatAmount(stat.value) : stat.value}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Revenue', value: data?.totalRevenue || 0, color: 'text-primary' },
+          { label: 'Total Customers', value: data?.customerCount || 0, color: 'text-foreground' },
+          { label: 'Gifts & Support', value: data?.revenueBySource.gifts || 0, color: 'text-foreground' },
+          { label: 'Bookings', value: data?.revenueBySource.bookings || 0, color: 'text-foreground' },
+        ].map((stat, i) => (
+          <Card key={i} className="border-primary/5 bg-background">
+            <CardContent className="p-6">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+              <div className={`text-3xl font-black mt-2 tracking-tighter ${stat.color}`}>
+                {typeof stat.value === 'number' && stat.label !== 'Total Customers' ? formatAmount(stat.value) : stat.value}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Revenue Chart Section */}
-      <Card className="border-primary/5 shadow-2xl shadow-primary/5">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-primary/5 bg-muted/20 px-6 py-4">
+      <Card className="border-primary/5 shadow-2xl shadow-primary/5 overflow-hidden w-full">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-primary/5 bg-muted/20 px-4 sm:px-6 py-4">
           <div>
-            <CardTitle className="text-sm font-black uppercase tracking-tight">Revenue </CardTitle>
+            <CardTitle className="text-sm font-black uppercase tracking-tight">Revenue</CardTitle>
           </div>
-          <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Products</div>
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Bookings</div>
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Gifts</div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 pt-6 pr-6">
-          <div className="h-[350px] w-full">
+        <CardContent className="p-0 pt-6 pr-2 sm:pr-6">
+          <div className="h-[250px] sm:h-[350px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data?.revenueTimeline || []} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <defs>
