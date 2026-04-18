@@ -48,13 +48,13 @@ export default function Invoices({ userId }: { userId?: string }) {
         if (data.invoices && Array.isArray(data.invoices)) {
           console.log('Found invoices:', data.invoices.length);
           // Ensure all required fields exist
-          const validInvoices = data.invoices.filter((invoice: any) => 
-            invoice && 
-            invoice.id && 
-            invoice.amountPaid !== undefined && 
-            invoice.currency && 
-            invoice.status && 
-            invoice.createdAt && 
+          const validInvoices = data.invoices.filter((invoice: any) =>
+            invoice &&
+            invoice.id &&
+            invoice.amountPaid !== undefined &&
+            invoice.currency &&
+            invoice.status &&
+            invoice.createdAt &&
             invoice.createdAt.seconds &&
             invoice.invoiceUrl
           );

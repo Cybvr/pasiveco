@@ -75,7 +75,7 @@ export default function PaystackSavedCards() {
       })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.message || "Unable to update default card")
-      
+
       // Local update for UI snappiness
       setSavedCards(prev => prev.map(c => ({ ...c, isDefault: c.id === cardId })))
       toast.success("Default card updated")
@@ -98,7 +98,7 @@ export default function PaystackSavedCards() {
       })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.message || "Unable to remove card")
-      
+
       setSavedCards(prev => prev.filter(c => c.id !== cardId))
       toast.success("Card removed")
     } catch (error: any) {
@@ -123,7 +123,7 @@ export default function PaystackSavedCards() {
       })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.message || "Unable to setup card")
-      
+
       // Redirect to Paystack to complete the tokenization charge
       window.location.href = json.url
     } catch (error: any) {
@@ -166,15 +166,13 @@ export default function PaystackSavedCards() {
           {savedCards.map((card) => (
             <div
               key={card.id}
-              className={`flex items-center justify-between rounded-lg border bg-background p-4 ${
-                card.isDefault ? "border-primary/30 ring-1 ring-primary/5" : ""
-              }`}
+              className={`flex items-center justify-between rounded-lg border bg-background p-4 ${card.isDefault ? "border-primary/30 ring-1 ring-primary/5" : ""
+                }`}
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded ${
-                    card.isDefault ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                  }`}
+                  className={`flex h-10 w-10 items-center justify-center rounded ${card.isDefault ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                    }`}
                 >
                   <CreditCard className="h-5 w-5" />
                 </div>
