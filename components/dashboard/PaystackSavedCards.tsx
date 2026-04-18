@@ -146,9 +146,6 @@ export default function PaystackSavedCards() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-base font-semibold">Saved cards</h2>
-          <p className="text-sm text-muted-foreground">
-            Cards you've used for purchases and subscriptions via Paystack.
-          </p>
         </div>
         <Button onClick={handleAddCard} disabled={isAddingCard} size="sm">
           {isAddingCard ? (
@@ -161,18 +158,8 @@ export default function PaystackSavedCards() {
       </div>
 
       {savedCards.length === 0 ? (
-        <div className="rounded-lg border bg-muted/5 p-5">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground">
-              <CreditCard className="h-5 w-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">No saved cards yet</p>
-              <p className="text-sm text-muted-foreground">
-                Cards are automatically saved when you make a purchase or subscribe.
-              </p>
-            </div>
-          </div>
+        <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+          No saved cards. Add a card below or make a purchase.
         </div>
       ) : (
         <div className="space-y-3">

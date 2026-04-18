@@ -95,9 +95,8 @@ export default function Invoices({ userId }: { userId?: string }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Billing History</CardTitle>
-        <CardDescription>View your past invoices and payment history</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -107,8 +106,8 @@ export default function Invoices({ userId }: { userId?: string }) {
             <Skeleton className="h-10 w-full" />
           </div>
         ) : invoices.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground">
-            No billing history available
+          <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+            No billing history available.
           </div>
         ) : (
           <Table>

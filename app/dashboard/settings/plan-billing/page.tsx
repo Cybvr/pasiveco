@@ -126,9 +126,8 @@ function BillingPageContent() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>Your Plan</CardTitle>
-          <CardDescription>Your current subscription details</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {loading ? (
