@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { trackServerEvent } from '@/services/serverAnalyticsService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,6 +71,22 @@ export async function POST(request: NextRequest) {
             } catch (err) {
               console.error('Failed to notify creator via Loops (Bitnob):', err);
             }
+          }
+          }
+
+          // Track in Analytics
+          if (giftData?.creatorId) {
+            await trackServerEvent({
+              userId: giftData.creatorId,
+              eventType: 'gift_received',
+              eventData: {
+                amount: giftData.amount,
+                currency: giftData.currency,
+                senderName: giftData.senderName,
+                giftId: giftDoc.id,
+                reference: reference
+              }
+            });
           }
         } else {
           console.warn('Gift not found for reference:', reference);

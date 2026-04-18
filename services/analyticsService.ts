@@ -18,7 +18,7 @@ import {
 export interface AnalyticsEvent {
   id?: string;
   userId: string;
-  eventType: 'page_view' | 'link_click' | 'profile_visit' | 'product_view';
+  eventType: 'page_view' | 'link_click' | 'profile_visit' | 'product_view' | 'gift_received';
   eventData: {
     url?: string;
     linkId?: string;

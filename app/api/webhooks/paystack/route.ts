@@ -5,6 +5,7 @@ import { PaystackService } from '@/services/paystackService';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { trackServerEvent } from '@/services/serverAnalyticsService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -112,6 +113,20 @@ async function handleSuccessfulPayment(data: any) {
             } catch (err) {
               console.error('Failed to notify creator via Loops:', err);
             }
+          }
+          // Track in Analytics
+          if (giftData?.creatorId) {
+            await trackServerEvent({
+              userId: giftData.creatorId,
+              eventType: 'gift_received',
+              eventData: {
+                amount: giftData.amount,
+                currency: giftData.currency,
+                senderName: giftData.senderName,
+                giftId: giftId,
+                reference: reference
+              }
+            });
           }
         } else {
           console.warn('Gift not found for reference:', reference);
