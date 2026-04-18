@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
               console.error('Failed to notify creator via Loops (Bitnob):', err);
             }
           }
-          }
 
           // Track in Analytics
           if (giftData?.creatorId) {
