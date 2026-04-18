@@ -19,7 +19,7 @@ const LOCATION_LABELS: Record<string, string> = {
 };
 
 export default function BookingsPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { username } = useParams<{ username: string }>();
   const { currency: userCurrency, rates } = useCurrency();
   const [bookings, setBookings] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function BookingsPage() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const profile = await getUserByUsername(slug ?? '');
+        const profile = await getUserByUsername(username ?? '');
         const uid = profile?.userId || profile?.id;
         if (uid) {
           const all = await getUserProducts(uid);
@@ -42,7 +42,7 @@ export default function BookingsPage() {
       }
     };
     fetchBookings();
-  }, [slug]);
+  }, [username]);
 
   const formatPrice = (price: number, productCurrency: string) => {
     if (price === 0) return 'Free';
@@ -82,7 +82,7 @@ export default function BookingsPage() {
               return (
                 <Link
                   key={product.id}
-                  href={`/${slug}/bookings/${product.slug || product.id}`}
+                  href={`/${username}/bookings/${product.slug || product.id}`}
                   className="group block rounded-2xl border border-border hover:border-primary/40 hover:shadow-lg bg-card/30 backdrop-blur-sm transition-all duration-300 overflow-hidden"
                 >
                   {/* Thumbnail */}

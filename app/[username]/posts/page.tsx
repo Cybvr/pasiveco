@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { getSocialProfileByUsername, getSocialPosts } from '@/lib/social-data';
 
 export default function PostsPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { username } = useParams<{ username: string }>();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +14,7 @@ export default function PostsPage() {
     const fetch = async () => {
       try {
         const [socialProfile, allPosts] = await Promise.all([
-          getSocialProfileByUsername(slug),
+          getSocialProfileByUsername(username),
           getSocialPosts(),
         ]);
         if (socialProfile) {
@@ -27,7 +27,7 @@ export default function PostsPage() {
       }
     };
     fetch();
-  }, [slug]);
+  }, [username]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 

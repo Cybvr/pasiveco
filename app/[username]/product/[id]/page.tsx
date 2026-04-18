@@ -27,9 +27,9 @@ const formatPrice = (amount: number, productCurrency: string, userCurrency: stri
   } catch { return `${productCurrency} ${amount}`; }
 };
 
-export default function ProductPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
-  const { user } = useAuth();
-  const routeParams = useParams<{ slug: string }>();
+export default function ProductPage({ params }: { params: Promise<{ id: string; username: string }> }) {
+  const { id, username } = React.use(params);
+  const routeParams = useParams<{ username: string }>();
   const [productId, setProductId] = useState('');
   const [product, setProduct] = useState<Product | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
@@ -94,13 +94,13 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
           <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
           <h1 className="mb-2 text-2xl font-semibold">Product not found</h1>
           <p className="mb-5 text-muted-foreground">This listing is unavailable.</p>
-          <Link href={`/${routeParams.slug}`}><Button variant="outline">Back to profile</Button></Link>
+          <Link href={`/${username}`}><Button variant="outline">Back to profile</Button></Link>
         </div>
       </div>
     );
   }
 
-  const checkoutHref = `/${routeParams.slug}/product/${product.slug || product.id || productId}/checkout`;
+  const checkoutHref = `/${username}/product/${product.slug || product.id || productId}/checkout`;
   const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency, rates);
   const hasDirectLink = Boolean(product.url);
   // Allow checkout for any priced product — the global Paystack key handles the actual payment.
@@ -330,11 +330,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
         <section className="space-y-4 border-t pt-8">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">More from this creator</h2>
-            <Link href={`/${routeParams.slug}`} className="text-sm font-semibold text-primary hover:underline">View profile</Link>
+            <Link href={`/${username}`} className="text-sm font-semibold text-primary hover:underline">View profile</Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {sellerProducts.map((p) => (
-              <Link key={p.id} href={`/${routeParams.slug}/product/${p.slug || p.id}`} className="group space-y-2">
+              <Link key={p.id} href={`/${username}/product/${p.slug || p.id}`} className="group space-y-2">
                 <div className="aspect-square overflow-hidden rounded-xl border bg-muted/30 group-hover:border-primary transition-colors">
                   {p.thumbnail ? (
                     <img src={p.thumbnail} alt={p.name} className="h-full w-full object-cover" />

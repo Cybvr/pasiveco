@@ -3,18 +3,20 @@
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 import { Menu, Share2, MessageSquare } from "lucide-react";
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { getUserByUsername } from '@/services/userService';
 import { getSocialProfileByUsername } from '@/lib/social-data';
 import { getDicebearAvatar } from '@/lib/avatar';
 import { getSocialIcon } from '@/lib/socialIcons';
 import MiniPageModal from '@/app/common/dashboard/MiniPageModal';
 import ShareModal from '@/app/common/dashboard/ShareModal';
+import GiftCreatorModal from '@/components/common/GiftCreatorModal';
 import { useAuth } from '@/hooks/useAuth';
 import VerifiedBadge from '@/components/common/VerifiedBadge';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
-export default function StorefrontLayoutClient({ slug, children }: { slug: string; children: React.ReactNode }) {
+export default function StorefrontLayoutClient({ username, children }: { username: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isProductPage = pathname.includes('/product/');
@@ -24,13 +26,28 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
   const [loading, setLoading] = useState(true);
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'gift_success') {
+      toast.success("Gift sent successfully! You're awesome! 🎁");
+      // Clean up the URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } else if (status === 'gift_error') {
+      toast.error("There was an error sending your gift. Please try again.");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const [firebaseProfile, socialProfile] = await Promise.all([
-          getUserByUsername(slug),
-          getSocialProfileByUsername(slug),
+          getUserByUsername(username),
+          getSocialProfileByUsername(username),
         ]);
         if (firebaseProfile) {
           setProfileData(firebaseProfile);
@@ -44,7 +61,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
       }
     };
     fetchProfile();
-  }, [slug]);
+  }, [username]);
 
   if (loading) {
     return (
@@ -54,7 +71,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
     );
   }
 
-  const p = profileData || { username: slug };
+  const p = profileData || { username: username };
   const socialLinks = [...(p.socialLinks || [])].filter((l: any) => l.active);
 
   // Add contact methods if available to social links for UI
@@ -65,19 +82,19 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
     socialLinks.push({ id: 'contact-whatsapp', platform: 'whatsapp', url: `https://wa.me/${p.phoneNumber.replace(/\D/g, '')}`, active: true });
   }
 
-  const coverImage = p.bannerImage || `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(p.username || slug)}&size=1200&backgroundType=gradientLinear`;
+  const coverImage = p.bannerImage || `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(p.username || username)}&size=1200&backgroundType=gradientLinear`;
   const isOwnUser = Boolean(user?.uid) && [p.userId, p.id].includes(user?.uid || '');
 
   const tabs = [
-    { label: 'Links', href: `/${slug}` },
-    { label: 'Shop', href: `/${slug}/shop` },
-    { label: 'Posts', href: `/${slug}/posts` },
-    { label: 'Bookings', href: `/${slug}/bookings` },
+    { label: 'Links', href: `/${username}` },
+    { label: 'Shop', href: `/${username}/shop` },
+    { label: 'Posts', href: `/${username}/posts` },
+    { label: 'Bookings', href: `/${username}/bookings` },
     ...(isOwnUser ? [{ label: 'Dashboard', href: '/dashboard' }] : []),
   ];
 
   const activeTab = tabs.find(t =>
-    t.href === `/${slug}` ? pathname === `/${slug}` : pathname.startsWith(t.href)
+    t.href === `/${username}` ? pathname === `/${username}` : pathname.startsWith(t.href)
   );
 
   const handleMessageClick = () => {
@@ -97,15 +114,6 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
           <Menu className="w-4 h-4 text-white drop-shadow-md" />
         </button>
         <div className="flex items-center gap-2 pointer-events-auto">
-          {!isOwnUser && (
-            <button
-              onClick={handleMessageClick}
-              className="p-2 rounded-lg bg-background/20 backdrop-blur-md hover:bg-background/40 transition-colors"
-              title="Send Message"
-            >
-              <MessageSquare className="w-4 h-4 text-white" />
-            </button>
-          )}
           <button onClick={() => setIsShareModalOpen(true)} className="p-2 rounded-lg bg-background/20 backdrop-blur-md hover:bg-background/40 transition-colors pointer-events-auto">
             <Share2 className="w-4 h-4 text-white" />
           </button>
@@ -123,7 +131,7 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
           {p.profilePicture ? (
             <img src={p.profilePicture} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <img src={getDicebearAvatar(p.username || slug)} alt="Profile" className="w-full h-full object-cover" />
+            <img src={getDicebearAvatar(p.username || username)} alt="Profile" className="w-full h-full object-cover" />
           )}
         </div>
 
@@ -133,9 +141,20 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
             {p.isVerified && <VerifiedBadge size="md" title="Verified Creator" />}
           </h1>
           {!isOwnUser && (
-            <Button variant="ghost" size="sm" className="h-8 px-2.5" onClick={handleMessageClick}>
-              <MessageSquare className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-muted-foreground hover:text-foreground hover:bg-transparent flex items-center gap-1.5"
+                onClick={() => setIsGiftModalOpen(true)}
+              >
+                <span aria-hidden="true" className="inline-flex items-center justify-center text-sm leading-none">❤️</span>
+                <span className="text-xs font-medium">Gift</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 px-2.5" onClick={handleMessageClick}>
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            </div>
           )}
         </div>
         {p.bio && <p className="mt-1 text-sm text-muted-foreground max-w-md">{p.bio}</p>}
@@ -191,6 +210,12 @@ export default function StorefrontLayoutClient({ slug, children }: { slug: strin
 
       <MiniPageModal isOpen={isPageModalOpen} onClose={() => setIsPageModalOpen(false)} />
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} profileData={{ username: p.username }} />
+      <GiftCreatorModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        creatorId={p.userId || p.id}
+        creatorName={p.username}
+      />
     </div>
   );
 }

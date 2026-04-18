@@ -17,6 +17,7 @@ import { useState, useMemo, useEffect } from "react"
 import { useCurrency } from "@/context/CurrencyContext"
 import { formatCurrency, convertAmount as convertAmountUtil } from "@/utils/currency"
 import { getSellerTransactions, getAffiliateTransactions } from "@/services/transactionsService"
+import { getReceivedGifts } from "@/services/giftService"
 import { useAuth } from "@/hooks/useAuth"
 import { Transaction } from "@/types/transaction"
 import { Badge } from "@/components/ui/badge"
@@ -51,15 +52,34 @@ export default function EarningsPage() {
       if (!user?.uid) return
       setLoading(true)
       try {
-        const [sales, affiliate] = await Promise.all([
+        const [sales, affiliate, gifts] = await Promise.all([
           getSellerTransactions(user.uid),
           getAffiliateTransactions(user.uid),
+          getReceivedGifts(user.uid),
         ])
+
+        // Convert gifts to transaction format
+        const giftTransactions = gifts.map(g => ({
+          id: g.id,
+          sellerId: g.creatorId,
+          productId: 'gift',
+          productName: `🎁 Gift from ${g.senderName}`,
+          customerName: g.senderName,
+          customerEmail: g.senderEmail,
+          amount: g.amount,
+          yourProfit: g.amount,
+          currency: g.currency,
+          status: g.status,
+          createdAt: g.createdAt,
+          reference: g.reference,
+          type: 'gift'
+        })) as unknown as Transaction[];
+
         setSalesTransactions(sales)
-        setAffiliateTransactions(affiliate)
+        setAffiliateTransactions([...affiliate, ...giftTransactions])
       } catch (err: any) {
         console.error("Error loading transactions:", err)
-        setError(err.message || "Failed to load transactions. Check your Firestore indexes.")
+        setError(err.message || "Failed to load transactions.")
       } finally {
         setLoading(false)
       }
@@ -96,7 +116,9 @@ export default function EarningsPage() {
 
   const { stats, filteredAndSortedTransactions } = useMemo(() => {
     let result = [...transactions]
-    const successfulTransactions = transactions.filter((tx) => tx.status === "success")
+    const successfulTransactions = transactions.filter((tx) => 
+      tx.status === "success" || tx.status === "completed"
+    )
 
     const totalEarnings = successfulTransactions.reduce(
       (sum, tx) => sum + convertAmount(getEarningValue(tx), tx.currency),
@@ -290,8 +312,10 @@ export default function EarningsPage() {
                       <TableCell className="text-right whitespace-nowrap font-semibold">
                         {formatEarnings(getEarningValue(tx), tx.currency)}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {tx.affiliate ? (
+                    <TableCell className="whitespace-nowrap">
+                        {tx.type === 'gift' ? (
+                          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-none">Gift 🎁</Badge>
+                        ) : tx.affiliate ? (
                           <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-none">{tx.affiliate}</Badge>
                         ) : (
                           <span className="text-muted-foreground text-xs italic">Direct</span>

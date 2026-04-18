@@ -81,6 +81,11 @@ const parsePhoneNumber = (value: string) => {
   }
 }
 
+const normalizeUsername = (value?: string | null) => (value || '').replace(/^@+/, '').trim()
+
+const resolveProfileUsername = (profile?: User | null, fallbackEmail?: string | null) =>
+  normalizeUsername(profile?.username || fallbackEmail?.split('@')[0] || '')
+
 export default function AccountSettings() {
   const [userData, setUserData] = useState<UserData>({
     displayName: "User",
@@ -132,13 +137,14 @@ export default function AccountSettings() {
           setHasProducts(products.length > 0)
           setHasPayoutAccount(payoutAccounts.length > 0)
           const existingPhone = profile.phoneNumber || ''
+          const resolvedUsername = resolveProfileUsername(profile, user.email)
           setUserData(prev => ({
             ...prev,
             displayName: profile.displayName || prev.displayName,
             firstName: profile.displayName?.split(' ')[0] || prev.firstName,
             lastName: profile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
             email: user.email || prev.email,
-            username: profile.username || prev.username,
+            username: resolvedUsername || prev.username,
             bio: profile.bio || prev.bio,
             phone: existingPhone,
             category: profile.category || prev.category,
@@ -276,10 +282,11 @@ export default function AccountSettings() {
 
     try {
       const displayName = `${userData.firstName} ${userData.lastName}`.trim()
+      const normalizedUsername = normalizeUsername(userData.username)
       await updateUser(user.uid, {
         email: user.email || userData.email,
         displayName,
-        username: userData.username,
+        username: normalizedUsername,
         bio: userData.bio || "",
         phoneNumber: userData.phone || '',
         category: userData.category || '',
@@ -291,6 +298,18 @@ export default function AccountSettings() {
       const updatedProfile = await getUser(user.uid)
       if (updatedProfile) {
         setFirebaseProfile(updatedProfile)
+        setUserData(prev => ({
+          ...prev,
+          displayName: updatedProfile.displayName || displayName || prev.displayName,
+          firstName: updatedProfile.displayName?.split(' ')[0] || userData.firstName,
+          lastName: updatedProfile.displayName?.split(' ').slice(1).join(' ') || userData.lastName,
+          username: resolveProfileUsername(updatedProfile, user.email) || normalizedUsername,
+          bio: updatedProfile.bio || "",
+          phone: updatedProfile.phoneNumber || prev.phone,
+          category: updatedProfile.category || '',
+          brandPreferences: updatedProfile.brandPreferences || '',
+          profilePicture: updatedProfile.profilePicture || prev.profilePicture,
+        }))
       }
       toast({ title: "Profile updated", description: "Your profile has been updated successfully." })
     } catch (error) {
@@ -565,7 +584,7 @@ export default function AccountSettings() {
                 displayName: firebaseProfile.displayName || prev.displayName,
                 firstName: firebaseProfile.displayName?.split(' ')[0] || prev.firstName,
                 lastName: firebaseProfile.displayName?.split(' ').slice(1).join(' ') || prev.lastName,
-                username: firebaseProfile.username || prev.username,
+                username: resolveProfileUsername(firebaseProfile, user?.email) || prev.username,
                 bio: firebaseProfile.bio || prev.bio,
                 phone: firebaseProfile.phoneNumber || prev.phone,
                 category: firebaseProfile.category || '',

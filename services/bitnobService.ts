@@ -42,22 +42,39 @@ export class BitnobService {
   }
 
   /**
-   * Get exchange rate for conversion
+   * Create a hosted checkout for receiving crypto payments
    */
-  static async getExchangeRate(from: string, to: string = 'USDT') {
+  static async createCheckout(params: {
+    amount: number; // in cents/kobo
+    email: string;
+    description: string;
+    reference: string;
+    callbackUrl?: string;
+    successUrl?: string;
+    errorUrl?: string;
+  }) {
     try {
-      const response = await fetch(`${this.BASE_URL}/rates`, {
-        method: 'GET',
+      const response = await fetch(`${this.BASE_URL}/checkouts`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.API_KEY}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          amount: params.amount,
+          customerEmail: params.email,
+          description: params.description,
+          reference: params.reference,
+          callbackUrl: params.callbackUrl,
+          successUrl: params.successUrl,
+          errorUrl: params.errorUrl,
+        }),
       });
 
       const result = await response.json();
-      // Logic to find the specific rate from/to
       return result;
     } catch (error: any) {
-      console.error('Bitnob Rates Error:', error);
+      console.error('Bitnob Create Checkout Error:', error);
       return { status: false, message: error.message };
     }
   }

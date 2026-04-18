@@ -13,7 +13,7 @@ import { formatCurrency, convertAmount } from '@/utils/currency';
 import StarRating from '@/components/products/StarRating';
 
 export default function ShopPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { username } = useParams<{ username: string }>();
   const { currency: userCurrency, rates } = useCurrency();
   const [products, setProducts] = useState<Product[]>([]);
   const [affiliateProducts, setAffiliateProducts] = useState<Product[]>([]);
@@ -22,7 +22,7 @@ export default function ShopPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const profile = await getUserByUsername(slug ?? '');
+        const profile = await getUserByUsername(username ?? '');
         const targetUserId = profile?.userId || profile?.id;
         if (targetUserId) {
           const [all, pinnedIds] = await Promise.all([
@@ -45,7 +45,7 @@ export default function ShopPage() {
       }
     };
     fetch();
-  }, [slug]);
+  }, [username]);
 
   const formatPrice = (price: number, productCurrency: string) => {
     return formatCurrency(
@@ -63,7 +63,7 @@ export default function ShopPage() {
         <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 px-1">Shop</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.length > 0 ? products.map(product => (
-            <Link key={product.id} href={`/${slug}/product/${product.slug || product.id}`}
+            <Link key={product.id} href={`/${username}/product/${product.slug || product.id}`}
               className="group block border rounded-2xl p-4 border-border hover:shadow-md hover:border-primary/30 transition-all bg-card/30 backdrop-blur-sm">
               <div className="w-full aspect-square overflow-hidden rounded-xl bg-muted mb-3">
                 {product.thumbnail ? (
@@ -116,7 +116,7 @@ export default function ShopPage() {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                    <div className="flex flex-col">
-                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Promoted by {slug}</span>
+                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Promoted by {username}</span>
                      <span className="font-bold text-sm text-foreground">{formatPrice(product.price, product.currency || 'NGN')}</span>
                    </div>
                    <Badge variant="outline" className="text-[9px] pointer-events-none">Affiliate</Badge>

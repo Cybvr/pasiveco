@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase';
+import { sanitizeUsername } from '@/lib/username';
 import {
   collection,
   doc,
@@ -57,7 +58,7 @@ export interface User {
   bio?: string;
   profilePicture?: string | null;
   bannerImage?: string | null;
-  slug?: string;
+  slug?: string; // @deprecated - use username instead
   category?: string;
   links?: UserLink[];
   socialLinks?: UserSocialLink[];
@@ -97,7 +98,7 @@ export interface User {
 
 const usersCollection = collection(db, 'users');
 
-const sanitizeUsername = (username?: string | null) => (username || '').replace(/^@/, '').trim();
+
 
 const normalizeUser = (userId: string, data: Record<string, unknown>): User => {
   const user = data as unknown as User;
@@ -137,18 +138,17 @@ const sortUsersByRecentUpdate = (users: User[]) =>
       return updatedDiff;
     }
 
-    return (a.displayName || a.username || a.slug || '').localeCompare(b.displayName || b.username || b.slug || '');
+    return (a.displayName || a.username || '').localeCompare(b.displayName || b.username || '');
   });
 
 const hasDiscoverableIdentity = (user: User) =>
-  Boolean(user.userId && (sanitizeUsername(user.username) || user.displayName?.trim() || user.slug?.trim()));
+  Boolean(user.userId && (sanitizeUsername(user.username) || user.displayName?.trim()));
 
 export const createUser = async (userData: Omit<User, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
   try {
     const cleanedUserData = {
       ...userData,
       username: sanitizeUsername(userData.username),
-      slug: userData.slug || sanitizeUsername(userData.username) || '',
       links: userData.links || [],
       socialLinks: userData.socialLinks || [],
     };
@@ -200,17 +200,26 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 export const getUserByUsername = async (username: string): Promise<User | null> => {
   try {
     const normalizedUsername = sanitizeUsername(username);
-    const q = query(usersCollection, where('username', '==', normalizedUsername));
-    const querySnapshot = await getDocs(q);
+    
+    // 1. Try finding by username (new source of truth)
+    const qUsername = query(usersCollection, where('username', '==', normalizedUsername));
+    const snapUsername = await getDocs(qUsername);
 
-    if (querySnapshot.empty) {
-      return null;
+    if (!snapUsername.empty) {
+      return normalizeUser(snapUsername.docs[0].id, snapUsername.docs[0].data());
     }
 
-    const userDoc = querySnapshot.docs[0];
-    return normalizeUser(userDoc.id, userDoc.data());
+    // 2. Fallback to slug (legacy support)
+    const qSlug = query(usersCollection, where('slug', '==', normalizedUsername));
+    const snapSlug = await getDocs(qSlug);
+
+    if (!snapSlug.empty) {
+      return normalizeUser(snapSlug.docs[0].id, snapSlug.docs[0].data());
+    }
+
+    return null;
   } catch (error) {
-    console.error('Error fetching user by username:', error);
+    console.error('Error fetching user by username/slug:', error);
     throw error;
   }
 };

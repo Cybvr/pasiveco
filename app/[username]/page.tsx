@@ -3,21 +3,30 @@
 import React, { useState, useEffect } from 'react';
 import { getUserByUsername } from '@/services/userService';
 import { getSocialProfileByUsername } from '@/lib/social-data';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 export default function LinksPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { username } = useParams<{ username: string }>();
   const [links, setLinks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const [firebaseProfile, socialProfile] = await Promise.all([
-          getUserByUsername(slug),
-          getSocialProfileByUsername(slug),
+          getUserByUsername(username),
+          getSocialProfileByUsername(username),
         ]);
         const profile = firebaseProfile || socialProfile;
+        
+        // Canonical URL redirection
+        if (profile?.username && profile.username !== username) {
+          router.replace(`/${profile.username}`);
+          return;
+        }
+
         setLinks((profile?.links || []).filter((l: any) => l.active));
       } catch (err) {
         console.error(err);
@@ -26,7 +35,7 @@ export default function LinksPage() {
       }
     };
     fetch();
-  }, [slug]);
+  }, [username, router]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { ComponentType, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from '@/i18n/routing'
 import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon, Lock } from 'lucide-react'
 import { auth } from '@/lib/firebase'
@@ -34,6 +34,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/posts/new': 'New Post',
   '/dashboard/communities': 'Spaces',
   '/dashboard/communities/create': 'Create Space',
+  '/dashboard/wallet/gifts': 'Gifts',
   '/admin': 'Admin Console',
   '/admin/users': 'Manage Users',
   '/admin/content': 'Content Management',
@@ -42,7 +43,8 @@ const pageTitles: Record<string, string> = {
 interface QuickLink {
   href: string
   label: string
-  icon: LucideIcon
+  icon?: LucideIcon
+  iconEmoji?: string
   subItems?: QuickLink[]
 }
 
@@ -69,7 +71,29 @@ const exploreLinks: QuickLink[] = [
   { href: '/dashboard/library', label: 'Library', icon: Package },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
   { href: '/dashboard/communities', label: 'Spaces', icon: Blend },
+  { href: '/dashboard/wallet/gifts', label: 'Gifts', iconEmoji: '❤️' },
 ]
+
+function NavGlyph({
+  icon: Icon,
+  iconEmoji,
+  className,
+}: {
+  icon?: ComponentType<{ className?: string }>
+  iconEmoji?: string
+  className?: string
+}) {
+  if (iconEmoji) {
+    return (
+      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center text-base leading-none", className)}>
+        {iconEmoji}
+      </span>
+    )
+  }
+
+  if (!Icon) return null
+  return <Icon className={className} />
+}
 
 export default function DashboardHeader() {
   const pathname = usePathname()
@@ -90,7 +114,7 @@ export default function DashboardHeader() {
         const profile = await getUser(user.uid)
         setProfilePicture(getDisplayAvatar({ image: profile?.profilePicture || user.photoURL || '', displayName: profile?.displayName || user.displayName || 'Creator', handle: profile?.username || user.email || 'creator' }))
         setDisplayName(profile?.displayName || user.displayName || 'Creator')
-        setProfileHandle((profile?.username || profile?.slug || user.email?.split('@')[0] || 'creator').replace(/^@/, '').trim())
+        setProfileHandle((profile?.username || user.email?.split('@')[0] || 'creator').replace(/^@/, '').trim())
       } catch (error) {
         console.error('Error loading user profile for header:', error)
       }
@@ -296,7 +320,11 @@ export default function DashboardHeader() {
                                 }))
                               }}
                             >
-                              <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                              <NavGlyph
+                                icon={item.icon}
+                                iconEmoji={item.iconEmoji}
+                                className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")}
+                              />
                               <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
                               {locked ? (
                                 <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
@@ -332,7 +360,11 @@ export default function DashboardHeader() {
                                         }
                                       }}
                                     >
-                                      <subItem.icon className={cn("h-4 w-4", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
+                                      <NavGlyph
+                                        icon={subItem.icon}
+                                        iconEmoji={subItem.iconEmoji}
+                                        className={cn("h-4 w-4", isSubItemActive ? "text-foreground" : "text-muted-foreground")}
+                                      />
                                       <span className="flex-1 text-[12px] text-left font-medium">{subItem.label}</span>
                                       {subLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />}
                                     </Button>
@@ -364,7 +396,11 @@ export default function DashboardHeader() {
                           }}
                         >
                           <div className="relative">
-                            <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                            <NavGlyph
+                              icon={item.icon}
+                              iconEmoji={item.iconEmoji}
+                              className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")}
+                            />
                             {showMessagesBadge ? (
                               <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
@@ -414,7 +450,11 @@ export default function DashboardHeader() {
                           }}
                         >
                           <div className="relative">
-                            <item.icon className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")} />
+                            <NavGlyph
+                              icon={item.icon}
+                              iconEmoji={item.iconEmoji}
+                              className={cn("h-4 w-4", isActive ? "text-foreground" : "text-muted-foreground")}
+                            />
                             {showNetworkBadge ? (
                               <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>

@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { ComponentType, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   Home,
@@ -37,7 +37,8 @@ import { useAuth } from '@/hooks/useAuth'
 
 interface NavItem {
   href: string
-  icon: LucideIcon
+  icon?: LucideIcon
+  iconEmoji?: string
   label: string
   subItems?: NavItem[]
 }
@@ -65,6 +66,7 @@ const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/library', icon: Library, label: 'Library' },
   { href: '/dashboard/network', icon: Zap, label: 'Network' },
   { href: '/dashboard/communities', icon: Blend, label: 'Spaces' },
+  { href: '/dashboard/wallet/gifts', iconEmoji: '❤️', label: 'Gifts' },
 ]
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
@@ -77,6 +79,27 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 const DEFAULT_BOTTOM_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/help', icon: LifeBuoy, label: 'Help & Support' },
 ]
+
+function NavGlyph({
+  icon: Icon,
+  iconEmoji,
+  className,
+}: {
+  icon?: ComponentType<{ className?: string }>
+  iconEmoji?: string
+  className?: string
+}) {
+  if (iconEmoji) {
+    return (
+      <span aria-hidden="true" className={cn("inline-flex shrink-0 items-center justify-center text-sm leading-none", className)}>
+        {iconEmoji}
+      </span>
+    )
+  }
+
+  if (!Icon) return null
+  return <Icon className={className} />
+}
 
 export default function Sidebar({
   isCollapsed,
@@ -101,7 +124,7 @@ export default function Sidebar({
   const isFreeExpired = isFreePlan && !isTrialing;
 
   const currentNavItems = navItems || (isAdmin ? ADMIN_NAV_ITEMS : DASHBOARD_PRIMARY_NAV_ITEMS)
-  
+
   const PREMIUM_LABELS = ['Bookings', 'Analytics', 'Business Manager', 'Storefront Templates'];
 
   const shouldShowLock = (label: string) => {
@@ -169,7 +192,6 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto py-2 px-1.5">
         <nav className="space-y-px">
           {currentNavItems.map((item) => {
-            const Icon = item.icon
             const isActive = isNavItemActive(item)
             const isMessages = item.label === 'Messages'
             const hasUnread = isMessages && messagesCount > 0
@@ -199,7 +221,11 @@ export default function Sidebar({
                     )}
                   >
                     <div className="relative">
-                      <Icon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")} />
+                      <NavGlyph
+                        icon={item.icon}
+                        iconEmoji={item.iconEmoji}
+                        className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isActive ? "text-foreground" : "text-muted-foreground")}
+                      />
                     </div>
                     <span className="truncate flex-1 text-left">{item.label}</span>
                     {locked ? (
@@ -228,7 +254,11 @@ export default function Sidebar({
                     )}
                   >
                     <div className="relative">
-                      <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                      <NavGlyph
+                        icon={item.icon}
+                        iconEmoji={item.iconEmoji}
+                        className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")}
+                      />
                       {hasUnread && isCollapsed && (
                         <span className="absolute -top-1 -right-1 flex h-2 w-2">
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -247,7 +277,6 @@ export default function Sidebar({
                 {isExpanded ? (
                   <div className="ml-4 space-y-px border-l border-border/60 pl-2">
                     {item.subItems!.map((subItem) => {
-                      const SubIcon = subItem.icon
                       const isSubItemActive = isItemActive(subItem.href)
                       const subLocked = shouldShowLock(subItem.label)
                       const subDenied = isAccessDenied(subItem.label)
@@ -270,7 +299,11 @@ export default function Sidebar({
                             subDenied && "opacity-60"
                           )}
                         >
-                          <SubIcon className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isSubItemActive ? "text-foreground" : "text-muted-foreground")} />
+                          <NavGlyph
+                            icon={subItem.icon}
+                            iconEmoji={subItem.iconEmoji}
+                            className={cn("mr-1.5 h-3.5 w-3.5 shrink-0", isSubItemActive ? "text-foreground" : "text-muted-foreground")}
+                          />
                           <span className="truncate flex-1">{subItem.label}</span>
                           {subLocked && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
                         </Link>
@@ -289,7 +322,6 @@ export default function Sidebar({
             </div>
           )}
           {!isAdmin && !navItems && DASHBOARD_EXPLORE_NAV_ITEMS.map((item) => {
-            const Icon = item.icon
             const isActive = isItemActive(item.href)
             const showBadge = item.label === 'Network' && networkCount > 0
             const locked = shouldShowLock(item.label)
@@ -316,7 +348,11 @@ export default function Sidebar({
                 )}
               >
                 <div className="relative">
-                  <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                  <NavGlyph
+                    icon={item.icon}
+                    iconEmoji={item.iconEmoji}
+                    className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")}
+                  />
                   {showBadge && isCollapsed && (
                     <span className="absolute -top-1 -right-1 flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -340,7 +376,6 @@ export default function Sidebar({
       <div className="border-t border-border/50 px-1.5 py-2">
         <nav className="space-y-px">
           {bottomNavItems.map((item) => {
-            const Icon = item.icon
             const isActive = isItemActive(item.href)
             return (
               <Link
@@ -355,7 +390,11 @@ export default function Sidebar({
                     : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")} />
+                <NavGlyph
+                  icon={item.icon}
+                  iconEmoji={item.iconEmoji}
+                  className={cn("h-3.5 w-3.5 shrink-0", !isCollapsed && "mr-1.5", isActive ? "text-foreground" : "text-muted-foreground")}
+                />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             )

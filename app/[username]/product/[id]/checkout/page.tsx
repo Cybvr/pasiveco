@@ -28,12 +28,13 @@ const formatPrice = (amount: number, productCurrency: string, userCurrency: stri
   }
 };
 
-function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: string }> }) {
+function CheckoutPageContent({ params }: { params: Promise<{ id: string; username: string }> }) {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const routeParams = useParams<{ slug: string }>();
+  const { id, username } = React.use(params);
+  const routeParams = useParams<{ username: string }>();
 
   const affiliateId = searchParams.get('ref') || '';
 
@@ -126,7 +127,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
           currency: product.currency || 'USD',
           productId: product.id,
           productName: product.name,
-          slug: routeParams.slug,
+          slug: username,
           metadata: {
             customerName: buyerName,
             customerPhone: buyerPhone,
@@ -167,7 +168,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
           <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
           <h1 className="mb-2 text-2xl font-semibold">Checkout unavailable</h1>
           <p className="mb-5 text-muted-foreground">This product could not be loaded.</p>
-          <Link href={`/${routeParams.slug}`}>
+          <Link href={`/${username}`}>
             <Button variant="outline">Back to store</Button>
           </Link>
         </div>
@@ -181,7 +182,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
       <div className="border-b px-4 py-4 md:px-8">
         <div className="mx-auto max-w-6xl">
           <Link
-            href={`/${routeParams.slug}/product/${product.id}`}
+            href={`/${username}/product/${product.id}`}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -326,7 +327,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
                   </Button>
                   <div className="text-center">
                     <Link
-                      href={`/${routeParams.slug}`}
+                      href={`/${username}`}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Continue shopping
@@ -441,7 +442,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
                 </Button>
                 <div className="text-center">
                   <Link
-                    href={`/${routeParams.slug}`}
+                    href={`/${username}`}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Continue shopping
@@ -482,7 +483,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; slug: s
   );
 }
 
-export default function CheckoutPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
+export default function CheckoutPage({ params }: { params: Promise<{ id: string; username: string }> }) {
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background" />}>
       <CheckoutPageContent params={params} />

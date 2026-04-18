@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { PaystackService } from '@/services/paystackService';
 import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, Timestamp, limit } from 'firebase/firestore';
+import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,6 +63,64 @@ async function handleSuccessfulPayment(data: any) {
     // await updateOrderStatus(reference, 'completed');
     // await grantProductAccess(customer.email, metadata.product_id);
 
+    // Handle Gift Payments
+    let giftMetadata = metadata;
+    if (typeof giftMetadata === 'string') {
+      try { giftMetadata = JSON.parse(giftMetadata); } catch (e) { giftMetadata = {}; }
+    }
+
+    let isGift = false;
+    let giftDisplayName = 'Gift';
+    if (giftMetadata?.type === 'gift' || reference.startsWith('gift_')) {
+      isGift = true;
+      try {
+        let giftId = giftMetadata?.giftId;
+
+        // Fallback: Find gift by reference
+        if (!giftId) {
+          const snap = await adminDb.collection('gifts').where('reference', '==', reference).limit(1).get();
+          if (!snap.empty) giftId = snap.docs[0].id;
+        }
+
+        if (giftId) {
+          const giftDoc = await adminDb.collection('gifts').doc(giftId).get();
+          const giftData = giftDoc.data();
+          if (giftData?.creatorName) giftDisplayName = `Gift to @${giftData.creatorName}`;
+          
+          await adminDb.collection('gifts').doc(giftId).update({
+            status: 'success',
+            updatedAt: FieldValue.serverTimestamp(),
+            paystackData: { reference, customerEmail: customer.email, amount: amount / 100 }
+          });
+          console.log('🎁 Gift updated to success via webhook');
+
+          // Notify Creator via Loops
+          if (loops && giftData?.creatorId) {
+            try {
+              const creator = await adminAuth.getUser(giftData.creatorId);
+              if (creator.email) {
+                await loops.sendTransactionalEmail({
+                  transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION, // Fallback for now
+                  email: creator.email,
+                  dataVariables: {
+                    productId: `Gift from ${giftData.senderName || 'a supporter'}`,
+                    amount: (amount / 100).toString(),
+                  },
+                });
+                console.log('📧 Notified creator of gift:', creator.email);
+              }
+            } catch (err) {
+              console.error('Failed to notify creator via Loops:', err);
+            }
+          }
+        } else {
+          console.warn('Gift not found for reference:', reference);
+        }
+      } catch (giftErr) {
+        console.error('Error updating gift:', giftErr);
+      }
+    }
+
     // Send purchase confirmation email via Loops
     if (loops && customer?.email) {
       try {
@@ -70,7 +128,7 @@ async function handleSuccessfulPayment(data: any) {
           transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
           email: customer.email,
           dataVariables: {
-            productId: metadata?.product_id || '',
+            productId: isGift ? giftDisplayName : (metadata?.product_id || 'Product'),
             amount: (amount / 100).toString(),
           },
         });
@@ -78,26 +136,24 @@ async function handleSuccessfulPayment(data: any) {
         console.error('[Loops] Failed to send purchase confirmation:', err);
       }
     }
+
     // Save Card Authorization for "Saved Cards" feature
     if (data.authorization && metadata?.userId) {
       try {
         const { authorization } = data;
         const userId = metadata.userId;
-        
-        // Check if this card is already saved (by last4 and exp date to be safe)
-        const cardsRef = collection(db, 'saved_cards');
-        const q = query(
-          cardsRef, 
-          where('userId', '==', userId), 
-          where('last4', '==', authorization.last4),
-          where('expMonth', '==', Number(authorization.exp_month)),
-          where('expYear', '==', Number(authorization.exp_year)),
-          limit(1)
-        );
-        const existing = await getDocs(q);
-        
-        if (existing.empty) {
-          await addDoc(cardsRef, {
+
+        // Check if card is already saved
+        const existingSnap = await adminDb.collection('saved_cards')
+          .where('userId', '==', userId)
+          .where('last4', '==', authorization.last4)
+          .where('expMonth', '==', Number(authorization.exp_month))
+          .where('expYear', '==', Number(authorization.exp_year))
+          .limit(1)
+          .get();
+
+        if (existingSnap.empty) {
+          await adminDb.collection('saved_cards').add({
             userId,
             authorizationCode: authorization.authorization_code,
             last4: authorization.last4,
@@ -107,8 +163,8 @@ async function handleSuccessfulPayment(data: any) {
             bank: authorization.bank || null,
             email: customer.email,
             gateway: 'paystack',
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
             isDefault: false
           });
           console.log('💳 Card saved for user:', userId);

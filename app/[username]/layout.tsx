@@ -3,16 +3,16 @@ import { headers } from 'next/headers'
 import { getUserByUsername } from '@/services/userService'
 import StorefrontLayoutClient from './StorefrontLayoutClient'
 
-interface SlugLayoutProps {
+interface UsernameLayoutProps {
   children: React.ReactNode
-  params: Promise<{ slug: string }>
+  params: Promise<{ username: string }>
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   try {
     const resolvedParams = await params
-    const slug = resolvedParams.slug
-    const profile = await getUserByUsername(slug)
+    const username = resolvedParams.username
+    const profile = await getUserByUsername(username)
 
     if (profile) {
       const title = `${profile.displayName} (@${profile.username}) | Pasive`
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description,
         openGraph: {
           title, description,
-          url: `https://pasive.co/${slug}`,
+          url: `https://pasive.co/${username}`,
           siteName: 'Pasive',
           images: profile.profilePicture ? [{ url: profile.profilePicture, width: 400, height: 400, alt: `${profile.displayName}'s profile picture` }] : [],
           type: 'profile',
@@ -36,15 +36,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: 'Profile | Pasive', description: 'View profile on Pasive' }
 }
 
-export default async function SlugLayout({ children, params }: SlugLayoutProps) {
+export default async function UsernameLayout({ children, params }: UsernameLayoutProps) {
   const resolvedParams = await params
-  const slug = resolvedParams.slug
+  const username = resolvedParams.username
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || ''
   const isProductPage = pathname.includes('/product/')
 
   return (
-    <StorefrontLayoutClient slug={slug} isProductPage={isProductPage}>
+    <StorefrontLayoutClient username={username} isProductPage={isProductPage}>
       {children}
     </StorefrontLayoutClient>
   )

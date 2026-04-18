@@ -211,6 +211,20 @@ service cloud.firestore {
       allow create: if false; // Only created via Admin SDK / Webhook
     }
 
+    match /gifts/{giftId} {
+      // Creators can read gifts sent to them; senders can read gifts they sent
+      allow read: if isSignedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        resource.data.senderId == request.auth.uid ||
+        isAdmin()
+      );
+      // Anyone can create a gift (payment flow creates the record)
+      allow create: if true;
+      // Only admin or webhook (via Admin SDK) can update status
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if isAdmin();
     }

@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Timestamp } from 'firebase/firestore'
-import { Users, Rss, ShoppingBag, MessageSquare, Shield } from 'lucide-react'
+import { Users, Rss, ShoppingBag, MessageSquare, Shield, Gift } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { markThreadAsRead, onMessageThreadsSnapshot } from '@/lib/social-data'
 import { getAllUsers, getUser, updateUser } from '@/services/userService'
 import { blogService } from '@/services/blogService'
 import { getSellerTransactions } from '@/services/transactionsService'
+import { getReceivedGifts, getSentGifts } from '@/services/giftService'
 import { getRecentCommentsCount, getRecentPostsCount } from '@/services/postService'
 import {
   getBaseNotificationsForAudience,
@@ -114,6 +115,48 @@ async function buildSaleNotifications(userId: string): Promise<NotificationItem[
       }))
   } catch (error) {
     console.warn('Error building sale notifications:', error)
+    return []
+  }
+}
+
+async function buildGiftNotifications(userId: string): Promise<NotificationItem[]> {
+  try {
+    const [received, sent] = await Promise.all([
+      getReceivedGifts(userId),
+      getSentGifts(userId)
+    ])
+
+    const items: NotificationItem[] = []
+
+    received.slice(0, 5).forEach(gift => {
+      items.push({
+        id: `gift-received-${gift.id}`,
+        icon: Gift,
+        title: 'New gift received! 🎁',
+        body: `${gift.senderName} sent you a gift of ${gift.currency}${gift.amount.toLocaleString()}.`,
+        time: formatRelativeTime(gift.createdAt),
+        status: 'new' as const,
+        category: 'activity' as const,
+        visibility: 'creator' as const,
+      })
+    })
+
+    sent.slice(0, 3).forEach(gift => {
+      items.push({
+        id: `gift-sent-${gift.id}`,
+        icon: Gift,
+        title: 'Gift delivered ❤️',
+        body: `Your support to ${gift.creatorName} has been delivered successfully.`,
+        time: formatRelativeTime(gift.createdAt),
+        status: 'done' as const,
+        category: 'activity' as const,
+        visibility: 'creator' as const,
+      })
+    })
+
+    return items
+  } catch (error) {
+    console.warn('Error building gift notifications:', error)
     return []
   }
 }
@@ -319,6 +362,10 @@ export function useNotifications(forcedAudience?: NotificationAudience) {
 
         if (user?.uid && preferences.security) {
           promises.push(buildLoginSessionNotifications(user.uid))
+        }
+
+        if (user?.uid) {
+          promises.push(buildGiftNotifications(user.uid))
         }
 
         const results = await Promise.all(promises)

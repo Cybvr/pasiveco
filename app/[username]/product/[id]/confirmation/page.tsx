@@ -22,8 +22,9 @@ const formatPrice = (amount: number, currency: string) => {
   }
 };
 
-function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string; slug: string }> }) {
-  const routeParams = useParams<{ slug: string }>();
+function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string; username: string }> }) {
+  const { id, username } = React.use(params);
+  const routeParams = useParams<{ username: string }>();
   const searchParams = useSearchParams();
   const reference = searchParams.get('reference') || searchParams.get('trxref') || '';
 
@@ -137,7 +138,7 @@ function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string
           <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
           <h1 className="mb-2 text-2xl font-semibold">Order not found</h1>
           <p className="mb-5 text-muted-foreground">We could not load this order confirmation.</p>
-          <Link href={`/${routeParams.slug}`}>
+          <Link href={`/${username}`}>
             <Button variant="outline">Back</Button>
           </Link>
         </div>
@@ -149,7 +150,7 @@ function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
         <Link
-          href={`/${routeParams.slug}/product/${product.id}`}
+          href={`/${username}/product/${product.id}`}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -221,13 +222,13 @@ function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <Link href={`/${routeParams.slug}/product/${product.slug || product.id}`} className="block">
+              <Link href={`/${username}/product/${product.slug || product.id}`} className="block">
                 <Button variant="outline" className="w-full">
                   <Package className="mr-2 h-4 w-4" />
                   View product
                 </Button>
               </Link>
-              <Link href={`/${routeParams.slug}`} className="block">
+              <Link href={`/${username}`} className="block">
                 <Button className="w-full">
                   <Receipt className="mr-2 h-4 w-4" />
                   Back to store
@@ -241,7 +242,7 @@ function OrderConfirmationPageContent({ params }: { params: Promise<{ id: string
   );
 }
 
-export default function OrderConfirmationPage({ params }: { params: Promise<{ id: string; slug: string }> }) {
+export default function OrderConfirmationPage({ params }: { params: Promise<{ id: string; username: string }> }) {
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background" />}>
       <OrderConfirmationPageContent params={params} />

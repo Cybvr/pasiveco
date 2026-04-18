@@ -185,7 +185,7 @@ function IntakeField({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function BookingDetailPage() {
-  const { slug, productSlug } = useParams<{ slug: string; productSlug: string }>();
+  const { username, productSlug } = useParams<{ username: string; productSlug: string }>();
   const router = useRouter();
   const { currency: userCurrency, rates } = useCurrency();
 
@@ -215,7 +215,7 @@ export default function BookingDetailPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const profile = await getUserByUsername(slug ?? '');
+        const profile = await getUserByUsername(username ?? '');
         const uid = profile?.userId || profile?.id;
         if (!uid) return;
         setCreatorId(uid);
@@ -231,7 +231,7 @@ export default function BookingDetailPage() {
       }
     };
     load();
-  }, [slug, productSlug]);
+  }, [username, productSlug]);
 
   // ── Fetch slots when date changes ───────────────────────────────────────────
   useEffect(() => {
@@ -289,7 +289,7 @@ export default function BookingDetailPage() {
       await createAppointment({
         productId: product.id!,
         creatorId,
-        creatorSlug: slug,
+        creatorSlug: username,
         productName: product.name,
         date: selectedDate,
         startTime: selectedSlot.start,
@@ -325,7 +325,7 @@ export default function BookingDetailPage() {
     return (
       <div className="text-center py-20 space-y-3">
         <p className="text-muted-foreground">This booking session is not available.</p>
-        <Link href={`/${slug}/bookings`} className="text-sm text-primary underline">← Back to bookings</Link>
+        <Link href={`/${username}/bookings`} className="text-sm text-primary underline">← Back to bookings</Link>
       </div>
     );
   }
@@ -347,7 +347,7 @@ export default function BookingDetailPage() {
           </div>
           <h2 className="text-xl font-bold text-foreground">Booking Confirmed!</h2>
           <p className="text-sm text-muted-foreground">
-            Your session with <span className="font-semibold text-foreground">@{slug}</span> is confirmed.
+            Your session with <span className="font-semibold text-foreground">@{username}</span> is confirmed.
           </p>
           <div className="rounded-xl bg-muted/40 p-4 text-left space-y-2 text-sm">
             <div className="flex gap-2 items-center">
@@ -366,7 +366,7 @@ export default function BookingDetailPage() {
           <p className="text-xs text-muted-foreground">
             A confirmation email has been sent to <strong>{customerEmail}</strong>. The creator will share the meeting details before your session.
           </p>
-          <Button variant="outline" className="w-full" onClick={() => router.push(`/${slug}/bookings`)}>
+          <Button variant="outline" className="w-full" onClick={() => router.push(`/${username}/bookings`)}>
             ← Back to Bookings
           </Button>
         </div>
@@ -378,7 +378,7 @@ export default function BookingDetailPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Back link */}
-      <Link href={`/${slug}/bookings`} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+      <Link href={`/${username}/bookings`} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-3 w-3" /> Back to bookings
       </Link>
 

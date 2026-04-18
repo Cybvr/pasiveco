@@ -14,9 +14,8 @@ interface User extends FirebaseUser {
   isAdmin: boolean;
   isPinEnabled: boolean;
   pin?: string;
-  username?: string;
-  slug?: string;
-  bio?: string;
+  username: string;
+  bio: string;
 }
 
 interface AuthContextType {
@@ -61,12 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           setUser({
             ...firebaseUser,
+            displayName: userData?.displayName || firebaseUser.displayName || null,
+            photoURL: userData?.profilePicture || userData?.photoURL || firebaseUser.photoURL || null,
             plan: userData?.plan || null,
             isAdmin: userData?.isAdmin || false,
             isPinEnabled: userData?.isPinEnabled || false,
             pin: userData?.pin || '',
             username: userData?.username || '',
-            slug: userData?.slug || '',
             bio: userData?.bio || '',
           } as User);
         } catch (err) {
