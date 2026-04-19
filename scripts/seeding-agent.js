@@ -49,6 +49,208 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 // CLI Arguments
 const args = process.argv.slice(2);
 
+function slugifyText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function pickClippingAgent(agents) {
+  const preferredCategories = ['marketing', 'technology', 'media', 'business', 'creator'];
+
+  for (const category of preferredCategories) {
+    const match = agents.find((agent) => String(agent.category || '').toLowerCase() === category);
+    if (match) return match;
+  }
+
+  return agents[0] || null;
+}
+
+async function seedClippingSpaceAndProducts() {
+  console.log('🎬 Seeding a clipping-focused space and product catalog...');
+
+  try {
+    const agentsSnap = await db.collection('users').where('isAgent', '==', true).get();
+
+    if (agentsSnap.empty) {
+      console.log('⚠️ No seed agents found. Run --create first.');
+      return;
+    }
+
+    const agents = agentsSnap.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+    const agent = pickClippingAgent(agents);
+
+    if (!agent) {
+      console.log('⚠️ No eligible agent found.');
+      return;
+    }
+
+    const creatorName = agent.displayName || 'Clipping Creator';
+    const creatorUsername = String(agent.username || '').replace(/^@/, '') || 'creator';
+    const creatorSlug = String(agent.slug || creatorUsername || '').replace(/^@/, '') || creatorUsername;
+    const creatorPhoto = agent.photoURL || null;
+
+    await db.collection('users').doc(agent.uid).set({
+      bio: 'Helping creators and brands turn long-form videos into short-form clips that drive reach, views, and sales.',
+      category: agent.category || 'Marketing',
+      updatedAt: Timestamp.now(),
+    }, { merge: true });
+
+    const communityId = `seed-clipping-space-${agent.uid}`;
+    const communitySlug = `clipping-growth-lab-${slugifyText(creatorUsername || agent.uid).slice(0, 24)}`;
+    const communityData = {
+      name: 'Clipping Growth Lab',
+      description: 'A space for creators, editors, and operators building short-form clipping systems that turn podcasts, streams, and interviews into repeatable distribution.',
+      creatorId: agent.uid,
+      creatorName,
+      image: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1080',
+      bannerImage: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1080',
+      category: 'Marketing',
+      privacy: 'public',
+      memberCount: 1,
+      price: 0,
+      currency: 'USD',
+      isPaid: false,
+      slug: communitySlug,
+      tags: ['clipping', 'short-form', 'content-marketing', 'distribution'],
+      updatedAt: Timestamp.now(),
+    };
+
+    const communityRef = db.collection('communities').doc(communityId);
+    const communitySnapshot = await communityRef.get();
+
+    await communityRef.set({
+      ...communityData,
+      createdAt: communitySnapshot.exists ? communitySnapshot.data().createdAt || Timestamp.now() : Timestamp.now(),
+    }, { merge: true });
+
+    await db.collection('communityMembers').doc(`${communityId}_${agent.uid}`).set({
+      communityId,
+      userId: agent.uid,
+      role: 'admin',
+      joinedAt: Timestamp.now(),
+    }, { merge: true });
+
+    const introPostId = `seed-clipping-intro-${agent.uid}`;
+    await db.collection('posts').doc(introPostId).set({
+      authorId: agent.uid,
+      communityId,
+      message: 'Clipping is the workflow of turning long-form content into short-form videos that can be redistributed across TikTok, Reels, and Shorts. In this space, we break down hooks, payout models, editing SOPs, and content systems that actually scale.',
+      category: 'Marketing',
+      authorName: creatorName,
+      authorUsername: creatorUsername,
+      authorSlug: creatorSlug,
+      authorImage: creatorPhoto,
+      createdAt: Timestamp.now(),
+    }, { merge: true });
+
+    const clippingProducts = [
+      {
+        id: `seed-clipping-product-${agent.uid}-starter-kit`,
+        name: 'Clipping Starter Kit',
+        description: 'A ready-to-use digital download with clipping workflow SOPs, hook templates, clip scorecards, and posting checklists for short-form distribution.',
+        price: 29,
+        category: 'digital-download',
+        tags: ['clipping', 'templates', 'sop', 'short-form'],
+        details: {
+          fileName: 'clipping-starter-kit.zip',
+          fileUrl: '',
+        },
+        seo: {
+          title: 'Clipping Starter Kit',
+          description: 'Templates, SOPs, and checklists for launching a clipping workflow.',
+          keywords: ['clipping', 'short-form content', 'distribution', 'templates'],
+        },
+      },
+      {
+        id: `seed-clipping-product-${agent.uid}-bootcamp`,
+        name: 'Clipping Systems Bootcamp',
+        description: 'A course for creators and teams who want to build a repeatable clipping operation with better hooks, review loops, and creator briefs.',
+        price: 149,
+        category: 'courses',
+        tags: ['clipping', 'course', 'content-ops', 'growth'],
+        details: {
+          lessons: [
+            { title: 'What clipping is and how the model works' },
+            { title: 'Finding moments worth clipping' },
+            { title: 'Briefing editors and measuring performance' },
+          ],
+        },
+        seo: {
+          title: 'Clipping Systems Bootcamp',
+          description: 'Learn how to run short-form clipping as a repeatable growth engine.',
+          keywords: ['clipping course', 'content distribution', 'short-form growth'],
+        },
+      },
+      {
+        id: `seed-clipping-product-${agent.uid}-audit`,
+        name: '1:1 Clipping Workflow Audit',
+        description: 'A private booking session to review your current content pipeline, clip quality, distribution strategy, and monetization opportunities.',
+        price: 250,
+        category: 'booking',
+        tags: ['clipping', 'audit', 'consulting', 'workflow'],
+        details: {
+          sessionLength: 60,
+          locationType: 'zoom',
+          locationDetail: 'https://zoom.us/j/example',
+          availability: [
+            { day: 'Monday', start: '10:00', end: '15:00' },
+            { day: 'Thursday', start: '12:00', end: '16:00' },
+          ],
+        },
+        seo: {
+          title: '1:1 Clipping Workflow Audit',
+          description: 'Personalized review of your short-form clipping workflow and growth opportunities.',
+          keywords: ['clipping audit', 'content workflow', 'short-form consultant'],
+        },
+      },
+    ];
+
+    for (const product of clippingProducts) {
+      const productRef = db.collection('products').doc(product.id);
+      const productSnapshot = await productRef.get();
+
+      await productRef.set({
+        userId: agent.uid,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        currency: 'USD',
+        category: product.category,
+        url: '',
+        images: ['https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=1080'],
+        thumbnail: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=1080',
+        status: 'active',
+        tags: product.tags,
+        details: product.details,
+        inventory: {
+          quantity: 999,
+          trackInventory: false,
+        },
+        shipping: {
+          weight: 0,
+          dimensions: { length: 0, width: 0, height: 0 },
+          shippingRequired: false,
+        },
+        seo: product.seo,
+        slug: `${slugifyText(product.name)}-${slugifyText(creatorUsername || agent.uid).slice(0, 18)}`,
+        updatedAt: Timestamp.now(),
+        createdAt: productSnapshot.exists ? productSnapshot.data().createdAt || Timestamp.now() : Timestamp.now(),
+      }, { merge: true });
+    }
+
+    console.log(`✅ Assigned clipping business to @${creatorUsername}`);
+    console.log(`   - Space: ${communityData.name}`);
+    console.log(`   - Intro post: created`);
+    console.log(`   - Products: ${clippingProducts.length} ready`);
+  } catch (error) {
+    console.error('❌ Failed to seed clipping space/products:', error);
+  }
+}
+
 /**
  * 1. ACCOUNT CREATION
  * Persona Generation: Use Gemini to generate realistic Nigerian names, niches, and bios.
@@ -347,6 +549,7 @@ Flags:
   --join      Match agents to communities based on category
   --activity  Generate and post daily activity (8am-10pm WAT)
   --review    Generate 4-5 star reviews from agents for communities
+  --seed-clipping  Assign one seed agent a clipping-focused space, intro post, and products
     `);
     process.exit(0);
   }
@@ -365,6 +568,10 @@ Flags:
 
   if (args.includes('--review')) {
     await runReviews();
+  }
+
+  if (args.includes('--seed-clipping')) {
+    await seedClippingSpaceAndProducts();
   }
   
   process.exit(0);

@@ -190,9 +190,12 @@ export default function EarningsPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3">
         {stats.map((stat, idx) => (
-          <Card key={idx} className={`border-none shadow-sm ${idx === 0 ? "bg-muted/30" : ""}`}>
+          <Card
+            key={idx}
+            className={idx === 0 ? "border-primary/15 bg-primary/[0.05]" : "border-border/60 bg-card"}
+          >
             <CardContent className="p-3 md:p-4">
-              <div className="text-lg md:text-2xl font-bold leading-tight break-words">
+              <div className="text-lg md:text-2xl font-bold leading-tight break-words text-foreground">
                 {stat.title === "Net Sales" ? stat.value : formatEarnings(stat.value as number, currency)}
               </div>
               <div className="mt-1">
@@ -200,7 +203,7 @@ export default function EarningsPage() {
                 {idx === 0 && (
                   <button
                     type="button"
-                    className="text-xs text-foreground/80 underline underline-offset-4 hover:text-foreground"
+                    className="text-xs text-primary underline underline-offset-4 hover:text-primary/80"
                     onClick={() => router.push("/dashboard/payouts")}
                   >
                     Payout
@@ -212,7 +215,7 @@ export default function EarningsPage() {
         ))}
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden">
+      <Card className="overflow-hidden border-border/60 bg-card">
         <CardHeader className="px-6 py-4 border-b space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold tabular-nums">Earnings</CardTitle>
