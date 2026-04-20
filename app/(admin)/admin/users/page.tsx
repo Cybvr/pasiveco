@@ -42,11 +42,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, Download } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, Download, UserRound } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
 
 interface UserFormData {
   email: string;
@@ -269,6 +271,8 @@ export default function UsersPage() {
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'asc' })
   const [categories, setCategories] = useState<string[]>(DEFAULT_USER_CATEGORIES)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { impersonateUser } = useAuth()
+  const router = useRouter()
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -654,6 +658,15 @@ export default function UsersPage() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleImpersonate = (user: User) => {
+    impersonateUser(user)
+    toast({
+      title: "Impersonating user",
+      description: `You are now logged in as ${user.displayName || user.email}`,
+    })
+    router.push('/dashboard')
   }
 
   const handleInlineUpdate = async (userId: string, updates: Partial<User>) => {
@@ -1087,6 +1100,9 @@ export default function UsersPage() {
                 />
               </div>
               <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" onClick={() => handleImpersonate(user)} title="Login as user">
+                  <UserRound className="h-4 w-4 text-blue-600" />
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => openEditModal(user)}>
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -1239,6 +1255,15 @@ export default function UsersPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleImpersonate(user)}
+                      title="Login as user"
+                    >
+                      <UserRound className="h-4 w-4 text-blue-600" />
+                    </Button>
+
                     <Button
                       variant="ghost"
                       size="sm"

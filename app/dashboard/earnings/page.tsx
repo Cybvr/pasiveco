@@ -116,7 +116,7 @@ export default function EarningsPage() {
 
   const { stats, filteredAndSortedTransactions } = useMemo(() => {
     let result = [...transactions]
-    const successfulTransactions = transactions.filter((tx) => 
+    const successfulTransactions = transactions.filter((tx) =>
       tx.status === "success" || tx.status === "completed"
     )
 
@@ -215,7 +215,6 @@ export default function EarningsPage() {
       <Card className="border-none shadow-sm overflow-hidden">
         <CardHeader className="px-6 py-4 border-b space-y-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold tabular-nums">Earnings</CardTitle>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
@@ -228,7 +227,7 @@ export default function EarningsPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[140px] h-10">
                   <Filter className="h-4 w-4 mr-2 opacity-50" />
@@ -312,7 +311,7 @@ export default function EarningsPage() {
                       <TableCell className="text-right whitespace-nowrap font-semibold">
                         {formatEarnings(getEarningValue(tx), tx.currency)}
                       </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap">
                         {tx.type === 'gift' ? (
                           <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-none">Gift 🎁</Badge>
                         ) : tx.affiliate ? (

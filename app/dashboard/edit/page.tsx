@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User as UserIcon, ExternalLink, Package, Menu, Share2, Plus, Pencil, Check, Trash2, X, Loader2, Palette } from "lucide-react";
 import { getUser, updateUser, type User as AppUser } from "@/services/userService";
 import { getUserProducts, type Product } from "@/services/productsService";
 import { getProductTypeLabel } from "@/lib/productTypes";
@@ -29,6 +29,8 @@ function Page() {
   const [editTitle, setEditTitle] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [profileData, setProfileData] = useState<
     Partial<AppUser> & {
@@ -287,123 +289,52 @@ function Page() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4">
-        <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Edit profile">
-              <Pencil className={`h-4 w-4 ${iconColor}`} />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Profile & Description</DialogTitle>
-            </DialogHeader>
-            <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Banner</label>
-                <div className="relative group">
-                  <div className="flex h-24 w-full items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                    {profileData.bannerImage
-                      ? <img src={profileData.bannerImage} alt="Banner" className="h-full w-full object-cover" />
-                      : <span className="text-xs text-muted-foreground">Click to upload</span>}
+        <div className="flex items-center gap-1">
+          <Dialog open={isProfileModalOpen} onOpenChange={setIsProfileModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Edit colors and theme">
+                <Palette className={`h-4 w-4 ${iconColor}`} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Theme & Colors</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Icon Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={profileData.iconColor}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, iconColor: e.target.value }))}
+                        className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
+                      />
+                      <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.iconColor}</span>
+                    </div>
                   </div>
-                  <input type="file" accept="image/*" onChange={handleBannerUpload} className="absolute inset-0 cursor-pointer opacity-0" />
-                  {profileData.bannerImage && (
-                    <Button 
-                      variant="destructive" 
-                      size="icon" 
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setProfileData(prev => ({ ...prev, bannerImage: null }));
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Profile picture</label>
-                <div className="relative h-16 w-16 group">
-                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-muted">
-                    <img
-                      src={editPageAvatar}
-                      alt="Profile"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <input type="file" accept="image/*" onChange={handleProfilePictureUpload} className="absolute inset-0 cursor-pointer opacity-0" />
-                  {profileData.profilePicture && (
-                    <Button 
-                      variant="destructive" 
-                      size="icon" 
-                      className="absolute -top-1 -right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setProfileData(prev => ({ ...prev, profilePicture: null }));
-                      }}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Username</label>
-                <input
-                  type="text"
-                  value={profileData.username}
-                  onChange={(e) => setProfileData((prev) => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
-                  className="w-full rounded-lg border border-border/50 bg-muted/40 px-3 py-2 text-sm"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Description (Bio)</label>
-                <textarea
-                  value={profileData.bio}
-                  onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
-                  rows={3}
-                  placeholder="Tell your story..."
-                  className="w-full resize-none rounded-lg border border-border/50 bg-muted/40 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Icon Color</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={profileData.iconColor}
-                      onChange={(e) => setProfileData((prev) => ({ ...prev, iconColor: e.target.value }))}
-                      className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
-                    />
-                    <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.iconColor}</span>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Theme Color</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={profileData.themeColor}
+                        onChange={(e) => setProfileData((prev) => ({ ...prev, themeColor: e.target.value }))}
+                        className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
+                      />
+                      <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.themeColor}</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Theme Color</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={profileData.themeColor}
-                      onChange={(e) => setProfileData((prev) => ({ ...prev, themeColor: e.target.value }))}
-                      className="h-8 w-8 cursor-pointer overflow-hidden rounded-md border-0 p-0"
-                    />
-                    <span className="text-[10px] font-mono text-muted-foreground uppercase">{profileData.themeColor}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2">
                 <Button className="w-full" onClick={saveProfile}>
                   <Check className="h-4 w-4 mr-2" />
-                  Save Changes
+                  Save Theme
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={() => setIsShareModalOpen(true)} aria-label="Share">
@@ -416,26 +347,99 @@ function Page() {
       </div>
 
       {/* Banner */}
-      {profileData.bannerImage && (
-        <div className="relative mb-4 h-32 w-full overflow-hidden rounded-xl">
-          <img src={profileData.bannerImage} alt="Banner" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
-        </div>
-      )}
+      <div className="relative h-32 w-full overflow-hidden rounded-xl border bg-muted group cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
+        {profileData.bannerImage ? (
+          <>
+            <img src={profileData.bannerImage} alt="Banner" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Pencil className="h-6 w-6 text-white drop-shadow-md" />
+            </div>
+          </>
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted/80 transition-colors">
+            <Plus className="h-6 w-6" />
+            <span className="text-xs font-medium">Add Banner</span>
+          </div>
+        )}
+        <input type="file" ref={bannerInputRef} accept="image/*" onChange={handleBannerUpload} className="hidden" />
+        {profileData.bannerImage && (
+          <Button 
+            variant="destructive" 
+            size="icon" 
+            className="absolute top-2 right-2 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.stopPropagation();
+              setProfileData(prev => ({ ...prev, bannerImage: null }));
+            }}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
 
       {/* Avatar + identity */}
-      <div className="mb-6 text-center">
-        <div className="mx-auto mb-3 h-20 w-20 overflow-hidden rounded-full bg-muted">
-          <img
-            src={editPageAvatar}
-            alt="Profile"
-            className="h-full w-full object-cover"
+      <div className="relative -mt-10 mb-6 text-center z-10">
+        <div className="relative mx-auto mb-3 h-20 w-20 group">
+          <div 
+            className="h-20 w-20 overflow-hidden rounded-full border-2 border-background bg-muted cursor-pointer"
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            <img
+              src={editPageAvatar}
+              alt="Profile"
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Pencil className="h-5 w-5 text-white" />
+            </div>
+          </div>
+          <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleProfilePictureUpload} className="hidden" />
+          {profileData.profilePicture && (
+            <Button 
+              variant="destructive" 
+              size="icon" 
+              className="absolute -top-1 -right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                setProfileData(prev => ({ ...prev, profilePicture: null }));
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+
+        <div className="relative inline-block w-full px-4">
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-lg font-semibold text-muted-foreground select-none">@</span>
+            <input
+              type="text"
+              value={profileData.username?.startsWith("@") ? profileData.username.substring(1) : profileData.username}
+              onChange={(e) => setProfileData((prev) => ({ ...prev, username: e.target.value.replace(/^@+/, '') }))}
+              placeholder="username"
+              className="bg-transparent text-lg font-semibold text-center border-none focus:ring-0 p-0 w-auto min-w-[50px] inline-block"
+              style={{ width: `${Math.max(profileData.username?.length || 8, 4)}ch` }}
+            />
+          </div>
+          <textarea
+            value={profileData.bio}
+            onChange={(e) => setProfileData((prev) => ({ ...prev, bio: e.target.value }))}
+            placeholder="Tell your story..."
+            rows={1}
+            className="mt-1 w-full resize-none bg-transparent text-sm text-muted-foreground text-center border-none focus:ring-0 p-0 h-auto overflow-hidden"
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+            ref={(el) => {
+              if (el) {
+                el.style.height = 'auto';
+                el.style.height = `${el.scrollHeight}px`;
+              }
+            }}
           />
         </div>
-        <h2 className="text-lg font-semibold">
-          @{profileData.username?.startsWith("@") ? profileData.username.substring(1) : profileData.username}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{profileData.bio}</p>
 
         {/* Social icons */}
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">

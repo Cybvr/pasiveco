@@ -4,8 +4,24 @@ import { CurrencyProvider } from '@/context/CurrencyContext'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import SupportChatWidget from '@/components/SupportChatWidget'
+import ImpersonationBanner from '@/components/admin/ImpersonationBanner'
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { registerServiceWorker } from './sw-register'
+import { useAuth as useAuthHook } from '@/hooks/useAuth'
+
+function LayoutContent({ children, isSlugPage, isDashboardRoute, shouldShowSupportChat }: any) {
+  const { isImpersonating } = useAuthHook()
+  
+  return (
+    <div className={isImpersonating ? 'pt-12' : ''}>
+      <ImpersonationBanner />
+      {children}
+      {!isSlugPage && !isDashboardRoute}
+      {shouldShowSupportChat ? <SupportChatWidget /> : null}
+    </div>
+  )
+}
 
 export default function ClientLayout({
   children,
@@ -34,26 +50,19 @@ export default function ClientLayout({
   const shouldShowSupportChat = !isSlugPage && !isAuthRoute && !isAdminRoute && !isApiRoute && !isMessagesRoute
 
   useEffect(() => {
-    // Register service worker
-    if ('serviceWorker' in navigator && typeof window !== 'undefined') {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('ServiceWorker registered');
-          })
-          .catch((registrationError) => {
-            console.log('ServiceWorker registration failed: ', registrationError);
-          });
-      });
-    }
+    registerServiceWorker()
   }, [])
 
   return (
     <AuthProvider>
       <CurrencyProvider>
-        {children}
-        {!isSlugPage && !isDashboardRoute}
-        {shouldShowSupportChat ? <SupportChatWidget /> : null}
+        <LayoutContent 
+          isSlugPage={isSlugPage} 
+          isDashboardRoute={isDashboardRoute} 
+          shouldShowSupportChat={shouldShowSupportChat}
+        >
+          {children}
+        </LayoutContent>
         <Toaster />
         <Sonner />
       </CurrencyProvider>

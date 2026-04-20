@@ -21,6 +21,11 @@ interface User extends FirebaseUser {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  impersonatedUser: User | null;
+  impersonateUser: (user: User) => void;
+  stopImpersonating: () => void;
+  isImpersonating: boolean;
+  realUser: User | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,9 +38,21 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [impersonatedUser, setImpersonatedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Load impersonated user from session storage if exists
+    const storedImpersonation = sessionStorage.getItem('impersonatedUser');
+    if (storedImpersonation) {
+      try {
+        setImpersonatedUser(JSON.parse(storedImpersonation));
+      } catch (e) {
+        console.error('Error parsing impersonated user', e);
+        sessionStorage.removeItem('impersonatedUser');
+      }
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
@@ -80,6 +97,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } else {
         setUser(null);
+        setImpersonatedUser(null);
+        sessionStorage.removeItem('impersonatedUser');
         nookies.destroy(undefined, 'session');
       }
       setLoading(false);
@@ -99,8 +118,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const impersonateUser = (targetUser: User) => {
+    setImpersonatedUser(targetUser);
+    sessionStorage.setItem('impersonatedUser', JSON.stringify(targetUser));
+  };
+
+  const stopImpersonating = () => {
+    setImpersonatedUser(null);
+    sessionStorage.removeItem('impersonatedUser');
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider
+      value={{
+        user: impersonatedUser || user,
+        realUser: user,
+        impersonatedUser,
+        impersonateUser,
+        stopImpersonating,
+        isImpersonating: !!impersonatedUser,
+        loading
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

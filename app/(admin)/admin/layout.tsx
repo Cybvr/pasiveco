@@ -26,7 +26,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, loading } = useAuth()
+  const { user, realUser, loading } = useAuth()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
 
@@ -36,7 +36,10 @@ export default function AdminLayout({
     const checkAdminAccess = async () => {
       if (loading) return
 
-      if (!user) {
+      // Use realUser for authorization, fallback to user
+      const authUser = realUser || user
+
+      if (!authUser) {
         router.replace('/auth/login')
         if (isMounted) {
           setIsAuthorized(false)
@@ -46,7 +49,7 @@ export default function AdminLayout({
       }
 
       try {
-        const profile = await getUser(user.uid)
+        const profile = await getUser(authUser.uid)
         const canAccessAdmin = Boolean(profile?.isAdmin || profile?.role === 'admin')
 
         if (!canAccessAdmin) {
@@ -74,7 +77,7 @@ export default function AdminLayout({
     return () => {
       isMounted = false
     }
-  }, [loading, router, user])
+  }, [loading, router, user, realUser])
 
   const isActiveRoute = (href: string) => {
     if (href === "/admin") return pathname === href

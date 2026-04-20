@@ -121,6 +121,20 @@ export default function DashboardHeader() {
     }
 
     void loadProfile()
+
+    const handleProfileUpdated = () => {
+      void loadProfile()
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('user-profile-updated', handleProfileUpdated)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('user-profile-updated', handleProfileUpdated)
+      }
+    }
   }, [user])
 
   const currentTitle = useMemo(() => {
@@ -145,7 +159,7 @@ export default function DashboardHeader() {
   }, [pathname])
 
   const publicProfileHref = profileHandle ? `/${profileHandle}` : ''
-  const publicProfileLabel = profileHandle ? `pasive.co/${profileHandle}` : ''
+  const publicProfileLabel = profileHandle ? `@${profileHandle}` : ''
 
   const isItemActive = (href: string) => {
     if (href === '/dashboard') return pathname === href

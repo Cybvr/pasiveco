@@ -183,17 +183,31 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
           </div>
 
           <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
-            <Button variant="outline" onClick={onGenAINew} title="Quick Add" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg border-primary/20 px-2 text-[10px] text-primary hover:bg-primary/5 sm:gap-1.5 sm:px-3 sm:text-xs">
+            <Button
+              variant="outline"
+              onClick={onGenAINew}
+              title="Quick Add"
+              className="h-auto min-h-[3.25rem] shrink-0 flex-col gap-1 rounded-lg border-primary/20 px-2 py-2 text-[10px] text-primary hover:bg-primary/5 sm:h-8 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3 sm:py-0 sm:text-xs"
+            >
               <Sparkles className="h-3.5 w-3.5" />
-              <span className="hidden truncate sm:inline">Quick Add</span>
+              <span className="max-w-full whitespace-normal text-center leading-tight sm:whitespace-nowrap">Quick Add</span>
             </Button>
-            <Button variant="outline" onClick={onBulkAINew} title="Instant Catalog" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg border-primary/20 px-2 text-[10px] text-primary hover:bg-primary/5 sm:gap-1.5 sm:px-3 sm:text-xs">
+            <Button
+              variant="outline"
+              onClick={onBulkAINew}
+              title="Instant Catalog"
+              className="h-auto min-h-[3.25rem] shrink-0 flex-col gap-1 rounded-lg border-primary/20 px-2 py-2 text-[10px] text-primary hover:bg-primary/5 sm:h-8 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3 sm:py-0 sm:text-xs"
+            >
               <Layers className="h-3.5 w-3.5" />
-              <span className="hidden truncate sm:inline">Instant Catalog</span>
+              <span className="max-w-full whitespace-normal text-center leading-tight sm:whitespace-nowrap">Instant Catalog</span>
             </Button>
-            <Button onClick={onCreateNew} title="New Product" className="h-8 shrink-0 gap-1 overflow-hidden rounded-lg px-2 text-[10px] sm:gap-1.5 sm:px-4 sm:text-xs">
+            <Button
+              onClick={onCreateNew}
+              title="New Product"
+              className="h-auto min-h-[3.25rem] shrink-0 flex-col gap-1 rounded-lg px-2 py-2 text-[10px] sm:h-8 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-0 sm:text-xs"
+            >
               <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">New</span>
+              <span className="max-w-full whitespace-normal text-center leading-tight sm:whitespace-nowrap">New</span>
             </Button>
           </div>
         </div>

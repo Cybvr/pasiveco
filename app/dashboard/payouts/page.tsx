@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Pencil } from "lucide-react"
+import { HandCoins, Pencil } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -215,11 +215,14 @@ export default function PayoutsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">Withdrawals</h1>
+        <h1 className="text-xl font-bold">Summary</h1>
         {payoutAccounts.length > 0 ? (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button disabled={summary.pendingPayout <= 0} className="font-bold">Withdraw</Button>
+              <Button disabled={summary.pendingPayout <= 0} className="font-bold gap-2">
+                <HandCoins className="h-4 w-4" />
+                Withdraw
+              </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
@@ -269,7 +272,8 @@ export default function PayoutsPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20" onClick={handleWithdraw} disabled={submitting}>
+                <Button className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 gap-2" onClick={handleWithdraw} disabled={submitting}>
+                  {!submitting && <HandCoins className="h-4 w-4" />}
                   {submitting ? "Processing..." : "Confirm Withdrawal"}
                 </Button>
               </DialogFooter>
@@ -324,7 +328,7 @@ export default function PayoutsPage() {
                     ) : null}
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    {account.accountName} - {formatAccountEnding(account.accountNumber)}
+                    {formatAccountEnding(account.accountNumber)}
                   </p>
                 </div>
               </div>

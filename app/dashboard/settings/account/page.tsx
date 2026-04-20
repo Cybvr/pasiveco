@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { updateProfile } from 'firebase/auth'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -9,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { getUser, updateUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
+import { uploadProfileImage } from '@/services/profileImageService'
 import { useAuth } from "@/hooks/useAuth"
 import { getDisplayAvatar } from '@/lib/avatar'
 import { Sparkles, Loader2, Phone, CheckCircle2 } from 'lucide-react'
@@ -255,16 +257,42 @@ export default function AccountSettings() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
     try {
       setUploading(true)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      const mockUrl = URL.createObjectURL(file)
-      setUserData(prev => ({ ...prev, profilePicture: mockUrl }))
+      if (!user?.uid) {
+        throw new Error('You must be logged in to update your profile picture.')
+      }
+
+      const imageUrl = await uploadProfileImage(file)
+
+      await updateUser(user.uid, {
+        profilePicture: imageUrl,
+      })
+
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL: imageUrl }).catch((error) => {
+          console.warn('Unable to update Firebase auth photoURL:', error)
+        })
+      }
+
+      setUserData(prev => ({ ...prev, profilePicture: imageUrl }))
+      setFirebaseProfile(prev => (prev ? { ...prev, profilePicture: imageUrl } : prev))
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('user-profile-updated'))
+      }
+
       toast({ title: "Success", description: "Profile picture updated" })
     } catch (error) {
       console.error("Error uploading profile picture:", error)
-      toast({ title: "Error", description: "Failed to update profile picture", variant: "destructive" })
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update profile picture",
+        variant: "destructive"
+      })
     } finally {
+      e.target.value = ''
       setUploading(false)
     }
   }
@@ -310,6 +338,9 @@ export default function AccountSettings() {
           brandPreferences: updatedProfile.brandPreferences || '',
           profilePicture: updatedProfile.profilePicture || prev.profilePicture,
         }))
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('user-profile-updated'))
       }
       toast({ title: "Profile updated", description: "Your profile has been updated successfully." })
     } catch (error) {

@@ -1,5 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const PRODUCT_CATEGORIES = [
+  "digital-download",
+  "courses",
+  "tickets",
+  "membership",
+  "booking",
+  "bundle",
+] as const;
+
+type BulkProductsResponse = {
+  products: Array<{
+    name: string;
+    description: string;
+    price: number;
+    category: (typeof PRODUCT_CATEGORIES)[number];
+  }>;
+};
+
+const responseSchema = {
+  name: "bulk_generated_products",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      products: {
+        type: "array",
+        maxItems: 10,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            name: { type: "string" },
+            description: { type: "string" },
+            price: { type: "number" },
+            category: {
+              type: "string",
+              enum: PRODUCT_CATEGORIES,
+            },
+          },
+          required: ["name", "description", "price", "category"],
+        },
+      },
+    },
+    required: ["products"],
+  },
+} as const;
+
+const systemPrompt = `You turn messy creator notes into clean product drafts.
+
+Return up to 10 viable products based on the user's input.
+Each product must have:
+- name: short and clear
+- description: punchy 1-2 sentence sales copy
+- price: a realistic numeric price
+- category: one of digital-download, courses, tickets, membership, booking, bundle
+
+Rules:
+- Extract directly from the user's input when possible.
+- If the input is rough or incomplete, infer sensible product drafts without sounding robotic.
+- Prefer practical, sellable offers over abstract ideas.
+- Keep names plain and marketable.
+- Do not include explanations outside the JSON response.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,67 +75,82 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY is not configured" },
+        { error: "OPENAI_API_KEY is not configured" },
         { status: 500 }
       );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      generationConfig: { responseMimeType: "application/json" },
+    const prompt = `Creator name: ${creatorName || "Unknown"}
+
+User input:
+${userInput}`;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: responseSchema,
+        },
+      }),
     });
 
-    const prompt = `You are an expert product strategist. A creator named "${creatorName || 'Unknown'}" wants to bulk create products based on the following input:
+    const payload = await response.json();
 
-    --- USER INPUT ---
-    ${userInput}
-    --- END USER INPUT ---
+    if (!response.ok) {
+      const errorMessage =
+        payload?.error?.message || "Failed to generate products";
+      return NextResponse.json({ error: errorMessage }, { status: response.status });
+    }
 
-    Task:
-    1. Carefully analyze the input. It might contain a list of services, notes, a transcript, or just random ideas.
-    2. Extract and refine as many distinct and viable product ideas as possible (up to 10).
-    3. For each product, define:
-       - "name": a catchy, professional title.
-       - "description": a punchy 1-2 sentence sales copy.
-       - "price": suggest a realistic price in USD (number).
-       - "category": choose the most appropriate from: ["digital-download", "courses", "tickets", "membership", "booking", "bundle"].
-    
-    Return a JSON object with a "products" key containing an array of these product objects.
-    
-    TONE: Professional, entrepreneurial, and helpful.
-    IMPORTANT: Ensure the response is valid JSON.`;
-
-    const result = await model.generateContent(prompt);
-
-    if (
-      !result.response ||
-      !result.response.candidates ||
-      result.response.candidates.length === 0
-    ) {
+    const content = payload?.choices?.[0]?.message?.content;
+    if (!content || typeof content !== "string") {
       return NextResponse.json(
-        { error: "AI could not generate content" },
+        { error: "AI returned an empty response" },
         { status: 500 }
       );
     }
 
-    const responseText = result.response.text();
-    if (!responseText) {
-      return NextResponse.json({ error: "AI returned empty text" }, { status: 500 });
-    }
+    const data = JSON.parse(content) as BulkProductsResponse;
 
-    try {
-      const data = JSON.parse(responseText);
-      return NextResponse.json(data);
-    } catch {
+    if (!Array.isArray(data.products)) {
       return NextResponse.json(
-        { error: "Failed to parse AI response" },
+        { error: "AI response did not include products" },
         { status: 500 }
       );
     }
+
+    const normalizedProducts = data.products
+      .map((product) => ({
+        name: String(product.name || "").trim(),
+        description: String(product.description || "").trim(),
+        price: Number(product.price || 0),
+        category: PRODUCT_CATEGORIES.includes(product.category)
+          ? product.category
+          : "digital-download",
+      }))
+      .filter(
+        (product) =>
+          product.name &&
+          product.description &&
+          Number.isFinite(product.price) &&
+          product.price >= 0
+      );
+
+    return NextResponse.json({ products: normalizedProducts });
   } catch (error: any) {
     console.error("Error bulk generating products:", error);
     const errorMsg = error?.message || "Failed to generate AI content";

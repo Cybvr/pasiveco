@@ -17,10 +17,17 @@ export function registerServiceWorker() {
   }
 
   if ('serviceWorker' in navigator && typeof window !== 'undefined') {
-    window.addEventListener('load', () => {
+    const register = () => {
       navigator.serviceWorker.register('/sw.js', { scope: '/' })
         .then(() => console.log('ServiceWorker registered'))
-        .catch(err => console.log('ServiceWorker registration failed:', err));
-    });
+        .catch(err => console.log('ServiceWorker registration failed:', err))
+    }
+
+    if (document.readyState === 'complete') {
+      register()
+      return
+    }
+
+    window.addEventListener('load', register, { once: true })
   }
 }

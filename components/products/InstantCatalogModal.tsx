@@ -38,6 +38,29 @@ interface GeneratedProduct {
   selected?: boolean
 }
 
+const INPUT_PRESETS = [
+  {
+    label: 'Coaching',
+    value:
+      'I offer a 60-minute 1-on-1 coaching session for career clarity at 45,000 NGN, a 4-week job search bootcamp at 120,000 NGN, and a CV review service at 15,000 NGN.',
+  },
+  {
+    label: 'Beauty',
+    value:
+      'I run a beauty business with bridal glam packages starting at 150,000 NGN, soft glam appointments at 35,000 NGN, gele styling at 20,000 NGN, and a makeup class for beginners at 85,000 NGN.',
+  },
+  {
+    label: 'Digital',
+    value:
+      'I sell a social media content calendar template for 12,000 NGN, a Canva brand kit for 18,000 NGN, and a short course on creating better Instagram posts for 55,000 NGN.',
+  },
+  {
+    label: 'Fitness',
+    value:
+      'I offer online personal training at 30,000 NGN per month, a 6-week weight loss program at 75,000 NGN, and a meal planning guide at 10,000 NGN.',
+  },
+] as const
+
 const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
   open,
   onOpenChange,
@@ -250,18 +273,22 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
     setGeneratedProducts(generatedProducts.filter((_, i) => i !== index))
   }
 
+  const applyPreset = (value: string) => {
+    setUserInput(value)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-border/60 shadow-2xl bg-background">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden border-border/60 bg-background p-0 shadow-2xl flex flex-col">
         <DialogHeader className="px-6 py-4 border-b border-border/60 bg-muted/5">
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-lg font-bold sm:text-xl">
             <Sparkles className="w-5 h-5 text-primary animate-pulse" />
             Instant Catalog
           </DialogTitle>
           <DialogDescription>
             {step === 'input' 
-              ? "Paste any text, notes, or list of services. Our AI will extract and structure them into products for you."
-              : "Review the generated products. You can deselect or remove individual ones before creating."}
+              ? "Paste what you sell in plain language and turn it into product drafts."
+              : "Review the drafts and keep only the ones you want to create."}
           </DialogDescription>
           {step === 'preview' && isGeneratingImages && (
             <div className="flex items-center gap-2 mt-2 text-[10px] font-bold text-primary uppercase tracking-widest animate-pulse">
@@ -275,17 +302,33 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
           {step === 'input' ? (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="userInput" className="text-sm font-semibold">Your Input Data</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="userInput" className="text-sm font-semibold">What do you sell?</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {INPUT_PRESETS.map((preset) => (
+                      <Button
+                        key={preset.label}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 rounded-full px-3 text-[11px]"
+                        onClick={() => applyPreset(preset.value)}
+                      >
+                        {preset.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <Textarea
                   id="userInput"
-                  placeholder="Example: I offer 1-on-1 coaching for $100, a web design template for $49, and a 4-week SEO masterclass for $299. I also have some notes about a new ebook on modern gardening..."
+                  placeholder="Example: I offer CV reviews for 15,000 NGN, 1-on-1 interview prep for 45,000 NGN, and a 4-week job search bootcamp for 120,000 NGN."
                   className="min-h-[250px] rounded-xl resize-none text-sm p-4 border-border/60 focus:ring-primary/20"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                 />
-                <p className="text-[11px] text-muted-foreground italic flex items-center gap-1.5">
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                   <AlertCircle className="w-3 h-3" />
-                  Detailed inputs (prices, names, categories) help the AI provide better results.
+                  Names and prices help it produce cleaner drafts.
                 </p>
               </div>
             </div>
@@ -295,24 +338,38 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                 {generatedProducts.map((product, index) => (
                   <div 
                     key={index} 
-                    className={`group relative flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 ${
+                    className={`group relative flex flex-col gap-4 rounded-xl border p-4 transition-all duration-200 sm:flex-row sm:items-start ${
                       product.selected 
                         ? 'bg-primary/[0.02] border-primary/20 shadow-sm' 
                         : 'bg-muted/30 border-transparent opacity-60'
                     }`}
                   >
-                    <button 
-                      onClick={() => toggleProductSelection(index)}
-                      className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
-                        product.selected 
-                          ? 'bg-primary border-primary text-primary-foreground' 
-                          : 'border-muted-foreground/30 hover:border-primary/50'
-                      }`}
-                    >
-                      {product.selected && <Check className="h-3.5 w-3.5" />}
-                    </button>
+                    <div className="flex items-start justify-between gap-3 sm:block">
+                      <button
+                        type="button"
+                        aria-label={product.selected ? `Deselect ${product.name}` : `Select ${product.name}`}
+                        onClick={() => toggleProductSelection(index)}
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors sm:mt-1 ${
+                          product.selected 
+                            ? 'bg-primary border-primary text-primary-foreground' 
+                            : 'border-muted-foreground/30 hover:border-primary/50'
+                        }`}
+                      >
+                        {product.selected && <Check className="h-3.5 w-3.5" />}
+                      </button>
 
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-muted border border-border/60 flex items-center justify-center relative group/img">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Remove ${product.name}`}
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 sm:hidden"
+                        onClick={() => removeProduct(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-muted sm:h-20 sm:w-20 group/img">
                       {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                       ) : (
@@ -322,6 +379,7 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                             size="sm" 
                             onClick={() => handleManualGenerateImage(index, product.name, product.description)}
                             disabled={regeneratingIdx === index}
+                            aria-label={`Generate image for ${product.name}`}
                             className="h-full w-full absolute inset-0 flex flex-col items-center justify-center gap-1 hover:bg-primary/5 transition-colors"
                           >
                             {regeneratingIdx === index ? (
@@ -329,7 +387,7 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                             ) : (
                               <>
                                 <ImagePlus className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-[8px] uppercase font-bold tracking-tight text-muted-foreground">Gen</span>
+                                <span className="text-[9px] uppercase font-bold tracking-tight text-muted-foreground sm:text-[8px]">Generate</span>
                               </>
                             )}
                           </Button>
@@ -341,7 +399,8 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                           size="icon"
                           onClick={() => handleManualGenerateImage(index, product.name, product.description)}
                           disabled={regeneratingIdx === index}
-                          className="absolute bottom-1 right-1 h-5 w-5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white border-none shadow-lg"
+                          aria-label={`Regenerate image for ${product.name}`}
+                          className="absolute bottom-1 right-1 h-6 w-6 rounded-full bg-black/50 text-white border-none shadow-lg transition-opacity hover:bg-black/70 opacity-100 sm:h-5 sm:w-5 sm:opacity-0 sm:group-hover/img:opacity-100"
                         >
                           <RefreshCw className={`h-2.5 w-2.5 ${regeneratingIdx === index ? 'animate-spin' : ''}`} />
                         </Button>
@@ -366,7 +425,8 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label={`Remove ${product.name}`}
+                      className="hidden h-8 w-8 text-destructive transition-opacity hover:bg-destructive/10 hover:text-destructive sm:inline-flex sm:opacity-0 sm:group-hover:opacity-100"
                       onClick={() => removeProduct(index)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -410,7 +470,7 @@ const InstantCatalogModal: React.FC<InstantCatalogModalProps> = ({
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Ideas
+                    Generate Products
                   </>
                 )}
               </Button>

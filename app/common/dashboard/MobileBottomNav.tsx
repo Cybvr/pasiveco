@@ -14,9 +14,9 @@ interface NavItem {
  
 const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/products', icon: Package, label: 'Products' },
   { href: '/dashboard/earnings', icon: Coins, label: 'Earnings' },
+  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
  

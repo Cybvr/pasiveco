@@ -2,6 +2,32 @@ const CACHE_NAME = 'pasive-cache-v3';
 const ASSETS = ['/', '/favicon.png', '/manifest.json', '/images/logo.png'];
 const DEFAULT_NOTIFICATION_URL = '/dashboard/notifications';
 
+function shouldBypassRequest(request) {
+  if (request.method !== 'GET') {
+    return true;
+  }
+
+  const url = new URL(request.url);
+
+  if (url.origin !== self.location.origin) {
+    return true;
+  }
+
+  if (
+    url.pathname.startsWith('/api') ||
+    url.pathname.startsWith('/_next') ||
+    url.searchParams.has('_rsc') ||
+    url.searchParams.has('__flight__') ||
+    request.headers.has('RSC') ||
+    request.headers.has('Next-Router-State-Tree') ||
+    request.headers.has('Next-Url')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -11,6 +37,17 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (shouldBypassRequest(event.request)) {
+    return;
+  }
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/') || Response.error())
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).catch(() => {

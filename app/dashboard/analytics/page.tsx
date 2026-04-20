@@ -30,6 +30,14 @@ import {
   Bar,
   Legend
 } from 'recharts'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useAuth } from '@/hooks/useAuth'
 import { getBusinessOverview, BusinessOverview } from '@/services/businessService'
 import Link from 'next/link'
@@ -114,18 +122,18 @@ function AnalyticsPage() {
       </div>
 
       {/* Primary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Revenue', value: data?.totalRevenue || 0, color: 'text-primary' },
           { label: 'Total Customers', value: data?.customerCount || 0, color: 'text-foreground' },
           { label: 'Gifts & Support', value: data?.revenueBySource.gifts || 0, color: 'text-foreground' },
           { label: 'Bookings', value: data?.revenueBySource.bookings || 0, color: 'text-foreground' },
         ].map((stat, i) => (
-          <Card key={i} className="border-primary/5 bg-background">
-            <CardContent className="p-6">
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
-              <div className={`text-3xl font-black mt-2 tracking-tighter ${stat.color}`}>
-                {typeof stat.value === 'number' && stat.label !== 'Total Customers' ? formatAmount(stat.value) : stat.value}
+          <Card key={i} className="border-primary/5 bg-background overflow-hidden">
+            <CardContent className="p-3 sm:p-6">
+              <p className="text-[8px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest truncate">{stat.label}</p>
+              <div className={`text-xl sm:text-3xl font-black mt-1 sm:mt-2 tracking-tighter ${stat.color}`}>
+                {stat.label === 'Total Customers' ? stat.value : formatAmount(stat.value)}
               </div>
             </CardContent>
           </Card>
@@ -144,10 +152,10 @@ function AnalyticsPage() {
             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Gifts</div>
           </div>
         </CardHeader>
-        <CardContent className="p-0 pt-6 pr-2 sm:pr-6">
+        <CardContent className="p-0 pt-6 pr-2 sm:pr-6 pb-2">
           <div className="h-[250px] sm:h-[350px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data?.revenueTimeline || []} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <AreaChart data={data?.revenueTimeline || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorProducts" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
@@ -177,8 +185,9 @@ function AnalyticsPage() {
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#888888', fontSize: 10, fontWeight: 'bold' }}
+                  tick={{ fill: '#888888', fontSize: 9, fontWeight: 'bold' }}
                   tickFormatter={(val) => `₦${val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val}`}
+                  width={45}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(139, 92, 246, 0.2)', strokeWidth: 2 }} />
                 <Area
@@ -217,7 +226,7 @@ function AnalyticsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid lg:grid-cols-7 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
         {/* Revenue Breakdown */}
         <Card className="lg:col-span-3 border-primary/5 bg-muted/10">
           <CardHeader>
@@ -232,12 +241,12 @@ function AnalyticsPage() {
               ].map((item) => {
                 const percentage = data?.totalRevenue ? (item.value / data.totalRevenue) * 100 : 0
                 return (
-                  <div key={item.label} className="space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-black uppercase tracking-widest text-muted-foreground">{item.label}</span>
-                      <span className="font-black">{formatAmount(item.value)}</span>
+                  <div key={item.label} className="space-y-2">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-black uppercase tracking-widest text-muted-foreground truncate mr-2">{item.label}</span>
+                      <span className="font-black whitespace-nowrap">{formatAmount(item.value)}</span>
                     </div>
-                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                       <div
                         className={`h-full ${item.color} transition-all duration-1000 ease-out`}
                         style={{ width: `${percentage}%` }}
@@ -263,27 +272,41 @@ function AnalyticsPage() {
             <CardTitle className="text-sm font-black uppercase tracking-tight">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-primary/5">
-              {data?.recentActivity.length ? (
-                data.recentActivity.map((activity) => (
-                  <div key={activity.id} className="p-4 flex items-center justify-between group hover:bg-muted/30 transition-colors">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-foreground truncate">{activity.title}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight mt-1">
-                        {activity.user} • {activity.time?.toDate ? activity.time.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black">{formatAmount(activity.amount)}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-20">
-                  <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">No activity found</p>
-                </div>
-              )}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-primary/5">
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10">Event</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10">User</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest h-10 text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data?.recentActivity.length ? (
+                  data.recentActivity.map((activity) => (
+                    <TableRow key={activity.id} className="border-primary/5 hover:bg-muted/30 transition-colors">
+                      <TableCell className="py-3">
+                        <p className="text-xs font-black text-foreground truncate max-w-[120px] sm:max-w-none">{activity.title}</p>
+                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tight sm:hidden mt-0.5">
+                          {activity.time?.toDate ? activity.time.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent'}
+                        </p>
+                      </TableCell>
+                      <TableCell className="py-3">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{activity.user}</span>
+                      </TableCell>
+                      <TableCell className="py-3 text-right">
+                        <span className="text-xs font-black">{formatAmount(activity.amount)}</span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center py-20">
+                      <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">No activity found</p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
 
             <div className="p-4 border-t border-primary/5">
               <Button variant="ghost" className="w-full h-8 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5" asChild>

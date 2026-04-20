@@ -203,14 +203,14 @@ export default function DashboardHomePage() {
         {/* Earnings Balance (Green) */}
         <Link
           href="/dashboard/earnings"
-          className="rounded-2xl bg-card p-5 text-primary-foreground transition-opacity hover:opacity-95 sm:p-6"
+          className="rounded-2xl bg-card p-5 text-foreground transition-opacity hover:opacity-95 sm:p-6"
         >
           <div>
-            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest opacity-90">Earnings Balance</p>
-            <p className="text-2xl font-bold text-primary-foreground sm:text-2xl">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-widest opacity-90 text-muted-foreground/80">Earnings Balance</p>
+            <p className="text-2xl font-bold text-foreground sm:text-2xl">{formatCurrency(earningsSummary.availableBalance, currency)}</p>
           </div>
           <div className="mt-6">
-            <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 text-[11px] font-semibold whitespace-nowrap sm:text-xs">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary sm:text-xs">
               View earnings
             </span>
           </div>
