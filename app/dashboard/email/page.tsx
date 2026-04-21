@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useCurrency } from '@/context/CurrencyContext'
@@ -135,7 +135,9 @@ type SelectedEmailOption =
   | { planId: 'free'; billingPeriod: 'monthly' }
   | { planId: 'reach'; billingPeriod: EmailBillingPeriod }
 
-export default function MerchantEmailPage() {
+
+
+function EmailPageContent() {
   const { user } = useAuth()
   const { currency } = useCurrency()
   const router = useRouter()
@@ -903,5 +905,17 @@ export default function MerchantEmailPage() {
         </Accordion>
       </section>
     </div>
+  )
+}
+
+export default function MerchantEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    }>
+      <EmailPageContent />
+    </Suspense>
   )
 }
