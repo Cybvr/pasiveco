@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ComponentType, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter } from '@/i18n/routing'
-import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon, Lock } from 'lucide-react'
+import { ArrowLeft, BarChart, Blend, CalendarDays, ChevronDown, ChevronRight, Coins, Home, LifeBuoy, LogOut, Mail, MessageSquare, Package, Palette, Save, ShoppingBag, Users, Zap, Bot, LucideIcon, Lock } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -30,6 +30,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/settings': 'Settings',
   '/dashboard/help': 'Help & Support',
   '/dashboard/messages': 'Messages',
+  '/dashboard/email': 'Emails',
   '/dashboard/notifications': 'Notifications',
   '/dashboard/posts/new': 'New Post',
   '/dashboard/communities': 'Spaces',
@@ -65,6 +66,7 @@ const primaryLinks: QuickLink[] = [
     ],
   },
   { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/dashboard/email', label: 'Emails', icon: Mail },
 ]
 
 const exploreLinks: QuickLink[] = [
