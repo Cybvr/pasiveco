@@ -11,6 +11,9 @@ interface User extends FirebaseUser {
   displayName: string | null;
   photoURL: string | null;
   plan: string | null;
+  emailPlan: string | null;
+  emailSubscriptionStatus: string | null;
+  emailBillingPeriod: string | null;
   isAdmin: boolean;
   isPinEnabled: boolean;
   pin?: string;
@@ -80,6 +83,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName: userData?.displayName || firebaseUser.displayName || null,
             photoURL: userData?.profilePicture || userData?.photoURL || firebaseUser.photoURL || null,
             plan: userData?.plan || null,
+            emailPlan: userData?.emailPlan || null,
+            emailSubscriptionStatus: userData?.emailSubscriptionStatus || null,
+            emailBillingPeriod: userData?.emailBillingPeriod || null,
             isAdmin: userData?.isAdmin || false,
             isPinEnabled: userData?.isPinEnabled || false,
             pin: userData?.pin || '',
@@ -91,6 +97,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser({
             ...firebaseUser,
             plan: null,
+            emailPlan: null,
+            emailSubscriptionStatus: null,
+            emailBillingPeriod: null,
             isAdmin: false,
             isPinEnabled: false,
           } as User);

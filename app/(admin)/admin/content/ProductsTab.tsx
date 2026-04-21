@@ -36,6 +36,7 @@ import { v4 as uuidv4 } from "uuid"
 import { slugify } from "@/utils/slugify"
 import { Loader2, Package, Plus, Search, Sparkles, Trash2, UploadCloud, Video, Image as ImageIcon, UserRound } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 type LessonForm = ProductLesson
 type AvailabilityForm = ProductAvailabilitySlot
@@ -535,490 +536,378 @@ export default function ProductsTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">Products</h2>
-            <p className="text-sm text-muted-foreground">{products.length} total products</p>
-          </div>
-          <Button onClick={openNewProduct} className="gap-2">
-            <Plus className="h-4 w-4" />
-            New
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
+      {/* Sidebar: Products List */}
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+        <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Products</h3>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => {
+              setCurrentProduct({ ...emptyForm })
+              setImageFile(null)
+              setDownloadFile(null)
+            }} 
+            className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
+          >
+            <Plus className="h-3.5 w-3.5" />
           </Button>
         </div>
 
-        <div className="relative mb-4">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative mb-4 shrink-0">
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search products or owners..."
-            className="pl-9"
+            placeholder="Search products..."
+            className="pl-9 h-8 text-xs bg-muted/20 border-none shadow-none focus-visible:ring-1"
           />
         </div>
 
-        <div className="space-y-2">
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Loading products...</p>
-          ) : filteredProducts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No products found.</p>
-          ) : (
-            filteredProducts.map((product) => {
-              const owner = users.find((user) => user.id === product.userId)
-              const isSelected = currentProduct?.id === product.id
-
-              return (
-                <Card
-                  key={product.id}
-                  className={`p-3 transition-colors ${isSelected ? "border-primary bg-primary/5" : "hover:bg-accent"}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <button
-                      type="button"
-                      className="min-w-0 flex-1 text-left"
-                      onClick={() => {
-                        setCurrentProduct(mapProductToForm(product))
-                        setImageFile(null)
-                        setDownloadFile(null)
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 overflow-hidden rounded-md bg-muted">
-                          {product.thumbnail ? (
-                            <img src={product.thumbnail} alt={product.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <Package className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-medium">{product.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">{owner ? userLabel(owner) : "Unknown owner"}</p>
-                          <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <Badge variant="outline">{getProductTypeLabel(product.category)}</Badge>
-                            <Badge variant={product.status === "active" ? "default" : "secondary"}>{product.status}</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setProductToDelete(product)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+        <div className="flex-1 overflow-hidden">
+          <AdminSidebarList
+            items={filteredProducts}
+            selectedId={currentProduct?.id}
+            onSelect={(product) => {
+              setCurrentProduct(mapProductToForm(product))
+              setImageFile(null)
+              setDownloadFile(null)
+            }}
+            onDelete={(product) => setProductToDelete(product)}
+            getId={(product) => product.id!}
+            getTitle={(product) => product.name}
+            getSubtitle={(product) => (
+              <div className="mt-1 flex flex-wrap gap-1">
+                <Badge variant="outline" className="h-3.5 px-1 text-[7px] uppercase tracking-tighter border-muted-foreground/30">
+                  {getProductTypeLabel(product.category)}
+                </Badge>
+                {product.status === 'draft' && (
+                  <Badge variant="secondary" className="h-3.5 px-1 text-[7px] uppercase tracking-tighter">Draft</Badge>
+                )}
+                <div className="flex items-center gap-1 text-[8px] text-muted-foreground ml-1">
+                  <UserRound className="h-2.5 w-2.5" />
+                  {users.find(u => u.id === product.userId)?.username || 'User'}
+                </div>
+              </div>
+            )}
+            renderExtra={(product) => (
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted border border-border/50">
+                {product.thumbnail ? (
+                  <img src={product.thumbnail} alt={product.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package className="h-4 w-4 text-muted-foreground" />
                   </div>
-                </Card>
-              )
-            })
-          )}
+                )}
+              </div>
+            )}
+            loading={loading}
+            loadingMessage="Loading products..."
+          />
         </div>
       </div>
 
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-8">
-        <h2 className="mb-4 text-lg font-semibold">{currentProduct?.id ? "Edit Product" : "Create Product"}</h2>
+      {/* Main Content Area: Editor */}
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
         {!currentProduct ? (
-          <p className="text-sm text-muted-foreground">Select a product from the list or create a new one.</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 opacity-50">
+            <Package className="h-12 w-12 mb-4 text-muted-foreground/20" />
+            <p className="text-[10px] font-black uppercase tracking-widest">Select a product to edit</p>
+          </div>
         ) : (
-          <div className="space-y-5">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Owner</Label>
-                <Select value={currentProduct.userId} onValueChange={(value) => updateForm("userId", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select owner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem key={user.id} value={user.id!}>
-                        {userLabel(user)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={currentProduct.status} onValueChange={(value: Product["status"]) => updateForm("status", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input value={currentProduct.name} onChange={(event) => updateForm("name", event.target.value)} placeholder="Product title" />
-              </div>
-              <div className="space-y-2">
-                <Label>Slug</Label>
-                <Input value={currentProduct.slug} onChange={(event) => updateForm("slug", event.target.value)} placeholder={slugify(currentProduct.name) || "my-product"} />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2 sm:col-span-1">
-                <Label>Type</Label>
-                <Select value={currentProduct.category} onValueChange={(value: ProductTypeId) => updateForm("category", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRODUCT_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Price</Label>
-                <Input type="number" min="0" step="0.01" value={currentProduct.price} onChange={(event) => updateForm("price", event.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Currency</Label>
-                <Input value={currentProduct.currency} onChange={(event) => updateForm("currency", event.target.value.toUpperCase())} placeholder="NGN" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea value={currentProduct.description} onChange={(event) => updateForm("description", event.target.value)} rows={4} />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>External URL</Label>
-                <Input value={currentProduct.url} onChange={(event) => updateForm("url", event.target.value)} placeholder="Optional product link" />
-              </div>
-              <div className="space-y-2">
-                <Label>Tags</Label>
-                <Input value={currentProduct.tags} onChange={(event) => updateForm("tags", event.target.value)} placeholder="ebook, growth, paid" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Cover Image</Label>
-                <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={handleGenerateAIImage} disabled={generatingImage}>
-                  {generatingImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                  {generatingImage ? "Generating..." : "AI Image"}
-                </Button>
-              </div>
-              <div
-                onClick={() => imageInputRef.current?.click()}
-                onDragOver={(event) => {
-                  event.preventDefault()
-                  setImageDragging(true)
-                }}
-                onDragLeave={() => setImageDragging(false)}
-                onDrop={(event) => {
-                  event.preventDefault()
-                  setImageDragging(false)
-                  const file = event.dataTransfer.files?.[0]
-                  if (file && file.type.startsWith("image/")) handleImageSelection(file)
-                }}
-                className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-5 text-center transition-colors ${imageDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"}`}
-              >
-                {currentProduct.thumbnail ? (
-                  <img src={currentProduct.thumbnail} alt="Product preview" className="max-h-32 w-auto rounded-md object-contain" />
-                ) : (
-                  <>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>
-                  </>
-                )}
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) handleImageSelection(file)
-                  }}
-                />
-              </div>
-            </div>
-
-            {currentProduct.category === "tickets" && (
-              <div className="space-y-4 rounded-lg border p-4">
-                <p className="text-sm font-medium">Ticket details</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Event Date + Time</Label>
-                    <Input type="datetime-local" value={currentProduct.eventDateTime} onChange={(event) => updateForm("eventDateTime", event.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Quantity Available</Label>
-                    <Input type="number" min="0" value={currentProduct.quantityAvailable} onChange={(event) => updateForm("quantityAvailable", event.target.value)} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Event Location</Label>
-                  <Input value={currentProduct.eventLocation} onChange={(event) => updateForm("eventLocation", event.target.value)} placeholder="Venue or livestream URL" />
-                </div>
-              </div>
-            )}
-
-            {currentProduct.category === "courses" && (
-              <div className="space-y-4 rounded-lg border p-4">
+          <>
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Course lessons</p>
-                  <Button type="button" variant="outline" size="sm" onClick={addLesson} className="gap-1.5">
-                    <Plus className="h-3.5 w-3.5" />
-                    Add lesson
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  {currentProduct.lessons.map((lesson, index) => (
-                    <div key={`lesson-${index}`} className="space-y-3 border-l-2 pl-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Lesson {index + 1}</p>
-                        {currentProduct.lessons.length > 1 && (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => removeLesson(index)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                      <Input value={lesson.title} onChange={(event) => updateLesson(index, "title", event.target.value)} placeholder="Lesson title" />
-                      <Textarea value={lesson.content || ""} onChange={(event) => updateLesson(index, "content", event.target.value)} placeholder="Lesson content" />
-                      <div className="relative">
-                        <Video className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input value={lesson.videoUrl || ""} onChange={(event) => updateLesson(index, "videoUrl", event.target.value)} placeholder="Optional video URL" className="pl-9" />
-                      </div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Product Configuration</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="product-status" className="text-[10px] font-bold uppercase tracking-widest">Status</Label>
+                      <Select 
+                        value={currentProduct.status} 
+                        onValueChange={(value: Product["status"]) => updateForm("status", value)}
+                      >
+                        <SelectTrigger className="h-7 text-[10px] font-bold uppercase tracking-tight bg-muted/50 border-none rounded-full px-3">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Drip Schedule</Label>
-                    <Input value={currentProduct.dripSchedule} onChange={(event) => updateForm("dripSchedule", event.target.value)} placeholder="Weekly unlock" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Enrollment Limit</Label>
-                    <Input type="number" min="0" value={currentProduct.enrollmentLimit} onChange={(event) => updateForm("enrollmentLimit", event.target.value)} placeholder="Optional" />
                   </div>
                 </div>
-              </div>
-            )}
 
-            {currentProduct.category === "digital-download" && (
-              <div className="space-y-3 rounded-lg border p-4">
-                <p className="text-sm font-medium">Digital file</p>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(event) => {
-                    event.preventDefault()
-                    setFileDragging(true)
-                  }}
-                  onDragLeave={() => setFileDragging(false)}
-                  onDrop={(event) => {
-                    event.preventDefault()
-                    setFileDragging(false)
-                    const file = event.dataTransfer.files?.[0]
-                    if (file) {
-                      setDownloadFile(file)
-                      updateForm("fileName", file.name)
-                    }
-                  }}
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors ${fileDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"}`}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-                    <UploadCloud className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{currentProduct.fileName || "Drop file here or click to browse"}</p>
-                    <p className="text-xs text-muted-foreground">PDFs, ZIPs, templates, presets, and more</p>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0]
-                      if (file) {
-                        setDownloadFile(file)
-                        updateForm("fileName", file.name)
-                      }
+                <div className="space-y-1">
+                  <Input
+                    value={currentProduct.name}
+                    onChange={(e) => {
+                      const name = e.target.value
+                      updateForm("name", name)
+                      updateForm("slug", slugify(name))
                     }}
+                    placeholder="Product name"
+                    className="text-2xl font-bold border-none px-0 shadow-none focus-visible:ring-0"
+                  />
+                  <Textarea
+                    value={currentProduct.description}
+                    onChange={(e) => updateForm("description", e.target.value)}
+                    placeholder="Tell your customers about this product..."
+                    className="border-none px-0 shadow-none focus-visible:ring-0 text-sm text-muted-foreground min-h-[80px] resize-none"
+                    rows={3}
                   />
                 </div>
-              </div>
-            )}
 
-            {currentProduct.category === "membership" && (
-              <div className="space-y-4 rounded-lg border p-4">
-                <div className="space-y-2">
-                  <Label>Billing Interval</Label>
-                  <Select value={currentProduct.billingInterval} onValueChange={(value: "monthly" | "yearly") => updateForm("billingInterval", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Perks</Label>
-                  <Textarea value={currentProduct.perksText} onChange={(event) => updateForm("perksText", event.target.value)} placeholder={"One perk per line\nExclusive updates\nSpace access"} rows={5} />
-                </div>
-              </div>
-            )}
-
-            {currentProduct.category === "booking" && (
-              <div className="space-y-4 rounded-lg border p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Session Length</Label>
-                    <Input type="number" min="1" value={currentProduct.sessionLength} onChange={(event) => updateForm("sessionLength", event.target.value)} />
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Owner</Label>
+                    <Select value={currentProduct.userId} onValueChange={(value) => updateForm("userId", value)}>
+                      <SelectTrigger className="h-9 bg-muted/30 border-none rounded-lg px-3 text-sm">
+                        <SelectValue placeholder="Select owner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users.map((user) => (
+                          <SelectItem key={user.id} value={user.id!}>
+                            {userLabel(user)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Video Link</Label>
-                    <Input value={currentProduct.videoLink} onChange={(event) => updateForm("videoLink", event.target.value)} placeholder="https://meet.google.com/..." />
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Slug</Label>
+                    <Input 
+                      value={currentProduct.slug} 
+                      onChange={(event) => updateForm("slug", event.target.value)} 
+                      placeholder={slugify(currentProduct.name) || "my-product"} 
+                      className="h-9 bg-muted/30 border-none rounded-lg px-3 text-sm"
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-1.5 sm:col-span-1">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Type</Label>
+                    <Select value={currentProduct.category} onValueChange={(value: ProductTypeId) => updateForm("category", value)}>
+                      <SelectTrigger className="h-9 bg-muted/30 border-none rounded-lg px-3 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRODUCT_TYPE_OPTIONS.map((option) => (
+                          <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Price</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      step="0.01" 
+                      value={currentProduct.price} 
+                      onChange={(event) => updateForm("price", event.target.value)} 
+                      className="h-9 bg-muted/30 border-none rounded-lg px-3 text-sm font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Currency</Label>
+                    <Input 
+                      value={currentProduct.currency} 
+                      onChange={(event) => updateForm("currency", event.target.value.toUpperCase())} 
+                      placeholder="NGN" 
+                      className="h-9 bg-muted/30 border-none rounded-lg px-3 text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">Availability</p>
-                    <Button type="button" variant="outline" size="sm" onClick={addAvailabilitySlot} className="gap-1.5">
-                      <Plus className="h-3.5 w-3.5" />
-                      Add slot
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Cover Image</Label>
+                    <Button type="button" variant="ghost" size="sm" className="h-6 text-[9px] gap-1 text-primary hover:bg-primary/5 rounded-full px-2" onClick={handleGenerateAIImage} disabled={generatingImage}>
+                      {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      {generatingImage ? "Generating..." : "AI Image"}
                     </Button>
                   </div>
-
-                  {currentProduct.availability.map((slot, index) => (
-                    <div key={`slot-${index}`} className="grid gap-3 border-l-2 pl-4 sm:grid-cols-[150px_1fr_1fr_auto] sm:items-end">
-                      <div className="space-y-2">
-                        <Label>Day</Label>
-                        <Select value={slot.day} onValueChange={(value) => updateAvailability(index, "day", value)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {DAYS.map((day) => (
-                              <SelectItem key={day} value={day}>{day.charAt(0).toUpperCase() + day.slice(1)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Start</Label>
-                        <Input type="time" value={slot.start} onChange={(event) => updateAvailability(index, "start", event.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>End</Label>
-                        <Input type="time" value={slot.end} onChange={(event) => updateAvailability(index, "end", event.target.value)} />
-                      </div>
-                      {currentProduct.availability.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => removeAvailabilitySlot(index)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                  <div
+                    onClick={() => imageInputRef.current?.click()}
+                    onDragOver={(event) => {
+                      event.preventDefault()
+                      setImageDragging(true)
+                    }}
+                    onDragLeave={() => setImageDragging(false)}
+                    onDrop={(event) => {
+                      event.preventDefault()
+                      setImageDragging(false)
+                      const file = event.dataTransfer.files?.[0]
+                      if (file && file.type.startsWith("image/")) handleImageSelection(file)
+                    }}
+                    className={cn(
+                      "flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-center transition-colors",
+                      imageDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"
+                    )}
+                  >
+                    {currentProduct.thumbnail ? (
+                      <img src={currentProduct.thumbnail} alt="Product preview" className="max-h-24 w-auto rounded-md object-contain" />
+                    ) : (
+                      <>
+                        <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Drop image here or click</p>
+                      </>
+                    )}
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0]
+                        if (file) handleImageSelection(file)
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
 
-            {currentProduct.category === "bundle" && (
-              <div className="space-y-3 rounded-lg border p-4">
-                <p className="text-sm font-medium">Included products</p>
-                {bundleCandidates.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No eligible products available for bundling yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {bundleCandidates.map((product) => {
-                      const selected = currentProduct.bundleProductIds.includes(product.id!)
-                      return (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => toggleBundleProduct(product.id!)}
-                          className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left transition-colors ${selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"}`}
-                        >
-                          <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">{getProductTypeLabel(product.category)}</p>
-                          </div>
-                          <div className={`h-4 w-4 rounded-full border-2 ${selected ? "border-primary bg-primary" : "border-muted-foreground/40"}`} />
-                        </button>
-                      )
-                    })}
+              <div className="space-y-6">
+                {currentProduct.category === "tickets" && (
+                  <div className="space-y-4 rounded-xl border bg-muted/5 p-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ticket Details</h4>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold">Event Date + Time</Label>
+                        <Input type="datetime-local" value={currentProduct.eventDateTime} onChange={(event) => updateForm("eventDateTime", event.target.value)} className="h-8 text-xs" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold">Quantity Available</Label>
+                        <Input type="number" min="0" value={currentProduct.quantityAvailable} onChange={(event) => updateForm("quantityAvailable", event.target.value)} className="h-8 text-xs" />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] font-bold">Event Location</Label>
+                      <Input value={currentProduct.eventLocation} onChange={(event) => updateForm("eventLocation", event.target.value)} placeholder="Venue or livestream URL" className="h-8 text-xs" />
+                    </div>
                   </div>
                 )}
-              </div>
-            )}
 
-            <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                    <UserRound className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Affiliate program</p>
-                    <p className="text-xs text-muted-foreground">Allow other creators to promote this product.</p>
-                  </div>
-                </div>
-                <Switch checked={currentProduct.affiliateEnabled} onCheckedChange={(checked) => updateForm("affiliateEnabled", checked)} />
-              </div>
+                {currentProduct.category === "courses" && (
+                  <div className="space-y-4 rounded-xl border bg-muted/5 p-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Course Lessons</h4>
+                      <Button type="button" variant="outline" size="sm" onClick={addLesson} className="h-7 text-[10px] rounded-full gap-1">
+                        <Plus className="h-3 w-3" /> Add Lesson
+                      </Button>
+                    </div>
 
-              {currentProduct.affiliateEnabled && (
-                <div className="mt-4 space-y-2">
-                  <Label>Commission (%)</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="80"
-                    value={currentProduct.affiliateCommission}
-                    onChange={(event) => updateForm("affiliateCommission", event.target.value)}
-                    className="max-w-[120px]"
-                  />
+                    <div className="space-y-4">
+                      {currentProduct.lessons.map((lesson, index) => (
+                        <div key={`lesson-${index}`} className="space-y-3 border-l-2 border-primary/20 pl-4 py-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-muted-foreground">LESSON {index + 1}</span>
+                            {currentProduct.lessons.length > 1 && (
+                              <Button type="button" variant="ghost" size="icon" onClick={() => removeLesson(index)} className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          <Input value={lesson.title} onChange={(event) => updateLesson(index, "title", event.target.value)} placeholder="Lesson title" className="h-8 text-sm" />
+                          <Textarea value={lesson.content || ""} onChange={(event) => updateLesson(index, "content", event.target.value)} placeholder="Lesson content" rows={2} className="text-xs resize-none" />
+                          <div className="relative">
+                            <Video className="absolute left-2.5 top-2.5 h-3 w-3 text-muted-foreground" />
+                            <Input value={lesson.videoUrl || ""} onChange={(event) => updateLesson(index, "videoUrl", event.target.value)} placeholder="Optional video URL" className="pl-8 h-8 text-[10px]" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {currentProduct.category === "digital-download" && (
+                  <div className="space-y-3 rounded-xl border bg-muted/5 p-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Digital File</h4>
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(event) => { event.preventDefault(); setFileDragging(true) }}
+                      onDragLeave={() => setFileDragging(false)}
+                      onDrop={(event) => {
+                        event.preventDefault(); setFileDragging(false)
+                        const file = event.dataTransfer.files?.[0]
+                        if (file) { setDownloadFile(file); updateForm("fileName", file.name) }
+                      }}
+                      className={cn(
+                        "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors",
+                        fileDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-muted/40"
+                      )}
+                    >
+                      <UploadCloud className="h-5 w-5 text-muted-foreground/40" />
+                      <div>
+                        <p className="text-xs font-bold">{currentProduct.fileName || "Drop file here"}</p>
+                        <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">PDFs, ZIPs, Templates, and more</p>
+                      </div>
+                      <input ref={fileInputRef} type="file" className="hidden" onChange={(event) => {
+                        const file = event.target.files?.[0]
+                        if (file) { setDownloadFile(file); updateForm("fileName", file.name) }
+                      }} />
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-xl border bg-primary/5 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-tight">Affiliate Program</p>
+                        <p className="text-[10px] text-muted-foreground">Allow others to promote this product.</p>
+                      </div>
+                    </div>
+                    <Switch checked={currentProduct.affiliateEnabled} onCheckedChange={(checked) => updateForm("affiliateEnabled", checked)} />
+                  </div>
+
+                  {currentProduct.affiliateEnabled && (
+                    <div className="mt-4 space-y-2">
+                      <Label className="text-[10px] font-bold">Commission (%)</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="80"
+                        value={currentProduct.affiliateCommission}
+                        onChange={(event) => updateForm("affiliateCommission", event.target.value)}
+                        className="max-w-[100px] h-8 text-xs font-bold"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} className="gap-2">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Package className="h-4 w-4" />}
+            
+            <div className="p-3 border-t bg-background flex justify-start shrink-0 gap-2">
+              <Button onClick={handleSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 font-bold text-xs uppercase tracking-widest px-8 rounded-full shadow-lg shadow-indigo-500/20 gap-2">
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Package className="h-3.5 w-3.5" />}
                 {saving ? "Saving..." : currentProduct.id ? "Save Changes" : "Create Product"}
               </Button>
-              <Button variant="outline" onClick={resetEditor}>Reset</Button>
+              <Button variant="ghost" onClick={resetEditor} className="h-9 px-4 text-xs font-bold uppercase tracking-tight rounded-full">Reset</Button>
             </div>
-          </div>
+          </>
         )}
       </div>
 
       <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border-none">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete product?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-xl font-bold">Delete product?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               This will permanently delete <strong>{productToDelete?.name}</strong>. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogCancel className="rounded-full font-bold">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full font-bold">
               Delete Product
             </AlertDialogAction>
           </AlertDialogFooter>

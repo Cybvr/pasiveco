@@ -1,0 +1,18 @@
+0 verbose cli /Users/jidepinheiro/.nvm/versions/node/v24.15.0/bin/node /Users/jidepinheiro/.nvm/versions/node/v24.15.0/bin/npm
+1 info using npm@11.12.1
+2 info using node@v24.15.0
+3 silly config load:file:/Users/jidepinheiro/.nvm/versions/node/v24.15.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/jidepinheiro/pasiveco/node_modules/re2/.npmrc
+5 silly config load:file:/Users/jidepinheiro/.npmrc
+6 silly config load:file:/Users/jidepinheiro/.npm-global/etc/npmrc
+7 verbose title npm run verify-build
+8 verbose argv "run" "verify-build"
+9 verbose logfile logs-max:10 dir:/Users/jidepinheiro/pasiveco/.npm-cache/_logs/2026-04-20T22_58_00_580Z-
+10 verbose logfile /Users/jidepinheiro/pasiveco/.npm-cache/_logs/2026-04-20T22_58_00_580Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd /Users/jidepinheiro/pasiveco/node_modules/re2
+13 verbose os Darwin 21.6.0
+14 verbose node v24.15.0
+15 verbose npm  v11.12.1
+16 verbose exit 0
+17 info ok

@@ -46,6 +46,15 @@ export async function POST(request: NextRequest) {
 async function handleSuccessfulPayment(data: any) {
   try {
     const { reference, metadata, customer, amount } = data;
+    let parsedMetadata = metadata;
+
+    if (typeof parsedMetadata === 'string') {
+      try {
+        parsedMetadata = JSON.parse(parsedMetadata);
+      } catch (e) {
+        parsedMetadata = {};
+      }
+    }
     
     // Here you would typically:
     // 1. Update order status in your database
@@ -55,20 +64,67 @@ async function handleSuccessfulPayment(data: any) {
     
     console.log('Payment successful:', {
       reference,
-      productId: metadata?.product_id,
+      productId: parsedMetadata?.product_id,
       customerEmail: customer?.email,
       amount: amount / 100, // Convert from kobo
     });
 
+    if (parsedMetadata?.subscriptionScope === 'email' && parsedMetadata?.userId && parsedMetadata?.emailPlanId) {
+      const paystackPlanCode =
+        typeof data.plan === 'object' && data.plan?.plan_code ? data.plan.plan_code : null;
+      const subscriptionCode =
+        typeof data.subscription === 'object' && data.subscription?.subscription_code
+          ? data.subscription.subscription_code
+          : reference;
+      const nextPaymentDate =
+        typeof data.subscription === 'object' && data.subscription?.next_payment_date
+          ? data.subscription.next_payment_date
+          : null;
+
+      await adminDb.collection('users').doc(parsedMetadata.userId).set(
+        {
+          emailPlan: parsedMetadata.emailPlanId,
+          emailSubscriptionStatus: 'active',
+          emailSubscriptionId: subscriptionCode,
+          emailSubscriptionType: 'paystack',
+          emailBillingPeriod: parsedMetadata.billingPeriod || null,
+          emailPaystackPlanCode: paystackPlanCode,
+          emailUpdatedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+          ...(nextPaymentDate ? { emailNextPaymentDate: nextPaymentDate } : {}),
+        },
+        { merge: true }
+      );
+
+      await adminDb.collection('email_invoices').doc(reference).set(
+        {
+          userId: parsedMetadata.userId,
+          emailPlanId: parsedMetadata.emailPlanId,
+          billingPeriod: parsedMetadata.billingPeriod || null,
+          amountPaid: amount / 100,
+          currency: data.currency || 'NGN',
+          status: 'paid',
+          gateway: 'paystack',
+          transactionId: data.id?.toString?.() || reference,
+          subscriptionId: subscriptionCode,
+          createdAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log(`✅ Email plan ${parsedMetadata.emailPlanId} activated for user ${parsedMetadata.userId}`);
+      return;
+    }
+
     // Trigger Integrations (Mailchimp, Zapier, etc.)
-    if (metadata?.creatorId) {
-      void IntegrationService.handlePurchase(metadata.creatorId, {
+    if (parsedMetadata?.creatorId) {
+      void IntegrationService.handlePurchase(parsedMetadata.creatorId, {
         email: customer?.email,
-        name: metadata?.custom_fields?.find((f: any) => f.variable_name === 'customer_name')?.value || '',
+        name: parsedMetadata?.custom_fields?.find((f: any) => f.variable_name === 'customer_name')?.value || '',
         amount: amount / 100,
         currency: 'NGN',
-        productId: metadata?.product_id || '',
-        productName: metadata?.custom_fields?.find((f: any) => f.variable_name === 'product_name')?.value || 'Product'
+        productId: parsedMetadata?.product_id || '',
+        productName: parsedMetadata?.custom_fields?.find((f: any) => f.variable_name === 'product_name')?.value || 'Product'
       });
     }
 
@@ -78,10 +134,7 @@ async function handleSuccessfulPayment(data: any) {
     // await grantProductAccess(customer.email, metadata.product_id);
 
     // Handle Gift Payments
-    let giftMetadata = metadata;
-    if (typeof giftMetadata === 'string') {
-      try { giftMetadata = JSON.parse(giftMetadata); } catch (e) { giftMetadata = {}; }
-    }
+    let giftMetadata = parsedMetadata;
 
     let isGift = false;
     let giftDisplayName = 'Gift';
@@ -166,10 +219,10 @@ async function handleSuccessfulPayment(data: any) {
     }
 
     // Save Card Authorization for "Saved Cards" feature
-    if (data.authorization && metadata?.userId) {
+    if (data.authorization && parsedMetadata?.userId) {
       try {
         const { authorization } = data;
-        const userId = metadata.userId;
+        const userId = parsedMetadata.userId;
 
         // Check if card is already saved
         const existingSnap = await adminDb.collection('saved_cards')

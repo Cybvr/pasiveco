@@ -18,6 +18,7 @@ import InstantCommunityModal from "@/components/communities/InstantCommunityModa
 import { storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { v4 as uuidv4 } from "uuid"
+import { cn } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -266,262 +267,251 @@ export default function CommunityTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
-        <h2 className="mb-4 text-lg font-semibold">Spaces</h2>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Button onClick={() => setCurrentCommunity({ ...emptyForm })} className="flex-1">+ Create New</Button>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+        <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Spaces</h3>
+          <div className="flex items-center gap-1">
             <Button 
               onClick={() => setIsInstantModalOpen(true)} 
-              variant="outline" 
-              className="px-3 border-primary/30 text-primary hover:bg-primary/5"
+              variant="ghost" 
+              className="h-6 w-6 p-0 rounded-full text-primary hover:bg-primary/10"
               title="AI Instant Create"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-3.5 w-3.5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setCurrentCommunity({ ...emptyForm })} 
+              className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
+            >
+              <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <div className="space-y-2">
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Loading spaces...</p>
-            ) : communities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No spaces found.</p>
-            ) : (
-              communities.map((community) => (
-                <Card key={community.id} className="p-3 hover:bg-accent">
-                  <div className="flex items-start justify-between gap-2">
-                    <button
-                      className="text-left"
-                      onClick={() => setCurrentCommunity(toFormData(community))}
-                      type="button"
-                    >
-                      <p className="font-medium break-words">{community.name}</p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <Badge variant="outline" className="capitalize">{community.privacy}</Badge>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Users className="h-3.5 w-3.5" />
-                          {community.memberCount ?? 0}
-                        </span>
-                      </div>
-                    </button>
-                    <Button variant="destructive" size="icon" onClick={() => handleDelete(community)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Card>
-              ))
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <AdminSidebarList
+            items={communities}
+            selectedId={selectedId}
+            onSelect={(community) => setCurrentCommunity(toFormData(community))}
+            onDelete={(community) => handleDelete(community)}
+            getId={(community) => community.id!}
+            getTitle={(community) => community.name!}
+            getSubtitle={(community) => (
+              <div className="mt-1 flex items-center gap-2">
+                <Badge variant="outline" className="h-4 px-1 text-[8px] uppercase tracking-tighter border-muted-foreground/30">{community.privacy}</Badge>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground font-medium">
+                  <Users className="h-3 w-3" />
+                  {community.memberCount ?? 0}
+                </span>
+              </div>
             )}
-          </div>
+            loading={loading}
+            loadingMessage="Loading spaces..."
+          />
         </div>
       </div>
 
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-8">
-        <h2 className="mb-4 text-lg font-semibold">{currentCommunity?.id ? "Edit Space" : "Create Space"}</h2>
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
         {currentCommunity ? (
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={currentCommunity.name}
-                onChange={(e) => setCurrentCommunity({ ...currentCommunity, name: e.target.value })}
-                placeholder="Space name"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={currentCommunity.description}
-                onChange={(e) => setCurrentCommunity({ ...currentCommunity, description: e.target.value })}
-                placeholder="What is this space about?"
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
+          <>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="grid gap-1">
+                <Label htmlFor="name" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Name</Label>
                 <Input
-                  id="category"
-                  value={currentCommunity.category}
-                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, category: e.target.value })}
-                  placeholder="e.g. Marketing"
+                  id="name"
+                  value={currentCommunity.name}
+                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, name: e.target.value })}
+                  placeholder="Space name"
+                  className="text-lg font-bold border-none px-0 shadow-none focus-visible:ring-0"
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label>Privacy</Label>
-                <Select
-                  value={currentCommunity.privacy}
-                  onValueChange={(value: "public" | "private") => setCurrentCommunity({ ...currentCommunity, privacy: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-1">
+                <Label htmlFor="description" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Description</Label>
+                <Textarea
+                  id="description"
+                  value={currentCommunity.description}
+                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, description: e.target.value })}
+                  placeholder="What is this space about?"
+                  className="border-none px-0 shadow-none focus-visible:ring-0 text-sm text-muted-foreground min-h-[60px] resize-none"
+                />
               </div>
-            </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Space Image</Label>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 text-xs gap-1.5 text-primary hover:bg-primary/5"
-                    onClick={handleGenerateAIImage}
-                    disabled={isGeneratingImage || !currentCommunity.name}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-1">
+                  <Label htmlFor="category" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Category</Label>
+                  <Input
+                    id="category"
+                    value={currentCommunity.category}
+                    onChange={(e) => setCurrentCommunity({ ...currentCommunity, category: e.target.value })}
+                    placeholder="e.g. Marketing"
+                    className="h-8 bg-muted/30 border-none rounded-lg px-3 text-xs"
+                  />
+                </div>
+
+                <div className="grid gap-1">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Privacy</Label>
+                  <Select
+                    value={currentCommunity.privacy}
+                    onValueChange={(value: "public" | "private") => setCurrentCommunity({ ...currentCommunity, privacy: value })}
                   >
-                    {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                    AI Gen
-                  </Button>
-                </div>
-                <div
-                  onClick={() => imageInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setImageDragging(true) }}
-                  onDragLeave={() => setImageDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setImageDragging(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) {
-                      setImageFile(file);
-                      setCurrentCommunity({ ...currentCommunity, image: URL.createObjectURL(file) });
-                    }
-                  }}
-                  className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-4 text-center transition-colors
-                    ${imageDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
-                >
-                  {currentCommunity.image ? (
-                    <img src={currentCommunity.image} alt="Preview" className="max-h-24 w-auto rounded-md object-contain" />
-                  ) : (
-                    <>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground">Drop avatar here</p>
-                    </>
-                  )}
-                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setImageFile(file);
-                      setCurrentCommunity({ ...currentCommunity, image: URL.createObjectURL(file) });
-                    }
-                  }} />
+                    <SelectTrigger className="h-8 bg-muted/30 border-none rounded-lg px-3 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">Public</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Banner Image</Label>
-                <div
-                  onClick={() => bannerInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setBannerDragging(true) }}
-                  onDragLeave={() => setBannerDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setBannerDragging(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) {
-                      setBannerFile(file);
-                      setCurrentCommunity({ ...currentCommunity, bannerImage: URL.createObjectURL(file) });
-                    }
-                  }}
-                  className={`relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-4 text-center transition-colors
-                    ${bannerDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'}`}
-                >
-                  {currentCommunity.bannerImage ? (
-                    <img src={currentCommunity.bannerImage} alt="Preview" className="max-h-24 w-auto rounded-md object-contain" />
-                  ) : (
-                    <>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                        <UploadCloud className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-xs text-muted-foreground">Drop banner here</p>
-                    </>
-                  )}
-                  <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setBannerFile(file);
-                      setCurrentCommunity({ ...currentCommunity, bannerImage: URL.createObjectURL(file) });
-                    }
-                  }} />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
-                <Input
-                  id="tags"
-                  value={currentCommunity.tags}
-                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, tags: e.target.value })}
-                  placeholder="growth, marketing, founders"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="creatorName">Creator Name</Label>
-                <Input
-                  id="creatorName"
-                  value={currentCommunity.creatorName}
-                  onChange={(e) => setCurrentCommunity({ ...currentCommunity, creatorName: e.target.value })}
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-md border p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="isPaid">Paid space</Label>
-                <Switch
-                  id="isPaid"
-                  checked={currentCommunity.isPaid}
-                  onCheckedChange={(checked) => setCurrentCommunity({ ...currentCommunity, isPaid: checked })}
-                />
-              </div>
-              {currentCommunity.isPaid && (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={currentCommunity.price}
-                      onChange={(e) => setCurrentCommunity({ ...currentCommunity, price: e.target.value })}
-                      placeholder="0.00"
-                    />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Space Image</Label>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[9px] gap-1 text-primary hover:bg-primary/5 rounded-full px-2"
+                      onClick={handleGenerateAIImage}
+                      disabled={isGeneratingImage || !currentCommunity.name}
+                    >
+                      {isGeneratingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      AI Gen
+                    </Button>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="currency">Currency</Label>
-                    <Input
-                      id="currency"
-                      value={currentCommunity.currency}
-                      onChange={(e) => setCurrentCommunity({ ...currentCommunity, currency: e.target.value.toUpperCase() })}
-                      placeholder="USD"
-                    />
+                  <div
+                    onClick={() => imageInputRef.current?.click()}
+                    className={cn(
+                      "relative flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-center transition-colors",
+                      imageDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'
+                    )}
+                  >
+                    {currentCommunity.image ? (
+                      <img src={currentCommunity.image} alt="Preview" className="max-h-20 w-auto rounded-md object-contain" />
+                    ) : (
+                      <>
+                        <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Drop avatar</p>
+                      </>
+                    )}
+                    <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setImageFile(file);
+                        setCurrentCommunity({ ...currentCommunity, image: URL.createObjectURL(file) });
+                      }
+                    }} />
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
-              <Button variant="outline" onClick={() => setCurrentCommunity({ ...emptyForm })}>Reset</Button>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Banner Image</Label>
+                  <div
+                    onClick={() => bannerInputRef.current?.click()}
+                    className={cn(
+                      "relative flex min-h-[100px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-center transition-colors",
+                      bannerDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'
+                    )}
+                  >
+                    {currentCommunity.bannerImage ? (
+                      <img src={currentCommunity.bannerImage} alt="Preview" className="max-h-20 w-auto rounded-md object-contain" />
+                    ) : (
+                      <>
+                        <UploadCloud className="h-4 w-4 text-muted-foreground/40" />
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">Drop banner</p>
+                      </>
+                    )}
+                    <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setBannerFile(file);
+                        setCurrentCommunity({ ...currentCommunity, bannerImage: URL.createObjectURL(file) });
+                      }
+                    }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-1">
+                  <Label htmlFor="tags" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Tags</Label>
+                  <Input
+                    id="tags"
+                    value={currentCommunity.tags}
+                    onChange={(e) => setCurrentCommunity({ ...currentCommunity, tags: e.target.value })}
+                    placeholder="growth, founders"
+                    className="h-8 bg-muted/30 border-none rounded-lg px-3 text-xs"
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="creatorName" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Creator Name</Label>
+                  <Input
+                    id="creatorName"
+                    value={currentCommunity.creatorName}
+                    onChange={(e) => setCurrentCommunity({ ...currentCommunity, creatorName: e.target.value })}
+                    placeholder="Optional"
+                    className="h-8 bg-muted/30 border-none rounded-lg px-3 text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl border bg-muted/10 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="isPaid" className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Paid space</Label>
+                  <Switch
+                    id="isPaid"
+                    checked={currentCommunity.isPaid}
+                    onCheckedChange={(checked) => setCurrentCommunity({ ...currentCommunity, isPaid: checked })}
+                  />
+                </div>
+                {currentCommunity.isPaid && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-1">
+                      <Label htmlFor="price" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Price</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={currentCommunity.price}
+                        onChange={(e) => setCurrentCommunity({ ...currentCommunity, price: e.target.value })}
+                        className="h-8 bg-background border-none rounded-lg px-3 text-xs"
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label htmlFor="currency" className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-widest">Currency</Label>
+                      <Input
+                        id="currency"
+                        value={currentCommunity.currency}
+                        onChange={(e) => setCurrentCommunity({ ...currentCommunity, currency: e.target.value.toUpperCase() })}
+                        className="h-8 bg-background border-none rounded-lg px-3 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+            
+            <div className="p-3 border-t bg-background flex justify-start shrink-0">
+              <Button 
+                onClick={handleSave} 
+                disabled={saving}
+                className="bg-indigo-600 hover:bg-indigo-700 font-bold text-xs uppercase tracking-widest px-8 rounded-full shadow-lg shadow-indigo-500/20"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </>
         ) : (
-          <p className="text-sm text-muted-foreground">Select a space from the list or create a new one.</p>
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+            <p className="text-sm font-medium">Select a space to edit or create a new one</p>
+          </div>
         )}
       </div>
       <InstantCommunityModal 

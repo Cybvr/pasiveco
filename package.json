@@ -10,6 +10,7 @@
     "build": "next build --webpack",
     "start": "next start --port 3001 --hostname 0.0.0.0",
     "lint": "next lint",
+    "email:dev": "email dev --dir emails --port 3002",
     "migrate-features": "node scripts/migrate-features.js",
     "migrate-social-data": "node scripts/migrate-social-data.js",
     "migrate-user-profiles": "node scripts/migrate-user-profiles-to-users.js"
@@ -55,6 +56,7 @@
     "@stripe/stripe-js": "^4.4.0",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.39.0",
+    "@swc/helpers": "^0.5.21",
     "@tanstack/react-table": "^8.20.5",
     "@tiptap/extension-image": "^2.11.7",
     "@tiptap/pm": "^2.11.7",
@@ -93,6 +95,7 @@
     "react-colorful": "^5.6.1",
     "react-day-picker": "^9.0.8",
     "react-dom": "^19.2.4",
+    "react-email": "^6.0.0",
     "react-hook-form": "^7.52.2",
     "react-icons": "^5.6.0",
     "recharts": "^2.12.7",

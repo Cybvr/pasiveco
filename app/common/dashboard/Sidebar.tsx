@@ -21,9 +21,9 @@ import {
   Users,
   FileText,
   QrCode,
-  Zap,
+  CloudSun,
   CalendarDays,
-  MessageSquare,
+  Mail,
   Lock,
 } from 'lucide-react'
 
@@ -59,12 +59,13 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
       { href: '/dashboard/manager', icon: Bot, label: 'Business Manager' },
     ],
   },
-  { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
+  { href: '/dashboard/messages', icon: Mail, label: 'Messages' },
+  { href: '/dashboard/email', icon: CloudSun, label: 'Emails' },
 ]
 
 const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/library', icon: Library, label: 'Library' },
-  { href: '/dashboard/network', icon: Zap, label: 'Network' },
+  { href: '/dashboard/network', icon: CloudSun, label: 'Network' },
   { href: '/dashboard/communities', icon: Blend, label: 'Spaces' },
   { href: '/dashboard/wallet/gifts', iconEmoji: '❤️', label: 'Gifts' },
 ]
@@ -74,6 +75,8 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: QrCode, label: 'Home' },
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/content', icon: FileText, label: 'Content' },
+  { href: '/admin/email', icon: Mail, label: 'Emails' },
+
 ]
 
 const DEFAULT_BOTTOM_NAV_ITEMS: NavItem[] = [

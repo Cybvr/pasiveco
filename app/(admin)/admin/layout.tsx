@@ -1,34 +1,27 @@
 "use client"
 import type React from "react"
 import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Home, Users, QrCode, FileText, Menu } from "lucide-react"
-import Image from "next/image"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
+import Sidebar from "@/app/common/dashboard/Sidebar"
 import AdminHeader from "./components/header"
 import { useAuth } from "@/context/AuthContext"
 import { getUser } from "@/services/userService"
-
-const navigation = [
-  { name: "Admin", href: "/admin", icon: Home },
-  { name: "Home", href: "/dashboard/", icon: QrCode },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Content", href: "/admin/content", icon: FileText },
-]
+import { cn } from "@/lib/utils"
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname()
   const router = useRouter()
   const { user, realUser, loading } = useAuth()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -36,7 +29,6 @@ export default function AdminLayout({
     const checkAdminAccess = async () => {
       if (loading) return
 
-      // Use realUser for authorization, fallback to user
       const authUser = realUser || user
 
       if (!authUser) {
@@ -79,11 +71,6 @@ export default function AdminLayout({
     }
   }, [loading, router, user, realUser])
 
-  const isActiveRoute = (href: string) => {
-    if (href === "/admin") return pathname === href
-    return pathname.startsWith(href)
-  }
-
   if (loading || isCheckingAccess || !isAuthorized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4">
@@ -95,32 +82,14 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen overflow-x-hidden bg-muted/20">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] min-w-0">
-        <aside className="hidden w-64 shrink-0 border-r bg-background lg:block">
-          <div className="flex h-16 items-center border-b px-6">
-            <Link href="/admin" className="flex items-center gap-3">
-              <Image src="/images/monster.png" alt="Pasive Logo" width={28} height={28} />
-              <div>
-                <p className="text-sm font-semibold leading-none">Pasive</p>
-                <p className="text-xs text-muted-foreground">Admin</p>
-              </div>
-            </Link>
-          </div>
-          <nav className="space-y-1 p-3">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                  isActiveRoute(item.href)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+        <aside className={cn(
+          "hidden shrink-0 border-r bg-card lg:block transition-all duration-300",
+          isCollapsed ? "w-16" : "w-52"
+        )}>
+          <Sidebar 
+            isCollapsed={isCollapsed} 
+            onToggle={() => setIsCollapsed(!isCollapsed)} 
+          />
         </aside>
 
         <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
@@ -138,31 +107,10 @@ export default function AdminLayout({
                     <SheetHeader className="sr-only">
                       <SheetTitle>Admin Navigation</SheetTitle>
                     </SheetHeader>
-                    <div className="flex h-16 items-center border-b px-6">
-                      <Link href="/admin" className="flex items-center gap-3">
-                        <Image src="/images/monster.png" alt="Pasive Logo" width={28} height={28} />
-                        <div>
-                          <p className="text-sm font-semibold leading-none">Pasive</p>
-                          <p className="text-xs text-muted-foreground">Admin</p>
-                        </div>
-                      </Link>
-                    </div>
-                    <nav className="space-y-1 p-3">
-                      {navigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                            isActiveRoute(item.href)
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                          }`}
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.name}
-                        </Link>
-                      ))}
-                    </nav>
+                    <Sidebar 
+                      isCollapsed={false} 
+                      onToggle={() => {}} 
+                    />
                   </SheetContent>
                 </Sheet>
               }

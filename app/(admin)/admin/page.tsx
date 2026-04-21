@@ -78,12 +78,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl min-w-0 space-y-6 overflow-x-hidden">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Clear overview of user activity and account health.
-        </p>
-      </header>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => (

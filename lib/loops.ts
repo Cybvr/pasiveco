@@ -18,4 +18,6 @@ export const LOOPS_TEMPLATES = {
   PAYMENT_FAILED: 'YOUR_FAILED_TEMPLATE_ID',
   /** Sent to new user after they finish signing up */
   WELCOME: 'cmnczv6kl12ic0i2g6qnk7g0t',
+  /** Template for custom dashboard blasts (create this in Loops) */
+  CAMPAIGN_BLAST: 'YOUR_CAMPAIGN_TEMPLATE_ID',
 };

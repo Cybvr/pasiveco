@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { solutionsService } from "@/services/solutionsService"
 import { useEditor } from "@tiptap/react"
-import { Eye, Trash2 } from "lucide-react"
+import { Eye, Trash2, Plus } from "lucide-react"
 import { uploadImage } from "@/services/cloudinaryService"
 import { toast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 import EditorContent from "./EditorContent"
+import { AdminSidebarList } from "../components/AdminSidebarList"
 
 interface Solution {
   id?: string
@@ -116,110 +118,130 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0">
-        <h2 className="text-lg font-semibold mb-4">Solutions List</h2>
-        <div className="space-y-4">
-          <Button
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+        <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Solutions</h3>
+          <Button 
+            variant="ghost" 
+            size="icon" 
             onClick={() => {
               setCurrentSolution({ title: "", description: "", content: "", slug: "" })
               if (editor) {
                 editor.commands.setContent("")
               }
-            }}
-            className="w-full"
+            }} 
+            className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
           >
-            + Create New
+            <Plus className="h-3.5 w-3.5" />
           </Button>
-          <div className="space-y-2">
-            {solutions.map((solution) => (
-              <Card key={solution.id} className="p-3 hover:bg-accent">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                  <h3
-                    className="cursor-pointer break-words font-medium"
-                    onClick={() => {
-                      setCurrentSolution(null) // Reset first
-                      setTimeout(() => setCurrentSolution(solution), 0) // Then set new item
-                    }}
-                  >
-                    {solution.title}
-                  </h3>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => window.open(`/solutions/${solution.slug}`, "_blank")}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleDelete(solution.id!, solution.title)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+        </div>
+        
+        <div className="flex-1 overflow-hidden">
+          <AdminSidebarList
+            items={solutions}
+            selectedId={currentSolution?.id}
+            onSelect={(solution) => {
+              setCurrentSolution(null)
+              setTimeout(() => setCurrentSolution(solution), 0)
+            }}
+            onDelete={(solution) => handleDelete(solution.id!, solution.title)}
+            getId={(solution) => solution.id!}
+            getTitle={(solution) => solution.title}
+            getSubtitle={(solution) => (
+              <p className="text-[10px] text-muted-foreground font-medium truncate">
+                {solution.slug}
+              </p>
+            )}
+            renderActions={(solution) => (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full hover:bg-background"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.open(`/solutions/${solution.slug}`, "_blank")
+                }}
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            loading={loading}
+            loadingMessage="Loading solutions..."
+          />
         </div>
       </div>
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-8">
-        <h2 className="text-lg font-semibold mb-4">Edit Solution</h2>
-        {currentSolution && (
-          <div className="space-y-4">
-            <Input
-              value={currentSolution.title}
-              onChange={(e) => {
-                const title = e.target.value
-                const slug = title
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "-")
-                  .replace(/(^-|-$)/g, "")
-                setCurrentSolution({ ...currentSolution, title, slug })
-              }}
-              placeholder="Title"
-            />
-            <Input
-              value={currentSolution.description}
-              onChange={(e) => setCurrentSolution({ ...currentSolution, description: e.target.value })}
-              placeholder="Description"
-            />
-            <Input
-              value={currentSolution.slug}
-              onChange={(e) => setCurrentSolution({ ...currentSolution, slug: e.target.value })}
-              placeholder="URL Slug"
-            />
-            <div className="min-h-[200px] border rounded-md">
-              <EditorContent editor={editor} />
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
+        {currentSolution ? (
+          <>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <Input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    try {
-                      const imageUrl = await handleImageUpload(file)
-                      setCurrentSolution({ ...currentSolution, imageUrl })
-                    } catch (error) {
-                      // Error is already handled in handleImageUpload
-                    }
-                  }
+                value={currentSolution.title}
+                onChange={(e) => {
+                  const title = e.target.value
+                  const slug = title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/(^-|-$)/g, "")
+                  setCurrentSolution({ ...currentSolution, title, slug })
                 }}
+                placeholder="Title"
+                className="text-lg font-bold border-none px-0 shadow-none focus-visible:ring-0"
               />
-              {currentSolution.imageUrl && (
-                <img
-                  src={currentSolution.imageUrl || "/placeholder.svg"}
-                  alt="Preview"
-                  className="w-full sm:w-20 h-auto sm:h-20 max-w-[200px] object-cover rounded mt-2 sm:mt-0"
+              <Input
+                value={currentSolution.description}
+                onChange={(e) => setCurrentSolution({ ...currentSolution, description: e.target.value })}
+                placeholder="Description"
+                className="border-none px-0 shadow-none focus-visible:ring-0 text-sm text-muted-foreground"
+              />
+              <Input
+                value={currentSolution.slug}
+                onChange={(e) => setCurrentSolution({ ...currentSolution, slug: e.target.value })}
+                placeholder="URL Slug"
+                className="h-7 text-[10px] w-fit bg-muted/50 border-none rounded-full px-3"
+              />
+              <div className="min-h-[300px] border rounded-xl overflow-hidden bg-background">
+                <EditorContent editor={editor} />
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      try {
+                        const imageUrl = await handleImageUpload(file)
+                        setCurrentSolution({ ...currentSolution, imageUrl })
+                      } catch (error) {
+                        // Error is already handled
+                      }
+                    }
+                  }}
+                  className="max-w-xs"
                 />
-              )}
+                {currentSolution.imageUrl && (
+                  <img
+                    src={currentSolution.imageUrl || "/placeholder.svg"}
+                    alt="Preview"
+                    className="w-12 h-12 object-cover rounded-lg border"
+                  />
+                )}
+              </div>
             </div>
-            <Button onClick={handleSave}>Save Changes</Button>
+            
+            <div className="p-3 border-t bg-background flex justify-start shrink-0">
+              <Button 
+                onClick={handleSave} 
+                className="bg-indigo-600 hover:bg-indigo-700 font-bold text-xs uppercase tracking-widest px-8 rounded-full shadow-lg shadow-indigo-500/20"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+            <p className="text-sm font-medium">Select a solution to edit or create a new one</p>
           </div>
         )}
       </div>
