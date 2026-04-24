@@ -32,6 +32,15 @@ export const BrandFooter = () => (
     <Text style={footerText}>
       5 Ado Ibrahim Street, Sabo Yaba
     </Text>
+    <Text style={disclaimerText}>
+      * Pasive offers its products and services in partnership with licensed
+      transmitters and payment processors in their respective jurisdictions.
+    </Text>
+    <Text style={disclaimerText}>
+      * All trademarks and brand names belong to their respective owners. Use
+      of these trademarks and brand names do not represent endorsement by or
+      association with Mainstack.
+    </Text>
     <Link href="https://pasive.co/unsubscribe" style={unsubscribeLink}>
       Unsubscribe from these emails
     </Link>
@@ -58,6 +67,13 @@ const footerText = {
   lineHeight: '20px',
   color: '#9ca3af',
   margin: '0',
+};
+
+const disclaimerText = {
+  fontSize: '11px',
+  lineHeight: '18px',
+  color: '#9ca3af',
+  margin: '12px 0 0',
 };
 
 const unsubscribeLink = {

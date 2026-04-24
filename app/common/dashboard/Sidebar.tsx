@@ -45,7 +45,6 @@ interface NavItem {
 
 const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
   {
     href: '/dashboard/products',
     icon: ShoppingBag,
@@ -60,6 +59,7 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: '/dashboard/messages', icon: Mail, label: 'Messages' },
+  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
   { href: '/dashboard/email', icon: CloudSun, label: 'Emails' },
 ]
 

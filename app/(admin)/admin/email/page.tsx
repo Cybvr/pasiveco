@@ -6,7 +6,6 @@ import StarterKit from '@tiptap/starter-kit';
 import { Image as TiptapImage } from '@tiptap/extension-image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -316,7 +315,7 @@ export default function AdminEmailPage() {
     <>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)]">
         {/* Left Sidebar: Drafts List */}
-        <div className="lg:col-span-3 flex flex-col gap-4 min-h-0">
+        <div className="lg:col-span-4 flex flex-col gap-4 min-h-0">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Drafts</h3>
             <Button variant="ghost" size="icon" onClick={resetForm} className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary">
@@ -325,7 +324,7 @@ export default function AdminEmailPage() {
           </div>
 
           <Card className="flex-1 overflow-hidden flex flex-col border-none shadow-sm bg-background/50">
-            <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
               {drafts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-center p-4">
                   <Mail className="h-8 w-8 text-muted-foreground/20 mb-2" />
@@ -337,30 +336,20 @@ export default function AdminEmailPage() {
                     key={draft.id}
                     onClick={() => loadDraft(draft)}
                     className={cn(
-                      "group p-3 rounded-xl cursor-pointer transition-all duration-200 border relative overflow-hidden",
+                      "group p-2.5 rounded-lg cursor-pointer transition-all duration-200 border relative overflow-hidden",
                       currentDraftId === draft.id
                         ? "border-primary/50 bg-primary/5 shadow-sm"
                         : "border-transparent hover:border-border hover:bg-accent/50 bg-card/30"
                     )}
                   >
-                    <div className="flex items-start justify-between gap-3 relative z-10">
+                    <div className="flex items-start justify-between gap-2 relative z-10">
                       <div className="min-w-0 flex-1">
                         <p className={cn(
-                          "text-sm font-bold truncate tracking-tight",
+                          "text-[13px] font-bold truncate tracking-tight leading-tight",
                           currentDraftId === draft.id ? "text-primary" : "text-foreground"
                         )}>
                           {draft.subject || '(Untitled Campaign)'}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[8px] font-black uppercase tracking-widest bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                            {draft.templateId}
-                          </span>
-                          {draft.updatedAt && (
-                            <span className="text-[9px] text-muted-foreground font-medium">
-                              {new Date(draft.updatedAt.seconds * 1000).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
                       </div>
                       <Button
                         variant="ghost"
@@ -382,7 +371,7 @@ export default function AdminEmailPage() {
         </div>
 
         {/* Right Column: Composer */}
-        <div className="lg:col-span-9 flex flex-col gap-4 min-h-0">
+        <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
           {/* Subject & Template */}
           <Card className="border-none shadow-sm overflow-hidden bg-background shrink-0">
             <CardContent className="p-0">
