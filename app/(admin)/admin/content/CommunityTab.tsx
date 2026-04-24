@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Users, Image as ImageIcon, UploadCloud, Loader2, Sparkles } from "lucide-react"
+import { Trash2, Users, Image as ImageIcon, UploadCloud, Loader2, Sparkles, Plus } from "lucide-react"
 import { createCommunity, deleteCommunity, getAllCommunities, updateCommunity } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { useAuth } from "@/context/AuthContext"
@@ -19,6 +19,7 @@ import { storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { v4 as uuidv4 } from "uuid"
 import { cn } from "@/lib/utils"
+import { AdminSidebarList } from "../components/AdminSidebarList"
 import {
   AlertDialog,
   AlertDialogAction,

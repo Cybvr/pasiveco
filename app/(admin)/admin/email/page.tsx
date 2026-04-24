@@ -41,6 +41,7 @@ import {
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { storage } from '@/lib/firebase';
+import { emailDraftsService, type EmailDraft } from '@/services/emailDraftsService';
 
 function ToolbarButton({
   onClick, active, children, title,
@@ -94,7 +95,7 @@ export default function AdminEmailPage() {
   const [templateId, setTemplateId] = useState('blast');
   const [audience, setAudience] = useState('all');
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<EmailDraft[]>([]);
   const [draftsError, setDraftsError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,18 +122,8 @@ export default function AdminEmailPage() {
 
   const fetchDrafts = async () => {
     try {
-      const response = await fetch('/api/admin/email-drafts');
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const message = data?.error || 'Failed to fetch drafts';
-        setDraftsError(message);
-        setDrafts([]);
-        toast.error(message);
-        return;
-      }
-
-      setDrafts(data.drafts);
+      const data = await emailDraftsService.getAllDrafts();
+      setDrafts(data);
       setDraftsError('');
     } catch (err) {
       console.error('Failed to fetch drafts', err);
@@ -206,22 +197,15 @@ export default function AdminEmailPage() {
     if (!editor) return;
     setIsSaving(true);
     try {
-      const response = await fetch('/api/admin/email-drafts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: currentDraftId,
-          subject,
-          templateId,
-          html: editor.getHTML(),
-        }),
+      const draftId = await emailDraftsService.saveDraft({
+        id: currentDraftId || undefined,
+        subject,
+        templateId,
+        html: editor.getHTML(),
       });
-      const data = await response.json();
-      if (data.success) {
-        setCurrentDraftId(data.id);
-        toast.success('Draft saved');
-        fetchDrafts();
-      }
+      setCurrentDraftId(draftId);
+      toast.success('Draft saved');
+      fetchDrafts();
     } catch {
       toast.error('Failed to save draft');
     } finally {
@@ -229,11 +213,11 @@ export default function AdminEmailPage() {
     }
   };
 
-  const loadDraft = (draft: any) => {
+  const loadDraft = (draft: EmailDraft) => {
     setSubject(draft.subject);
     setTemplateId(draft.templateId);
-    setCurrentDraftId(draft.id);
-    editor?.commands.setContent(draft.html);
+    setCurrentDraftId(draft.id || null);
+    editor?.commands.setContent(draft.html || '<p>Write your email here...</p>');
     setActiveTab('compose');
     setTestSent(false);
   };
@@ -252,12 +236,10 @@ export default function AdminEmailPage() {
   const deleteDraft = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     try {
-      const response = await fetch(`/api/admin/email-drafts/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        if (currentDraftId === id) setCurrentDraftId(null);
-        fetchDrafts();
-        toast.success('Draft deleted');
-      }
+      await emailDraftsService.deleteDraft(id);
+      if (currentDraftId === id) setCurrentDraftId(null);
+      fetchDrafts();
+      toast.success('Draft deleted');
     } catch {
       toast.error('Failed to delete draft');
     }

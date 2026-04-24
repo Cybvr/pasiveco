@@ -37,6 +37,7 @@ import { slugify } from "@/utils/slugify"
 import { Loader2, Package, Plus, Search, Sparkles, Trash2, UploadCloud, Video, Image as ImageIcon, UserRound } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { AdminSidebarList } from "../components/AdminSidebarList"
 
 type LessonForm = ProductLesson
 type AvailabilityForm = ProductAvailabilitySlot
