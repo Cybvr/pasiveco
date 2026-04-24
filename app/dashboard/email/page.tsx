@@ -151,6 +151,7 @@ function EmailPageContent() {
   const [audience, setAudience] = useState('all_customers');
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<any[]>([]);
+  const [draftsError, setDraftsError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
@@ -209,9 +210,22 @@ function EmailPageContent() {
     try {
       const response = await fetch(`/api/admin/email-drafts?userId=${user.uid}`);
       const data = await response.json();
-      if (data.success) setDrafts(data.drafts);
+
+      if (!response.ok || !data.success) {
+        const message = data?.error || 'Failed to fetch drafts';
+        setDraftsError(message);
+        setDrafts([]);
+        toast.error(message);
+        return;
+      }
+
+      setDrafts(data.drafts);
+      setDraftsError('');
     } catch (err) {
       console.error('Failed to fetch drafts', err);
+      setDraftsError('Failed to fetch drafts');
+      setDrafts([]);
+      toast.error('Failed to fetch drafts');
     }
   };
 
@@ -443,7 +457,13 @@ function EmailPageContent() {
 
             <Card className="flex-1 overflow-hidden flex flex-col border-none shadow-sm bg-background/50">
               <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
-                {drafts.length === 0 ? (
+                {draftsError ? (
+                  <div className="flex flex-col items-center justify-center h-40 text-center p-4">
+                    <Mail className="h-8 w-8 text-destructive/30 mb-2" />
+                    <p className="text-[10px] text-destructive uppercase font-bold tracking-tight">Failed to load drafts</p>
+                    <p className="text-xs text-muted-foreground mt-1 break-words">{draftsError}</p>
+                  </div>
+                ) : drafts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-40 text-center p-4">
                     <Mail className="h-8 w-8 text-muted-foreground/20 mb-2" />
                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">No drafts yet</p>
