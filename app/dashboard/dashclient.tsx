@@ -10,6 +10,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import MobileBottomNav from "@/app/common/dashboard/MobileBottomNav"
 import DashboardHeader from "@/app/common/dashboard/DashboardHeader"
 import SecurityLock from "@/app/common/dashboard/SecurityLock"
+import { CreateSpaceModal } from "@/app/common/dashboard/CreateSpaceModal"
 
 function getDashboardPageTitle(pathname: string) {
   const dashboardTitle = "Dashboard | Pasive"
@@ -73,6 +74,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const pathname = usePathname()
   const { user } = useAuth()
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showCreateSpaceModal, setShowCreateSpaceModal] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const isManager = pathname.startsWith('/dashboard/manager')
   const isMessagesPage = pathname === '/dashboard/messages'
@@ -114,6 +116,8 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         console.error("Failed to persist onboarding dismissal:", e)
       }
     }
+    // Show the Create Space modal immediately after onboarding
+    setShowCreateSpaceModal(true)
   }
 
   return (
@@ -156,6 +160,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
           displayName={user.displayName || ''}
         />
       )}
+
+      {/* Trigger Space Creation after onboarding completes */}
+      <CreateSpaceModal 
+        open={showCreateSpaceModal} 
+        onOpenChange={setShowCreateSpaceModal} 
+      />
     </SecurityLock>
   )
 }
