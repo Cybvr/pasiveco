@@ -153,6 +153,16 @@ async function joinCommunities() {
           console.log(`👤 Agent @${agent.username} joining ${community.name}...`);
           
           await db.runTransaction(async (transaction) => {
+            const communityUpdate = community.sourceMemberCount
+              ? {
+                  memberCount: community.sourceMemberCount,
+                  updatedAt: Timestamp.now()
+                }
+              : {
+                  memberCount: FieldValue.increment(1),
+                  updatedAt: Timestamp.now()
+                };
+
             transaction.set(memberRef, {
               communityId: community.id,
               userId: agent.uid,
@@ -160,10 +170,7 @@ async function joinCommunities() {
               joinedAt: Timestamp.now()
             });
 
-            transaction.update(db.collection('communities').doc(community.id), {
-              memberCount: FieldValue.increment(1),
-              updatedAt: Timestamp.now()
-            });
+            transaction.update(db.collection('communities').doc(community.id), communityUpdate);
           });
 
           console.log(`   ✅ Joined!`);
@@ -319,11 +326,19 @@ async function runReviews() {
           createdAt: Timestamp.now()
         });
 
-        transaction.update(commRef, {
-          rating: Number(newRating.toFixed(1)),
-          reviewsCount: newCount,
-          updatedAt: Timestamp.now()
-        });
+        const communityUpdate = community.sourceReviewsCount !== undefined
+          ? {
+              rating: community.sourceRating || 0,
+              reviewsCount: community.sourceReviewsCount || 0,
+              updatedAt: Timestamp.now()
+            }
+          : {
+              rating: Number(newRating.toFixed(1)),
+              reviewsCount: newCount,
+              updatedAt: Timestamp.now()
+            };
+
+        transaction.update(commRef, communityUpdate);
       });
 
       console.log(`   ✅ Reviewed: [${rating} Stars] "${reviewComment}"`);

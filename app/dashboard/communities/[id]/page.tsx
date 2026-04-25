@@ -489,8 +489,20 @@ export default function CommunityDetailPage() {
 
                         {/* Interaction Actions */}
                         <div className="pt-2 space-y-2">
-                            <Button variant="outline" size="sm" className="w-full h-8 text-xs font-medium border-border/60 hover:bg-muted/50 transition-all rounded-lg">
-                                <Share className="w-3 h-3 mr-2" /> Share Community
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full h-8 text-xs font-medium border-border/60 hover:bg-muted/50 transition-all rounded-lg"
+                                onClick={() => {
+                                    const inviteUrl = `${window.location.origin}/invite/${community.slug}`;
+                                    navigator.clipboard.writeText(inviteUrl).then(() => {
+                                        toast.success('Invite link copied!');
+                                    }).catch(() => {
+                                        toast.error('Failed to copy link');
+                                    });
+                                }}
+                            >
+                                <Share className="w-3 h-3 mr-2" /> Copy Invite Link
                             </Button>
 
                             {isMember && !isCreator && (
