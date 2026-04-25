@@ -176,12 +176,14 @@ export default function Sidebar({
       )}>
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center space-x-2 group">
-            <div className="p-1 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform duration-200">
+            <div className=" rounded-lg group-hover:scale-110 transition-transform duration-200">
               <img src="/images/logo.svg" alt="Pasive" className="h-5 w-5" />
             </div>
-            <div>
-              <h1 className="text-xl font-chunko text-foreground leading-none translate-y-[1px]">PASIVE</h1>
-              {isAdmin && <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Admin</p>}
+            <div className="space-y-0">
+              <h1 className="text-xl font-chunko pt-1 text-foreground leading-none ">PASIVE</h1>
+              {isAdmin && <p className="text-[10px] leading-none text-muted-foreground font-medium uppercase tracking-wider">
+                Admin
+              </p>}
             </div>
           </Link>
         )}

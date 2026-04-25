@@ -86,9 +86,9 @@ export default function AdminLayout({
           "hidden shrink-0 border-r bg-card lg:block transition-all duration-300",
           isCollapsed ? "w-16" : "w-52"
         )}>
-          <Sidebar 
-            isCollapsed={isCollapsed} 
-            onToggle={() => setIsCollapsed(!isCollapsed)} 
+          <Sidebar
+            isCollapsed={isCollapsed}
+            onToggle={() => setIsCollapsed(!isCollapsed)}
           />
         </aside>
 
@@ -107,9 +107,9 @@ export default function AdminLayout({
                     <SheetHeader className="sr-only">
                       <SheetTitle>Admin Navigation</SheetTitle>
                     </SheetHeader>
-                    <Sidebar 
-                      isCollapsed={false} 
-                      onToggle={() => {}} 
+                    <Sidebar
+                      isCollapsed={false}
+                      onToggle={() => { }}
                     />
                   </SheetContent>
                 </Sheet>
@@ -120,7 +120,7 @@ export default function AdminLayout({
           <main className="flex-1 overflow-x-hidden p-4 md:p-6">
             <div className="mx-auto w-full max-w-full min-w-0">{children}</div>
           </main>
-          
+
           {/* Mobile Bottom Navigation */}
           <MobileBottomNav />
         </div>
