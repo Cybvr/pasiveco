@@ -17,7 +17,6 @@ function LayoutContent({ children, isSlugPage, isDashboardRoute, shouldShowSuppo
     <div className={isImpersonating ? 'pt-12' : ''}>
       <ImpersonationBanner />
       {children}
-      {!isSlugPage && !isDashboardRoute}
       {shouldShowSupportChat ? <SupportChatWidget /> : null}
     </div>
   )
@@ -46,7 +45,8 @@ export default function ClientLayout({
                      !pathname.startsWith('/solutions') &&
                      !pathname.startsWith('/pricing') &&
                      !pathname.startsWith('/about') &&
-                     !pathname.startsWith('/legal')
+                     !pathname.startsWith('/legal') &&
+                     !pathname.startsWith('/jobs')
   const shouldShowSupportChat = !isSlugPage && !isAuthRoute && !isAdminRoute && !isApiRoute && !isMessagesRoute
 
   useEffect(() => {

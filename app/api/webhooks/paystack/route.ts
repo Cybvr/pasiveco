@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { PaystackService } from '@/services/paystackService';
-import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { transactionalEmailService } from '@/services/transactionalEmailService';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { trackServerEvent } from '@/services/serverAnalyticsService';
@@ -161,23 +161,21 @@ async function handleSuccessfulPayment(data: any) {
           });
           console.log('🎁 Gift updated to success via webhook');
 
-          // Notify Creator via Loops
-          if (loops && giftData?.creatorId) {
+          // Notify Creator via Resend
+          if (giftData?.creatorId) {
             try {
               const creator = await adminAuth.getUser(giftData.creatorId);
               if (creator.email) {
-                await loops.sendTransactionalEmail({
-                  transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION, // Fallback for now
+                await transactionalEmailService.sendCustomNotification({
                   email: creator.email,
-                  dataVariables: {
-                    productId: `Gift from ${giftData.senderName || 'a supporter'}`,
-                    amount: (amount / 100).toString(),
-                  },
+                  subject: 'You received a gift!',
+                  message: `Great news! You've received a gift of ${amount / 100} ${data.currency || 'NGN'} from ${giftData.senderName || 'a supporter'}.`,
+                  userName: creator.displayName || 'Creator'
                 });
                 console.log('📧 Notified creator of gift:', creator.email);
               }
             } catch (err) {
-              console.error('Failed to notify creator via Loops:', err);
+              console.error('Failed to notify creator via Resend:', err);
             }
           }
           // Track in Analytics
@@ -202,19 +200,18 @@ async function handleSuccessfulPayment(data: any) {
       }
     }
 
-    // Send purchase confirmation email via Loops
-    if (loops && customer?.email) {
+    // Send purchase confirmation email via Resend
+    if (customer?.email) {
       try {
-        await loops.sendTransactionalEmail({
-          transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+        await transactionalEmailService.sendPurchaseConfirmation({
           email: customer.email,
-          dataVariables: {
-            productId: isGift ? giftDisplayName : (metadata?.product_id || 'Product'),
-            amount: (amount / 100).toString(),
-          },
+          productName: isGift ? giftDisplayName : (metadata?.product_id || 'Product'),
+          amount: (amount / 100).toString(),
+          currency: data.currency || 'NGN',
+          userName: parsedMetadata?.custom_fields?.find((f: any) => f.variable_name === 'customer_name')?.value || 'Customer'
         });
       } catch (err) {
-        console.error('[Loops] Failed to send purchase confirmation:', err);
+        console.error('[Resend] Failed to send purchase confirmation:', err);
       }
     }
 
@@ -271,18 +268,16 @@ async function handleFailedPayment(data: any) {
     // TODO: Implement failure handling
     // Example: Update order status, send notification
 
-    // Send payment failed email via Loops
-    if (loops && data?.customer?.email) {
+    // Send payment failed email via Resend
+    if (data?.customer?.email) {
       try {
-        await loops.sendTransactionalEmail({
-          transactionalId: LOOPS_TEMPLATES.PAYMENT_FAILED,
+        await transactionalEmailService.sendPaymentFailed({
           email: data.customer.email,
-          dataVariables: {
-            productId: metadata?.product_id || '',
-          },
+          productName: metadata?.product_id || 'Product',
+          userName: 'Customer'
         });
       } catch (err) {
-        console.error('[Loops] Failed to send payment failed email:', err);
+        console.error('[Resend] Failed to send payment failed email:', err);
       }
     }
   } catch (error) {

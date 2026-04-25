@@ -11,6 +11,7 @@ import SolutionsTab from "./SolutionsTab"
 import BlogTab from "./BlogTab"
 import CommunityTab from "./CommunityTab"
 import ProductsTab from "./ProductsTab"
+import JobsTab from "./JobsTab"
 
 export default function ContentManagementPage() {
   const [activeTab, setActiveTab] = useState("features")
@@ -29,6 +30,7 @@ export default function ContentManagementPage() {
             <TabsTrigger value="blog">Blog Posts</TabsTrigger>
             <TabsTrigger value="communities">Spaces</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs</TabsTrigger>
           </TabsList>
         </div>
 
@@ -50,6 +52,10 @@ export default function ContentManagementPage() {
 
         <TabsContent value="products" className="space-y-4">
           <ProductsTab />
+        </TabsContent>
+
+        <TabsContent value="jobs" className="space-y-4">
+          <JobsTab />
         </TabsContent>
       </Tabs>
     </div>

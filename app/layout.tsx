@@ -8,76 +8,20 @@ import Script from 'next/script'
 
 const aeonik = localFont({
   src: [
-    {
-      path: '../public/font/AeonikPro-Air.otf',
-      weight: '100',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-AirItalic.otf',
-      weight: '100',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Thin.otf',
-      weight: '200',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-ThinItalic.otf',
-      weight: '200',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Light.otf',
-      weight: '300',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-LightItalic.otf',
-      weight: '300',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Regular.otf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-RegularItalic.otf',
-      weight: '400',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Medium.otf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-MediumItalic.otf',
-      weight: '500',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Bold.otf',
-      weight: '700',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-BoldItalic.otf',
-      weight: '700',
-      style: 'italic',
-    },
-    {
-      path: '../public/font/AeonikPro-Black.otf',
-      weight: '900',
-      style: 'normal',
-    },
-    {
-      path: '../public/font/AeonikPro-BlackItalic.otf',
-      weight: '900',
-      style: 'italic',
-    },
+    { path: '../public/font/AeonikPro-Air.otf', weight: '100', style: 'normal' },
+    { path: '../public/font/AeonikPro-AirItalic.otf', weight: '100', style: 'italic' },
+    { path: '../public/font/AeonikPro-Thin.otf', weight: '200', style: 'normal' },
+    { path: '../public/font/AeonikPro-ThinItalic.otf', weight: '200', style: 'italic' },
+    { path: '../public/font/AeonikPro-Light.otf', weight: '300', style: 'normal' },
+    { path: '../public/font/AeonikPro-LightItalic.otf', weight: '300', style: 'italic' },
+    { path: '../public/font/AeonikPro-Regular.otf', weight: '400', style: 'normal' },
+    { path: '../public/font/AeonikPro-RegularItalic.otf', weight: '400', style: 'italic' },
+    { path: '../public/font/AeonikPro-Medium.otf', weight: '500', style: 'normal' },
+    { path: '../public/font/AeonikPro-MediumItalic.otf', weight: '500', style: 'italic' },
+    { path: '../public/font/AeonikPro-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../public/font/AeonikPro-BoldItalic.otf', weight: '700', style: 'italic' },
+    { path: '../public/font/AeonikPro-Black.otf', weight: '900', style: 'normal' },
+    { path: '../public/font/AeonikPro-BlackItalic.otf', weight: '900', style: 'italic' },
   ],
   variable: '--font-aeonik',
 })
@@ -129,7 +73,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
+      <body className={`${aeonik.variable} ${chunko.variable} font-sans antialiased font-normal`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange={false}
+        >
+          <ClientLayout>{children}</ClientLayout>
+          <Toaster />
+        </ThemeProvider>
+
+        {/* Analytics — must live in <body>, NOT <head>, when using next/script */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-16978252898"
           strategy="afterInteractive"
@@ -156,8 +111,7 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}
         </Script>
-      </head>
-      <body className={`${aeonik.variable} ${chunko.variable} font-sans antialiased font-normal`}>
+
         <noscript>
           <img
             height="1"
@@ -167,15 +121,6 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange={false}
-        >
-          <ClientLayout>{children}</ClientLayout>
-          <Toaster />
-        </ThemeProvider>
       </body>
     </html>
   )

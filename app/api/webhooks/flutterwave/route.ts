@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { transactionalEmailService } from '@/services/transactionalEmailService';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, serverTimestamp, collection, addDoc } from 'firebase/firestore';
 
@@ -82,18 +82,17 @@ async function handleSuccessfulPayment(data: any) {
   }
 
   // Business logic: Send confirmation email
-  if (loops && customer?.email) {
+  if (customer?.email) {
     try {
-      await loops.sendTransactionalEmail({
-        transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+      await transactionalEmailService.sendPurchaseConfirmation({
         email: customer.email,
-        dataVariables: {
-          productId: meta?.planId || meta?.productId || 'Subscription Upgrade',
-          amount: amount.toString(),
-        },
+        productName: meta?.planId || meta?.productId || 'Subscription Upgrade',
+        amount: amount.toString(),
+        currency: currency || 'NGN',
+        userName: customer?.name || 'Customer'
       });
     } catch (err) {
-      console.error('[Loops] Failed to send purchase confirmation:', err);
+      console.error('[Resend] Failed to send purchase confirmation:', err);
     }
   }
 }

@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { doc, getDoc, updateDoc, collection, setDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { transactionalEmailService } from '@/services/transactionalEmailService';
 import { pricingPlans } from '@/lib/plans';
 import { IntegrationService } from '@/services/integrationService';
 
@@ -291,18 +291,17 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     });
   }
 
-  if (loops && customer_email) {
+  if (customer_email) {
     try {
-      await loops.sendTransactionalEmail({
-        transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+      await transactionalEmailService.sendPurchaseConfirmation({
         email: customer_email,
-        dataVariables: {
-          productId: metadata?.productId || '',
-          amount: ((amount_total || 0) / 100).toString(),
-        },
+        productName: metadata?.productName || metadata?.productId || 'Product',
+        amount: ((amount_total || 0) / 100).toString(),
+        currency: session.currency?.toUpperCase() || 'USD',
+        userName: session.customer_details?.name || 'Customer'
       });
     } catch (err) {
-      console.error('[Loops] Failed to send purchase confirmation:', err);
+      console.error('[Resend] Failed to send purchase confirmation:', err);
     }
   }
 }

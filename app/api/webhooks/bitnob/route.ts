@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { loops, LOOPS_TEMPLATES } from '@/lib/loops';
+import { transactionalEmailService } from '@/services/transactionalEmailService';
 import { trackServerEvent } from '@/services/serverAnalyticsService';
 
 export async function POST(request: NextRequest) {
@@ -43,33 +43,30 @@ export async function POST(request: NextRequest) {
           console.log('Gift record updated to success via Bitnob');
 
           // Notify Sender
-          if (loops && giftData.senderEmail) {
-            await loops.sendTransactionalEmail({
-              transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+          if (giftData.senderEmail) {
+            await transactionalEmailService.sendPurchaseConfirmation({
               email: giftData.senderEmail,
-              dataVariables: {
-                productId: `Gift to ${giftData.creatorName}`,
-                amount: giftData.amount.toString(),
-              },
+              productName: `Gift to ${giftData.creatorName}`,
+              amount: giftData.amount.toString(),
+              currency: giftData.currency || 'USD',
+              userName: giftData.senderName || 'Supporter'
             });
           }
 
           // Notify Creator
-          if (loops && giftData.creatorId) {
+          if (giftData.creatorId) {
             try {
               const creator = await adminAuth.getUser(giftData.creatorId);
               if (creator.email) {
-                await loops.sendTransactionalEmail({
-                  transactionalId: LOOPS_TEMPLATES.PURCHASE_CONFIRMATION,
+                await transactionalEmailService.sendCustomNotification({
                   email: creator.email,
-                  dataVariables: {
-                    productId: `Crypto Gift from ${giftData.senderName || 'a supporter'}`,
-                    amount: giftData.amount.toString(),
-                  },
+                  subject: 'You received a crypto gift!',
+                  message: `Great news! You've received a crypto gift of ${giftData.amount} ${giftData.currency || 'USD'} from ${giftData.senderName || 'a supporter'}.`,
+                  userName: creator.displayName || 'Creator'
                 });
               }
             } catch (err) {
-              console.error('Failed to notify creator via Loops (Bitnob):', err);
+              console.error('Failed to notify creator via Resend (Bitnob):', err);
             }
           }
 
