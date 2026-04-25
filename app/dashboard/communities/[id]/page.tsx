@@ -163,7 +163,7 @@ export default function CommunityDetailPage() {
 
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+            <div className="max-w-7xl mx-auto px-2 py-4 space-y-3 md:px-4 md:py-6 md:space-y-4">
                 <Skeleton className="h-28 w-full" />
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div className="lg:col-span-3 space-y-3">
@@ -189,61 +189,58 @@ export default function CommunityDetailPage() {
         <div className="min-h-screen bg-background pb-12">
             {/* Compact Header */}
             <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-20">
-                <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <Avatar className="h-10 w-10 shrink-0 rounded-full border border-border/60 md:h-12 md:w-12">
-                                <AvatarImage
-                                    src={community.image || community.bannerImage || ""}
-                                    alt={`${community.name} logo`}
-                                    className="object-cover"
-                                />
-                                <AvatarFallback className="rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-background text-xs font-semibold text-primary">
-                                    {community.name.slice(0, 2).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                                <nav className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
-                                    <span className="hover:text-foreground cursor-pointer transition-colors" onClick={() => router.push('/dashboard/communities')}>Communities</span>
-                                    <ChevronRight className="w-2.5 h-2.5" />
-                                </nav>
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-base md:text-lg font-bold tracking-tight truncate leading-tight">
-                                        {community.name}
-                                    </h1>
-                                    <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">
-                                        {community.memberCount} members
-                                    </Badge>
-                                </div>
-                            </div>
+                <div className="max-w-7xl mx-auto px-3 md:px-6 py-2">
+                    <div className="flex items-center gap-2">
+                        {/* Avatar */}
+                        <Avatar className="h-8 w-8 shrink-0 rounded-full border border-border/60">
+                            <AvatarImage
+                                src={community.image || community.bannerImage || ""}
+                                alt={`${community.name} logo`}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-background text-xs font-semibold text-primary">
+                                {community.name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+
+                        {/* Name + sub */}
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-sm font-bold tracking-tight truncate leading-tight">
+                                {community.name}
+                            </h1>
+                            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
+                                {community.memberCount.toLocaleString()} members
+                            </p>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        {/* Actions */}
+                        <div className="flex items-center gap-1.5 shrink-0">
                             {isCreator ? (
-                                <div className="flex items-center gap-1.5">
-                                    <Button size="sm" variant="outline" onClick={() => setEditDialogOpen(true)} className="h-8 px-3 text-xs">
-                                        <Pencil className="w-3 h-3 mr-1.5" /> Edit
+                                <>
+                                    <Button size="sm" variant="outline" onClick={() => setEditDialogOpen(true)} className="h-7 px-2.5 text-xs gap-1">
+                                        <Pencil className="w-3 h-3" />
+                                        <span className="hidden sm:inline">Edit</span>
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setDeleteDialogOpen(true)}>
+                                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setDeleteDialogOpen(true)}>
                                         <Trash2 className="w-3.5 h-3.5 text-destructive" />
                                     </Button>
-                                </div>
+                                </>
                             ) : (
                                 <Button
                                     size="sm"
                                     variant={isMember ? "outline" : "default"}
                                     onClick={handleJoinLeave}
                                     disabled={actionLoading}
-                                    className="h-8 px-4 text-xs font-semibold"
+                                    className="h-7 px-3 text-xs font-semibold"
                                 >
                                     {actionLoading ? (
                                         <Loader2 className="w-3 h-3 animate-spin" />
                                     ) : isMember ? (
                                         "Joined"
                                     ) : community.isPaid ? (
-                                        `Join — ₦${community.price?.toLocaleString()}`
+                                        `Join ₦${community.price?.toLocaleString()}`
                                     ) : (
-                                        "Join Space"
+                                        "Join"
                                     )}
                                 </Button>
                             )}
@@ -252,12 +249,12 @@ export default function CommunityDetailPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 md:px-6 mt-3">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <div className="max-w-7xl mx-auto px-2.5 md:px-6 mt-2 md:mt-3">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-5">
                     {/* Main content */}
                     <div className="lg:col-span-3 min-w-0">
                         <Tabs defaultValue="feed" className="w-full">
-                            <TabsList className="flex items-center justify-start h-auto p-0 bg-transparent border-b rounded-none w-full gap-6 mb-4">
+                            <TabsList className="flex items-center justify-start h-auto p-0 bg-transparent border-b rounded-none w-full gap-4 md:gap-6 mb-3 md:mb-4">
                                 <TabsTrigger value="feed" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-1 pb-2 text-sm font-medium">Feed</TabsTrigger>
                                 <TabsTrigger value="about" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-1 pb-2 text-sm font-medium">About</TabsTrigger>
                                 <TabsTrigger value="members" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-1 pb-2 text-sm font-medium">Members</TabsTrigger>
@@ -268,7 +265,7 @@ export default function CommunityDetailPage() {
                                 {isMember || community.privacy === 'public' ? (
                                     <div className="space-y-2">
                                         {!isMember && (
-                                            <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl mb-4 text-center">
+                                            <div className="p-3 md:p-4 bg-primary/5 border border-primary/10 rounded-xl mb-3 md:mb-4 text-center">
                                                 <p className="text-sm font-medium text-primary">Previewing Public Feed</p>
                                                 <p className="text-xs text-muted-foreground mt-1">Join this space to start posting and interacting!</p>
                                             </div>
@@ -279,7 +276,7 @@ export default function CommunityDetailPage() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="py-10 px-4 md:px-6 text-center border rounded-lg space-y-3">
+                                    <div className="py-8 px-3 md:py-10 md:px-6 text-center border rounded-lg space-y-3">
                                         <Shield className="w-8 h-8 text-muted-foreground mx-auto" />
                                         <h2 className="text-base font-semibold">Members only</h2>
                                         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
@@ -293,7 +290,7 @@ export default function CommunityDetailPage() {
                             </TabsContent>
 
                             <TabsContent value="about" className="mt-0">
-                                <div className="p-4 md:p-6 bg-card border border-border/40 rounded-lg space-y-8">
+                                <div className="p-3 md:p-6 bg-card border border-border/40 rounded-lg space-y-6 md:space-y-8">
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary">
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -316,7 +313,7 @@ export default function CommunityDetailPage() {
                                                 "Keep posts relevant to the space topic.",
                                                 "Maintain confidentiality of shared discussions.",
                                             ].map((rule, i) => (
-                                                <li key={i} className="flex items-start gap-3 p-3 rounded-md bg-muted/30 border border-border/20">
+                                                <li key={i} className="flex items-start gap-2.5 p-2.5 md:gap-3 md:p-3 rounded-md bg-muted/30 border border-border/20">
                                                     <span className="text-primary font-mono text-xs mt-0.5 shrink-0">0{i + 1}</span>
                                                     <p className="text-sm text-foreground/80 leading-snug">{rule}</p>
                                                 </li>
@@ -337,7 +334,7 @@ export default function CommunityDetailPage() {
                                             return (
                                                 <div
                                                     key={member.id}
-                                                    className={`flex items-center gap-3 border-b border-border/40 px-4 py-2 last:border-b-0 ${isClickable ? "cursor-pointer transition-colors hover:bg-muted/40" : ""}`}
+                                                    className={`flex items-center gap-3 border-b border-border/40 px-3 py-2 md:px-4 last:border-b-0 ${isClickable ? "cursor-pointer transition-colors hover:bg-muted/40" : ""}`}
                                                     onClick={isClickable ? () => router.push(`/${profileSlug}`) : undefined}
                                                     onKeyDown={isClickable ? (event) => {
                                                         if (event.key === "Enter" || event.key === " ") {
@@ -383,7 +380,7 @@ export default function CommunityDetailPage() {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="py-10 md:py-12 text-center border rounded-lg px-4">
+                                    <div className="py-8 md:py-12 text-center border rounded-lg px-3 md:px-4">
                                         <Users className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
                                         <p className="text-sm font-medium">No members to show yet</p>
                                         <p className="text-sm text-muted-foreground mt-1">Space members will appear here as people join.</p>
@@ -392,7 +389,7 @@ export default function CommunityDetailPage() {
                             </TabsContent>
 
                             <TabsContent value="reviews" className="mt-0">
-                                <div className="border border-border/40 rounded-lg p-4 bg-card">
+                                <div className="border border-border/40 rounded-lg p-3 md:p-4 bg-card">
                                     <CommunityReviewSection communityId={community.id} user={user} />
                                 </div>
                             </TabsContent>
@@ -400,7 +397,7 @@ export default function CommunityDetailPage() {
                     </div>
 
                     {/* Sidebar */}
-                    <aside className="space-y-4 lg:col-span-1 py-1">
+                    <aside className="space-y-3 md:space-y-4 lg:col-span-1 py-1">
                         {/* Compact Sidebar Stats */}
                         <Card className="border shadow-none bg-card/40 overflow-hidden">
                             <div className="border-b bg-muted/30 p-3 space-y-2">
