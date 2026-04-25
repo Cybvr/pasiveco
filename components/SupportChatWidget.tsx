@@ -821,10 +821,10 @@ export default function SupportChatWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
+          className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl"
           aria-label="Open support"
         >
-          <MessageCircle className="h-5 w-5" />
+          <img src="/images/catfoxdog.png" alt="" className="h-full w-full rounded-full object-cover" />
         </button>
       )}
     </div>

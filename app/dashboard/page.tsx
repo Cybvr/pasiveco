@@ -291,11 +291,15 @@ export default function DashboardHomePage() {
                         />
                       ) : null}
                       <div
-                        className="hidden h-full w-full items-center justify-center bg-muted text-muted-foreground"
+                        className="hidden h-full w-full items-center justify-center bg-muted"
                         style={{ display: product.thumbnail ? 'none' : 'flex' }}
                         aria-hidden={Boolean(product.thumbnail)}
                       >
-                        <BriefcaseBusiness className="h-6 w-6" />
+                        <img
+                          src="/images/monster.png"
+                          alt=""
+                          className="h-12 w-12 object-contain grayscale opacity-45"
+                        />
                       </div>
                     </div>
                     <div className="text-left p-2">

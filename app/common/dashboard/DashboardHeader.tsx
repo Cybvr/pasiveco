@@ -46,12 +46,13 @@ interface QuickLink {
   label: string
   icon?: LucideIcon
   iconEmoji?: string
+  isNew?: boolean
   subItems?: QuickLink[]
 }
 
 const primaryLinks: QuickLink[] = [
   { href: '/dashboard', label: 'Home', icon: Home },
-  { href: '/dashboard/bookings', label: 'Bookings', icon: CalendarDays },
+  { href: '/dashboard/bookings', label: 'Bookings', icon: CalendarDays, isNew: true },
   {
     href: '/dashboard/products',
     label: 'Store',
@@ -72,7 +73,7 @@ const primaryLinks: QuickLink[] = [
 const exploreLinks: QuickLink[] = [
   { href: '/dashboard/library', label: 'Library', icon: Package },
   { href: '/dashboard/network', label: 'Network', icon: Zap },
-  { href: '/dashboard/communities', label: 'Spaces', icon: Blend },
+  { href: '/dashboard/communities', label: 'Spaces', icon: Blend, isNew: true },
   { href: '/dashboard/wallet/gifts', label: 'Gifts', iconEmoji: '❤️' },
 ]
 
@@ -425,6 +426,11 @@ export default function DashboardHeader() {
                             ) : null}
                           </div>
                           <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
+                          {item.isNew ? (
+                            <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-600">
+                              New
+                            </span>
+                          ) : null}
                           {locked ? (
                             <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
                           ) : showMessagesBadge ? (
@@ -479,6 +485,11 @@ export default function DashboardHeader() {
                             ) : null}
                           </div>
                           <span className="flex-1 text-[12px] text-left font-semibold">{item.label}</span>
+                          {item.isNew ? (
+                            <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-600">
+                              New
+                            </span>
+                          ) : null}
                           {locked ? (
                             <Lock className="h-3.5 w-3.5 text-muted-foreground/50" />
                           ) : showNetworkBadge ? (

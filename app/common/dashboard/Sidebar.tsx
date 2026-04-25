@@ -40,6 +40,7 @@ interface NavItem {
   icon?: LucideIcon
   iconEmoji?: string
   label: string
+  isNew?: boolean
   subItems?: NavItem[]
 }
 
@@ -59,14 +60,14 @@ const DASHBOARD_PRIMARY_NAV_ITEMS: NavItem[] = [
     ],
   },
   { href: '/dashboard/messages', icon: Mail, label: 'Messages' },
-  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings' },
+  { href: '/dashboard/bookings', icon: CalendarDays, label: 'Bookings', isNew: true },
   { href: '/dashboard/email', icon: CloudSun, label: 'Emails' },
 ]
 
 const DASHBOARD_EXPLORE_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/library', icon: Library, label: 'Library' },
   { href: '/dashboard/network', icon: CloudSun, label: 'Network' },
-  { href: '/dashboard/communities', icon: Blend, label: 'Spaces' },
+  { href: '/dashboard/communities', icon: Blend, label: 'Spaces', isNew: true },
   { href: '/dashboard/wallet/gifts', iconEmoji: '❤️', label: 'Gifts' },
 ]
 
@@ -269,9 +270,17 @@ export default function Sidebar({
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                         </span>
                       )}
+                      {item.isNew && isCollapsed && !hasUnread && (
+                        <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-card" />
+                      )}
                     </div>
                     {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-                    {locked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
+                    {item.isNew && !isCollapsed && !hasUnread && (
+                      <span className="ml-auto rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-600">
+                        New
+                      </span>
+                    )}
+                    {locked && !isCollapsed && <Lock className={cn("h-3 w-3 text-muted-foreground/50", item.isNew ? "ml-1" : "ml-auto")} />}
                     {hasUnread && !isCollapsed && (
                       <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {messagesCount > 9 ? '9+' : messagesCount}
@@ -364,9 +373,17 @@ export default function Sidebar({
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span>
                   )}
+                  {item.isNew && isCollapsed && !showBadge && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-card" />
+                  )}
                 </div>
                 {!isCollapsed && <span className="truncate flex-1">{item.label}</span>}
-                {locked && !isCollapsed && <Lock className="ml-auto h-3 w-3 text-muted-foreground/50" />}
+                {item.isNew && !isCollapsed && !showBadge && (
+                  <span className="ml-auto rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-600">
+                    New
+                  </span>
+                )}
+                {locked && !isCollapsed && <Lock className={cn("h-3 w-3 text-muted-foreground/50", item.isNew ? "ml-1" : "ml-auto")} />}
                 {showBadge && !isCollapsed && (
                   <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                     {networkCount > 9 ? '9+' : networkCount}
