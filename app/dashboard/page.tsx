@@ -23,7 +23,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 import { useCurrency } from '@/context/CurrencyContext'
 import { formatCurrency, convertAmount as convertAmountUtil } from '@/utils/currency'
-import { getAllCommunities } from '@/services/communityService'
+import { getLatestCommunities } from '@/services/communityService'
 import { Community } from '@/types/community'
 import { Transaction } from '@/types/transaction'
 import ProfileCompletionCard from '@/components/dashboard/ProfileCompletionCard'
@@ -86,7 +86,7 @@ export default function DashboardHomePage() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    getAllCommunities()
+    getLatestCommunities()
       .then((data) => setCommunities(data || []))
       .catch(() => { })
       .finally(() => setCommunitiesLoading(false))

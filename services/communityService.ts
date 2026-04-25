@@ -7,6 +7,7 @@ import {
   getDoc,
   setDoc,
   getDocs,
+  getCountFromServer,
   deleteDoc,
   query,
   where,
@@ -73,6 +74,29 @@ export const getAllCommunities = async (): Promise<Community[]> => {
     console.error('Error fetching all communities:', error);
     throw error;
   }
+};
+
+const timestampToMillis = (value: unknown): number => {
+  if (!value) return 0;
+  if (value instanceof Timestamp) return value.toMillis();
+  if (typeof value === 'object' && value !== null && 'toMillis' in value && typeof (value as { toMillis: unknown }).toMillis === 'function') {
+    return (value as { toMillis: () => number }).toMillis();
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value).getTime();
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
+export const getLatestCommunities = async (): Promise<Community[]> => {
+  const communities = await getAllCommunities();
+
+  return [...communities].sort((a, b) => {
+    const bTime = timestampToMillis(b.updatedAt) || timestampToMillis(b.createdAt);
+    const aTime = timestampToMillis(a.updatedAt) || timestampToMillis(a.createdAt);
+    return bTime - aTime;
+  });
 };
 
 export const joinCommunity = async (communityId: string, userId: string) => {
@@ -204,6 +228,39 @@ export const updateCommunity = async (communityId: string, data: Partial<Omit<Co
     await updateDoc(communityRef, { ...data, updatedAt: Timestamp.now() });
   } catch (error) {
     console.error('Error updating community:', error);
+    throw error;
+  }
+};
+
+export const syncAllCommunityMemberCounts = async (): Promise<Community[]> => {
+  try {
+    const communities = await getAllCommunities();
+
+    const syncedCommunities = await Promise.all(
+      communities.map(async (community) => {
+        const membersQuery = query(
+          communityMembersCollection,
+          where('communityId', '==', community.id)
+        );
+        const countSnapshot = await getCountFromServer(membersQuery);
+        const memberCount = countSnapshot.data().count;
+
+        await updateDoc(doc(db, 'communities', community.id), {
+          memberCount,
+          updatedAt: Timestamp.now(),
+        });
+
+        return { ...community, memberCount };
+      })
+    );
+
+    return syncedCommunities.sort((a, b) => {
+      const bTime = timestampToMillis(b.updatedAt) || timestampToMillis(b.createdAt);
+      const aTime = timestampToMillis(a.updatedAt) || timestampToMillis(a.createdAt);
+      return bTime - aTime;
+    });
+  } catch (error) {
+    console.error('Error syncing community member counts:', error);
     throw error;
   }
 };

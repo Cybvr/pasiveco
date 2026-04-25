@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Users, Plus, ArrowRight, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { getAllCommunities } from "@/services/communityService"
+import { getLatestCommunities } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { useAuth } from "@/hooks/useAuth"
 import { getDicebearAvatar } from "@/lib/avatar"
@@ -20,7 +20,7 @@ export default function CommunityDiscovery() {
     const loadCommunities = async () => {
       try {
         // Fetch all public communities for discovery
-        const allCommunities = await getAllCommunities()
+        const allCommunities = await getLatestCommunities()
         setCommunities(allCommunities || [])
       } catch (error) {
         console.error("Failed to load communities:", error)

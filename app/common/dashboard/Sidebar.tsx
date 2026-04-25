@@ -420,7 +420,7 @@ export default function Sidebar({
         "p-2 border-t border-border/50",
         isCollapsed ? "flex justify-center" : ""
       )}>
-        <UserMenu isCollapsed={isCollapsed} />
+        <UserMenu isCollapsed={isCollapsed} adminOpensInNewTab />
       </div>
     </div>
   )

@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Users, Image as ImageIcon, UploadCloud, Loader2, Sparkles, Plus } from "lucide-react"
-import { createCommunity, deleteCommunity, getAllCommunities, updateCommunity } from "@/services/communityService"
+import { Trash2, Users, Image as ImageIcon, UploadCloud, Loader2, Sparkles, Plus, RefreshCw } from "lucide-react"
+import { createCommunity, deleteCommunity, getLatestCommunities, syncAllCommunityMemberCounts, updateCommunity } from "@/services/communityService"
 import { Community } from "@/types/community"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "@/hooks/use-toast"
@@ -80,6 +80,7 @@ export default function CommunityTab() {
   const [communities, setCommunities] = useState<Community[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [syncingCounts, setSyncingCounts] = useState(false)
   const [currentCommunity, setCurrentCommunity] = useState<CommunityForm | null>(null)
   const [isInstantModalOpen, setIsInstantModalOpen] = useState(false)
   const [communityToDelete, setCommunityToDelete] = useState<Community | null>(null)
@@ -98,7 +99,7 @@ export default function CommunityTab() {
   const fetchCommunities = async () => {
     try {
       setLoading(true)
-      const data = await getAllCommunities()
+      const data = await getLatestCommunities()
       setCommunities(data)
     } catch (error) {
       console.error("Error fetching communities:", error)
@@ -203,15 +204,15 @@ export default function CommunityTab() {
       const payload = {
         name: currentCommunity.name.trim(),
         description: currentCommunity.description.trim(),
-        category: currentCommunity.category.trim() || null,
+        category: currentCommunity.category.trim() || undefined,
         privacy: currentCommunity.privacy,
-        image: imageUrl || null,
-        bannerImage: bannerUrl || null,
+        image: imageUrl || undefined,
+        bannerImage: bannerUrl || undefined,
         tags: normalizedTags.length > 0 ? normalizedTags : [],
         isPaid: currentCommunity.isPaid,
         price: normalizedPrice,
         currency: currentCommunity.currency.trim() || "USD",
-        creatorName: currentCommunity.creatorName.trim() || null,
+        creatorName: currentCommunity.creatorName.trim() || undefined,
       }
 
       if (currentCommunity.id) {
@@ -245,6 +246,24 @@ export default function CommunityTab() {
     setCommunityToDelete(community)
   }
 
+  const handleSyncMemberCounts = async () => {
+    try {
+      setSyncingCounts(true)
+      const syncedCommunities = await syncAllCommunityMemberCounts()
+      setCommunities(syncedCommunities)
+      toast({ title: "Synced", description: "Space user counts are now up to date." })
+    } catch (error) {
+      console.error("Error syncing space user counts:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sync space user counts.",
+      })
+    } finally {
+      setSyncingCounts(false)
+    }
+  }
+
   const confirmDelete = async () => {
     if (!communityToDelete?.id) return
 
@@ -273,6 +292,15 @@ export default function CommunityTab() {
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Spaces</h3>
           <div className="flex items-center gap-1">
+            <Button
+              onClick={handleSyncMemberCounts}
+              variant="ghost"
+              className="h-6 w-6 p-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              title="Sync user counts"
+              disabled={syncingCounts || loading}
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", syncingCounts && "animate-spin")} />
+            </Button>
             <Button 
               onClick={() => setIsInstantModalOpen(true)} 
               variant="ghost" 

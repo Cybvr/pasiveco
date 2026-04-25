@@ -33,7 +33,13 @@ import { getDisplayAvatar } from '@/lib/avatar'
 import { useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
 
-export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolean }) {
+export default function UserMenu({
+  isCollapsed = false,
+  adminOpensInNewTab = false,
+}: {
+  isCollapsed?: boolean
+  adminOpensInNewTab?: boolean
+}) {
   const { user } = useAuth()
   const router = useRouter()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -71,6 +77,14 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
   const displayName = profile?.displayName || user.displayName || 'User'
   const handle = profile?.username ? `@${profile.username}` : user.email
   const canAccessAdmin = profile?.isAdmin || profile?.role === 'admin'
+  const handleAdminClick = () => {
+    if (adminOpensInNewTab) {
+      window.open('/admin', '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    router.push('/admin')
+  }
 
   return (
     <>
@@ -131,7 +145,7 @@ export default function UserMenu({ isCollapsed = false }: { isCollapsed?: boolea
             <span>Settings</span>
           </DropdownMenuItem>
           {canAccessAdmin && (
-            <DropdownMenuItem onClick={() => router.push('/admin')}>
+            <DropdownMenuItem onClick={handleAdminClick}>
               <Shield className="mr-2 h-4 w-4" />
               <span>Admin</span>
             </DropdownMenuItem>
