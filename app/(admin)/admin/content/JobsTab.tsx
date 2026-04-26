@@ -123,8 +123,8 @@ const JobsTab = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Jobs & Applications</h3>
           <Button 
@@ -137,7 +137,7 @@ const JobsTab = () => {
           </Button>
         </div>
 
-        <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="flex-1 flex min-h-0 flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="applications" className="text-[10px] uppercase font-bold">Applications</TabsTrigger>
             <TabsTrigger value="listings" className="text-[10px] uppercase font-bold">Listings</TabsTrigger>
@@ -188,7 +188,7 @@ const JobsTab = () => {
         </Tabs>
       </div>
 
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
         {selectedApplication ? (
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div className="flex items-start justify-between">
@@ -254,7 +254,7 @@ const JobsTab = () => {
             </div>
           </div>
         ) : selectedJob ? (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex min-h-0 flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{selectedJob.id ? "Edit Job Listing" : "New Job Listing"}</h2>

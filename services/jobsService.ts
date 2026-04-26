@@ -7,6 +7,7 @@ import {
   doc, 
   updateDoc, 
   addDoc, 
+  setDoc,
   deleteDoc, 
   query, 
   where, 
@@ -43,6 +44,13 @@ export interface JobApplication {
 const JOBS_COLLECTION = 'jobs';
 const APPLICATIONS_COLLECTION = 'job_applications';
 const ADMIN_EMAIL = 'hello@pasive.co';
+
+const usernameFromEmail = (email: string) =>
+  email
+    .split('@')[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'user';
 
 export const jobsService = {
   async getAllJobs(onlyActive = true) {
@@ -109,18 +117,39 @@ export const jobsService = {
 
     // 1. "Auto-register" the user in Firestore if they don't exist
     try {
-      const userRef = doc(db, 'users', application.email.toLowerCase());
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: application.email.toLowerCase(),
+      const normalizedEmail = application.email.trim().toLowerCase();
+      const existingUserQuery = query(
+        collection(db, 'users'),
+        where('email', '==', normalizedEmail),
+        limit(1)
+      );
+      const existingUserSnap = await getDocs(existingUserQuery);
+
+      if (existingUserSnap.empty) {
+        const username = usernameFromEmail(normalizedEmail);
+
+        await setDoc(doc(db, 'users', normalizedEmail), {
+          email: normalizedEmail,
           displayName: application.fullName,
+          emailVerified: false,
+          plan: 'free',
           role: 'user',
+          isAdmin: false,
           isActive: true,
+          username,
+          slug: username,
+          profilePicture: '',
+          bio: '',
+          brandPreferences: '',
+          category: '',
+          links: [],
+          socialLinks: [],
           createdAt: now,
           updatedAt: now,
           metadata: {
-            signUpMethod: 'job_application'
+            signUpMethod: 'job_application',
+            sourceJobId: application.jobId,
+            sourceJobTitle: application.jobTitle,
           }
         });
       }
@@ -134,18 +163,19 @@ export const jobsService = {
       try {
         const firstName = application.fullName.split(' ')[0] || 'there';
         
-        // Send Welcome Email to Applicant
+        // Send confirmation email to applicant
         await sendResendEmail({
           from,
           to: application.email,
-          subject: `Welcome to Pasive, ${firstName}!`,
+          subject: `Thanks for applying to Pasive, ${firstName}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h1 style="color: #4F46E5;">Welcome to Pasive!</h1>
+              <h1 style="color: #4F46E5;">Thanks for applying!</h1>
               <p>Hi ${firstName},</p>
-              <p>Thanks for applying for the <strong>${application.jobTitle}</strong> position. We've received your application and our team is reviewing it.</p>
-              <p>In the meantime, feel free to check out what we're building at <a href="https://pasive.co">pasive.co</a>.</p>
-              <p>Best regards,<br>The Pasive Team</p>
+              <p>Thanks for applying for the <strong>${application.jobTitle}</strong> role at Pasive.</p>
+              <p>We've received your application and our team will review it carefully. If your experience looks like a fit, we'll reach out with next steps.</p>
+              <p>In the meantime, you can learn more about what we're building at <a href="https://pasive.co">pasive.co</a>.</p>
+              <p>Best,<br>The Pasive Team</p>
             </div>
           `
         });

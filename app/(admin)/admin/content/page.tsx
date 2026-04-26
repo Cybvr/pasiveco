@@ -20,10 +20,10 @@ export default function ContentManagementPage() {
   })
 
   return (
-    <div className="w-full min-w-0 space-y-4 overflow-x-hidden">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0 space-y-4">
-        <div className="w-full overflow-x-auto pb-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full w-full min-w-0 flex-col gap-4 overflow-hidden">
+        <div className="shrink-0 w-full overflow-x-auto pb-1">
           <TabsList className="inline-flex min-w-max">
             <TabsTrigger value="features">Features</TabsTrigger>
             <TabsTrigger value="solutions">Solutions</TabsTrigger>
@@ -34,27 +34,27 @@ export default function ContentManagementPage() {
           </TabsList>
         </div>
 
-        <TabsContent value="features" className="space-y-4">
+        <TabsContent value="features" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <FeaturesTab editor={editor} />
         </TabsContent>
 
-        <TabsContent value="solutions" className="space-y-4">
+        <TabsContent value="solutions" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <SolutionsTab editor={editor} />
         </TabsContent>
 
-        <TabsContent value="blog" className="space-y-4">
+        <TabsContent value="blog" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <BlogTab editor={editor} />
         </TabsContent>
 
-        <TabsContent value="communities" className="space-y-4">
+        <TabsContent value="communities" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <CommunityTab />
         </TabsContent>
 
-        <TabsContent value="products" className="space-y-4">
+        <TabsContent value="products" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <ProductsTab />
         </TabsContent>
 
-        <TabsContent value="jobs" className="space-y-4">
+        <TabsContent value="jobs" className="mt-0 min-h-0 flex-1 overflow-hidden">
           <JobsTab />
         </TabsContent>
       </Tabs>

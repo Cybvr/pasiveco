@@ -1,7 +1,7 @@
 "use client"
 import type React from "react"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -18,10 +18,12 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { user, realUser, loading } = useAuth()
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const isContentRoute = pathname.startsWith('/admin/content')
 
   useEffect(() => {
     let isMounted = true
@@ -80,10 +82,10 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-muted/20">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] min-w-0">
+    <div className="h-screen overflow-hidden bg-muted/20">
+      <div className="mx-auto flex h-full w-full max-w-[1600px] min-w-0 overflow-hidden">
         <aside className={cn(
-          "hidden shrink-0 border-r bg-card lg:block transition-all duration-300",
+          "hidden h-full shrink-0 border-r bg-card transition-all duration-300 lg:block",
           isCollapsed ? "w-16" : "w-52"
         )}>
           <Sidebar
@@ -92,8 +94,8 @@ export default function AdminLayout({
           />
         </aside>
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
-          <div className="sticky top-0 z-40 bg-background/95 backdrop-blur">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden pb-20 md:pb-0">
+          <div className="z-40 shrink-0 bg-background/95 backdrop-blur">
             <AdminHeader
               mobileNav={
                 <Sheet>
@@ -117,8 +119,20 @@ export default function AdminLayout({
             />
           </div>
 
-          <main className="flex-1 overflow-x-hidden p-4 md:p-6">
-            <div className="mx-auto w-full max-w-full min-w-0">{children}</div>
+          <main
+            className={cn(
+              "min-h-0 flex-1 overflow-x-hidden p-4 md:p-6",
+              isContentRoute ? "overflow-hidden" : "overflow-y-auto"
+            )}
+          >
+            <div
+              className={cn(
+                "mx-auto w-full max-w-full min-w-0",
+                isContentRoute && "h-full"
+              )}
+            >
+              {children}
+            </div>
           </main>
 
           {/* Mobile Bottom Navigation */}

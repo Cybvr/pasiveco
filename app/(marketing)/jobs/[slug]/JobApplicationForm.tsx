@@ -2,11 +2,13 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Loader2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Form,
   FormControl,
@@ -25,6 +27,9 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   portfolioUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   message: z.string().optional().or(z.literal("")),
+  acceptedTerms: z.boolean().refine((value) => value, {
+    message: "Please accept the Privacy Policy and Terms of Service.",
+  }),
 })
 
 interface JobApplicationFormProps {
@@ -44,16 +49,24 @@ export function JobApplicationForm({ jobId, jobTitle }: JobApplicationFormProps)
       email: "",
       portfolioUrl: "",
       message: "",
+      acceptedTerms: false,
     },
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
     try {
+      const applicationValues = {
+        fullName: values.fullName,
+        email: values.email,
+        portfolioUrl: values.portfolioUrl,
+        message: values.message,
+      }
+
       await jobsService.submitApplication({
         jobId,
         jobTitle,
-        ...values,
+        ...applicationValues,
       })
       setIsSuccess(true)
       toast({
@@ -143,11 +156,42 @@ export function JobApplicationForm({ jobId, jobTitle }: JobApplicationFormProps)
               <FormLabel>Why are you a good fit? (Optional)</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Tell us a bit about yourself and your experience..." 
+                  placeholder="Share any relevant experience, links, or context..." 
                   className="min-h-[150px] resize-none"
                   {...field} 
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="acceptedTerms"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-start gap-3">
+                <FormControl>
+                  <Checkbox
+                    id="acceptedTerms"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="mt-0.5"
+                  />
+                </FormControl>
+                <FormLabel htmlFor="acceptedTerms" className="text-xs font-normal leading-5 text-muted-foreground">
+                  I agree to Pasive's{" "}
+                  <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-foreground">
+                    Privacy Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/legal/terms" className="underline underline-offset-2 hover:text-foreground">
+                    Terms of Service
+                  </Link>
+                  .
+                </FormLabel>
+              </div>
               <FormMessage />
             </FormItem>
           )}

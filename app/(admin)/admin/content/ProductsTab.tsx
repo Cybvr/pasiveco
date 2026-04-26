@@ -537,9 +537,9 @@ export default function ProductsTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
       {/* Sidebar: Products List */}
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Products</h3>
           <Button 
@@ -610,7 +610,7 @@ export default function ProductsTab() {
       </div>
 
       {/* Main Content Area: Editor */}
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
         {!currentProduct ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 opacity-50">
             <Package className="h-12 w-12 mb-4 text-muted-foreground/20" />

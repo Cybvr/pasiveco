@@ -148,8 +148,8 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-[calc(100vh-140px)]">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex flex-col">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Blog</h3>
           <Button 
@@ -201,7 +201,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
           />
         </div>
       </div>
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex flex-col overflow-hidden">
+      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
         {currentPost ? (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
