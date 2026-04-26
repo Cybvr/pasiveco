@@ -8,7 +8,7 @@ const SESSION_COLLECTION = "whatsappSessions";
 
 export async function GET() {
   try {
-    const snap = await db.collection(SESSION_COLLECTION).orderBy("lastMessageAt", "desc").limit(100).get();
+    const snap = await getSessionSnapshot();
 
     const conversations = snap.docs.map((doc) => {
       const data = doc.data() as any;
@@ -33,5 +33,14 @@ export async function GET() {
       { error: error?.message || "Failed to fetch WhatsApp conversations" },
       { status: 500 }
     );
+  }
+}
+
+async function getSessionSnapshot() {
+  try {
+    return await db.collection(SESSION_COLLECTION).orderBy("lastMessageAt", "desc").limit(100).get();
+  } catch (error) {
+    console.warn("WhatsApp ordered query failed, falling back to unsorted query:", error);
+    return db.collection(SESSION_COLLECTION).limit(100).get();
   }
 }

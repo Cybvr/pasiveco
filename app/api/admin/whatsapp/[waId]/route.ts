@@ -22,10 +22,12 @@ export async function GET(_req: NextRequest, context: RouteContext) {
       sessionRef.collection("messages").orderBy("createdAt", "asc").limit(200).get(),
     ]);
 
-    await sessionRef.set(
-      { unread: false, updatedAt: FieldValue.serverTimestamp() },
-      { merge: true }
-    );
+    if (sessionSnap.exists) {
+      await sessionRef.set(
+        { unread: false, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+    }
 
     const session = sessionSnap.exists ? sessionSnap.data() : null;
     const messages = messagesSnap.docs.map((doc) => {

@@ -173,6 +173,83 @@
   animation: bounce-subtle 2s ease-in-out infinite;
 }
 
+@keyframes earnings-ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.sales-earnings-ticker {
+  position: relative;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.sales-earnings-ticker__fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 4rem;
+  pointer-events: none;
+}
+
+.sales-earnings-ticker__fade--left {
+  left: 0;
+}
+
+.sales-earnings-ticker__fade--right {
+  right: 0;
+}
+
+.sales-earnings-ticker__track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  line-height: 1.25;
+  text-transform: uppercase;
+  animation: earnings-ticker 180s linear infinite;
+}
+
+.sales-earnings-ticker__track:hover {
+  animation-play-state: paused;
+}
+
+.sales-earnings-ticker__item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.sales-earnings-ticker__name {
+  font-weight: 600;
+}
+
+.sales-earnings-ticker__muted {
+  opacity: 0.55;
+}
+
+.sales-earnings-ticker__amount {
+  font-weight: 700;
+}
+
+@media (min-width: 640px) {
+  .sales-earnings-ticker__track {
+    font-size: 0.75rem;
+  }
+}
+
 /* Visually hide React/Next.js Dev Errors and Indicators */
 [data-nextjs-dialog-overlay],
 [data-nextjs-toast],

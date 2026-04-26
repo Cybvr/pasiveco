@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import AIOnboardingSticky from "@/app/common/website/AIOnboardingSticky"
 import CurrencyPayoutSection from "@/app/common/website/CurrencyPayoutSection"
+import VibrantSpaceWidget from "@/app/common/website/VibrantSpaceWidget"
 import { getUserCount } from "@/services/userService"
 
 const TESTIMONIALS = [
@@ -50,6 +51,79 @@ const TESTIMONIALS = [
     role: "Lifestyle Creator"
   }
 ];
+
+const SALES_EARNINGS = [
+  { name: "Abdussamad S", amount: "₦200", time: "11 days ago" },
+  { name: "Precious O", amount: "₦200", time: "11 days ago" },
+  { name: "Aniebiet U", amount: "₦200", time: "11 days ago" },
+  { name: "Favour A", amount: "₦200", time: "11 days ago" },
+  { name: "Mary A", amount: "₦200", time: "11 days ago" },
+  { name: "Oluwabukola F", amount: "₦200", time: "11 days ago" },
+  { name: "Bunmi R", amount: "₦200", time: "11 days ago" },
+  { name: "Rukayat R", amount: "₦186", time: "11 days ago" },
+  { name: "Emmanuel C", amount: "₦186", time: "11 days ago" },
+  { name: "Nwachinemerem O", amount: "₦200", time: "11 days ago" },
+  { name: "Eniola O", amount: "₦186", time: "11 days ago" },
+  { name: "Maryann N", amount: "₦200", time: "11 days ago" },
+  { name: "Rofiu A", amount: "₦186", time: "11 days ago" },
+  { name: "Mariam A", amount: "₦200", time: "11 days ago" },
+  { name: "Fredrick A", amount: "₦186", time: "11 days ago" },
+  { name: "Chigozie I", amount: "₦186", time: "11 days ago" },
+  { name: "Mistura A", amount: "₦186", time: "11 days ago" },
+  { name: "Asaph N", amount: "₦200", time: "11 days ago" },
+  { name: "Franklin E", amount: "₦186", time: "11 days ago" },
+  { name: "Wasiu A", amount: "₦200", time: "11 days ago" },
+  { name: "Mosunmade F", amount: "₦186", time: "11 days ago" },
+  { name: "Faizat A", amount: "₦465", time: "11 days ago" },
+  { name: "Olusegun D", amount: "₦465", time: "11 days ago" },
+  { name: "Semilore A", amount: "₦500", time: "11 days ago" },
+  { name: "Mujeebat A", amount: "₦500", time: "11 days ago" },
+  { name: "Perpetual O", amount: "₦465", time: "11 days ago" },
+  { name: "Ayomikun O", amount: "₦27,900", time: "2 days ago" },
+  { name: "Ayomikun O", amount: "₦18,600", time: "2 days ago" },
+  { name: "Desmond O", amount: "₦30,000", time: "2 days ago" },
+  { name: "Gbenga A", amount: "₦27,900", time: "2 days ago" },
+  { name: "Folajimi O", amount: "₦27,900", time: "2 days ago" },
+  { name: "Oluwaseyi B", amount: "₦27,900", time: "2 days ago" },
+  { name: "Benjamin S", amount: "₦15,000", time: "2 days ago" },
+  { name: "Precious B", amount: "₦13,950", time: "2 days ago" },
+  { name: "Abigail E", amount: "₦15,000", time: "2 days ago" },
+  { name: "Daniel A", amount: "₦15,000", time: "4 days ago" },
+  { name: "Adebisi A", amount: "₦15,000", time: "4 days ago" },
+  { name: "Elijah K", amount: "₦13,950", time: "4 days ago" },
+  { name: "Aisha I", amount: "₦15,000", time: "4 days ago" },
+  { name: "Nasir M", amount: "₦13,950", time: "4 days ago" },
+  { name: "Faizah O", amount: "₦15,000", time: "4 days ago" },
+  { name: "Fredrick A", amount: "₦27,900", time: "11 days ago" },
+  { name: "Joy P", amount: "₦30,000", time: "11 days ago" },
+  { name: "Janet A", amount: "₦30,000", time: "11 days ago" },
+  { name: "Joy P", amount: "₦200", time: "11 days ago" },
+]
+
+function SalesEarningsTicker() {
+  return (
+    <section className="sales-earnings-ticker">
+      <div className="sales-earnings-ticker__fade sales-earnings-ticker__fade--left" />
+      <div className="sales-earnings-ticker__fade sales-earnings-ticker__fade--right" />
+
+      <div className="sales-earnings-ticker__track">
+        {[...SALES_EARNINGS, ...SALES_EARNINGS].map((earning, index) => (
+          <div
+            key={`${earning.name}-${earning.amount}-${earning.time}-${index}`}
+            className="sales-earnings-ticker__item"
+            aria-hidden={index >= SALES_EARNINGS.length}
+          >
+            <span className="sales-earnings-ticker__name">{earning.name}</span>
+            <span className="sales-earnings-ticker__muted">earned</span>
+            <span className="sales-earnings-ticker__amount">{earning.amount}</span>
+            <span className="sales-earnings-ticker__muted">{earning.time}</span>
+            <span className="sales-earnings-ticker__dot">•</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function LandingPage() {
   const router = useRouter()
@@ -76,7 +150,11 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-hidden home-page [&_h1]:uppercase [&_h2]:uppercase [&_h3]:uppercase [&_h4]:uppercase [&_h5]:uppercase [&_h6]:uppercase">
-      <Header isMenuOpen={false} setIsMenuOpen={() => { }} />
+      <div className="sticky top-0 z-50">
+        <Header isMenuOpen={false} setIsMenuOpen={() => { }} />
+      </div>
+
+      <SalesEarningsTicker />
 
       {/* ── Patreon Style Hero ── */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 pt-20 overflow-hidden">
@@ -125,8 +203,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Collage Section: Creativity Powered ── */}
-      <section className="px-6 py-32 bg-background relative z-10">
+      <section className="px-6 py-16 bg-background relative z-10">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div className="relative aspect-video sm:aspect-square lg:aspect-auto h-[400px] lg:h-auto">
             {/* Collage elements */}
@@ -160,8 +237,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Feature: Complete Creative Control ── */}
-      <section className="px-6 py-40 bg-zinc-950 text-zinc-100 relative overflow-hidden">
+      <section className="px-6 py-20 bg-zinc-950 text-zinc-100 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-500/10 blur-[150px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto">
@@ -188,20 +264,15 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative order-1 lg:order-2 group">
-              <div className="absolute -inset-4 bg-gradient-to-tr from-blue-500/20 to-emerald-500/20 rounded-none blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
-              <img
-                src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1000&q=80"
-                alt="Mobile Dashboard Mockup"
-                className="relative border border-zinc-800 shadow-3xl grayscale-[0.2] hover:grayscale-0 transition-all duration-700 rounded-none"
-              />
+            <div className="relative order-1 lg:order-2">
+              <VibrantSpaceWidget />
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* ── High Contrast: Creators. Fans. ── */}
-      <section className="px-6 py-40 bg-background text-foreground text-center space-y-16">
+      <section className="px-6 py-20 bg-background text-foreground text-center space-y-16">
         <h2 className="text-5xl md:text-9xl font-extrabold tracking-tighter leading-none uppercase">
           Creators. Fans. <br /> <span className="opacity-20 italic font-medium lowercase">Nothing in between.</span>
         </h2>
@@ -216,8 +287,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Feature: One Platform. Every Product. ── */}
-      <section className="px-6 py-40 bg-muted/30 border-y border-border">
+      <section className="px-6 py-20 bg-muted/30 border-y border-border">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-baseline justify-between mb-24 gap-6">
             <h2 className="text-4xl md:text-7xl font-bold tracking-tight">One platform. <br /> Every product.</h2>
@@ -285,8 +355,7 @@ export default function LandingPage() {
 
       <CurrencyPayoutSection />
 
-      {/* ── Testimonials ── */}
-      <section className="px-6 py-32 bg-background border-b border-border">
+      <section className="px-6 py-16 bg-background border-b border-border">
         <div className="max-w-7xl mx-auto space-y-20">
           <div className="text-center">
             <h2 className="text-5xl md:text-6xl font-bold tracking-tighter">Trusted by the best</h2>
@@ -305,8 +374,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="px-6 py-40 relative group overflow-hidden">
+      <section className="px-6 py-20 relative group overflow-hidden">
         <div className="absolute inset-0 bg-foreground pointer-events-none transition-transform duration-1000 scale-[1.01] group-hover:scale-100" />
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-12 text-background">
           <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none italic">
