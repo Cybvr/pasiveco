@@ -73,6 +73,14 @@ const withSessionTimestamps = (sessionExists: boolean) => ({
   ...(!sessionExists ? { createdAt: FieldValue.serverTimestamp() } : {}),
 });
 
+const getInboundPreview = (message: any) => {
+  const text = getMessageText(message);
+  if (text) return text;
+  if (message.document?.filename) return `Document: ${message.document.filename}`;
+  if (message.document) return "Document received";
+  return "Unsupported WhatsApp message";
+};
+
 const welcomeMessage =
   "Hey! Welcome to Pasiveco — sell your digital products and get paid instantly. Want to get started?\n\nReply with:\n1. Yes, let's go\n2. Tell me more first";
 
@@ -111,15 +119,63 @@ export async function POST(req: NextRequest) {
     }
 
     const from = message.from; // User's WhatsApp ID/Phone Number
+    await recordWhatsAppMessage(from, {
+      direction: "inbound",
+      content: getInboundPreview(message),
+      type: message.type || "unknown",
+      mediaId: message.document?.id,
+      fileName: message.document?.filename,
+      raw: message,
+    });
+
     const reply = await handleOnboardingMessage(from, message);
 
     await sendWhatsAppMessage(from, reply);
+    await recordWhatsAppMessage(from, {
+      direction: "outbound",
+      content: reply,
+      type: "text",
+      author: "bot",
+    });
 
     return NextResponse.json({ status: "success" });
   } catch (error) {
     console.error("WhatsApp Webhook Error:", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
+}
+
+async function recordWhatsAppMessage(
+  waId: string,
+  message: {
+    direction: "inbound" | "outbound";
+    content: string;
+    type: string;
+    author?: "bot" | "admin";
+    mediaId?: string;
+    fileName?: string;
+    raw?: any;
+  }
+) {
+  const sessionRef = db.collection(SESSION_COLLECTION).doc(waId);
+  const now = FieldValue.serverTimestamp();
+
+  await sessionRef.set(
+    {
+      waId,
+      lastMessage: message.content,
+      lastMessageDirection: message.direction,
+      lastMessageAt: now,
+      unread: message.direction === "inbound" ? true : false,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  await sessionRef.collection("messages").add({
+    ...message,
+    createdAt: now,
+  });
 }
 
 async function handleOnboardingMessage(from: string, message: any) {
@@ -344,6 +400,20 @@ async function createWhatsAppProduct({
   const now = FieldValue.serverTimestamp();
   const category = PRODUCT_CATEGORY_BY_TYPE[productType] || "digital-download";
   const isEbook = category === "ebook";
+  const details = isEbook
+    ? {
+        fileName,
+        fileUrl: "",
+        whatsappMediaId: fileId,
+        ebookFormat: "PDF",
+        enableReader: false,
+      }
+    : {
+        fileName,
+        fileUrl: "",
+        whatsappMediaId: fileId,
+        deliveryMode: "silent_email",
+      };
 
   await db.collection("users").doc(creatorId).set(
     {
@@ -376,14 +446,7 @@ async function createWhatsAppProduct({
     thumbnail: "",
     status: "active",
     tags: [isEbook ? "Ebooks" : "Digital Download", "WhatsApp"],
-    details: {
-      fileName,
-      fileUrl: "",
-      whatsappMediaId: fileId,
-      deliveryMode: isEbook ? undefined : "silent_email",
-      ebookFormat: isEbook ? "PDF" : undefined,
-      enableReader: isEbook ? false : undefined,
-    },
+    details,
     inventory: {
       quantity: 0,
       trackInventory: false,

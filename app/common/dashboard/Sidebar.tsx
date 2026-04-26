@@ -25,6 +25,7 @@ import {
   CalendarDays,
   Mail,
   Lock,
+  MessageCircle,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -77,6 +78,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: '/admin/users', icon: Users, label: 'Users' },
   { href: '/admin/content', icon: FileText, label: 'Content' },
   { href: '/admin/email', icon: Mail, label: 'Emails' },
+  { href: '/admin/whatsapp', icon: MessageCircle, label: 'WhatsApp' },
 
 ]
 
