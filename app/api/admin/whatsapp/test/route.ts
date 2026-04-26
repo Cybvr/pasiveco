@@ -12,9 +12,11 @@ export async function GET() {
       hasPhoneNumberId: Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID),
       hasAccessToken: Boolean(process.env.WHATSAPP_ACCESS_TOKEN),
       hasVerifyToken: Boolean(process.env.WHATSAPP_VERIFY_TOKEN),
+      hasAppSecret: Boolean(process.env.WHATSAPP_APP_SECRET || process.env.META_APP_SECRET),
       hasFirebaseProjectId: Boolean(process.env.FIREBASE_PROJECT_ID),
       hasFirebaseClientEmail: Boolean(process.env.FIREBASE_CLIENT_EMAIL),
       hasFirebasePrivateKey: Boolean(process.env.FIREBASE_PRIVATE_KEY),
+      hasFirebaseStorageBucket: Boolean(process.env.FIREBASE_STORAGE_BUCKET || process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
     };
 
     const ref = await db.collection("whatsappDiagnostics").add({

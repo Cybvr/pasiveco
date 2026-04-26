@@ -41,3 +41,41 @@ export async function sendWhatsAppMessage(to: string, text: string) {
     return { success: false, error };
   }
 }
+
+export async function downloadWhatsAppMedia(mediaId: string) {
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!accessToken) {
+    throw new Error("WhatsApp access token missing in environment variables.");
+  }
+
+  const metadataResponse = await fetch(`https://graph.facebook.com/v22.0/${mediaId}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  const metadata = await metadataResponse.json();
+
+  if (!metadataResponse.ok || !metadata.url) {
+    throw new Error(`Failed to fetch WhatsApp media metadata: ${JSON.stringify(metadata)}`);
+  }
+
+  const mediaResponse = await fetch(metadata.url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!mediaResponse.ok) {
+    const errorText = await mediaResponse.text();
+    throw new Error(`Failed to download WhatsApp media: ${errorText}`);
+  }
+
+  const arrayBuffer = await mediaResponse.arrayBuffer();
+
+  return {
+    buffer: Buffer.from(arrayBuffer),
+    contentType: mediaResponse.headers.get("content-type") || metadata.mime_type || "application/octet-stream",
+  };
+}

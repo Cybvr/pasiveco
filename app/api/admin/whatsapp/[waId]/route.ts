@@ -6,7 +6,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SESSION_COLLECTION = "whatsappOnboardingSessions";
+const SESSION_COLLECTION = "whatsappSessions";
 
 type RouteContext = {
   params: Promise<{ waId: string }>;
@@ -15,7 +15,8 @@ type RouteContext = {
 export async function GET(_req: NextRequest, context: RouteContext) {
   try {
     const { waId } = await context.params;
-    const sessionRef = db.collection(SESSION_COLLECTION).doc(decodeURIComponent(waId));
+    const decodedWaId = decodeURIComponent(waId);
+    const sessionRef = db.collection(SESSION_COLLECTION).doc(decodedWaId);
     const [sessionSnap, messagesSnap] = await Promise.all([
       sessionRef.get(),
       sessionRef.collection("messages").orderBy("createdAt", "asc").limit(200).get(),
@@ -43,7 +44,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
 
     return NextResponse.json({
       conversation: {
-        waId: decodeURIComponent(waId),
+        waId: decodedWaId,
         step: session?.step || "welcome",
         productType: session?.productType || null,
         productName: session?.productName || null,

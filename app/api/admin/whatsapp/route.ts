@@ -4,15 +4,11 @@ import { db } from "@/lib/firebase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SESSION_COLLECTION = "whatsappOnboardingSessions";
+const SESSION_COLLECTION = "whatsappSessions";
 
 export async function GET() {
   try {
-    const snap = await db
-      .collection(SESSION_COLLECTION)
-      .orderBy("lastMessageAt", "desc")
-      .limit(100)
-      .get();
+    const snap = await db.collection(SESSION_COLLECTION).orderBy("lastMessageAt", "desc").limit(100).get();
 
     const conversations = snap.docs.map((doc) => {
       const data = doc.data() as any;
