@@ -1,9 +1,83 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getHelpDocs } from "@/lib/help-docs";
+import { db } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { slugify } from "@/utils/slugify";
 
 export const runtime = "nodejs";
+
+type OnboardingStep =
+  | "welcome"
+  | "product_type"
+  | "product_name"
+  | "product_price"
+  | "product_file"
+  | "bank_prompt"
+  | "bank_details"
+  | "complete";
+
+type WhatsAppSession = {
+  step?: OnboardingStep;
+  productType?: string;
+  productName?: string;
+  productPrice?: number;
+  productSlug?: string;
+  fileId?: string;
+  fileName?: string;
+  salesLink?: string;
+};
+
+const SESSION_COLLECTION = "whatsappOnboardingSessions";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.co";
+
+const PRODUCT_TYPES: Record<string, string> = {
+  "1": "Ebooks / PDFs",
+  "ebooks": "Ebooks / PDFs",
+  "ebooks / pdfs": "Ebooks / PDFs",
+  "pdf": "Ebooks / PDFs",
+  "pdfs": "Ebooks / PDFs",
+  "2": "Courses / Videos",
+  "courses": "Courses / Videos",
+  "courses / videos": "Courses / Videos",
+  "videos": "Courses / Videos",
+  "3": "Templates / Tools",
+  "templates": "Templates / Tools",
+  "templates / tools": "Templates / Tools",
+  "tools": "Templates / Tools",
+  "4": "Something else",
+  "something else": "Something else",
+};
+
+const PRODUCT_CATEGORY_BY_TYPE: Record<string, string> = {
+  "Ebooks / PDFs": "ebook",
+  "Courses / Videos": "courses",
+  "Templates / Tools": "digital-download",
+  "Something else": "digital-download",
+};
+
+const normalize = (value?: string) => value?.trim().toLowerCase() || "";
+
+const creatorHandleFromPhone = (phone: string) => `creator-${phone.slice(-6) || "new"}`;
+
+const creatorIdFromPhone = (phone: string) => `whatsapp_${phone}`;
+
+const getMessageText = (message: any) =>
+  message.text?.body?.trim() ||
+  message.button?.text?.trim() ||
+  message.interactive?.button_reply?.title?.trim() ||
+  message.interactive?.list_reply?.title?.trim() ||
+  "";
+
+const withSessionTimestamps = (sessionExists: boolean) => ({
+  updatedAt: FieldValue.serverTimestamp(),
+  ...(!sessionExists ? { createdAt: FieldValue.serverTimestamp() } : {}),
+});
+
+const welcomeMessage =
+  "Hey! Welcome to Pasiveco — sell your digital products and get paid instantly. Want to get started?\n\nReply with:\n1. Yes, let's go\n2. Tell me more first";
+
+const productTypeMessage =
+  "You create once, we handle payments, delivery, and payouts. No website needed. What do you sell?\n\nReply with:\n1. Ebooks / PDFs\n2. Courses / Videos\n3. Templates / Tools\n4. Something else";
 
 // --- GET: Webhook Verification ---
 export async function GET(req: NextRequest) {
@@ -37,27 +111,8 @@ export async function POST(req: NextRequest) {
     }
 
     const from = message.from; // User's WhatsApp ID/Phone Number
-    const textBody = message.text?.body?.trim();
+    const reply = await handleOnboardingMessage(from, message);
 
-    if (!textBody) {
-      return NextResponse.json({ status: "no_text" });
-    }
-
-    let reply = "";
-
-    // 1. Handle Ice Breakers
-    if (textBody === "Start selling on Pasive") {
-      reply = "Awesome! 🚀 We'd love to have you. Pasive is the best place to monetize your audience. You can get started right here: https://pasive.co/signup";
-    } else if (textBody === "I need help with my account") {
-      reply = await getAIReply(textBody, from);
-    } else if (textBody === "Browse creator content") {
-      reply = "Check out what our amazing creators are doing on Pasive! Visit our explore page: https://pasive.co/explore";
-    } else {
-      // 2. Default to AI for other messages
-      reply = await getAIReply(textBody, from);
-    }
-
-    // 3. Send the reply back via WhatsApp
     await sendWhatsAppMessage(from, reply);
 
     return NextResponse.json({ status: "success" });
@@ -67,40 +122,290 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// --- AI Reply Helper (Reusing support-chat logic) ---
-async function getAIReply(userMessage: string, waId: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return "Sorry, I'm having trouble connecting to my brain right now.";
+async function handleOnboardingMessage(from: string, message: any) {
+  const sessionRef = db.collection(SESSION_COLLECTION).doc(from);
+  const sessionSnap = await sessionRef.get();
+  const session = (sessionSnap.exists ? sessionSnap.data() : {}) as WhatsAppSession;
+  const textBody = getMessageText(message);
+  const normalizedText = normalize(textBody);
 
-  const docs = getHelpDocs();
-  const docsContext = docs
-    .map((doc) => {
-      const highlights = doc.sections
-        .flatMap((s) => [...(s.paragraphs ?? []), ...(s.bullets ?? [])])
-        .filter(Boolean)
-        .slice(0, 2);
-      return `Title: ${doc.title}\nSummary: ${doc.summary}\n${highlights.length ? "Highlights: " + highlights.join(" ") : ""}`;
-    })
-    .join("\n\n");
-
-  const systemPrompt = `You are Pasive WhatsApp support. Be extremely concise (max 80 words), friendly, and practical. Use the Help Docs provided. If you can't help, tell the user to email support@pasive.co. Return ONLY the text response.`;
-
-  const prompt = `
-${systemPrompt}
-
-Help Docs:
-${docsContext}
-
-User (WhatsApp ID: ${waId}): ${userMessage}
-Assistant:`;
-
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(prompt);
-    return result.response.text().trim() || "I'm here to help! What can I do for you today?";
-  } catch (error) {
-    console.error("Gemini Error:", error);
-    return "I'm having a bit of trouble answering that right now. Could you try again later or email us at support@pasive.co?";
+  if (["restart", "start over", "reset"].includes(normalizedText)) {
+    await sessionRef.set(
+      { step: "welcome", updatedAt: FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+    return welcomeMessage;
   }
+
+  const step = session.step || "welcome";
+
+  if (step === "welcome") {
+    if (["1", "yes", "yes let's go", "yes lets go", "let's go", "lets go"].includes(normalizedText)) {
+      await sessionRef.set(
+        { step: "product_type", ...withSessionTimestamps(sessionSnap.exists) },
+        { merge: true }
+      );
+      return productTypeMessage;
+    }
+
+    if (["2", "tell me more", "tell me more first", "more"].includes(normalizedText)) {
+      await sessionRef.set(
+        { step: "product_type", ...withSessionTimestamps(sessionSnap.exists) },
+        { merge: true }
+      );
+      return productTypeMessage;
+    }
+
+    await sessionRef.set(
+      { step: "welcome", ...withSessionTimestamps(sessionSnap.exists) },
+      { merge: true }
+    );
+    return welcomeMessage;
+  }
+
+  if (step === "product_type") {
+    const productType = PRODUCT_TYPES[normalizedText];
+
+    if (!productType) {
+      return `${productTypeMessage}\n\nPlease reply with 1, 2, 3, or 4.`;
+    }
+
+    await sessionRef.set(
+      {
+        step: "product_name",
+        productType,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return "Perfect. What's your first product called?";
+  }
+
+  if (step === "product_name") {
+    if (!textBody || textBody.length < 2) {
+      return "Send the product name as text. For example: My Crypto Guide for Beginners";
+    }
+
+    const baseSlug = slugify(textBody) || "product";
+    const productSlug = `${baseSlug}-${from.slice(-4) || "wa"}`;
+
+    await sessionRef.set(
+      {
+        step: "product_price",
+        productName: textBody,
+        productSlug,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return "Nice. How much are you selling it for? (in Naira)";
+  }
+
+  if (step === "product_price") {
+    const price = Number(textBody.replace(/[₦,\s]/g, ""));
+
+    if (!Number.isFinite(price) || price <= 0) {
+      return "Please send a valid price in Naira. For example: 5000";
+    }
+
+    await sessionRef.set(
+      {
+        step: "product_file",
+        productPrice: price,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return "Got it. Now send me the PDF file directly in this chat.";
+  }
+
+  if (step === "product_file") {
+    const document = message.document;
+
+    if (!document) {
+      return "Send the PDF file directly in this chat so I can attach it to your product.";
+    }
+
+    const productSlug = session.productSlug || slugify(session.productName || "product");
+    const creatorHandle = creatorHandleFromPhone(from);
+    const creatorId = creatorIdFromPhone(from);
+    const salesLink = `${SITE_URL}/${creatorHandle}/product/${productSlug}`;
+    const productRef = await createWhatsAppProduct({
+      creatorId,
+      creatorHandle,
+      from,
+      productSlug,
+      productName: session.productName || "Untitled product",
+      productType: session.productType || "Digital product",
+      productPrice: session.productPrice || 0,
+      fileId: document.id,
+      fileName: document.filename || "product.pdf",
+    });
+
+    await sessionRef.set(
+      {
+        step: "bank_prompt",
+        productId: productRef.id,
+        fileId: document.id,
+        fileName: document.filename || "product.pdf",
+        salesLink,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    await db.collection("whatsappProductDrafts").add({
+      waId: from,
+      productId: productRef.id,
+      productType: session.productType,
+      productName: session.productName,
+      productPrice: session.productPrice,
+      productSlug,
+      fileId: document.id,
+      fileName: document.filename || "product.pdf",
+      salesLink,
+      status: "draft",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return `Uploaded. Your product is ready. Here's your personal sales link:\n${salesLink}\n\nShare that link anywhere — Instagram, Twitter, WhatsApp groups. When someone buys, you'll get notified here and paid straight to your account.\n\nWant to add your bank details now so you can withdraw?\n\nReply with:\n1. Yes, add bank\n2. I'll do it later`;
+  }
+
+  if (step === "bank_prompt") {
+    if (["1", "yes", "yes add bank", "add bank"].includes(normalizedText)) {
+      await sessionRef.set(
+        { step: "bank_details", bankSetupRequested: true, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+      return "Great. Bank setup is next. For now, send your bank name, account number, and account name in one message.";
+    }
+
+    if (["2", "later", "i'll do it later", "ill do it later"].includes(normalizedText)) {
+      await sessionRef.set(
+        { step: "complete", bankSetupRequested: false, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+      return "No problem. Your product draft is saved and your sales link is ready. Reply restart anytime to add another product.";
+    }
+
+    return "Reply with 1 to add bank details now, or 2 to do it later.";
+  }
+
+  if (step === "bank_details") {
+    if (!textBody || textBody.length < 8) {
+      return "Send your bank name, account number, and account name in one message.";
+    }
+
+    await sessionRef.set(
+      {
+        step: "complete",
+        bankingDetailsRaw: textBody,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    await db.collection("whatsappBankDetails").add({
+      waId: from,
+      details: textBody,
+      status: "needs_review",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return "Bank details saved. Your WhatsApp onboarding is complete. Reply restart anytime to add another product.";
+  }
+
+  return "Your onboarding is complete. Reply restart anytime to add another product.";
+}
+
+async function createWhatsAppProduct({
+  creatorId,
+  creatorHandle,
+  from,
+  productSlug,
+  productName,
+  productType,
+  productPrice,
+  fileId,
+  fileName,
+}: {
+  creatorId: string;
+  creatorHandle: string;
+  from: string;
+  productSlug: string;
+  productName: string;
+  productType: string;
+  productPrice: number;
+  fileId: string;
+  fileName: string;
+}) {
+  const now = FieldValue.serverTimestamp();
+  const category = PRODUCT_CATEGORY_BY_TYPE[productType] || "digital-download";
+  const isEbook = category === "ebook";
+
+  await db.collection("users").doc(creatorId).set(
+    {
+      email: `${creatorId}@whatsapp.pasiveco.local`,
+      displayName: creatorHandle,
+      emailVerified: false,
+      isActive: true,
+      role: "user",
+      username: creatorHandle,
+      slug: creatorHandle,
+      phoneNumber: from,
+      source: "whatsapp_onboarding",
+      links: [],
+      socialLinks: [],
+      createdAt: now,
+      updatedAt: now,
+    },
+    { merge: true }
+  );
+
+  const productRef = db.collection("products").doc();
+  await productRef.set({
+    userId: creatorId,
+    name: productName,
+    description: `${productType} created from WhatsApp onboarding.`,
+    price: productPrice,
+    currency: "NGN",
+    category,
+    images: [],
+    thumbnail: "",
+    status: "active",
+    tags: [isEbook ? "Ebooks" : "Digital Download", "WhatsApp"],
+    details: {
+      fileName,
+      fileUrl: "",
+      whatsappMediaId: fileId,
+      deliveryMode: isEbook ? undefined : "silent_email",
+      ebookFormat: isEbook ? "PDF" : undefined,
+      enableReader: isEbook ? false : undefined,
+    },
+    inventory: {
+      quantity: 0,
+      trackInventory: false,
+    },
+    shipping: {
+      weight: 0,
+      dimensions: {
+        length: 0,
+        width: 0,
+        height: 0,
+      },
+      shippingRequired: false,
+    },
+    seo: {
+      title: productName,
+      description: `${productType} by ${creatorHandle}`,
+      keywords: [isEbook ? "Ebooks" : "Digital Download", "WhatsApp", "digital product"],
+    },
+    slug: productSlug,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return productRef;
 }
