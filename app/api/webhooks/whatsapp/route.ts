@@ -130,17 +130,20 @@ export async function POST(req: NextRequest) {
 
     const reply = await handleOnboardingMessage(from, message);
 
-    await sendWhatsAppMessage(from, reply);
+    const sendResult = await sendWhatsAppMessage(from, reply);
     await recordWhatsAppMessage(from, {
       direction: "outbound",
       content: reply,
       type: "text",
       author: "bot",
+      sendStatus: sendResult.success ? "sent" : "failed",
+      sendError: sendResult.success ? undefined : sendResult.error,
     });
 
     return NextResponse.json({ status: "success" });
   } catch (error) {
     console.error("WhatsApp Webhook Error:", error);
+    await recordWhatsAppWebhookError(error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
@@ -155,6 +158,8 @@ async function recordWhatsAppMessage(
     mediaId?: string;
     fileName?: string;
     raw?: any;
+    sendStatus?: "sent" | "failed";
+    sendError?: any;
   }
 ) {
   const sessionRef = db.collection(SESSION_COLLECTION).doc(waId);
@@ -173,9 +178,27 @@ async function recordWhatsAppMessage(
   );
 
   await sessionRef.collection("messages").add({
-    ...message,
+    ...stripUndefined(message),
     createdAt: now,
   });
+}
+
+function stripUndefined<T extends Record<string, any>>(value: T) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)
+  );
+}
+
+async function recordWhatsAppWebhookError(error: unknown) {
+  try {
+    await db.collection("whatsappWebhookErrors").add({
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : null,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (writeError) {
+    console.error("Failed to record WhatsApp webhook error:", writeError);
+  }
 }
 
 async function handleOnboardingMessage(from: string, message: any) {
