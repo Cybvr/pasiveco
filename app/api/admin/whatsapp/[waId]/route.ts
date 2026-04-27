@@ -52,6 +52,9 @@ export async function GET(_req: NextRequest, context: RouteContext) {
         productName: session?.productName || null,
         productPrice: session?.productPrice || null,
         salesLink: session?.salesLink || null,
+        source: session?.source || null,
+        supportSessionId: session?.supportSessionId || null,
+        customerName: session?.customerName || null,
       },
       messages,
     });
@@ -75,12 +78,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Reply text is required" }, { status: 400 });
     }
 
+    const sessionRef = db.collection(SESSION_COLLECTION).doc(to);
+    const sessionSnap = await sessionRef.get();
+    const session = sessionSnap.exists ? (sessionSnap.data() as any) : {};
+    const supportSessionId = typeof session?.supportSessionId === "string" ? session.supportSessionId : null;
+
     const result = await sendWhatsAppMessage(to, text);
-    if (!result.success) {
+    if (!result.success && !supportSessionId) {
       return NextResponse.json({ error: "Failed to send WhatsApp reply", details: result.error }, { status: 502 });
     }
 
-    const sessionRef = db.collection(SESSION_COLLECTION).doc(to);
     const now = FieldValue.serverTimestamp();
 
     await sessionRef.set(
@@ -90,6 +97,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
         lastMessageDirection: "outbound",
         lastMessageAt: now,
         unread: false,
+        lastSendStatus: result.success ? "sent" : "failed",
+        lastSendError: result.success ? null : result.error,
         updatedAt: now,
       },
       { merge: true }
@@ -100,10 +109,40 @@ export async function POST(req: NextRequest, context: RouteContext) {
       content: text,
       type: "text",
       author: "admin",
+      sendStatus: result.success ? "sent" : "failed",
+      sendError: result.success ? null : result.error,
       createdAt: now,
     });
 
-    return NextResponse.json({ success: true, messageId: messageRef.id });
+    if (supportSessionId) {
+      const supportRef = db.collection("supportSessions").doc(supportSessionId);
+      await supportRef.set(
+        {
+          status: "agent_replied",
+          lastResponse: text,
+          updatedAt: now,
+          lastMessage: text,
+        },
+        { merge: true }
+      );
+      await supportRef.collection("messages").add({
+        role: "assistant",
+        content: text,
+        createdAt: now,
+        author: "admin",
+        source: "whatsapp_admin",
+        waId: to,
+        whatsappSendStatus: result.success ? "sent" : "failed",
+        whatsappSendError: result.success ? null : result.error,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      messageId: messageRef.id,
+      whatsappSent: result.success,
+      whatsappError: result.success ? null : result.error,
+    });
   } catch (error: any) {
     console.error("WhatsApp reply error:", error);
     return NextResponse.json(

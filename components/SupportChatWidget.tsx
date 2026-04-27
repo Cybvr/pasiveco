@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Check, MessageCircle, X, Send, ChevronRight, Search, HelpCircle, Home, ArrowLeft, Plus } from "lucide-react"
+import { Check, MessageCircle, X, Send, ChevronRight, Search, HelpCircle, Home, ArrowLeft } from "lucide-react"
 import { getHelpDocs, type HelpDoc } from "@/lib/help-docs"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/context/AuthContext"
+import { PhoneInput } from "./PhoneInput"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ type ChatMessage = {
   quickReplies?: Array<{ label: string; message: string }>
 }
 
-type UserInfo = { name: string; email: string }
+type UserInfo = { name: string; email: string; phone: string }
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -52,6 +53,10 @@ function genTicket() {
   return `PSV-${Math.floor(10000 + Math.random() * 90000)}`
 }
 
+function isWhatsAppCtaHref(href?: string) {
+  return Boolean(href && /(wa\.me|whatsapp)/i.test(href))
+}
+
 function isWithinSupportHours() {
   const lagosTime = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Africa/Lagos",
@@ -73,6 +78,7 @@ function buildNewChatSeedMessages(docs: HelpDoc[]) {
     { label: "Analytics", message: "Where do I find analytics and what should I track?" },
     { label: "Payments", message: "How do payments work for buyers (Stripe/Flutterwave)?" },
     { label: "Affiliates", message: "How does the affiliate network work?" },
+    { label: "Talk to an agent", message: "I'd like to talk to an agent" },
   ].map((item) => {
     if (item.label === "Payouts") return { ...item, label: getTitle("payment-payout-integration", item.label) }
     if (item.label === "Add products") return { ...item, label: getTitle("products-and-sales", item.label) }
@@ -92,21 +98,13 @@ function buildNewChatSeedMessages(docs: HelpDoc[]) {
     })
   }
 
-  seedMessages.push(
-    {
-      id: makeId(),
-      role: "assistant" as const,
-      content: "We are currently experiencing a high volume of requests, which may delay our response. Rest assured, we'll get back to you as soon as possible.",
-      ts: now + (seedMessages.length ? 1 : 0),
-    },
-    {
-      id: makeId(),
-      role: "assistant" as const,
-      content: "For faster assistance, please select the option that best matches your inquiry. Thank you!",
-      ts: now + (seedMessages.length ? 2 : 1),
-      quickReplies,
-    }
-  )
+  seedMessages.push({
+    id: makeId(),
+    role: "assistant" as const,
+    content: "Hi 👋 What can we help you with today?",
+    ts: now + (seedMessages.length ? 1 : 0),
+    quickReplies,
+  })
 
   return seedMessages
 }
@@ -118,19 +116,6 @@ function SupportAvatar() {
     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-foreground/15 ring-2 ring-primary-foreground/20">
       <img src="/images/ronke.jpg" alt="Ronke" className="h-full w-full rounded-full object-cover" />
     </div>
-  )
-}
-
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M12.04 2C6.52 2 2.05 6.46 2.05 11.96c0 1.76.46 3.49 1.33 5.01L2 22l5.19-1.36a9.94 9.94 0 0 0 4.85 1.24h.01c5.51 0 9.98-4.46 9.98-9.96A9.95 9.95 0 0 0 12.04 2Zm0 18.23h-.01a8.26 8.26 0 0 1-4.21-1.15l-.3-.18-3.08.81.82-3-.2-.31a8.27 8.27 0 0 1-1.27-4.42 8.3 8.3 0 0 1 8.31-8.29 8.3 8.3 0 0 1 8.29 8.3 8.3 8.3 0 0 1-8.35 8.24Zm4.55-6.18c-.25-.12-1.5-.74-1.73-.83-.23-.08-.4-.12-.57.12-.17.25-.65.83-.8 1-.15.17-.3.19-.56.07-.25-.12-1.07-.39-2.04-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.1-.51.11-.11.25-.3.37-.45.12-.15.16-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.76-1.85-.2-.48-.4-.41-.56-.42h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.11s.91 2.46 1.03 2.63c.12.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.43.54.6.19 1.14.16 1.57.1.48-.07 1.5-.61 1.71-1.2.21-.59.21-1.1.15-1.2-.06-.1-.23-.15-.48-.27Z" />
-    </svg>
   )
 }
 
@@ -146,11 +131,13 @@ export default function SupportChatWidget() {
   const [activeTab, setActiveTab] = useState<Tab>("home")
   const [messagesView, setMessagesView] = useState<MessagesView>("list")
 
-  const [userInfo, setUserInfo] = useState<UserInfo>({ name: "", email: "" })
+  const [userInfo, setUserInfo] = useState<UserInfo>({ name: "", email: "", phone: "" })
   const [nameInput, setNameInput] = useState("")
   const [emailInput, setEmailInput] = useState("")
+  const [phoneInput, setPhoneInput] = useState("")
   const [nameError, setNameError] = useState(false)
   const [emailError, setEmailError] = useState(false)
+  const [phoneError, setPhoneError] = useState(false)
 
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
@@ -159,10 +146,12 @@ export default function SupportChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null)
+  const [showInfoForm, setShowInfoForm] = useState(false)
 
   const endRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const phoneRef = useRef<HTMLInputElement>(null)
   const didLoadRemoteRef = useRef(false)
 
   // ── Persistence & hydration ───────────────────────────────────────────────
@@ -195,17 +184,50 @@ export default function SupportChatWidget() {
       })
   }, [hydrated, sessionId, user?.uid])
 
-  // Auto-fill from auth
   useEffect(() => {
-    if (user && !userInfo.name && !userInfo.email) {
-      const name = user.displayName || ""
-      const email = user.email || ""
-      if (name || email) {
-        const info = { name, email }
-        setUserInfo(info)
+    if (!open || activeTab !== "messages" || messagesView !== "chat" || !sessionId) return
+
+    let stopped = false
+    const loadSessionMessages = async () => {
+      try {
+        const res = await fetch(`/api/support/chat?sessionId=${encodeURIComponent(sessionId)}`, { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        if (stopped) return
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages)
+        }
+        if (data.ticketId) {
+          setTicketId(data.ticketId)
+        }
+      } catch {
+        // Polling is best-effort; the user can keep chatting if it misses once.
       }
     }
-  }, [user, userInfo.name, userInfo.email])
+
+    loadSessionMessages()
+    const interval = window.setInterval(loadSessionMessages, 5000)
+    return () => {
+      stopped = true
+      window.clearInterval(interval)
+    }
+  }, [open, activeTab, messagesView, sessionId])
+
+  // Auto-fill from auth
+  useEffect(() => {
+    if (user && !userInfo.name && !userInfo.email && !userInfo.phone) {
+      const name = user.displayName || ""
+      const email = user.email || ""
+      const phone = user.phoneNumber || ""
+      if (name || email || phone) {
+        const info = { name, email, phone }
+        setUserInfo(info)
+        setNameInput(name)
+        setEmailInput(email)
+        setPhoneInput(phone)
+      }
+    }
+  }, [user, userInfo.name, userInfo.email, userInfo.phone])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -217,11 +239,13 @@ export default function SupportChatWidget() {
   // Focus input when chat opens
   useEffect(() => {
     if (messagesView === "chat") {
-      const needsInfo = !userInfo.name || !userInfo.email
-      if (needsInfo) setTimeout(() => nameRef.current?.focus(), 150)
+      const needsName = !userInfo.name
+      const needsPhone = !userInfo.phone
+      if (needsName && !user?.displayName) setTimeout(() => nameRef.current?.focus(), 150)
+      else if (needsPhone) setTimeout(() => phoneRef.current?.focus(), 150)
       else setTimeout(() => textareaRef.current?.focus(), 150)
     }
-  }, [messagesView, userInfo.name, userInfo.email])
+  }, [messagesView, userInfo.name, userInfo.phone, user?.displayName])
 
   if (!hydrated) return null
 
@@ -230,7 +254,7 @@ export default function SupportChatWidget() {
     ? "[--support-offset:calc(env(safe-area-inset-bottom,0px)+5.5rem)] sm:[--support-offset:calc(env(safe-area-inset-bottom,0px)+1.5rem)]"
     : "[--support-offset:calc(env(safe-area-inset-bottom,0px)+0.25rem)]"
 
-  const needsInfo = !userInfo.name || !userInfo.email
+  const needsInfo = !userInfo.name || !userInfo.phone
   const firstName = userInfo.name?.split(" ")[0] || user?.displayName?.split(" ")[0] || ""
 
   // ── Message helpers ───────────────────────────────────────────────────────
@@ -244,40 +268,74 @@ export default function SupportChatWidget() {
   async function submitInfo(e: React.FormEvent) {
     e.preventDefault()
     const nErr = !nameInput.trim()
-    const eErr = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)
+    const eErr = Boolean(emailInput.trim()) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)
+    const pErr = phoneInput.replace(/\D/g, "").length < 7
     setNameError(nErr)
     setEmailError(eErr)
-    if (nErr || eErr) return
-    const info = { name: nameInput.trim(), email: emailInput.trim() }
+    setPhoneError(pErr)
+    if (nErr || eErr || pErr) return
+    const info = { name: nameInput.trim(), email: emailInput.trim(), phone: phoneInput.trim() }
     setUserInfo(info)
-    if (!sessionId) {
-      try {
-        const res = await fetch("/api/support/lead", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ticketId,
-            userInfo: info,
-            userId: user?.uid || null,
-            path: pathname,
-          }),
-        })
-        if (res.ok) {
-          const data = await res.json()
-          if (data?.sessionId) setSessionId(data.sessionId)
-          if (data?.ticketId) setTicketId(data.ticketId)
-        }
-      } catch {
-        // Lead capture failed; continue UX without blocking
-      }
-    }
-    addMsg({ role: "assistant", content: `Hi ${info.name.split(" ")[0]} 👋 What can we help you with today?` })
+    setShowInfoForm(false)
+    await requestAgentHandoff(info)
     setTimeout(() => textareaRef.current?.focus(), 50)
   }
 
-  async function send(text: string) {
+  async function requestAgentHandoff(info: UserInfo = userInfo) {
+    setTyping(true)
+    try {
+      const res = await fetch("/api/support/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionId || null,
+          ticketId,
+          message: "I'd like to talk to an agent",
+          userInfo: info,
+          userId: user?.uid || null,
+          path: pathname,
+          history: messages
+            .filter((m) => m.role === "user" || m.role === "assistant")
+            .map((m) => ({ role: m.role, content: m.content })),
+        }),
+      })
+      if (!res.ok) throw new Error("Support handoff failed")
+      const data = await res.json()
+      if (data?.sessionId && data.sessionId !== sessionId) setSessionId(data.sessionId)
+      if (data?.ticketId && data.ticketId !== ticketId) setTicketId(data.ticketId)
+      const replyText = typeof data?.reply === "string" ? data.reply : ""
+      addMsg({
+        role: "assistant",
+        content: replyText || "You're in the right place. I've flagged this conversation for our support team, and they'll reply here in Messages.",
+      })
+      addMsg({ role: "system", content: `Ticket ${data?.ticketId || ticketId} · Agent request sent` })
+    } catch {
+      addMsg({ role: "assistant", content: "I couldn't flag this for an agent just now. Please send your message again here and we'll keep it in this chat." })
+    } finally {
+      setTyping(false)
+    }
+  }
+
+  async function send(text: string, skipInfoCheck = false) {
     const t = text.trim()
-    if (!t || needsInfo) return
+    if (!t) return
+    
+    // If they want an agent and we don't have their info, prompt for it naturally
+    if (!skipInfoCheck && (t.toLowerCase().includes("agent") || t.toLowerCase().includes("human")) && needsInfo) {
+      addMsg({ role: "user", content: t })
+      setInput("")
+      setTyping(true)
+      setTimeout(() => {
+        setTyping(false)
+        addMsg({ 
+          role: "assistant", 
+          content: "I'll connect you with a member of our team. First, I just need a few details to help them reach you if we get disconnected." 
+        })
+        setShowInfoForm(true)
+      }, 600)
+      return
+    }
+
     const userMsg = addMsg({ role: "user", content: t })
     setInput("")
     setTyping(true)
@@ -306,9 +364,9 @@ export default function SupportChatWidget() {
       if (data?.ticketId && data.ticketId !== ticketId) setTicketId(data.ticketId)
       const replyText = typeof data?.reply === "string" ? data.reply : ""
       if (replyText) addMsg({ role: "assistant", content: replyText })
-      if (data?.ticketId || userInfo.email) {
+      if (replyText && (data?.ticketId || userInfo.phone || userInfo.email)) {
         setTimeout(() => {
-          addMsg({ role: "system", content: `Ticket ${data?.ticketId || ticketId} · reply to ${userInfo.email}` })
+          addMsg({ role: "system", content: `Ticket ${data?.ticketId || ticketId} · Messages` })
         }, 300)
       }
     } catch {
@@ -348,6 +406,7 @@ export default function SupportChatWidget() {
     setSessionId("")
     setTicketId(freshTicket)
     setMessages(seedMessages)
+    setShowInfoForm(false)
   }
 
   function goToMessagesList() {
@@ -578,7 +637,7 @@ export default function SupportChatWidget() {
                   <div className="flex min-h-[10rem] flex-1 flex-col gap-3 overflow-y-auto bg-muted/20 px-4 py-4">
                     {messages.length === 0 && !needsInfo && (
                       <p className="py-6 text-center text-xs text-muted-foreground">
-                        Ask anything — we'll reply here or by email.
+                        Ask anything — we'll reply here in Messages.
                       </p>
                     )}
 
@@ -591,6 +650,7 @@ export default function SupportChatWidget() {
                           </div>
                         )
                       }
+                      const showCta = Boolean(msg.ctaHref && msg.ctaLabel && !isWhatsAppCtaHref(msg.ctaHref))
                       return (
                         <div
                           key={msg.id}
@@ -607,7 +667,7 @@ export default function SupportChatWidget() {
                               : "rounded-tr-sm bg-primary text-primary-foreground"
                           )}>
                             <p>{msg.content}</p>
-                            {msg.ctaHref && msg.ctaLabel && (
+                            {showCta && (
                               <Link
                                 href={msg.ctaHref}
                                 className="mt-2 block text-xs font-semibold underline underline-offset-2 opacity-80 hover:opacity-100"
@@ -654,39 +714,56 @@ export default function SupportChatWidget() {
                     <div ref={endRef} />
                   </div>
 
-                  {/* Pre-chat info form */}
-                  {needsInfo ? (
-                    <form onSubmit={submitInfo} className="flex-shrink-0 border-t border-border bg-background p-3 flex flex-col gap-2">
-                      <div className="flex gap-2">
-                        <input
-                          ref={nameRef}
-                          type="text"
-                          value={nameInput}
-                          onChange={(e) => { setNameInput(e.target.value); setNameError(false) }}
-                          placeholder="Name"
-                          className={cn(
-                            "flex-1 rounded-lg border bg-muted/40 px-3 py-2 text-[13px] outline-none transition-colors placeholder:text-muted-foreground focus:border-primary",
-                            nameError ? "border-destructive" : "border-input"
+                  {/* Input Area */}
+                  {showInfoForm && needsInfo ? (
+                    <div className="flex-shrink-0 border-t border-border bg-muted/20 p-3 animate-in slide-in-from-bottom-2 duration-300">
+                      <form onSubmit={submitInfo} className="space-y-3">
+                        <div className="space-y-2">
+                          {!user?.displayName && (
+                            <input
+                              ref={nameRef}
+                              type="text"
+                              value={nameInput}
+                              onChange={(e) => { setNameInput(e.target.value); setNameError(false) }}
+                              placeholder="Your Name"
+                              className={cn(
+                                "w-full rounded-xl border bg-background px-4 py-2.5 text-[13px] outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary focus:ring-4 focus:ring-primary/5",
+                                nameError ? "border-destructive/50" : "border-border/50"
+                              )}
+                            />
                           )}
-                        />
-                        <input
-                          type="email"
-                          value={emailInput}
-                          onChange={(e) => { setEmailInput(e.target.value); setEmailError(false) }}
-                          placeholder="Email"
-                          className={cn(
-                            "flex-1 rounded-lg border bg-muted/40 px-3 py-2 text-[13px] outline-none transition-colors placeholder:text-muted-foreground focus:border-primary",
-                            emailError ? "border-destructive" : "border-input"
+
+                          <PhoneInput
+                            ref={phoneRef}
+                            value={phoneInput}
+                            onChange={(val) => { setPhoneInput(val); setPhoneError(false) }}
+                            placeholder="Phone Number"
+                            error={phoneError}
+                            className="bg-background focus-within:ring-4 focus-within:ring-primary/5 border-border/50"
+                          />
+
+                          {!user?.email && (
+                            <input
+                              type="email"
+                              value={emailInput}
+                              onChange={(e) => { setEmailInput(e.target.value); setEmailError(false) }}
+                              placeholder="Email Address (Optional)"
+                              className={cn(
+                                "w-full rounded-xl border bg-background px-4 py-2.5 text-[13px] outline-none transition-all placeholder:text-muted-foreground/50 focus:border-primary focus:ring-4 focus:ring-primary/5",
+                                emailError ? "border-destructive/50" : "border-border/50"
+                              )}
+                            />
                           )}
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="w-full rounded-xl bg-primary py-2.5 text-[13px] font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                      >
-                        Start chatting
-                      </button>
-                    </form>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full rounded-xl bg-primary py-2.5 text-[13px] font-bold text-primary-foreground shadow-sm transition-all hover:opacity-95 active:scale-[0.98]"
+                        >
+                          Start Chatting
+                        </button>
+                      </form>
+                    </div>
                   ) : (
                     <form
                       onSubmit={(e) => { e.preventDefault(); send(input) }}
@@ -856,16 +933,6 @@ export default function SupportChatWidget() {
               <MessageCircle className="h-4 w-4" />
               <span className="text-[9px] font-semibold">Messages</span>
             </button>
-
-            <a
-              href="https://wa.me/2349053066692?text=Hi%20%F0%9F%91%8B"
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center gap-0.5 px-5 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              <span className="text-[9px] font-semibold">Whatsapp</span>
-            </a>
 
             <button
               type="button"

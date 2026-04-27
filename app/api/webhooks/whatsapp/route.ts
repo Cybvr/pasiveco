@@ -177,6 +177,39 @@ export async function POST(req: NextRequest) {
       raw: message,
     });
 
+    const supportBridgeSnap = await sessionDoc(from).get();
+    const supportBridge = supportBridgeSnap.exists ? (supportBridgeSnap.data() as any) : null;
+    if (supportBridge?.source === "support_widget" && supportBridge?.supportSessionId) {
+      await db
+        .collection("supportSessions")
+        .doc(supportBridge.supportSessionId)
+        .collection("messages")
+        .add({
+          role: "user",
+          content: getInboundPreview(message),
+          createdAt: FieldValue.serverTimestamp(),
+          source: "whatsapp_inbound",
+          waId: from,
+        });
+
+      await db
+        .collection("supportSessions")
+        .doc(supportBridge.supportSessionId)
+        .set(
+          {
+            status: "needs_handoff",
+            lastMessage: getInboundPreview(message),
+            updatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+
+      if (messageId) {
+        await markWhatsAppMessageProcessed(messageId, "completed");
+      }
+      return NextResponse.json({ status: "support_bridge" });
+    }
+
     const reply = await handleWhatsAppMessage(from, message);
     const sendResult = await sendWhatsAppMessage(from, reply);
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { GoogleGenerativeAI } from "@google/generative-ai"
+import OpenAI from "openai"
 import { FieldValue } from "firebase-admin/firestore"
 import { db } from "@/lib/firebase-admin"
 import { getHelpDocs } from "@/lib/help-docs"
@@ -54,13 +54,14 @@ export async function GET(req: NextRequest) {
     const messages = messagesSnap.docs
       .map((doc) => {
         const d = doc.data()
+        const ctaHref = typeof d.ctaHref === "string" ? d.ctaHref : ""
+        const showCta = Boolean(ctaHref && !isWhatsAppCtaHref(ctaHref))
         return {
           id: doc.id,
           role: d.role as "assistant" | "user" | "system",
           content: d.content as string,
           ts: d.createdAt?.toMillis?.() ?? Date.now(),
-          ...(d.ctaLabel ? { ctaLabel: d.ctaLabel } : {}),
-          ...(d.ctaHref ? { ctaHref: d.ctaHref } : {}),
+          ...(showCta && d.ctaLabel ? { ctaLabel: d.ctaLabel, ctaHref } : {}),
         }
       })
       .filter((m) => m.role === "user" || m.role === "assistant" || m.role === "system")
@@ -81,11 +82,15 @@ function genTicket() {
   return `PSV-${Math.floor(10000 + Math.random() * 90000)}`
 }
 
+function isWhatsAppCtaHref(href?: string) {
+  return Boolean(href && /(wa\.me|whatsapp)/i.test(href))
+}
+
 function sanitizeHistory(history: Array<{ role: string; content: string }>) {
   return history
     .filter((item) => item && typeof item.content === "string")
     .map((item) => ({
-      role: item.role === "assistant" ? "assistant" : "user",
+      role: item.role === "assistant" ? "assistant" as const : "user" as const,
       content: item.content.trim(),
     }))
     .filter((item) => item.content.length > 0)
@@ -115,6 +120,72 @@ function buildDocsContext() {
     .join("\n\n")
 }
 
+function isAgentHandoffMessage(message: string) {
+  const normalized = message.toLowerCase()
+  return /\b(agent|human|person|support team|customer support|representative)\b/.test(normalized)
+}
+
+function normalizePhoneForWhatsApp(phone: string) {
+  return phone.replace(/\D/g, "")
+}
+
+async function bridgeSupportSessionToWhatsAppInbox({
+  supportSessionId,
+  ticketId,
+  userInfo,
+  userId,
+  path,
+  message,
+}: {
+  supportSessionId: string
+  ticketId: string
+  userInfo: { name: string; email: string; phone: string }
+  userId: string | null
+  path: string | null
+  message: string
+}) {
+  const waId = normalizePhoneForWhatsApp(userInfo.phone)
+  if (!waId) return null
+
+  const now = FieldValue.serverTimestamp()
+  const sessionRef = db.collection("whatsappSessions").doc(waId)
+
+  await sessionRef.set(
+    {
+      waId,
+      flow: "support",
+      step: "support_handoff",
+      source: "support_widget",
+      supportSessionId,
+      supportTicketId: ticketId,
+      supportUserId: userId,
+      supportPath: path,
+      customerName: userInfo.name || null,
+      customerEmail: userInfo.email || null,
+      customerPhone: userInfo.phone || null,
+      productName: "Support widget",
+      lastMessage: message,
+      lastMessageDirection: "inbound",
+      lastMessageAt: now,
+      unread: true,
+      updatedAt: now,
+    },
+    { merge: true }
+  )
+
+  await sessionRef.collection("messages").add({
+    direction: "inbound",
+    content: message,
+    type: "text",
+    author: "widget",
+    source: "support_widget",
+    supportSessionId,
+    createdAt: now,
+  })
+
+  return waId
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -122,11 +193,6 @@ export async function POST(req: NextRequest) {
 
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
-    }
-
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500 })
     }
 
     const ticketId = typeof body?.ticketId === "string" && body.ticketId.trim()
@@ -140,6 +206,7 @@ export async function POST(req: NextRequest) {
     const userInfo = {
       name: typeof body?.userInfo?.name === "string" ? body.userInfo.name.trim() : "",
       email: typeof body?.userInfo?.email === "string" ? body.userInfo.email.trim() : "",
+      phone: typeof body?.userInfo?.phone === "string" ? body.userInfo.phone.trim() : "",
     }
 
     const userId = typeof body?.userId === "string" ? body.userId : null
@@ -159,6 +226,7 @@ export async function POST(req: NextRequest) {
         userId,
         userName: userInfo.name || null,
         userEmail: userInfo.email || null,
+        userPhone: userInfo.phone || null,
         path,
         lastMessage: message,
       })
@@ -169,6 +237,7 @@ export async function POST(req: NextRequest) {
           userId,
           userName: userInfo.name || null,
           userEmail: userInfo.email || null,
+          userPhone: userInfo.phone || null,
           path,
           lastMessage: message,
         },
@@ -184,39 +253,118 @@ export async function POST(req: NextRequest) {
       userId,
       userName: userInfo.name || null,
       userEmail: userInfo.email || null,
+      userPhone: userInfo.phone || null,
     })
+
+    const currentSessionSnap = await sessionRef.get()
+    const currentSession = currentSessionSnap.exists ? (currentSessionSnap.data() as any) : {}
+    const alreadyHandedOff = Boolean(
+      currentSession?.supportWaId ||
+      currentSession?.status === "needs_handoff" ||
+      currentSession?.status === "agent_replied"
+    )
+
+    if (alreadyHandedOff && !isAgentHandoffMessage(message)) {
+      const bridgedWaId = await bridgeSupportSessionToWhatsAppInbox({
+        supportSessionId: sessionRef.id,
+        ticketId,
+        userInfo: {
+          ...userInfo,
+          phone: userInfo.phone || currentSession?.userPhone || currentSession?.supportWaId || "",
+        },
+        userId,
+        path,
+        message,
+      })
+
+      await sessionRef.set(
+        {
+          updatedAt: FieldValue.serverTimestamp(),
+          status: "needs_handoff",
+          supportWaId: bridgedWaId || currentSession?.supportWaId || null,
+        },
+        { merge: true }
+      )
+
+      return NextResponse.json({
+        sessionId: sessionRef.id,
+        ticketId,
+        reply: "",
+        shouldHandoff: true,
+      })
+    }
+
+    if (isAgentHandoffMessage(message)) {
+      const bridgedWaId = await bridgeSupportSessionToWhatsAppInbox({
+        supportSessionId: sessionRef.id,
+        ticketId,
+        userInfo,
+        userId,
+        path,
+        message,
+      })
+
+      const reply = userInfo.name || userInfo.phone
+        ? "You're in the right place. I've flagged this conversation for our support team, and they'll reply here in Messages."
+        : "You're in the right place. Send your name and phone number here, and our support team will reply in Messages."
+
+      const assistantRef = sessionRef.collection("messages").doc()
+      await assistantRef.set({
+        role: "assistant",
+        content: reply,
+        createdAt: FieldValue.serverTimestamp(),
+        shouldHandoff: true,
+      })
+
+      await sessionRef.set(
+        {
+          updatedAt: FieldValue.serverTimestamp(),
+          lastResponse: reply,
+          status: "needs_handoff",
+          handoffRequestedAt: FieldValue.serverTimestamp(),
+          supportWaId: bridgedWaId,
+        },
+        { merge: true }
+      )
+
+      return NextResponse.json({
+        sessionId: sessionRef.id,
+        ticketId,
+        reply,
+        shouldHandoff: true,
+      })
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: "OPENAI_API_KEY is not configured" }, { status: 500 })
+    }
+    const openai = new OpenAI({ apiKey })
 
     const history = sanitizeHistory(Array.isArray(body?.history) ? body.history : [])
-
     const docsContext = buildDocsContext()
 
-    const systemPrompt = `You are Pasive support. Be concise (<= 120 words), friendly, and practical.\n\nUse the Help Docs to answer questions accurately. If unsure, ask one clarifying question. If the user asks for a human or an agent, set shouldHandoff to true.\n\nReturn ONLY valid JSON in this format:\n{"reply":"...","shouldHandoff":false}`
+    const systemPrompt = `You are Pasive support. Be concise (<= 120 words), friendly, and practical.
+Use the Help Docs to answer questions accurately. If unsure, ask one clarifying question. 
 
-    const transcript = history
-      .map((item) => `${item.role === "assistant" ? "Assistant" : "User"}: ${item.content}`)
-      .join("\n")
+IMPORTANT: If the user asks for a human, an agent, or if you cannot resolve their issue, keep them in this support chat and say our support team will reply here in Messages. Do not mention WhatsApp or external chat links.
+Return ONLY valid JSON in this format:
+{"reply":"...","shouldHandoff":false}
 
-    const prompt = [
-      systemPrompt,
-      `User name: ${userInfo.name || "Unknown"}`,
-      `User email: ${userInfo.email || "Unknown"}`,
-      path ? `Page: ${path}` : null,
-      "\nHelp Docs:\n" + docsContext,
-      transcript ? "\nConversation so far:\n" + transcript : null,
-      `\nUser: ${message}`,
-    ]
-      .filter(Boolean)
-      .join("\n")
+If shouldHandoff is true, your reply should mention that the conversation has been flagged for the support team to reply here in Messages.`
 
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      generationConfig: { responseMimeType: "application/json" },
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history.map(m => ({ role: m.role === "assistant" ? "assistant" as const : "user" as const, content: m.content })),
+        { role: "user", content: `User details: ${JSON.stringify(userInfo)}. Current page: ${path}. Help Docs: ${docsContext}\n\nUser Message: ${message}` }
+      ],
+      response_format: { type: "json_object" }
     })
 
-    const result = await model.generateContent(prompt)
-    const responseText = result.response?.text?.() || ""
-
+    const responseText = completion.choices[0].message.content || ""
+    
     let reply = ""
     let shouldHandoff = false
 
@@ -237,7 +385,7 @@ export async function POST(req: NextRequest) {
       role: "assistant",
       content: reply,
       createdAt: FieldValue.serverTimestamp(),
-      model: "gemini-2.0-flash",
+      model: "gpt-4o-mini",
       shouldHandoff,
     })
 

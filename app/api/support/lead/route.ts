@@ -11,10 +11,11 @@ export async function POST(req: NextRequest) {
     const userInfo = {
       name: typeof body?.userInfo?.name === "string" ? body.userInfo.name.trim() : "",
       email: typeof body?.userInfo?.email === "string" ? body.userInfo.email.trim() : "",
+      phone: typeof body?.userInfo?.phone === "string" ? body.userInfo.phone.trim() : "",
     }
 
-    if (!userInfo.name || !userInfo.email) {
-      return NextResponse.json({ error: "Name and email are required" }, { status: 400 })
+    if (!userInfo.name || !userInfo.phone) {
+      return NextResponse.json({ error: "Name and phone are required" }, { status: 400 })
     }
 
     const ticketId = typeof body?.ticketId === "string" && body.ticketId.trim()
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       userId,
       userName: userInfo.name || null,
       userEmail: userInfo.email || null,
+      userPhone: userInfo.phone || null,
       path,
       lastMessage: null,
     })

@@ -19,6 +19,7 @@ interface User extends FirebaseUser {
   pin?: string;
   username: string;
   bio: string;
+  phoneNumber: string | null;
 }
 
 interface AuthContextType {
@@ -91,6 +92,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             pin: userData?.pin || '',
             username: userData?.username || '',
             bio: userData?.bio || '',
+            phoneNumber: userData?.phoneNumber || firebaseUser.phoneNumber || null,
           } as User);
         } catch (err) {
           console.error('Error loading user data:', err);
@@ -102,6 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             emailBillingPeriod: null,
             isAdmin: false,
             isPinEnabled: false,
+            phoneNumber: firebaseUser.phoneNumber || null,
           } as User);
         }
       } else {

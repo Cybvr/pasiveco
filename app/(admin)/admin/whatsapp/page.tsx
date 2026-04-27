@@ -14,6 +14,9 @@ type Conversation = {
   productName: string | null;
   productPrice: number | null;
   salesLink: string | null;
+  source: string | null;
+  supportSessionId: string | null;
+  customerName: string | null;
   lastMessage: string;
   lastMessageDirection: "inbound" | "outbound" | null;
   lastMessageAt: string | null;
@@ -25,13 +28,13 @@ type ThreadMessage = {
   direction: "inbound" | "outbound";
   content: string;
   type: string;
-  author: "bot" | "admin" | null;
+  author: "bot" | "admin" | "widget" | null;
   fileName: string | null;
   createdAt: string | null;
 };
 
 type ThreadResponse = {
-  conversation: Pick<Conversation, "waId" | "step" | "productType" | "productName" | "productPrice" | "salesLink">;
+  conversation: Pick<Conversation, "waId" | "step" | "productType" | "productName" | "productPrice" | "salesLink" | "source" | "supportSessionId" | "customerName">;
   messages: ThreadMessage[];
 };
 
@@ -166,13 +169,16 @@ export default function AdminWhatsAppPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{conversation.waId}</p>
+                  <p className="truncate text-sm font-medium">{conversation.customerName || conversation.waId}</p>
                   {conversation.unread ? <span className="h-2 w-2 rounded-full bg-primary" /> : null}
                 </div>
+                {conversation.customerName ? (
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{conversation.waId}</p>
+                ) : null}
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{conversation.lastMessage || "No messages yet"}</p>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <Badge variant="outline" className="capitalize">
-                    {formatStep(conversation.step)}
+                    {conversation.source === "support_widget" ? "Support" : formatStep(conversation.step)}
                   </Badge>
                   <span className="shrink-0 text-[11px] text-muted-foreground">{formatTime(conversation.lastMessageAt)}</span>
                 </div>
@@ -201,9 +207,11 @@ export default function AdminWhatsAppPage() {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{activeConversation?.waId || "Select a conversation"}</p>
+              <p className="truncate text-sm font-semibold">{thread?.conversation.customerName || activeConversation?.customerName || activeConversation?.waId || "Select a conversation"}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
+                {thread?.conversation.source === "support_widget" || activeConversation?.source === "support_widget"
+                  ? `Support via Messages · ${activeConversation?.waId || thread?.conversation.waId || ""}`
+                  : thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
               </p>
             </div>
           </div>
