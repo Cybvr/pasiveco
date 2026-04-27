@@ -1,16 +1,39 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
-import { WhatsAppSession, JOB_ROLE_ALIASES, JOB_ROLES, jobRoleMessage } from "../types";
-import { sessionDoc, resetWhatsAppJobSession } from "../session";
+import { WhatsAppSession, GREETINGS, welcomeMessage } from "../types";
+import { sessionDoc, resetWhatsAppJobSession, resetWhatsAppSession } from "../session";
 
 export async function handleWhatsAppJobApplication(
   from: string,
   session: WhatsAppSession,
   textBody: string,
-  normalizedText: string
+  _normalizedText: string
 ) {
   const sessionRef = sessionDoc(from);
   const step = session.step || "job_full_name";
+
+  if (GREETINGS.includes(_normalizedText)) {
+    if (step === "complete") {
+      await resetWhatsAppJobSession(from);
+      return "Hi again! Let's get a new application started for you.\n\nWhat's your full name?";
+    }
+    
+    if (step === "job_full_name") {
+      return "Let's get your application started. What's your full name?";
+    }
+
+    // For other steps, we might want to remind them where they are
+    const stepMessages: Record<string, string> = {
+      job_portfolio: "Welcome back. Please send your portfolio link or links to continue your application.",
+      job_age: "Welcome back. Please send your age.",
+      job_location: "Welcome back. Please send your location.",
+      job_role: "Welcome back. Which role are you applying for?",
+    };
+    
+    if (stepMessages[step]) {
+      return stepMessages[step];
+    }
+  }
 
   if (step === "job_full_name") {
     if (!textBody || textBody.length < 2) {
@@ -20,130 +43,44 @@ export async function handleWhatsAppJobApplication(
     await sessionRef.set(
       {
         flow: "jobs",
-        step: "job_age",
+        step: "job_portfolio",
         candidateFullName: textBody,
         candidatePhone: from,
+        candidateAge: FieldValue.delete(),
+        candidateLocation: FieldValue.delete(),
+        jobRole: FieldValue.delete(),
+        jobId: FieldValue.delete(),
+        screeningQuestionIndex: FieldValue.delete(),
+        screeningAnswers: FieldValue.delete(),
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
-    return "Thanks. How old are you?";
+    return "Thanks. Send your portfolio link or links.";
   }
 
-  if (step === "job_age") {
-    const age = Number(textBody.replace(/[^\d]/g, ""));
-    if (!Number.isFinite(age) || age < 16 || age > 80) {
-      return "Please send a valid age as a number. For example: 24";
-    }
-
-    await sessionRef.set(
-      {
-        step: "job_location",
-        candidateAge: age,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-    return "Where are you based? City and state is fine. For example: Lekki, Lagos";
-  }
-
-  if (step === "job_location") {
-    if (!textBody || textBody.length < 2) {
-      return "Please send your location. For example: Abuja or Yaba, Lagos";
-    }
-
-    await sessionRef.set(
-      {
-        step: "job_role",
-        candidateLocation: textBody,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-    return jobRoleMessage;
-  }
-
-  if (step === "job_role") {
-    const roleKey = JOB_ROLE_ALIASES[normalizedText];
-    const role = roleKey ? JOB_ROLES[roleKey] : null;
-
-    if (!role) {
-      return `${jobRoleMessage}\n\nPlease reply with 1, 2, or 3.`;
-    }
-
-    await sessionRef.set(
-      {
-        step: "job_screening",
-        jobRole: role.title,
-        jobId: role.id,
-        screeningQuestionIndex: 0,
-        screeningAnswers: [],
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-    return `Great. ${role.questions[0]}`;
-  }
-
-  if (step === "job_screening") {
-    const role = Object.values(JOB_ROLES).find(
-      (item) => item.id === session.jobId || item.title === session.jobRole
-    );
-    if (!role) {
-      await sessionRef.set(
-        { step: "job_role", updatedAt: FieldValue.serverTimestamp() },
-        { merge: true }
-      );
-      return jobRoleMessage;
-    }
-
-    const questionIndex = session.screeningQuestionIndex ?? 0;
-    const currentQuestion = role.questions[questionIndex];
-
-    if (!textBody || textBody.length < 2) {
-      return "Please send a short answer so we can continue your application.";
-    }
-
-    const answers = [
-      ...(Array.isArray(session.screeningAnswers) ? session.screeningAnswers : []),
-      {
-        question: currentQuestion,
-        answer: textBody,
-      },
-    ];
-
-    const nextQuestionIndex = questionIndex + 1;
-    if (nextQuestionIndex < role.questions.length) {
-      await sessionRef.set(
-        {
-          screeningQuestionIndex: nextQuestionIndex,
-          screeningAnswers: answers,
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
-      return role.questions[nextQuestionIndex];
+  if (["job_portfolio", "job_age", "job_location", "job_role", "job_screening"].includes(step)) {
+    if (!textBody || textBody.length < 3) {
+      return "Please send your portfolio link or links.";
     }
 
     const applicationId = await createWhatsAppJobApplication(from, {
       ...session,
-      jobId: role.id,
-      jobRole: role.title,
-      screeningAnswers: answers,
+      candidatePortfolioLinks: textBody,
     });
 
     await sessionRef.set(
       {
         step: "complete",
         flow: "jobs",
+        candidatePortfolioLinks: textBody,
         jobApplicationId: applicationId,
-        screeningAnswers: answers,
         updatedAt: FieldValue.serverTimestamp(),
       },
       { merge: true }
     );
 
-    return `Done. Your application for ${role.title} has been received.\n\nOur team will review it and contact you here on WhatsApp if you're shortlisted.`;
+    return "Done. Your application has been received.\n\nOur team will review it and contact you here on WhatsApp if you're shortlisted.";
   }
 
   if (step === "complete") {
@@ -155,10 +92,8 @@ export async function handleWhatsAppJobApplication(
 }
 
 export async function createWhatsAppJobApplication(from: string, session: WhatsAppSession) {
-  const screeningAnswers = Array.isArray(session.screeningAnswers) ? session.screeningAnswers : [];
-  const message = screeningAnswers
-    .map((item, index) => `${index + 1}. ${item.question}\n${item.answer}`)
-    .join("\n\n");
+  const portfolioLinks = session.candidatePortfolioLinks || "";
+  const message = portfolioLinks ? `Portfolio links:\n${portfolioLinks}` : "";
 
   const applicationRef = await db.collection("job_applications").add({
     jobId: session.jobId || "whatsapp-job-application",
@@ -166,13 +101,13 @@ export async function createWhatsAppJobApplication(from: string, session: WhatsA
     fullName: session.candidateFullName || "WhatsApp Candidate",
     email: "",
     phoneNumber: session.candidatePhone || from,
-    age: session.candidateAge || null,
-    location: session.candidateLocation || "",
-    portfolioUrl: "",
+    age: null,
+    location: "",
+    portfolioUrl: portfolioLinks,
     message,
     source: "whatsapp",
     whatsappId: from,
-    screeningAnswers,
+    screeningAnswers: [],
     status: "new",
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),

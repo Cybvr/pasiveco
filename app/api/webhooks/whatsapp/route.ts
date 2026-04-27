@@ -239,9 +239,22 @@ export async function POST(req: NextRequest) {
 async function handleWhatsAppMessage(from: string, message: any) {
   const sessionRef = sessionDoc(from);
   const sessionSnap = await sessionRef.get();
-  const session = (
+  let session = (
     sessionSnap.exists ? sessionSnap.data() : {}
   ) as WhatsAppSession;
+
+  const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+  if (sessionSnap.exists && session.updatedAt) {
+    try {
+      const lastUpdate = session.updatedAt.toDate().getTime();
+      if (Date.now() - lastUpdate > SESSION_EXPIRY_MS) {
+        session = {};
+      }
+    } catch (e) {
+      // Ignore timestamp errors
+    }
+  }
+
   const textBody = getMessageText(message);
   const normalizedText = normalize(textBody);
 

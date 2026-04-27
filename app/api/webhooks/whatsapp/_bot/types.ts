@@ -8,6 +8,7 @@ export type WhatsAppStep =
   | "bank_details"
   | "discount_create"
   | "job_full_name"
+  | "job_portfolio"
   | "job_age"
   | "job_location"
   | "job_role"
@@ -25,6 +26,7 @@ export type WhatsAppSession = {
   fileName?: string;
   salesLink?: string;
   candidateFullName?: string;
+  candidatePortfolioLinks?: string;
   candidateAge?: number;
   candidatePhone?: string;
   candidateLocation?: string;
@@ -32,6 +34,7 @@ export type WhatsAppSession = {
   jobId?: string;
   screeningQuestionIndex?: number;
   screeningAnswers?: Array<{ question: string; answer: string }>;
+  updatedAt?: any;
 };
 
 export type WhatsAppContact = {
