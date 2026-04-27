@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Send, Smartphone } from "lucide-react";
+import { ChevronLeft, RefreshCw, Send, Smartphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,6 +59,8 @@ export default function AdminWhatsAppPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
+  const [showMobileThread, setShowMobileThread] = useState(false);
+
   const activeConversation = useMemo(
     () => conversations.find((item) => item.waId === activeWaId) || null,
     [activeWaId, conversations]
@@ -73,7 +75,8 @@ export default function AdminWhatsAppPage() {
       if (!res.ok) throw new Error(data.error || "Failed to load conversations");
       const next = Array.isArray(data.conversations) ? data.conversations : [];
       setConversations(next);
-      setActiveWaId((current) => current || next[0]?.waId || null);
+      // Removed automatic selection of first item to better support mobile list-first view
+      // setActiveWaId((current) => current || next[0]?.waId || null);
     } catch (err: any) {
       setError(err?.message || "Failed to load conversations");
     } finally {
@@ -129,8 +132,11 @@ export default function AdminWhatsAppPage() {
   }, [activeWaId]);
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] min-h-[640px] flex-col overflow-hidden rounded-lg border bg-background lg:flex-row">
-      <aside className="flex h-64 shrink-0 flex-col border-b bg-card lg:h-full lg:w-80 lg:border-b-0 lg:border-r">
+    <div className="flex h-[calc(100vh-4rem)] lg:h-[calc(100vh-7rem)] min-h-[500px] flex-col overflow-hidden bg-background lg:rounded-lg lg:border lg:flex-row">
+      <aside className={cn(
+        "flex shrink-0 flex-col bg-card lg:h-full lg:w-80 lg:border-r",
+        showMobileThread ? "hidden lg:flex" : "flex h-full w-full"
+      )}>
         <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
           <div>
             <h1 className="text-sm font-semibold">WhatsApp</h1>
@@ -146,7 +152,10 @@ export default function AdminWhatsAppPage() {
             <button
               key={conversation.waId}
               type="button"
-              onClick={() => setActiveWaId(conversation.waId)}
+              onClick={() => {
+                setActiveWaId(conversation.waId);
+                setShowMobileThread(true);
+              }}
               className={cn(
                 "flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors hover:bg-muted/60",
                 activeWaId === conversation.waId && "bg-muted"
@@ -177,13 +186,26 @@ export default function AdminWhatsAppPage() {
         </div>
       </aside>
 
-      <section className="flex min-h-0 flex-1 flex-col">
+      <section className={cn(
+        "flex min-h-0 flex-1 flex-col",
+        !showMobileThread ? "hidden lg:flex" : "flex h-full w-full"
+      )}>
         <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-b px-4">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{activeConversation?.waId || "Select a conversation"}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-8 w-8"
+              onClick={() => setShowMobileThread(false)}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{activeConversation?.waId || "Select a conversation"}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
+              </p>
+            </div>
           </div>
           {thread?.conversation.salesLink ? (
             <a
@@ -202,6 +224,15 @@ export default function AdminWhatsAppPage() {
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 px-4 py-4">
+          {!activeWaId && !loadingThread ? (
+            <div className="flex h-full items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Smartphone className="mx-auto h-12 w-12 opacity-20 mb-4" />
+                <p>Select a conversation to start chatting</p>
+              </div>
+            </div>
+          ) : null}
+
           {loadingThread ? (
             <div className="py-10 text-center text-sm text-muted-foreground">Loading conversation...</div>
           ) : null}
@@ -236,26 +267,28 @@ export default function AdminWhatsAppPage() {
           ) : null}
         </div>
 
-        <div className="shrink-0 border-t bg-background p-3">
-          <div className="mx-auto flex max-w-3xl items-end gap-2">
-            <Textarea
-              value={reply}
-              onChange={(event) => setReply(event.target.value)}
-              placeholder="Reply from Pasive..."
-              className="min-h-11 resize-none"
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-                  event.preventDefault();
-                  sendReply();
-                }
-              }}
-            />
-            <Button onClick={sendReply} disabled={!activeWaId || !reply.trim() || sending} className="h-11 shrink-0 gap-2">
-              <Send className="h-4 w-4" />
-              Send
-            </Button>
+        {activeWaId && (
+          <div className="shrink-0 border-t bg-background p-3">
+            <div className="mx-auto flex max-w-3xl items-end gap-2">
+              <Textarea
+                value={reply}
+                onChange={(event) => setReply(event.target.value)}
+                placeholder="Reply from Pasive..."
+                className="min-h-11 resize-none"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                    event.preventDefault();
+                    sendReply();
+                  }
+                }}
+              />
+              <Button onClick={sendReply} disabled={!activeWaId || !reply.trim() || sending} className="h-11 shrink-0 gap-2">
+                <Send className="h-4 w-4" />
+                Send
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </section>
     </div>
   );

@@ -34,7 +34,7 @@ import { storage } from "@/lib/firebase"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { v4 as uuidv4 } from "uuid"
 import { slugify } from "@/utils/slugify"
-import { Loader2, Package, Plus, Search, Sparkles, Trash2, UploadCloud, Video, Image as ImageIcon, UserRound } from "lucide-react"
+import { Loader2, Package, Plus, Search, Sparkles, Trash2, UploadCloud, Video, Image as ImageIcon, UserRound, ChevronLeft } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { AdminSidebarList } from "../components/AdminSidebarList"
@@ -184,6 +184,8 @@ export default function ProductsTab() {
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
+  const [showDetail, setShowDetail] = useState(false)
+
   const selectedProduct = useMemo(
     () => products.find((product) => product.id === currentProduct?.id) || null,
     [products, currentProduct?.id]
@@ -236,12 +238,14 @@ export default function ProductsTab() {
     setDownloadFile(null)
     if (imageInputRef.current) imageInputRef.current.value = ""
     if (fileInputRef.current) fileInputRef.current.value = ""
+    setShowDetail(false)
   }
 
   const openNewProduct = () => {
     setCurrentProduct({ ...EMPTY_FORM, userId: users[0]?.id || "" })
     setImageFile(null)
     setDownloadFile(null)
+    setShowDetail(true)
   }
 
   const uploadFile = async (file: File, folder: string) => {
@@ -537,19 +541,18 @@ export default function ProductsTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+    <div className="grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
       {/* Sidebar: Products List */}
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border p-2 md:p-4 md:col-span-4 flex min-h-0 flex-col",
+        showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Products</h3>
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => {
-              setCurrentProduct({ ...emptyForm })
-              setImageFile(null)
-              setDownloadFile(null)
-            }} 
+            onClick={openNewProduct} 
             className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
           >
             <Plus className="h-3.5 w-3.5" />
@@ -574,6 +577,7 @@ export default function ProductsTab() {
               setCurrentProduct(mapProductToForm(product))
               setImageFile(null)
               setDownloadFile(null)
+              setShowDetail(true)
             }}
             onDelete={(product) => setProductToDelete(product)}
             getId={(product) => product.id!}
@@ -610,7 +614,22 @@ export default function ProductsTab() {
       </div>
 
       {/* Main Content Area: Editor */}
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden",
+        !showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
+        {/* Mobile Header with Back Button */}
+        <div className="md:hidden flex items-center p-4 border-b bg-muted/20 shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 font-bold uppercase tracking-tight text-[10px]"
+            onClick={() => setShowDetail(false)}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Back to List
+          </Button>
+        </div>
         {!currentProduct ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 opacity-50">
             <Package className="h-12 w-12 mb-4 text-muted-foreground/20" />

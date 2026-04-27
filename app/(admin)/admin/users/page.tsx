@@ -979,9 +979,9 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Users ({users.length})</h1>
+    <div className="w-full min-w-0 space-y-2 lg:space-y-6 overflow-x-hidden p-2 lg:p-0">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-2 lg:px-0">
+        <h1 className="text-xl lg:text-2xl font-bold">Users ({users.length})</h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {selectedUserIds.size > 0 && (
             <div className="flex items-center gap-2 mr-4 pr-4 border-r">
@@ -1066,9 +1066,9 @@ export default function UsersPage() {
         onGenerateBio={handleGenerateBio}
       />
 
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-2 md:hidden">
         {sortedUsers.map((user) => (
-          <div key={user.id} className="space-y-3 rounded-lg border bg-card p-4">
+          <div key={user.id} className="space-y-3 md:rounded-lg border-b md:border bg-card p-3 md:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex gap-3 min-w-0">
                 <Checkbox

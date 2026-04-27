@@ -112,11 +112,13 @@ export default function Sidebar({
   onToggle,
   navItems,
   bottomNavItems = DEFAULT_BOTTOM_NAV_ITEMS,
+  onNavigate,
 }: {
   isCollapsed: boolean,
   onToggle: () => void,
   navItems?: NavItem[],
   bottomNavItems?: NavItem[],
+  onNavigate?: () => void,
 }) {
   const pathname = usePathname()
   const isAdmin = pathname.startsWith('/admin')
@@ -178,7 +180,7 @@ export default function Sidebar({
         isCollapsed ? "justify-center" : "justify-between"
       )}>
         {!isCollapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-2 group">
+          <Link href="/dashboard" className="flex items-center space-x-2 group" onClick={() => onNavigate?.()}>
             <div className=" rounded-lg group-hover:scale-110 transition-transform duration-200">
               <img src="/images/logo.svg" alt="Pasive" className="h-5 w-5" />
             </div>
@@ -249,7 +251,9 @@ export default function Sidebar({
                       if (denined) {
                         e.preventDefault();
                         setIsUpgradeDialogOpen(true);
+                        return;
                       }
+                      onNavigate?.();
                     }}
                     title={isCollapsed ? item.label : ""}
                     className={cn(
@@ -305,7 +309,9 @@ export default function Sidebar({
                             if (subDenied) {
                               e.preventDefault();
                               setIsUpgradeDialogOpen(true);
+                              return;
                             }
+                            onNavigate?.();
                           }}
                           className={cn(
                             "flex min-h-8 items-center rounded-md px-2 py-1.5 text-xs font-medium leading-none transition-all duration-200",
@@ -351,7 +357,9 @@ export default function Sidebar({
                   if (denined) {
                     e.preventDefault();
                     setIsUpgradeDialogOpen(true);
+                    return;
                   }
+                  onNavigate?.();
                 }}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
@@ -405,6 +413,7 @@ export default function Sidebar({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => onNavigate?.()}
                 title={isCollapsed ? item.label : ""}
                 className={cn(
                   "flex items-center text-xs font-medium rounded-md transition-all duration-200 leading-none",

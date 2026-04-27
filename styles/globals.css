@@ -243,3 +243,71 @@
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+@layer components {
+  /* Tiptap / Prose Styles */
+  .prose {
+    @apply text-foreground leading-relaxed;
+  }
+
+  .prose h1 {
+    @apply text-2xl font-bold mb-4 mt-6;
+  }
+
+  .prose h2 {
+    @apply text-xl font-bold mb-3 mt-5;
+  }
+
+  .prose h3 {
+    @apply text-lg font-bold mb-2 mt-4;
+  }
+
+  .prose p {
+    @apply mb-4;
+  }
+
+  .prose ul {
+    @apply list-disc pl-5 mb-4;
+  }
+
+  .prose ol {
+    @apply list-decimal pl-5 mb-4;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary/20 pl-4 italic mb-4;
+  }
+
+  .prose code {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+  }
+
+  .prose pre {
+    @apply bg-muted p-4 rounded-lg text-sm overflow-x-auto mb-4;
+  }
+
+  .prose img {
+    @apply rounded-lg max-w-full h-auto mb-4;
+  }
+
+  .prose hr {
+    @apply border-t border-border my-8;
+  }
+
+  .prose a {
+    @apply text-primary underline underline-offset-4 hover:text-primary/80;
+  }
+}
+
+/* Tiptap editor specific */
+.ProseMirror {
+  @apply outline-none h-full min-h-[inherit];
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground) / 0.5);
+  pointer-events: none;
+  height: 0;
+}

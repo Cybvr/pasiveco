@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { solutionsService } from "@/services/solutionsService"
 import { useEditor } from "@tiptap/react"
-import { Eye, Trash2, Plus } from "lucide-react"
+import { Eye, Trash2, Plus, ChevronLeft } from "lucide-react"
 import { uploadImage } from "@/services/cloudinaryService"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -17,7 +17,7 @@ interface Solution {
   id?: string
   title: string
   description: string
-  content: string
+  content?: string
   slug: string
   imageUrl?: string
 }
@@ -28,8 +28,9 @@ interface SolutionsTabProps {
 
 const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
   const [solutions, setSolutions] = useState<Solution[]>([])
-  const [loading, setLoading] = useState(true)
   const [currentSolution, setCurrentSolution] = useState<Solution | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showDetail, setShowDetail] = useState(false)
 
   useEffect(() => {
     const fetchSolutions = async () => {
@@ -60,7 +61,7 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
       if (currentSolution.id) {
         await solutionsService.updateSolution(currentSolution.id, solutionToSave)
       } else {
-        await solutionsService.createSolution(solutionToSave)
+        await solutionsService.createSolution(solutionToSave as Parameters<typeof solutionsService.createSolution>[0])
       }
       // Refresh the list
       const data = await solutionsService.getAllSolutions()
@@ -69,6 +70,7 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
         title: "Success",
         description: `Solution "${currentSolution.title}" saved successfully.`,
       })
+      setShowDetail(false)
     } catch (error) {
       console.error("Error saving solution:", error)
       toast({
@@ -118,8 +120,11 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
+    <div className="grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border p-2 md:p-4 md:col-span-4 flex min-h-0 flex-col",
+        showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Solutions</h3>
           <Button 
@@ -130,6 +135,7 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
               if (editor) {
                 editor.commands.setContent("")
               }
+              setShowDetail(true)
             }} 
             className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
           >
@@ -143,7 +149,10 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
             selectedId={currentSolution?.id}
             onSelect={(solution) => {
               setCurrentSolution(null)
-              setTimeout(() => setCurrentSolution(solution), 0)
+              setTimeout(() => {
+                setCurrentSolution(solution)
+                setShowDetail(true)
+              }, 0)
             }}
             onDelete={(solution) => handleDelete(solution.id!, solution.title)}
             getId={(solution) => solution.id!}
@@ -171,7 +180,22 @@ const SolutionsTab: React.FC<SolutionsTabProps> = ({ editor }) => {
           />
         </div>
       </div>
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden",
+        !showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
+        {/* Mobile Header with Back Button */}
+        <div className="md:hidden flex items-center p-4 border-b bg-muted/20 shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 font-bold uppercase tracking-tight text-[10px]"
+            onClick={() => setShowDetail(false)}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Back to List
+          </Button>
+        </div>
         {currentSolution ? (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

@@ -19,24 +19,29 @@ const DASHBOARD_NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
   { href: '/dashboard/settings', icon: User, label: 'Profile' },
 ]
- 
+
 export default function MobileBottomNav() {
   const { unreadCount: messagesCount } = useMessageActivity()
   const pathname = usePathname()
- 
+
+  const isAdmin = pathname.startsWith('/admin')
+  if (isAdmin) return null;
+
+  const navItems = DASHBOARD_NAV_ITEMS
+
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background md:hidden">
         <div className="flex items-center justify-around px-2 py-1">
-          {DASHBOARD_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = item.href === '/dashboard'
+            const isActive = item.href === '/dashboard' || item.href === '/admin'
               ? pathname === item.href
               : pathname === item.href || pathname.startsWith(`${item.href}/`)
             
-            const isMessages = item.label === 'Messages'
+            const isMessages = item.label === 'Messages' || item.label === 'WhatsApp'
             const hasUnread = isMessages && messagesCount > 0
- 
+
             return (
               <Link
                 key={item.href}

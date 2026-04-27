@@ -8,11 +8,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { jobsService, type Job, type JobApplication } from "@/services/jobsService"
-import { Briefcase, User, Mail, Calendar, ExternalLink, Trash2, MapPin, Clock, Plus, Save, Loader2, Phone } from "lucide-react"
+import { Briefcase, User, Mail, Calendar, ExternalLink, Trash2, MapPin, Clock, Plus, Save, Loader2, Phone, ChevronLeft } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { AdminSidebarList } from "../components/AdminSidebarList"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
 
 const JobsTab = () => {
   const [jobs, setJobs] = useState<Job[]>([])
@@ -22,6 +23,8 @@ const JobsTab = () => {
   const [selectedJob, setSelectedJob] = useState<Partial<Job> | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [activeSubTab, setActiveSubTab] = useState("applications")
+
+  const [showDetail, setShowDetail] = useState(false)
 
   const fetchData = async () => {
     setLoading(true)
@@ -101,11 +104,13 @@ const JobsTab = () => {
   const handleSelectApplication = (app: JobApplication) => {
     setSelectedApplication(app)
     setSelectedJob(null)
+    setShowDetail(true)
   }
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job)
     setSelectedApplication(null)
+    setShowDetail(true)
   }
 
   const handleCreateNewJob = () => {
@@ -120,11 +125,15 @@ const JobsTab = () => {
     })
     setSelectedApplication(null)
     setActiveSubTab("listings")
+    setShowDetail(true)
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
+    <div className="grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border p-2 md:p-4 md:col-span-4 flex min-h-0 flex-col",
+        showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Jobs & Applications</h3>
           <Button 
@@ -188,7 +197,22 @@ const JobsTab = () => {
         </Tabs>
       </div>
 
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden",
+        !showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
+        {/* Mobile Header with Back Button */}
+        <div className="md:hidden flex items-center p-4 border-b bg-muted/20">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 font-bold uppercase tracking-tight text-[10px]"
+            onClick={() => setShowDetail(false)}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Back to List
+          </Button>
+        </div>
         {selectedApplication ? (
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div className="flex items-start justify-between">

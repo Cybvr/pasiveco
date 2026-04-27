@@ -20,7 +20,7 @@ const EditorContent = ({ editor }) => {
   if (!editor) return null
 
   return (
-    <div className="w-full min-w-0 overflow-hidden rounded-lg border">
+    <div className="w-full min-w-0 overflow-hidden rounded-lg border bg-background">
       <div className="flex flex-wrap gap-1 p-1 border-b bg-muted/50">
         <Toggle
           size="sm"

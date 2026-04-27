@@ -410,26 +410,24 @@ function EmailPageContent() {
 
           {/* Right Column: Composer */}
           <div className="lg:col-span-9 flex flex-col gap-4 min-h-0">
+            {/* Subject & Template */}
             <Card className="border-none shadow-sm overflow-hidden bg-background shrink-0">
               <CardContent className="p-0">
                 <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_minmax(240px,1fr)] divide-y md:divide-y-0 md:divide-x">
-                  <div className="p-4 space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/50">Subject Line</label>
+                  <div className="flex items-center px-4 h-12 gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground/50 shrink-0" />
                     <Input
-                      placeholder="Your best subject line..."
+                      placeholder="Subject Line..."
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      className="border-none shadow-none focus-visible:ring-0 px-0 h-8 text-[14px] font-bold placeholder:text-muted-foreground/20"
+                      className="border-none shadow-none focus-visible:ring-0 px-0 h-full text-base font-bold placeholder:text-muted-foreground/40"
                     />
                   </div>
-                  <div className="p-4 space-y-2 bg-muted/5">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-1.5">
-                      <Layout className="h-3 w-3" />
-                      Email Template
-                    </label>
+                  <div className="flex items-center px-4 h-12 gap-3 bg-muted/5">
+                    <Layout className="h-4 w-4 text-muted-foreground/50 shrink-0" />
                     <Select value={templateId} onValueChange={setTemplateId}>
-                      <SelectTrigger className="inline-flex w-auto min-w-0 border-none bg-transparent p-0 h-8 text-[14px] font-bold shadow-none focus:ring-0">
-                        <SelectValue placeholder="Choose a template" />
+                      <SelectTrigger className="flex-1 border-none bg-transparent p-0 h-full text-sm font-bold shadow-none focus:ring-0">
+                        <SelectValue placeholder="Email Template" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Raw HTML (Plain)</SelectItem>
@@ -445,17 +443,17 @@ function EmailPageContent() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
               <div className="flex items-center justify-between mb-2 shrink-0">
-                <TabsList className="bg-muted/50 p-1 h-9">
-                  <TabsTrigger value="compose" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">1</span>
+                <TabsList className="bg-muted/50 p-1 h-11 w-full lg:w-auto">
+                  <TabsTrigger value="compose" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">1</span>
                     Compose
                   </TabsTrigger>
-                  <TabsTrigger value="preview" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">2</span>
+                  <TabsTrigger value="preview" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">2</span>
                     Preview
                   </TabsTrigger>
-                  <TabsTrigger value="send" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">3</span>
+                  <TabsTrigger value="send" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">3</span>
                     Send
                   </TabsTrigger>
                 </TabsList>

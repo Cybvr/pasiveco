@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { blogService, type BlogPost } from "@/services/blogService"
 import { useEditor } from "@tiptap/react"
-import { Eye, Trash2, Sparkles, Loader2, Plus } from "lucide-react"
+import { Eye, Trash2, Sparkles, Loader2, Plus, ChevronLeft } from "lucide-react"
 import { uploadImage } from "@/services/cloudinaryService"
 import { toast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
@@ -20,7 +20,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPost, setCurrentPost] = useState<BlogPost | null>(null)
-  const [isGeneratingContent, setIsGeneratingContent] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -60,6 +60,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
         title: "Success",
         description: `Blog post "${currentPost.title}" saved successfully.`,
       })
+      setShowDetail(false)
     } catch (error) {
       console.error("Error saving blog post:", error)
       toast({
@@ -148,8 +149,11 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
-      <div className="col-span-1 min-w-0 rounded-lg border p-4 md:col-span-4 md:mb-0 flex min-h-0 flex-col">
+    <div className="grid grid-cols-1 gap-0 md:gap-4 md:grid-cols-12 h-full min-h-0 overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border p-2 md:p-4 md:col-span-4 flex min-h-0 flex-col",
+        showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
         <div className="flex items-center justify-between mb-4 px-1 shrink-0">
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Blog</h3>
           <Button 
@@ -160,6 +164,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
               if (editor) {
                 editor.commands.setContent("")
               }
+              setShowDetail(true)
             }} 
             className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary"
           >
@@ -173,7 +178,10 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
             selectedId={currentPost?.id}
             onSelect={(post) => {
               setCurrentPost(null)
-              setTimeout(() => setCurrentPost(post), 0)
+              setTimeout(() => {
+                setCurrentPost(post)
+                setShowDetail(true)
+              }, 0)
             }}
             onDelete={(post) => handleDelete(post.id!, post.title)}
             getId={(post) => post.id!}
@@ -201,7 +209,22 @@ const BlogTab: React.FC<BlogTabProps> = ({ editor }) => {
           />
         </div>
       </div>
-      <div className="col-span-1 min-w-0 rounded-lg border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden">
+      <div className={cn(
+        "col-span-1 min-w-0 md:rounded-lg md:border md:col-span-8 bg-card flex min-h-0 flex-col overflow-hidden",
+        !showDetail ? "hidden md:flex" : "flex h-full"
+      )}>
+        {/* Mobile Header with Back Button */}
+        <div className="md:hidden flex items-center p-4 border-b bg-muted/20 shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1 px-2 font-bold uppercase tracking-tight text-[10px]"
+            onClick={() => setShowDetail(false)}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Back to List
+          </Button>
+        </div>
         {currentPost ? (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

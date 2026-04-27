@@ -30,13 +30,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import {
-  Loader2, Send, Eye, Bold, Italic, List, ListOrdered,
-  Heading1, Heading2, Minus, Undo, Redo, Layout, PenLine,
-  Save, Trash2, Plus, RefreshCw, Mail, Users, FlaskConical,
+  Loader2, Send, Bold, Italic, List, ListOrdered,
+  Heading1, Heading2, Minus, Undo, Redo,
+  Save, Trash2, Plus, RefreshCw, Mail,
   ImagePlus,
-  CheckCircle2
+  CheckCircle2, MoreVertical
 } from 'lucide-react';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { cn } from '@/lib/utils';
@@ -44,9 +50,9 @@ import { storage } from '@/lib/firebase';
 import { emailDraftsService, type EmailDraft } from '@/services/emailDraftsService';
 
 function ToolbarButton({
-  onClick, active, children, title,
+  onClick, active, children, title, className,
 }: {
-  onClick: () => void; active?: boolean; children: React.ReactNode; title?: string;
+  onClick: () => void; active?: boolean; children: React.ReactNode; title?: string; className?: string;
 }) {
   return (
     <button
@@ -54,10 +60,11 @@ function ToolbarButton({
       title={title}
       onClick={onClick}
       className={cn(
-        'p-1.5 rounded text-sm transition-colors',
+        'p-2 lg:p-1.5 rounded text-sm transition-colors',
         active
           ? 'bg-primary text-primary-foreground'
           : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+        className,
       )}
     >
       {children}
@@ -107,6 +114,7 @@ export default function AdminEmailPage() {
   const [testSent, setTestSent] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const [showMobileComposer, setShowMobileComposer] = useState(false);
 
   const editor = useEditor({
     extensions: [StarterKit, EmailImage],
@@ -135,6 +143,25 @@ export default function AdminEmailPage() {
 
   useEffect(() => {
     fetchDrafts();
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('admin-email-mobile-composer-change', {
+      detail: { open: showMobileComposer },
+    }));
+  }, [showMobileComposer]);
+
+  useEffect(() => {
+    const showDrafts = () => setShowMobileComposer(false);
+
+    window.addEventListener('admin-email-show-drafts', showDrafts);
+
+    return () => {
+      window.removeEventListener('admin-email-show-drafts', showDrafts);
+      window.dispatchEvent(new CustomEvent('admin-email-mobile-composer-change', {
+        detail: { open: false },
+      }));
+    };
   }, []);
 
   const fetchPreview = async () => {
@@ -178,7 +205,7 @@ export default function AdminEmailPage() {
         contentType: file.type || 'image/jpeg',
       });
       const url = await getDownloadURL(storageRef);
-      editor.chain().focus().setImage({ src: url, alt: file.name, width: '100%' }).run();
+      editor.chain().focus().setImage({ src: url, alt: file.name }).updateAttributes('image', { width: '100%' }).run();
       toast.success('Image added');
     } catch {
       toast.error('Failed to upload image');
@@ -220,6 +247,7 @@ export default function AdminEmailPage() {
     editor?.commands.setContent(draft.html || '<p>Write your email here...</p>');
     setActiveTab('compose');
     setTestSent(false);
+    setShowMobileComposer(true);
   };
 
   const resetForm = () => {
@@ -230,6 +258,7 @@ export default function AdminEmailPage() {
     setTestSent(false);
     editor?.commands.setContent('<p>Write your email here...</p>');
     setActiveTab('compose');
+    setShowMobileComposer(true);
     toast.success('Started new campaign');
   };
 
@@ -309,9 +338,12 @@ export default function AdminEmailPage() {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-6 h-[calc(100vh-5rem)] lg:h-[calc(100vh-120px)] min-h-[500px]">
         {/* Left Sidebar: Drafts List */}
-        <div className="lg:col-span-4 flex flex-col gap-4 min-h-0">
+        <div className={cn(
+          "lg:col-span-4 flex flex-col gap-4 min-h-0",
+          showMobileComposer ? "hidden lg:flex" : "flex h-full"
+        )}>
           <div className="flex items-center justify-between px-1">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Drafts</h3>
             <Button variant="ghost" size="icon" onClick={resetForm} className="h-6 w-6 rounded-full hover:bg-primary/10 hover:text-primary">
@@ -333,9 +365,9 @@ export default function AdminEmailPage() {
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">No drafts yet</p>
                 </div>
               ) : (
-                drafts.map((draft) => (
+                drafts.map((draft, index) => (
                   <div
-                    key={draft.id}
+                    key={draft.id ?? `${draft.subject}-${index}`}
                     onClick={() => loadDraft(draft)}
                     className={cn(
                       "group p-2.5 rounded-lg cursor-pointer transition-all duration-200 border relative overflow-hidden",
@@ -357,7 +389,8 @@ export default function AdminEmailPage() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:text-destructive"
-                        onClick={(e) => deleteDraft(e, draft.id)}
+                        onClick={(e) => draft.id && deleteDraft(e, draft.id)}
+                        disabled={!draft.id}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -373,28 +406,26 @@ export default function AdminEmailPage() {
         </div>
 
         {/* Right Column: Composer */}
-        <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
+        <div className={cn(
+          "lg:col-span-8 flex flex-col gap-2 lg:gap-4 min-h-0",
+          !showMobileComposer ? "hidden lg:flex" : "flex h-full"
+        )}>
           {/* Subject & Template */}
           <Card className="border-none shadow-sm overflow-hidden bg-background shrink-0">
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.6fr)_minmax(240px,1fr)] divide-y md:divide-y-0 md:divide-x">
-                <div className="p-4 space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Subject Line</label>
+                <div className="flex items-center px-4 h-12">
                   <Input
-                    placeholder="Your best subject line..."
+                    placeholder="Subject Line..."
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="border-none shadow-none focus-visible:ring-0 px-0 h-8 text-base font-bold placeholder:text-muted-foreground/20"
+                    className="border-none shadow-none focus-visible:ring-0 px-0 h-full text-base font-bold placeholder:text-muted-foreground/40"
                   />
                 </div>
-                <div className="p-4 space-y-1.5 bg-muted/5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50 flex items-center gap-1.5">
-                    <Layout className="h-3 w-3" />
-                    Email Template
-                  </label>
+                <div className="flex items-center px-4 h-12 bg-muted/5">
                   <Select value={templateId} onValueChange={setTemplateId}>
-                    <SelectTrigger className="inline-flex w-auto min-w-0 border-none bg-transparent p-0 h-8 text-sm font-bold shadow-none focus:ring-0">
-                      <SelectValue placeholder="Choose a template" />
+                    <SelectTrigger className="flex-1 border-none bg-transparent p-0 h-full text-sm font-bold shadow-none focus:ring-0">
+                      <SelectValue placeholder="Email Template" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Raw HTML (Plain)</SelectItem>
@@ -411,17 +442,17 @@ export default function AdminEmailPage() {
           {/* 3-Step Process Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between mb-2 shrink-0">
-              <TabsList className="bg-muted/50 p-1 h-9">
-                <TabsTrigger value="compose" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">1</span>
+              <TabsList className="bg-muted/50 p-1 h-11 w-full lg:w-auto">
+                <TabsTrigger value="compose" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">1</span>
                   Compose
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">2</span>
+                <TabsTrigger value="preview" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">2</span>
                   Preview
                 </TabsTrigger>
-                <TabsTrigger value="send" className="gap-2 h-7 text-[11px] font-bold uppercase tracking-tight px-4">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-foreground/10 text-[9px]">3</span>
+                <TabsTrigger value="send" className="flex-1 lg:flex-none gap-2 h-9 text-[11px] font-bold uppercase tracking-tight px-4">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px]">3</span>
                   Send
                 </TabsTrigger>
               </TabsList>
@@ -443,31 +474,19 @@ export default function AdminEmailPage() {
                 />
 
                 {/* Formatting Toolbar */}
-                <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b bg-muted/20">
+                <div className="flex items-center gap-1 px-1 py-1 lg:px-3 lg:py-2 border-b bg-muted/20">
                   <ToolbarButton title="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} active={editor?.isActive('bold')}>
                     <Bold className="h-4 w-4" />
                   </ToolbarButton>
                   <ToolbarButton title="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} active={editor?.isActive('italic')}>
                     <Italic className="h-4 w-4" />
                   </ToolbarButton>
-                  <div className="w-px h-5 bg-border mx-1" />
                   <ToolbarButton title="Heading 1" onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()} active={editor?.isActive('heading', { level: 1 })}>
                     <Heading1 className="h-4 w-4" />
                   </ToolbarButton>
-                  <ToolbarButton title="Heading 2" onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()} active={editor?.isActive('heading', { level: 2 })}>
-                    <Heading2 className="h-4 w-4" />
-                  </ToolbarButton>
-                  <div className="w-px h-5 bg-border mx-1" />
                   <ToolbarButton title="Bullet List" onClick={() => editor?.chain().focus().toggleBulletList().run()} active={editor?.isActive('bulletList')}>
                     <List className="h-4 w-4" />
                   </ToolbarButton>
-                  <ToolbarButton title="Numbered List" onClick={() => editor?.chain().focus().toggleOrderedList().run()} active={editor?.isActive('orderedList')}>
-                    <ListOrdered className="h-4 w-4" />
-                  </ToolbarButton>
-                  <ToolbarButton title="Divider" onClick={() => editor?.chain().focus().setHorizontalRule().run()}>
-                    <Minus className="h-4 w-4" />
-                  </ToolbarButton>
-                  <div className="w-px h-5 bg-border mx-1" />
                   <ToolbarButton
                     title="Insert Image"
                     onClick={() => imageInputRef.current?.click()}
@@ -475,35 +494,53 @@ export default function AdminEmailPage() {
                   >
                     {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
                   </ToolbarButton>
-                  {editor?.isActive('image') && (
-                    <>
-                      <div className="w-px h-5 bg-border mx-1" />
-                      {IMAGE_WIDTH_OPTIONS.map((width) => (
-                        <Button
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        title="More formatting"
+                        className="h-8 w-8 rounded text-muted-foreground hover:bg-accent hover:text-foreground lg:h-7 lg:w-7"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-44 p-1">
+                      <DropdownMenuItem onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
+                        <Heading2 className="mr-2 h-4 w-4" />
+                        Heading 2
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
+                        <ListOrdered className="mr-2 h-4 w-4" />
+                        Numbered list
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => editor?.chain().focus().setHorizontalRule().run()}>
+                        <Minus className="mr-2 h-4 w-4" />
+                        Divider
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => editor?.chain().focus().undo().run()}>
+                        <Undo className="mr-2 h-4 w-4" />
+                        Undo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => editor?.chain().focus().redo().run()}>
+                        <Redo className="mr-2 h-4 w-4" />
+                        Redo
+                      </DropdownMenuItem>
+                      {editor?.isActive('image') && IMAGE_WIDTH_OPTIONS.map((width) => (
+                        <DropdownMenuItem
                           key={width}
-                          type="button"
-                          variant="ghost"
-                          size="sm"
                           onClick={() => setSelectedImageWidth(width)}
                           className={cn(
-                            'h-7 px-2 text-[10px] font-bold uppercase tracking-wider',
-                            editor.getAttributes('image').width === width
-                              ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                              : 'text-muted-foreground'
+                            editor.getAttributes('image').width === width && 'bg-accent font-bold text-accent-foreground'
                           )}
                         >
-                          {width}
-                        </Button>
+                          <ImagePlus className="mr-2 h-4 w-4" />
+                          Image {width}
+                        </DropdownMenuItem>
                       ))}
-                    </>
-                  )}
-                  <div className="w-px h-5 bg-border mx-1" />
-                  <ToolbarButton title="Undo" onClick={() => editor?.chain().focus().undo().run()}>
-                    <Undo className="h-4 w-4" />
-                  </ToolbarButton>
-                  <ToolbarButton title="Redo" onClick={() => editor?.chain().focus().redo().run()}>
-                    <Redo className="h-4 w-4" />
-                  </ToolbarButton>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <div className="ml-auto pl-2">
                     <Button
                       type="button"
@@ -524,8 +561,8 @@ export default function AdminEmailPage() {
                 </div>
 
                 {/* Editor */}
-                <div className="flex-1 overflow-y-auto bg-white">
-                  <EditorContent editor={editor} />
+                <div className="flex-1 overflow-y-auto bg-background p-4">
+                  <EditorContent editor={editor} className="prose max-w-none" />
                 </div>
               </div>
             </TabsContent>
@@ -548,34 +585,36 @@ export default function AdminEmailPage() {
             </TabsContent>
 
             <TabsContent value="send" className="mt-0 focus-visible:ring-0 flex-1 min-h-0 custom-scrollbar overflow-y-auto">
-              <div className="max-w-3xl mx-auto py-6 px-6 space-y-8">
+              <div className="max-w-3xl mx-auto py-4 px-2 lg:py-6 lg:px-6 space-y-6 lg:space-y-8">
                 {/* Verification Section */}
                 <section className="space-y-2">
                   <div className="border-b border-border/40">
                     <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/50">Verification</h4>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
                     <Input
                       placeholder="test@example.com"
                       value={testEmail}
                       onChange={(e) => { setTestEmail(e.target.value); setTestSent(false); }}
-                      className="h-10 md:w-80 text-sm border-border/40 bg-muted/5"
+                      className="h-10 w-full md:w-80 text-sm border-border/40 bg-muted/5"
                     />
-                    <Button
-                      variant="outline"
-                      onClick={handleSendTest}
-                      disabled={isSending || !testEmail}
-                      className="h-10 px-6 text-xs font-bold uppercase tracking-widest border-border/40"
-                    >
-                      {isSending ? 'Sending...' : 'Send Test'}
-                    </Button>
-                    {testSent && (
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 tracking-wider">
-                        <CheckCircle2 className="h-4 w-4" />
-                        SENT
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                      <Button
+                        variant="outline"
+                        onClick={handleSendTest}
+                        disabled={isSending || !testEmail}
+                        className="flex-1 md:flex-none h-10 px-6 text-xs font-bold uppercase tracking-widest border-border/40"
+                      >
+                        {isSending ? 'Sending...' : 'Send Test'}
+                      </Button>
+                      {testSent && (
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 tracking-wider">
+                          <CheckCircle2 className="h-4 w-4" />
+                          SENT
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </section>
 
@@ -589,7 +628,7 @@ export default function AdminEmailPage() {
                     <Button
                       onClick={() => setShowSendConfirm(true)}
                       disabled={isSending || !subject}
-                      className="h-12 px-10 font-bold uppercase tracking-widest text-xs shadow-sm"
+                      className="w-full md:w-auto h-12 px-10 font-bold uppercase tracking-widest text-xs shadow-sm"
                     >
                       {isSending ? 'Launching...' : 'Launch Campaign'}
                     </Button>

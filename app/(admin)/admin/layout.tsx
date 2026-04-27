@@ -23,6 +23,7 @@ export default function AdminLayout({
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const isContentRoute = pathname.startsWith('/admin/content')
 
   useEffect(() => {
@@ -73,6 +74,10 @@ export default function AdminLayout({
     }
   }, [loading, router, user, realUser])
 
+  useEffect(() => {
+    setIsMobileNavOpen(false)
+  }, [pathname])
+
   if (loading || isCheckingAccess || !isAuthorized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4">
@@ -94,11 +99,11 @@ export default function AdminLayout({
           />
         </aside>
 
-        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden pb-20 md:pb-0">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           <div className="z-40 shrink-0 bg-background/95 backdrop-blur">
             <AdminHeader
               mobileNav={
-                <Sheet>
+                <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden">
                       <Menu className="h-5 w-5" />
@@ -112,6 +117,7 @@ export default function AdminLayout({
                     <Sidebar
                       isCollapsed={false}
                       onToggle={() => { }}
+                      onNavigate={() => setIsMobileNavOpen(false)}
                     />
                   </SheetContent>
                 </Sheet>
@@ -121,7 +127,7 @@ export default function AdminLayout({
 
           <main
             className={cn(
-              "min-h-0 flex-1 overflow-x-hidden p-4 md:p-6",
+              "min-h-0 flex-1 overflow-x-hidden p-0 lg:p-6",
               isContentRoute ? "overflow-hidden" : "overflow-y-auto"
             )}
           >
