@@ -20,6 +20,7 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { ArrowRight, Star, Disc, ChevronLeft, Smartphone } from "lucide-react"
 import { createReferral } from '@/services/referralService'
 import { generateUsername } from '@/lib/username'
+import { claimWhatsAppAccount } from '@/lib/claim-whatsapp-account'
 
 declare global {
   interface Window {
@@ -171,6 +172,7 @@ function RegisterContent() {
 
     try {
       const result = await window.confirmationResult.confirm(otp)
+      await claimWhatsAppAccount(result.user)
       const userSnap = await getDoc(doc(db, 'users', result.user.uid))
       if (!userSnap.exists()) {
         await handleAIPendingOnboarding(

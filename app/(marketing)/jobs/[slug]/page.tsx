@@ -1,10 +1,9 @@
 
 import { notFound } from "next/navigation"
-import { Briefcase, MapPin, Clock, ArrowLeft } from "lucide-react"
+import { Briefcase, MapPin, Clock, ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { jobsService } from "@/services/jobsService"
-import { JobApplicationForm } from "./JobApplicationForm"
 
 interface PageProps {
   params: {
@@ -13,6 +12,8 @@ interface PageProps {
 }
 
 export const dynamic = 'force-dynamic';
+
+const WHATSAPP_JOB_APPLY_LINK = "https://wa.me/message/6HGKZ2CLWKABA1";
 
 export default async function JobDetailPage({ params }: PageProps) {
   const { slug } = await params;
@@ -59,7 +60,7 @@ export default async function JobDetailPage({ params }: PageProps) {
               </div>
             </div>
             <Button size="lg" className="md:w-auto" asChild>
-              <a href="#apply">Apply Now</a>
+              <a href={WHATSAPP_JOB_APPLY_LINK} target="_blank" rel="noreferrer">Apply on WhatsApp</a>
             </Button>
           </div>
         </div>
@@ -76,13 +77,18 @@ export default async function JobDetailPage({ params }: PageProps) {
 
             <div id="apply" className="pt-8 border-t">
               <div className="bg-muted/30 rounded-2xl p-6 md:p-10 border">
-                <div className="mb-8">
+                <div className="space-y-4">
                   <h2 className="text-2xl font-bold">Apply for this position</h2>
                   <p className="text-muted-foreground mt-1">
-                    Fill out the form below and we'll get back to you as soon as possible.
+                    Start your application on WhatsApp. Our bot will collect your details and screening answers in chat.
                   </p>
+                  <Button size="lg" asChild>
+                    <a href={WHATSAPP_JOB_APPLY_LINK} target="_blank" rel="noreferrer">
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Apply on WhatsApp
+                    </a>
+                  </Button>
                 </div>
-                <JobApplicationForm jobId={job.id} jobTitle={job.title} />
               </div>
             </div>
           </div>

@@ -36,6 +36,16 @@ export interface JobApplication {
   jobTitle: string;
   fullName: string;
   email: string;
+  phoneNumber?: string;
+  age?: number;
+  location?: string;
+  source?: string;
+  whatsappId?: string;
+  status?: string;
+  screeningAnswers?: Array<{
+    question: string;
+    answer: string;
+  }>;
   portfolioUrl?: string;
   message?: string;
   createdAt: Timestamp;

@@ -23,6 +23,7 @@ import {
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { ChevronLeft, Smartphone } from "lucide-react"
+import { claimWhatsAppAccount } from '@/lib/claim-whatsapp-account'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -139,6 +140,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     try {
       const result = await window.confirmationResult.confirm(otp)
+      await claimWhatsAppAccount(result.user)
       const userRef = doc(db, 'users', result.user.uid)
       const userSnap = await getDoc(userRef)
       

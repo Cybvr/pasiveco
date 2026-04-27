@@ -16,9 +16,15 @@ type WhatsAppStep =
   | "bank_prompt"
   | "bank_details"
   | "discount_create"
+  | "job_full_name"
+  | "job_age"
+  | "job_location"
+  | "job_role"
+  | "job_screening"
   | "complete";
 
 type WhatsAppSession = {
+  flow?: "commerce" | "jobs";
   step?: WhatsAppStep;
   productType?: string;
   productName?: string;
@@ -27,6 +33,24 @@ type WhatsAppSession = {
   fileId?: string;
   fileName?: string;
   salesLink?: string;
+  candidateFullName?: string;
+  candidateAge?: number;
+  candidatePhone?: string;
+  candidateLocation?: string;
+  jobRole?: string;
+  jobId?: string;
+  screeningQuestionIndex?: number;
+  screeningAnswers?: Array<{
+    question: string;
+    answer: string;
+  }>;
+};
+
+type WhatsAppContact = {
+  profile?: {
+    name?: string;
+  };
+  wa_id?: string;
 };
 
 const SESSION_COLLECTION = "whatsappSessions";
@@ -57,6 +81,49 @@ const PRODUCT_CATEGORY_BY_TYPE: Record<string, string> = {
   "Something else": "digital-download",
 };
 
+const JOB_ROLES: Record<string, { id: string; title: string; questions: string[] }> = {
+  "1": {
+    id: "whatsapp-content-creator",
+    title: "Content Creator",
+    questions: [
+      "Which platforms do you create content for most? Instagram, TikTok, YouTube, X, or something else?",
+      "Send 1-2 links to your best content or portfolio.",
+      "How many short-form posts or videos can you comfortably create per week?",
+    ],
+  },
+  "2": {
+    id: "whatsapp-video-editor",
+    title: "Video Editor",
+    questions: [
+      "Which editing tools do you use? Premiere Pro, CapCut, DaVinci Resolve, Final Cut, or something else?",
+      "Send a link to your best editing work or portfolio.",
+      "What is your usual turnaround time for a 30-60 second video?",
+    ],
+  },
+  "3": {
+    id: "whatsapp-social-media-manager",
+    title: "Social Media Manager",
+    questions: [
+      "Which social platforms have you managed professionally?",
+      "Briefly describe one campaign, account, or page you helped grow.",
+      "Which tools do you use for scheduling, analytics, or content planning?",
+    ],
+  },
+};
+
+const JOB_ROLE_ALIASES: Record<string, string> = {
+  "1": "1",
+  "content creator": "1",
+  "creator": "1",
+  "2": "2",
+  "video editor": "2",
+  "editor": "2",
+  "3": "3",
+  "social media manager": "3",
+  "social media": "3",
+  "social manager": "3",
+};
+
 const normalize = (value?: string) => value?.trim().toLowerCase() || "";
 
 const GREETINGS = ["hello", "hi", "hey"];
@@ -64,6 +131,56 @@ const GREETINGS = ["hello", "hi", "hey"];
 const creatorHandleFromPhone = (phone: string) => `creator-${phone.slice(-6) || "new"}`;
 
 const creatorIdFromPhone = (phone: string) => `whatsapp_${phone}`;
+
+const cleanWhatsAppName = (name?: string) => {
+  const trimmed = name?.trim();
+  return trimmed || null;
+};
+
+const getWhatsAppContact = (value: any, from: string): WhatsAppContact | undefined => {
+  const contacts = Array.isArray(value?.contacts) ? value.contacts : [];
+  return contacts.find((contact: WhatsAppContact) => contact?.wa_id === from) || contacts[0];
+};
+
+async function upsertWhatsAppUserFromContact(from: string, contact?: WhatsAppContact) {
+  const creatorId = creatorIdFromPhone(from);
+  const creatorHandle = creatorHandleFromPhone(from);
+  const profileName = cleanWhatsAppName(contact?.profile?.name);
+  const userRef = db.collection("users").doc(creatorId);
+  const userSnap = await userRef.get();
+  const existing = userSnap.exists ? userSnap.data() as Record<string, any> : {};
+  const existingDisplayName = cleanWhatsAppName(existing.displayName);
+  const shouldUseProfileName = profileName && (!existingDisplayName || existingDisplayName === creatorHandle);
+  const now = FieldValue.serverTimestamp();
+
+  await userRef.set(
+    stripUndefined({
+      email: existing.email || `${creatorId}@whatsapp.pasiveco.local`,
+      emailVerified: existing.emailVerified ?? false,
+      isActive: existing.isActive ?? true,
+      isAdmin: existing.isAdmin ?? false,
+      role: existing.role || "user",
+      plan: existing.plan || "free",
+      displayName: shouldUseProfileName ? profileName : existingDisplayName || creatorHandle,
+      username: existing.username || creatorHandle,
+      slug: existing.slug || creatorHandle,
+      phoneNumber: existing.phoneNumber || from,
+      whatsappId: contact?.wa_id || existing.whatsappId || from,
+      whatsappProfileName: profileName || existing.whatsappProfileName || null,
+      source: existing.source || "whatsapp",
+      accountStatus: existing.accountStatus || "whatsapp_unclaimed",
+      authProvider: existing.authProvider || "whatsapp_unclaimed",
+      canLogin: existing.canLogin ?? false,
+      links: Array.isArray(existing.links) ? existing.links : [],
+      socialLinks: Array.isArray(existing.socialLinks) ? existing.socialLinks : [],
+      firstContactAt: existing.firstContactAt || now,
+      lastWhatsAppContactAt: now,
+      createdAt: existing.createdAt || now,
+      updatedAt: now,
+    }),
+    { merge: true }
+  );
+}
 
 const getMessageText = (message: any) =>
   message.text?.body?.trim() ||
@@ -85,11 +202,18 @@ const getInboundPreview = (message: any) => {
   return "Unsupported WhatsApp message";
 };
 
+const isJobApplicationIntent = (value: string) =>
+  /\b(job|jobs|career|careers|apply|application|candidate|vacancy|hiring)\b/i.test(value) ||
+  value.includes("apply for a job");
+
 const welcomeMessage =
   "Hey! Welcome to Pasive — sell your digital products and get paid instantly. Want to get started?\n\nReply with:\n1. Yes, let's go\n2. Tell me more first";
 
 const productTypeMessage =
   "You create once, we handle payments, delivery, and payouts. No website needed. What do you sell?\n\nReply with:\n1. Ebooks / PDFs\n2. Courses / Videos\n3. Templates / Tools\n4. Something else";
+
+const jobRoleMessage =
+  "Which role are you applying for?\n\nReply with:\n1. Content Creator\n2. Video Editor\n3. Social Media Manager";
 
 type GlobalCommandHandler = (from: string, session: WhatsAppSession) => Promise<string>;
 
@@ -99,6 +223,10 @@ const GLOBAL_COMMANDS: Record<string, GlobalCommandHandler> = {
   customers: handleCustomersCommand,
   discount: handleDiscountCommand,
   "new product": handleNewProductCommand,
+  jobs: handleJobsCommand,
+  job: handleJobsCommand,
+  apply: handleJobsCommand,
+  careers: handleJobsCommand,
 };
 
 function verifyWebhookSignature(req: NextRequest, rawBody: string) {
@@ -174,6 +302,9 @@ export async function POST(req: NextRequest) {
     }
 
     const from = message.from; // User's WhatsApp ID/Phone Number
+    const contact = getWhatsAppContact(value, from);
+    await upsertWhatsAppUserFromContact(from, contact);
+
     await recordWhatsAppMessage(from, {
       direction: "inbound",
       content: getInboundPreview(message),
@@ -321,9 +452,24 @@ async function handleNewProductCommand(from: string) {
   return productTypeMessage;
 }
 
+async function handleJobsCommand(from: string) {
+  await resetWhatsAppJobSession(from);
+  await db.collection("users").doc(creatorIdFromPhone(from)).set(
+    {
+      whatsappFlows: FieldValue.arrayUnion("jobs"),
+      lastWhatsAppFlow: "jobs",
+      lastJobContactAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return "Amazing. Let's get your application started.\n\nWhat's your full name?";
+}
+
 async function resetWhatsAppSession(from: string, step: WhatsAppStep) {
   await sessionDoc(from).set(
     {
+      flow: "commerce",
       step,
       productType: FieldValue.delete(),
       productName: FieldValue.delete(),
@@ -336,6 +482,44 @@ async function resetWhatsAppSession(from: string, step: WhatsAppStep) {
       bankSetupRequested: FieldValue.delete(),
       bankingDetailsRaw: FieldValue.delete(),
       accountNumber: FieldValue.delete(),
+      candidateFullName: FieldValue.delete(),
+      candidateAge: FieldValue.delete(),
+      candidatePhone: FieldValue.delete(),
+      candidateLocation: FieldValue.delete(),
+      jobRole: FieldValue.delete(),
+      jobId: FieldValue.delete(),
+      screeningQuestionIndex: FieldValue.delete(),
+      screeningAnswers: FieldValue.delete(),
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+async function resetWhatsAppJobSession(from: string) {
+  await sessionDoc(from).set(
+    {
+      flow: "jobs",
+      step: "job_full_name",
+      productType: FieldValue.delete(),
+      productName: FieldValue.delete(),
+      productPrice: FieldValue.delete(),
+      productSlug: FieldValue.delete(),
+      productId: FieldValue.delete(),
+      fileId: FieldValue.delete(),
+      fileName: FieldValue.delete(),
+      salesLink: FieldValue.delete(),
+      bankSetupRequested: FieldValue.delete(),
+      bankingDetailsRaw: FieldValue.delete(),
+      accountNumber: FieldValue.delete(),
+      candidateFullName: FieldValue.delete(),
+      candidateAge: FieldValue.delete(),
+      candidatePhone: from,
+      candidateLocation: FieldValue.delete(),
+      jobRole: FieldValue.delete(),
+      jobId: FieldValue.delete(),
+      screeningQuestionIndex: FieldValue.delete(),
+      screeningAnswers: FieldValue.delete(),
       updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true }
@@ -372,11 +556,19 @@ async function handleWhatsAppMessage(from: string, message: any) {
     return welcomeMessage;
   }
 
+  if (isJobApplicationIntent(normalizedText) && (session.flow !== "jobs" || session.step === "complete")) {
+    return handleJobsCommand(from);
+  }
+
   const step = session.step || "welcome";
 
   const globalHandler = GLOBAL_COMMANDS[normalizedText];
   if (globalHandler) {
     return globalHandler(from, session);
+  }
+
+  if (session.flow === "jobs" || step.startsWith("job_")) {
+    return handleWhatsAppJobApplication(from, session, textBody, normalizedText);
   }
 
   if (step === "complete" && GREETINGS.includes(normalizedText)) {
@@ -582,6 +774,182 @@ async function handleWhatsAppMessage(from: string, message: any) {
   return "Your onboarding is complete. Reply restart anytime to add another product.";
 }
 
+async function handleWhatsAppJobApplication(
+  from: string,
+  session: WhatsAppSession,
+  textBody: string,
+  normalizedText: string
+) {
+  const sessionRef = sessionDoc(from);
+  const step = session.step || "job_full_name";
+
+  if (step === "job_full_name") {
+    if (!textBody || textBody.length < 2) {
+      return "Please send your full name.";
+    }
+
+    await sessionRef.set(
+      {
+        flow: "jobs",
+        step: "job_age",
+        candidateFullName: textBody,
+        candidatePhone: from,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return "Thanks. How old are you?";
+  }
+
+  if (step === "job_age") {
+    const age = Number(textBody.replace(/[^\d]/g, ""));
+    if (!Number.isFinite(age) || age < 16 || age > 80) {
+      return "Please send a valid age as a number. For example: 24";
+    }
+
+    await sessionRef.set(
+      {
+        step: "job_location",
+        candidateAge: age,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return "Where are you based? City and state is fine. For example: Lekki, Lagos";
+  }
+
+  if (step === "job_location") {
+    if (!textBody || textBody.length < 2) {
+      return "Please send your location. For example: Abuja or Yaba, Lagos";
+    }
+
+    await sessionRef.set(
+      {
+        step: "job_role",
+        candidateLocation: textBody,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return jobRoleMessage;
+  }
+
+  if (step === "job_role") {
+    const roleKey = JOB_ROLE_ALIASES[normalizedText];
+    const role = roleKey ? JOB_ROLES[roleKey] : null;
+
+    if (!role) {
+      return `${jobRoleMessage}\n\nPlease reply with 1, 2, or 3.`;
+    }
+
+    await sessionRef.set(
+      {
+        step: "job_screening",
+        jobRole: role.title,
+        jobId: role.id,
+        screeningQuestionIndex: 0,
+        screeningAnswers: [],
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return `Great. ${role.questions[0]}`;
+  }
+
+  if (step === "job_screening") {
+    const role = Object.values(JOB_ROLES).find((item) => item.id === session.jobId || item.title === session.jobRole);
+    if (!role) {
+      await sessionRef.set(
+        { step: "job_role", updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+      return jobRoleMessage;
+    }
+
+    const questionIndex = session.screeningQuestionIndex ?? 0;
+    const currentQuestion = role.questions[questionIndex];
+
+    if (!textBody || textBody.length < 2) {
+      return "Please send a short answer so we can continue your application.";
+    }
+
+    const answers = [
+      ...(Array.isArray(session.screeningAnswers) ? session.screeningAnswers : []),
+      {
+        question: currentQuestion,
+        answer: textBody,
+      },
+    ];
+
+    const nextQuestionIndex = questionIndex + 1;
+    if (nextQuestionIndex < role.questions.length) {
+      await sessionRef.set(
+        {
+          screeningQuestionIndex: nextQuestionIndex,
+          screeningAnswers: answers,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return role.questions[nextQuestionIndex];
+    }
+
+    const applicationId = await createWhatsAppJobApplication(from, {
+      ...session,
+      jobId: role.id,
+      jobRole: role.title,
+      screeningAnswers: answers,
+    });
+
+    await sessionRef.set(
+      {
+        step: "complete",
+        flow: "jobs",
+        jobApplicationId: applicationId,
+        screeningAnswers: answers,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return `Done. Your application for ${role.title} has been received.\n\nOur team will review it and contact you here on WhatsApp if you're shortlisted.`;
+  }
+
+  if (step === "complete") {
+    return "Your job application has already been received. Reply jobs if you want to start a new application.";
+  }
+
+  await resetWhatsAppJobSession(from);
+  return "Let's get your application started.\n\nWhat's your full name?";
+}
+
+async function createWhatsAppJobApplication(from: string, session: WhatsAppSession) {
+  const screeningAnswers = Array.isArray(session.screeningAnswers) ? session.screeningAnswers : [];
+  const message = screeningAnswers
+    .map((item, index) => `${index + 1}. ${item.question}\n${item.answer}`)
+    .join("\n\n");
+
+  const applicationRef = await db.collection("job_applications").add({
+    jobId: session.jobId || "whatsapp-job-application",
+    jobTitle: session.jobRole || "WhatsApp Job Application",
+    fullName: session.candidateFullName || "WhatsApp Candidate",
+    email: "",
+    phoneNumber: session.candidatePhone || from,
+    age: session.candidateAge || null,
+    location: session.candidateLocation || "",
+    portfolioUrl: "",
+    message,
+    source: "whatsapp",
+    whatsappId: from,
+    screeningAnswers,
+    status: "new",
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  return applicationRef.id;
+}
+
 function parseNairaPrice(value: string) {
   const compact = value
     .trim()
@@ -652,6 +1020,9 @@ async function createWhatsAppProduct({
   fileUrl: string;
 }) {
   const now = FieldValue.serverTimestamp();
+  const userRef = db.collection("users").doc(creatorId);
+  const userSnap = await userRef.get();
+  const existingUser = userSnap.exists ? userSnap.data() as Record<string, any> : {};
   const category = PRODUCT_CATEGORY_BY_TYPE[productType] || "digital-download";
   const isEbook = category === "ebook";
   const details = isEbook
@@ -669,22 +1040,25 @@ async function createWhatsAppProduct({
       deliveryMode: "silent_email",
     };
 
-  await db.collection("users").doc(creatorId).set(
-    {
-      email: `${creatorId}@whatsapp.pasiveco.local`,
-      displayName: creatorHandle,
-      emailVerified: false,
-      isActive: true,
-      role: "user",
-      username: creatorHandle,
-      slug: creatorHandle,
-      phoneNumber: from,
-      source: "whatsapp_onboarding",
-      links: [],
-      socialLinks: [],
-      createdAt: now,
+  await userRef.set(
+    stripUndefined({
+      email: existingUser.email || `${creatorId}@whatsapp.pasiveco.local`,
+      emailVerified: existingUser.emailVerified ?? false,
+      isActive: existingUser.isActive ?? true,
+      role: existingUser.role || "user",
+      username: existingUser.username || creatorHandle,
+      slug: existingUser.slug || creatorHandle,
+      phoneNumber: existingUser.phoneNumber || from,
+      source: existingUser.source || "whatsapp",
+      accountStatus: existingUser.accountStatus || "whatsapp_unclaimed",
+      authProvider: existingUser.authProvider || "whatsapp_unclaimed",
+      canLogin: existingUser.canLogin ?? false,
+      links: Array.isArray(existingUser.links) ? existingUser.links : [],
+      socialLinks: Array.isArray(existingUser.socialLinks) ? existingUser.socialLinks : [],
+      createdAt: existingUser.createdAt || now,
+      whatsappOnboardingStartedAt: now,
       updatedAt: now,
-    },
+    }),
     { merge: true }
   );
 

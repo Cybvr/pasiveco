@@ -17,6 +17,7 @@ import {
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { ArrowRight, Star, Disc, ChevronLeft, Smartphone } from "lucide-react"
+import { claimWhatsAppAccount } from '@/lib/claim-whatsapp-account'
 
 declare global {
   interface Window {
@@ -112,6 +113,7 @@ function LoginContent() {
 
     try {
       const result = await window.confirmationResult.confirm(otp)
+      await claimWhatsAppAccount(result.user)
       const userRef = doc(db, 'users', result.user.uid)
       const userSnap = await getDoc(userRef)
       

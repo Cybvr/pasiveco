@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { jobsService, type Job, type JobApplication } from "@/services/jobsService"
-import { Briefcase, User, Mail, Calendar, ExternalLink, Trash2, MapPin, Clock, Plus, Save, Loader2 } from "lucide-react"
+import { Briefcase, User, Mail, Calendar, ExternalLink, Trash2, MapPin, Clock, Plus, Save, Loader2, Phone } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { AdminSidebarList } from "../components/AdminSidebarList"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -209,48 +209,95 @@ const JobsTab = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm font-medium">{selectedApplication.email}</p>
+                  {selectedApplication.email ? (
+                    <p className="text-sm font-medium">{selectedApplication.email}</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No email provided</p>
+                  )}
+                  {selectedApplication.phoneNumber && (
+                    <p className="mt-2 flex items-center gap-2 text-sm font-medium">
+                      <Phone className="h-3 w-3 text-muted-foreground" />
+                      {selectedApplication.phoneNumber}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="bg-muted/30 border-none shadow-none">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <ExternalLink className="h-3 w-3" /> Portfolio
+                    <MapPin className="h-3 w-3" /> Candidate Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {selectedApplication.portfolioUrl ? (
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <span className="text-muted-foreground">Age:</span>{" "}
+                      <span className="font-medium">{selectedApplication.age || "Not provided"}</span>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Location:</span>{" "}
+                      <span className="font-medium">{selectedApplication.location || "Not provided"}</span>
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Source:</span>{" "}
+                      <span className="font-medium capitalize">{selectedApplication.source || "website"}</span>
+                    </p>
+                  </div>
+                  {selectedApplication.portfolioUrl && (
                     <a 
                       href={selectedApplication.portfolioUrl} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                      className="mt-3 text-sm font-medium text-primary hover:underline flex items-center gap-1"
                     >
                       View Portfolio <ExternalLink className="h-3 w-3" />
                     </a>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic">No link provided</p>
                   )}
                 </CardContent>
               </Card>
             </div>
+
+            {selectedApplication.screeningAnswers?.length ? (
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Briefcase className="h-3 w-3" /> Screening Answers
+                </h3>
+                <div className="space-y-3">
+                  {selectedApplication.screeningAnswers.map((item, index) => (
+                    <div key={`${item.question}-${index}`} className="bg-background border rounded-xl p-4 text-sm">
+                      <p className="font-semibold">{item.question}</p>
+                      <p className="mt-2 whitespace-pre-wrap text-muted-foreground">{item.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <User className="h-3 w-3" /> Application Message
               </h3>
               <div className="bg-background border rounded-xl p-4 text-sm leading-relaxed whitespace-pre-wrap">
-                {selectedApplication.message}
+                {selectedApplication.message || "No message provided."}
               </div>
             </div>
 
             <div className="pt-4 flex gap-3">
-              <Button asChild>
-                <a href={`mailto:${selectedApplication.email}?subject=Regarding your application for ${selectedApplication.jobTitle}`}>
-                  Reply via Email
-                </a>
-              </Button>
+              {selectedApplication.phoneNumber && (
+                <Button asChild>
+                  <a href={`https://wa.me/${selectedApplication.phoneNumber.replace(/\D/g, "")}`} target="_blank" rel="noreferrer">
+                    Reply on WhatsApp
+                  </a>
+                </Button>
+              )}
+              {selectedApplication.email && (
+                <Button variant="outline" asChild>
+                  <a href={`mailto:${selectedApplication.email}?subject=Regarding your application for ${selectedApplication.jobTitle}`}>
+                    Reply via Email
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         ) : selectedJob ? (

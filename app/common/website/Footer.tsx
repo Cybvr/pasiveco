@@ -147,6 +147,7 @@ const Footer = () => {
               <ul className="space-y-2 text-foreground/80">
                 <li><a href="/blog" className="transition-colors hover:text-foreground">Blog</a></li>
                 <li><a href="/about" className="transition-colors hover:text-foreground">About</a></li>
+                <li><a href="/jobs" className="transition-colors hover:text-foreground">Jobs</a></li>
               </ul>
             </div>
           </div>
@@ -175,7 +176,7 @@ const Footer = () => {
                   hello@pasive.co
                 </a>
                 <a
-                  href="https://wa.me/2349053066692?text=Hi%20Pasive"
+                  href="https://wa.me/message/FTFCG66XC4J2O1"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-full border border-foreground/15 bg-foreground/5 px-3 py-1.5 text-xs font-medium text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground"
