@@ -21,7 +21,7 @@ export default function VibrantSpaceWidget() {
               <RiWallet3Fill className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-chunko text-xl tracking-wide uppercase text-zinc-100">Creator Hub</h3>
+              <h3 className="text-xl font-bold tracking-wide uppercase text-zinc-100">Creator Hub</h3>
               <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase">Verified Account</p>
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function VibrantSpaceWidget() {
                       <RiTeamFill className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-lg text-zinc-100 uppercase font-chunko tracking-wide">Elite Space</h4>
+                      <h4 className="text-lg font-bold uppercase tracking-wide text-zinc-100">Elite Space</h4>
                       <p className="text-sm text-zinc-500 font-bold">1,240 Members</p>
                     </div>
                   </div>
