@@ -129,6 +129,19 @@ function normalizePhoneForWhatsApp(phone: string) {
   return phone.replace(/\D/g, "")
 }
 
+async function saveUserPhoneNumber(userId: string | null, phone: string) {
+  const trimmedPhone = phone.trim()
+  if (!userId || !trimmedPhone) return
+
+  await db.collection("users").doc(userId).set(
+    {
+      phoneNumber: trimmedPhone,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  )
+}
+
 async function bridgeSupportSessionToWhatsAppInbox({
   supportSessionId,
   ticketId,
@@ -211,6 +224,7 @@ export async function POST(req: NextRequest) {
 
     const userId = typeof body?.userId === "string" ? body.userId : null
     const path = typeof body?.path === "string" ? body.path : null
+    await saveUserPhoneNumber(userId, userInfo.phone)
 
     const sessionRef = sessionId
       ? db.collection("supportSessions").doc(sessionId)

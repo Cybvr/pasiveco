@@ -25,6 +25,16 @@ export async function POST(req: NextRequest) {
     const userId = typeof body?.userId === "string" ? body.userId : null
     const path = typeof body?.path === "string" ? body.path : null
 
+    if (userId) {
+      await db.collection("users").doc(userId).set(
+        {
+          phoneNumber: userInfo.phone,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      )
+    }
+
     const sessionRef = db.collection("supportSessions").doc()
     await sessionRef.set({
       ticketId,
