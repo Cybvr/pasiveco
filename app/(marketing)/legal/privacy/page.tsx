@@ -10,7 +10,13 @@ export default function PrivacyPolicy() {
       lastUpdated={LAST_UPDATED}
       sections={[
         {
-          heading: "1. Information we collect",
+          heading: "1. Who operates Pasive",
+          paragraphs: [
+            "Pasive is a product of VisualCoreNineSystems (http://visualhq.space). References to Pasive, we, us, or our in this Privacy Policy mean the Pasive product and the team operating it through VisualCoreNineSystems.",
+          ],
+        },
+        {
+          heading: "2. Information we collect",
           paragraphs: [
             "Pasive is built to help creators publish storefronts, sell products, grow their audience, manage spaces, and receive payouts. To run those features, we collect information you choose to provide and information created through use of the platform.",
           ],
@@ -24,7 +30,7 @@ export default function PrivacyPolicy() {
           ],
         },
         {
-          heading: "2. How we use information",
+          heading: "3. How we use information",
           bullets: [
             "Provide and operate creator storefronts, checkouts, memberships, spaces, affiliate tools, analytics, and dashboard features.",
             "Process purchases, record transactions, confirm orders, deliver digital products, and support creator payouts.",
@@ -35,7 +41,7 @@ export default function PrivacyPolicy() {
           ],
         },
         {
-          heading: "3. When we share information",
+          heading: "4. When we share information",
           paragraphs: [
             "We do not sell personal information as a standalone product. We may share information only when it is necessary to run the service, complete a transaction, or comply with legal obligations.",
           ],
@@ -48,13 +54,13 @@ export default function PrivacyPolicy() {
           ],
         },
         {
-          heading: "4. Data retention",
+          heading: "5. Data retention",
           paragraphs: [
             "We keep information for as long as needed to provide the service, maintain business records, resolve disputes, enforce agreements, and comply with legal, tax, accounting, and security obligations. Retention periods may differ depending on the type of information involved.",
           ],
         },
         {
-          heading: "5. Your choices and controls",
+          heading: "6. Your choices and controls",
           bullets: [
             "You can update profile, storefront, product, and payment-related information from your account settings where those controls are available.",
             "You can manage cookie preferences and certain communication settings through your browser or in-product controls.",
@@ -63,25 +69,25 @@ export default function PrivacyPolicy() {
           ],
         },
         {
-          heading: "6. Security",
+          heading: "7. Security",
           paragraphs: [
             "We use reasonable administrative, technical, and organizational measures to protect personal information. No method of storage or transmission is completely secure, so we cannot guarantee absolute security.",
           ],
         },
         {
-          heading: "7. Children's privacy",
+          heading: "8. Children's privacy",
           paragraphs: [
             "Pasive is not intended for children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided personal information to us, contact admin@pasive.co so we can review and address the issue.",
           ],
         },
         {
-          heading: "8. Changes to this policy",
+          heading: "9. Changes to this policy",
           paragraphs: [
             "We may update this Privacy Policy from time to time to reflect product changes, legal requirements, or operational updates. When we do, we will revise the last updated date on this page.",
           ],
         },
         {
-          heading: "9. Contact",
+          heading: "10. Contact",
           paragraphs: [
             "Questions about this Privacy Policy can be sent to admin@pasive.co.",
           ],

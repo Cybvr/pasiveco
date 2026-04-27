@@ -10,13 +10,19 @@ export default function CookiePolicy() {
       lastUpdated={LAST_UPDATED}
       sections={[
         {
-          heading: "1. What cookies are",
+          heading: "1. Who operates Pasive",
+          paragraphs: [
+            "Pasive is a product of VisualCoreNineSystems (http://visualhq.space). References to Pasive, we, us, or our in this Cookie Policy mean the Pasive product and the team operating it through VisualCoreNineSystems.",
+          ],
+        },
+        {
+          heading: "2. What cookies are",
           paragraphs: [
             "Cookies are small text files placed on your browser or device when you visit a website. Similar technologies such as local storage, pixels, or tags may be used for related purposes.",
           ],
         },
         {
-          heading: "2. How Pasive uses cookies",
+          heading: "3. How Pasive uses cookies",
           paragraphs: [
             "Pasive uses cookies to support the landing site, creator storefronts, checkout flows, dashboard sessions, and settings across the platform.",
           ],
@@ -28,13 +34,13 @@ export default function CookiePolicy() {
           ],
         },
         {
-          heading: "3. Third-party technologies",
+          heading: "4. Third-party technologies",
           paragraphs: [
             "Some cookies or similar technologies may be set by trusted third parties that help us provide payments, analytics, infrastructure, communications, or embedded experiences. Their handling of data is governed by their own terms and privacy practices.",
           ],
         },
         {
-          heading: "4. Your choices",
+          heading: "5. Your choices",
           bullets: [
             "You can manage cookies through your browser settings, including blocking or deleting cookies.",
             "If Pasive presents a cookie preference tool, you can use it to adjust non-essential cookie settings.",
@@ -42,13 +48,13 @@ export default function CookiePolicy() {
           ],
         },
         {
-          heading: "5. Changes to this policy",
+          heading: "6. Changes to this policy",
           paragraphs: [
             "We may update this Cookie Policy from time to time to reflect changes in technology, law, or the way Pasive operates. When we do, we will update the last updated date above.",
           ],
         },
         {
-          heading: "6. Contact",
+          heading: "7. Contact",
           paragraphs: [
             "If you have questions about our use of cookies or similar technologies, contact admin@pasive.co.",
           ],
