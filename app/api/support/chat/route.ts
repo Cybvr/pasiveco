@@ -129,6 +129,10 @@ function normalizePhoneForWhatsApp(phone: string) {
   return phone.replace(/\D/g, "")
 }
 
+function firstName(name: string) {
+  return name.trim().split(/\s+/)[0] || ""
+}
+
 async function saveUserPhoneNumber(userId: string | null, phone: string) {
   const trimmedPhone = phone.trim()
   if (!userId || !trimmedPhone) return
@@ -318,9 +322,10 @@ export async function POST(req: NextRequest) {
         message,
       })
 
-      const reply = userInfo.name || userInfo.phone
-        ? "You're in the right place. I've flagged this conversation for our support team, and they'll reply here in Messages."
-        : "You're in the right place. Send your name and phone number here, and our support team will reply in Messages."
+      const name = firstName(userInfo.name)
+      const reply = name
+        ? `Hi ${name}, I've connected this chat to our support team. What can we help you with?`
+        : "I've connected this chat to our support team. What can we help you with?"
 
       const assistantRef = sessionRef.collection("messages").doc()
       await assistantRef.set({

@@ -306,7 +306,7 @@ export default function SupportChatWidget() {
       const replyText = typeof data?.reply === "string" ? data.reply : ""
       addMsg({
         role: "assistant",
-        content: replyText || "You're in the right place. I've flagged this conversation for our support team, and they'll reply here in Messages.",
+        content: replyText || `Hi ${info.name.split(/\s+/)[0] || "there"}, I've connected this chat to our support team. What can we help you with?`,
       })
       addMsg({ role: "system", content: `Ticket ${data?.ticketId || ticketId} · Agent request sent` })
     } catch {
