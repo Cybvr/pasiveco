@@ -1,6 +1,6 @@
 import LegalPageShell from "../LegalPageShell"
 
-const LAST_UPDATED = "April 26, 2026"
+const LAST_UPDATED = "April 27, 2026"
 
 export default function DataDeletionInstructions() {
   return (
@@ -23,7 +23,7 @@ export default function DataDeletionInstructions() {
           bullets: [
             "Use the subject line: Data Deletion Request.",
             "Include your name, account email, Pasive username if you have one, and the data you want deleted.",
-            "If your request relates to WhatsApp, include the phone number you used to message Pasive.",
+            "If your request relates to WhatsApp, support chat, AI chat, jobs, email, or a purchase, include the phone number, email address, order reference, or other details you used with Pasive.",
           ],
         },
         {
@@ -31,11 +31,20 @@ export default function DataDeletionInstructions() {
           paragraphs: [
             "After verifying your request, we will delete or anonymize personal information that Pasive no longer needs to provide the service, meet legal obligations, prevent fraud, resolve disputes, or maintain required business records.",
           ],
+          bullets: [
+            "This may include account profile data, support records, WhatsApp support sessions, AI support messages, email preferences, and product or storefront data where deletion is available and lawful.",
+            "If data has been shared with a processor, such as an infrastructure, support, email, AI, payment, or messaging provider, we may also take reasonable steps to delete or anonymize that data where required and technically possible.",
+          ],
         },
         {
           heading: "4. Data we may retain",
           paragraphs: [
             "Some transaction, payout, tax, security, fraud-prevention, support, and legal records may be retained where required by law or necessary for legitimate business purposes. Where possible, retained records are limited to the information needed for those purposes.",
+          ],
+          bullets: [
+            "Payment, payout, chargeback, tax, fraud-prevention, and accounting records may need to be retained even after an account deletion request.",
+            "Messages or purchase records involving creators or customers may be retained where needed to complete orders, resolve disputes, protect users, or comply with legal obligations.",
+            "Backups and logs may take additional time to expire from our systems.",
           ],
         },
         {

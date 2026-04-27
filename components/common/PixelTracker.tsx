@@ -1,6 +1,18 @@
 'use client'
 import Script from 'next/script'
-import React from 'react'
+import { useEffect, useState } from 'react'
+
+const CONSENT_KEY = "pasive_cookie_consent"
+
+function hasMarketingConsent() {
+  if (typeof window === "undefined") return false
+  try {
+    const stored = window.localStorage.getItem(CONSENT_KEY)
+    return stored ? JSON.parse(stored)?.marketing === true : false
+  } catch {
+    return false
+  }
+}
 
 interface PixelTrackerProps {
   integrations?: {
@@ -11,7 +23,18 @@ interface PixelTrackerProps {
 }
 
 export default function PixelTracker({ integrations }: PixelTrackerProps) {
+  const [enabled, setEnabled] = useState(false)
+
+  useEffect(() => {
+    setEnabled(hasMarketingConsent())
+
+    const onConsentChange = () => setEnabled(hasMarketingConsent())
+    window.addEventListener("pasive-cookie-consent", onConsentChange)
+    return () => window.removeEventListener("pasive-cookie-consent", onConsentChange)
+  }, [])
+
   if (!integrations) return null;
+  if (!enabled) return null;
 
   return (
     <>

@@ -1,6 +1,6 @@
 import LegalPageShell from "../LegalPageShell"
 
-const LAST_UPDATED = "March 27, 2026"
+const LAST_UPDATED = "April 27, 2026"
 
 export default function Terms() {
   return (
@@ -34,6 +34,11 @@ export default function Terms() {
           heading: "4. Using Pasive",
           paragraphs: [
             "Pasive gives creators tools to publish profile pages, sell products, run memberships, build spaces, track performance, communicate with customers, and manage payouts from a central dashboard. Your use of these tools must comply with applicable law and these terms.",
+          ],
+          bullets: [
+            "Some Pasive features use AI, automation, WhatsApp, email, analytics, payment, and third-party infrastructure providers to operate the service.",
+            "AI and automated features are provided to assist users and our team. They may be inaccurate, incomplete, or unavailable, and you remain responsible for reviewing important outputs before relying on them.",
+            "WhatsApp flows may be used for onboarding, jobs, support, and business-line messaging. By messaging Pasive on WhatsApp or asking for an agent, you understand that your messages may be processed through WhatsApp and Pasive support systems.",
           ],
         },
         {

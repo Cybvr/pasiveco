@@ -1,6 +1,6 @@
 import LegalPageShell from "../LegalPageShell"
 
-const LAST_UPDATED = "March 27, 2026"
+const LAST_UPDATED = "April 27, 2026"
 
 export default function CookiePolicy() {
   return (
@@ -24,13 +24,14 @@ export default function CookiePolicy() {
         {
           heading: "3. How Pasive uses cookies",
           paragraphs: [
-            "Pasive uses cookies to support the landing site, creator storefronts, checkout flows, dashboard sessions, and settings across the platform.",
+            "Pasive uses cookies and local storage to support the landing site, creator storefronts, checkout flows, dashboard sessions, settings, analytics, and optional marketing measurement across the platform.",
           ],
           bullets: [
             "Necessary cookies help with login sessions, security, fraud prevention, routing, and core site functionality.",
-            "Preference cookies remember settings such as cookie choices and product experience preferences.",
+            "Preference cookies and local storage remember settings such as cookie choices, currency preferences, onboarding state, and product experience preferences.",
             "Performance cookies help us measure reliability, loading behavior, and technical issues so we can improve the site.",
-            "Analytics cookies help us understand page views, clicks, traffic sources, and feature usage across marketing pages and product surfaces.",
+            "Analytics cookies help us understand page views, clicks, traffic sources, conversion activity, and feature usage across marketing pages and product surfaces.",
+            "Marketing cookies help us measure campaigns, understand whether ads are working, and improve how we reach people who may be interested in Pasive.",
           ],
         },
         {
@@ -38,12 +39,19 @@ export default function CookiePolicy() {
           paragraphs: [
             "Some cookies or similar technologies may be set by trusted third parties that help us provide payments, analytics, infrastructure, communications, or embedded experiences. Their handling of data is governed by their own terms and privacy practices.",
           ],
+          bullets: [
+            "Google tags may be used for analytics, conversion measurement, and advertising performance after optional cookies are accepted.",
+            "Meta Pixel may be used for page view and campaign measurement after optional cookies are accepted.",
+            "Creators may add their own Meta, TikTok, or Google tracking integrations to their storefronts. Those integrations may set cookies or similar technologies controlled by the creator or the third-party provider.",
+            "Firebase, authentication, payment, and security tools may use necessary cookies or similar storage needed to keep Pasive working.",
+          ],
         },
         {
           heading: "5. Your choices",
           bullets: [
+            "When the cookie banner is shown, you can accept all optional cookies or reject optional cookies.",
             "You can manage cookies through your browser settings, including blocking or deleting cookies.",
-            "If Pasive presents a cookie preference tool, you can use it to adjust non-essential cookie settings.",
+            "If you clear your browser storage or use a different device, Pasive may ask for your cookie choice again.",
             "Disabling some cookies may affect login state, checkout behavior, saved preferences, analytics accuracy, or other parts of the service.",
           ],
         },

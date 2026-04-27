@@ -28,6 +28,7 @@ import AIOnboardingSticky from "@/app/common/website/AIOnboardingSticky"
 import CurrencyPayoutSection from "@/app/common/website/CurrencyPayoutSection"
 import VibrantSpaceWidget from "@/app/common/website/VibrantSpaceWidget"
 import { getUserCount } from "@/services/userService"
+import CookieConsentBanner from "@/components/common/CookieConsentBanner"
 
 const TESTIMONIALS = [
   {
@@ -394,6 +395,7 @@ export default function LandingPage() {
 
       <AIOnboardingSticky />
       <Footer />
+      <CookieConsentBanner />
     </div>
   )
 }
