@@ -151,7 +151,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Your creator hub looks perfect on all devices, ensuring your fans have a great experience anywhere.
+                  Your creator hub looks perfect on all devices, ensuring your audience have a great experience anywhere.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -166,7 +166,7 @@ export default function AboutPage() {
             <div className="space-y-2">
               <h2 className="text-3xl font-bold sm:text-4xl">How Pasive works</h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl">
-                Launch your creator hub in three simple steps and start converting followers into fans.
+                Launch your creator hub in three simple steps and start converting followers into audience.
               </p>
             </div>
           </div>

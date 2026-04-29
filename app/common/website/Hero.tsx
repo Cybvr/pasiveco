@@ -5,7 +5,7 @@ const HeroSection = () => (
     <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
       <div>
         <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6 uppercase tracking-tight">
-          CREATORS 
+          CREATORS
           <br />
           TOOLS
         </h1>
@@ -13,7 +13,7 @@ const HeroSection = () => (
           Elevate your brand. Ignite your passion. Create, share, and monetize your creative business with our robust tools. Track analytics in one place.
         </p>
         <p className="text-lg mb-8 opacity-80 max-w-xl">
-          No matter where your customers, clients, or fans are, Pasive makes it easy to showcase and get paid.
+          No matter where your customers, clients, or audience are, Pasive makes it easy to showcase and get paid.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <button className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg hover:opacity-90 transition-all shadow-lg hover:shadow-primary/20">

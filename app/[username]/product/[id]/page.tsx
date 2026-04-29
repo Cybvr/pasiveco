@@ -62,7 +62,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
             setCurrentUserData(userData);
             const pinned = userData.pinnedAffiliates || [];
             setIsPinned(pinned.includes(paramValue) || pinned.includes(productData?.id || ''));
-            
+
             // Check if user has purchased this product
             if (productData?.id || paramValue) {
               const purchased = await checkPurchaseStatus(user.email!, productData?.id || paramValue);
@@ -152,7 +152,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
     try {
       const currentPinned = currentUserData?.pinnedAffiliates || [];
       const prodId = product.id || productId;
-      
+
       let newPinned;
       if (isPinned) {
         newPinned = currentPinned.filter((id: string) => id !== prodId);
@@ -160,7 +160,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
       } else {
         newPinned = [...currentPinned, prodId];
         toast.success('Added to your store!', {
-          description: 'Fans can now find this on your public shop page.',
+          description: 'audience can now find this on your public shop page.',
         });
       }
 
@@ -223,10 +223,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                 </div>
                 <Badge className="bg-primary text-primary-foreground">Member Access</Badge>
               </div>
-              
+
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">You have full access to this content. You can also find this in your <Link href="/dashboard/library" className="font-bold underline text-foreground">Library</Link>.</p>
-                
+
                 {product.details?.fileUrl && (
                   <a href={product.details.fileUrl} target="_blank" rel="noopener noreferrer" className="block">
                     <Button className="w-full h-11 gap-2" variant="default">
@@ -235,7 +235,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                     </Button>
                   </a>
                 )}
-                
+
                 {product.details?.videoLink && (
                   <a href={product.details.videoLink} target="_blank" rel="noopener noreferrer" className="block">
                     <Button className="w-full h-11 gap-2" variant="outline">
@@ -246,14 +246,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                 )}
 
                 {product.details?.lessons && product.details.lessons.length > 0 && (
-                   <div className="pt-2">
-                     <Link href={`/dashboard/library/${product.id || productId}`}>
-                       <Button className="w-full h-11 gap-2" variant="secondary">
-                         <Package className="h-4 w-4" />
-                         Go to Course Library
-                       </Button>
-                     </Link>
-                   </div>
+                  <div className="pt-2">
+                    <Link href={`/dashboard/library/${product.id || productId}`}>
+                      <Button className="w-full h-11 gap-2" variant="secondary">
+                        <Package className="h-4 w-4" />
+                        Go to Course Library
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>
@@ -286,9 +286,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
             )}
             <div className="flex flex-col gap-3">
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  className="flex-1 h-12 gap-2 border-dashed" 
+                <Button
+                  variant="outline"
+                  className="flex-1 h-12 gap-2 border-dashed"
                   size="lg"
                   onClick={handleShare}
                 >
@@ -297,9 +297,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                 </Button>
                 {product.affiliateEnabled && (
                   <div className="flex gap-2 flex-1">
-                    <Button 
-                      variant="default" 
-                      className="flex-1 h-12 gap-2 bg-zinc-900 text-white hover:bg-zinc-800" 
+                    <Button
+                      variant="default"
+                      className="flex-1 h-12 gap-2 bg-zinc-900 text-white hover:bg-zinc-800"
                       size="lg"
                       onClick={handlePromote}
                     >
@@ -307,8 +307,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                       Promote
                     </Button>
                     {user?.uid !== product.userId && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="icon"
                         className={`h-12 w-12 border-2 ${isPinned ? 'bg-primary/10 border-primary text-primary' : 'border-zinc-200'}`}
                         onClick={handlePinToStore}

@@ -121,6 +121,10 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                 Pricing
               </Link>
 
+              <Link href="/custom-domains" className="text-sm hover:text-primary transition-colors">
+                Domains
+              </Link>
+
               {/* Resources Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -222,6 +226,12 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                       className="block text-sm font-medium hover:text-primary transition-colors"
                     >
                       Pricing
+                    </Link>
+                    <Link 
+                      href="/custom-domains" 
+                      className="block text-sm font-medium hover:text-primary transition-colors"
+                    >
+                      Domains
                     </Link>
                     <Link 
                       href="/blog" 

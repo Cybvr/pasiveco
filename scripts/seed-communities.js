@@ -177,7 +177,7 @@ const communities = [
   },
   {
     name: 'Koma Cafe Anime and Art',
-    description: 'An active anime and art community for Genshin and Honkai fans, creative chat, emotes, events, and competitions.',
+    description: 'An active anime and art community for Genshin and Honkai audience, creative chat, emotes, events, and competitions.',
     memberCount: 319000,
     rating: 5.0,
     reviewsCount: 0,
@@ -187,7 +187,7 @@ const communities = [
   },
   {
     name: 'Sounds World',
-    description: 'A partnered creator community for SoundDrout fans with fun chat, music discussion, creator updates, and events.',
+    description: 'A partnered creator community for SoundDrout audience with fun chat, music discussion, creator updates, and events.',
     memberCount: 268000,
     rating: 3.8,
     reviewsCount: 0,

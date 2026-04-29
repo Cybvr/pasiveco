@@ -117,7 +117,7 @@ const AskInBio: React.FC<AskInBioProps> = ({
                 <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mb-3">
                   <span className="text-foreground font-bold">2</span>
                 </div>
-                <h4 className="font-semibold text-foreground mb-2">Fans Ask Questions</h4>
+                <h4 className="font-semibold text-foreground mb-2">audience Ask Questions</h4>
                 <p className="text-sm text-muted-foreground">Visitors chat with your AI to learn about you, your content, and your journey</p>
               </div>
               <div className="flex flex-col items-center text-center">
@@ -125,7 +125,7 @@ const AskInBio: React.FC<AskInBioProps> = ({
                   <span className="text-foreground font-bold">3</span>
                 </div>
                 <h4 className="font-semibold text-foreground mb-2">Build Deeper Connections</h4>
-                <p className="text-sm text-muted-foreground">Turn casual visitors into engaged fans through personalized interactions</p>
+                <p className="text-sm text-muted-foreground">Turn casual visitors into engaged audience through personalized interactions</p>
               </div>
             </div>
           </div>
@@ -143,16 +143,14 @@ const AskInBio: React.FC<AskInBioProps> = ({
                 className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
-                    message.isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'
-                  }`}
+                  className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${message.isUser ? 'flex-row-reverse space-x-reverse' : 'flex-row'
+                    }`}
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.isUser
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.isUser
                         ? 'bg-primary text-foreground'
                         : 'bg-card text-foreground'
-                    }`}
+                      }`}
                   >
                     {message.isUser ? (
                       <User className="w-4 h-4" />
@@ -161,19 +159,18 @@ const AskInBio: React.FC<AskInBioProps> = ({
                     )}
                   </div>
                   <div
-                    className={`rounded-2xl px-4 py-3 ${
-                      message.isUser
+                    className={`rounded-2xl px-4 py-3 ${message.isUser
                         ? 'bg-primary text-foreground'
                         : 'bg-card text-foreground'
-                    }`}
+                      }`}
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
                     <p className="text-xs opacity-70 mt-1">
                       {hasMounted
                         ? message.timestamp.toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
                         : ""}
                     </p>
                   </div>

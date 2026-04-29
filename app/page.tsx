@@ -34,7 +34,7 @@ import CookieConsentBanner from "@/components/common/CookieConsentBanner"
 
 const TESTIMONIALS = [
   {
-    quote: "As a creator, Pasive makes it easy to bring my fans into one dedicated space where we can truly connect. Nothing else comes close.",
+    quote: "As a creator, Pasive makes it easy to bring my audience into one dedicated space where we can truly connect. Nothing else comes close.",
     author: "Chidi Okonkwo",
     role: "Comedian"
   },
@@ -103,6 +103,15 @@ const SALES_EARNINGS = [
   { name: "Joy P", amount: "₦200", time: "11 days ago" },
 ]
 
+const SHORTS_VIDEOS = [
+  { id: "tk4mRRz2xWI", label: "Pasive short 1" },
+  { id: "IQ5qH3G7CWE", label: "Pasive short 2" },
+  { id: "Be0ClH82Sxw", label: "Pasive short 3" },
+  { id: "9c1dSXPUkf4", label: "Pasive short 4" },
+  { id: "38eQ2yXDMaw", label: "Pasive short 5" },
+  { id: "FuKxneywESs", label: "Pasive short 6" },
+]
+
 function SalesEarningsTicker() {
   return (
     <section className="sales-earnings-ticker">
@@ -132,7 +141,7 @@ export default function LandingPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [userCount, setUserCount] = useState<number | null>(null)
-  const [isVideoOpen, setIsVideoOpen] = useState(false)
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUserCount = async () => {
@@ -207,34 +216,39 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="relative z-10 bg-background px-6 py-12">
-        <div className="mx-auto max-w-md">
-          <button
-            type="button"
-            onClick={() => setIsVideoOpen(true)}
-            className="group relative aspect-[9/16] w-full overflow-hidden bg-foreground text-background shadow-2xl transition-transform duration-500 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-4 focus:ring-offset-background"
-            aria-label="Play Pasive video"
-          >
-            <img
-              src="https://i.ytimg.com/vi/tk4mRRz2xWI/hqdefault.jpg"
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
-            <span className="absolute left-1/2 top-1/2 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-white/30 bg-white text-black transition-transform duration-500 group-hover:scale-110">
-              <Play className="h-7 w-7 fill-current" />
-            </span>
-          </button>
+      <section className="relative z-10 bg-background py-12">
+        <div className="mx-auto max-w-7xl overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-4">
+            {SHORTS_VIDEOS.map((video) => (
+              <button
+                key={video.id}
+                type="button"
+                onClick={() => setActiveVideoId(video.id)}
+                className="group relative aspect-[9/16] w-[38vw] min-w-[150px] max-w-[220px] snap-start overflow-hidden bg-foreground text-background shadow-xl transition-transform duration-500 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-4 focus:ring-offset-background sm:w-[190px] lg:w-[205px]"
+                aria-label={`Play ${video.label}`}
+              >
+                <img
+                  src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+                <span className="absolute left-1/2 top-1/2 inline-flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-white text-black transition-transform duration-500 group-hover:scale-110">
+                  <Play className="h-5 w-5 fill-current" />
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      {isVideoOpen ? (
+      {activeVideoId ? (
         <div
           className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Pasive YouTube video"
-          onClick={() => setIsVideoOpen(false)}
+          onClick={() => setActiveVideoId(null)}
         >
           <div
             className="relative aspect-[9/16] w-full max-w-[460px] overflow-hidden bg-black shadow-2xl"
@@ -242,14 +256,14 @@ export default function LandingPage() {
           >
             <iframe
               className="h-full w-full"
-              src="https://www.youtube.com/embed/tk4mRRz2xWI?autoplay=1&mute=1&playsinline=1&rel=0"
+              src={`https://www.youtube.com/embed/${activeVideoId}?autoplay=1&mute=1&playsinline=1&rel=0`}
               title="Pasive YouTube Short"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
             <button
               type="button"
-              onClick={() => setIsVideoOpen(false)}
+              onClick={() => setActiveVideoId(null)}
               className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center bg-black/70 text-white backdrop-blur transition-colors hover:bg-black"
               aria-label="Close video"
             >
@@ -282,7 +296,7 @@ export default function LandingPage() {
               Creativity <span className="block opacity-40">powered</span> <span className="italic font-light">by fandom</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-              Pasive is more than a platform. It's an ecosystem for creators to build deep, direct relationships with their most passionate fans.
+              Pasive is more than a platform. It's an ecosystem for creators to build deep, direct relationships with their most passionate audience.
             </p>
             <div className="flex items-center gap-6 pt-4">
               <Link href="/about" className="group flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
@@ -306,7 +320,7 @@ export default function LandingPage() {
                 Build <br /> vibrant <br /> spaces
               </h2>
               <p className="text-xl text-zinc-400 font-light leading-relaxed max-w-md">
-                Bring your fans together in one place. Your content, discussions, and digital products all delivered directly to your dedicated space.
+                Bring your audience together in one place. Your content, discussions, and digital products all delivered directly to your dedicated space.
               </p>
               <div className="pt-6 grid grid-cols-2 gap-8">
                 <div className="space-y-2">
@@ -330,7 +344,7 @@ export default function LandingPage() {
 
       <section className="px-6 py-20 bg-background text-foreground text-center space-y-16">
         <h2 className="text-5xl md:text-9xl font-extrabold tracking-tighter leading-none uppercase">
-          Creators. Fans. <br /> <span className="opacity-20 italic font-medium lowercase">Nothing in between.</span>
+          Creators. audience. <br /> <span className="opacity-20 italic font-medium lowercase">Nothing in between.</span>
         </h2>
 
         <div className="max-w-xl mx-auto space-y-8">
