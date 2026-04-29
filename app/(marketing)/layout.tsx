@@ -1,11 +1,11 @@
-'use client';
+import type { ReactNode } from 'react';
 import Header from '@/app/common/website/Header';
 import Footer from '@/app/common/website/Footer';
 import SupportChatWidget from '@/components/SupportChatWidget';
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="marketing-font min-h-screen flex flex-col font-sans">
       <div className="sticky top-0 z-50">
         <Header />
       </div>

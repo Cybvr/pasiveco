@@ -62,7 +62,7 @@ const Footer = () => {
         <div className="pt-10 flex flex-col gap-12 lg:flex-row lg:gap-16">
           <div className="space-y-6 lg:w-2/5">
 
-            <p className="text-lg leading-relaxed text-foreground/80">
+            <p className="text-xs leading-relaxed text-foreground/80">
               The best way to sell digital products online.
             </p>
 
@@ -80,7 +80,7 @@ const Footer = () => {
           <div className="flex flex-col gap-8 sm:flex-row sm:gap-12 lg:w-3/5">
             <div className="flex-1">
               <h4 className="mb-4 font-semibold">Features</h4>
-              <ul className="space-y-2 text-sm text-foreground/70">
+              <ul className="space-y-2 text-xs text-foreground/70">
                 {features.map((feature) => (
                   <li key={feature.id}>
                     <a href={`/features/${feature.slug}`} className="transition-colors hover:text-foreground">
@@ -93,7 +93,7 @@ const Footer = () => {
 
             <div className="flex-1">
               <h4 className="mb-4 font-semibold">Solutions</h4>
-              <ul className="space-y-2 text-sm text-foreground/70">
+              <ul className="space-y-2 text-xs text-foreground/70">
                 {solutions.map((solution) => (
                   <li key={solution.id}>
                     <a href={`/solutions/${solution.slug}`} className="transition-colors hover:text-foreground">
@@ -106,7 +106,7 @@ const Footer = () => {
 
             <div className="flex-1">
               <h4 className="mb-4 font-semibold">About</h4>
-              <ul className="space-y-2 text-sm text-foreground/70">
+              <ul className="space-y-2 text-xs text-foreground/70">
                 <li><a href="/about" className="transition-colors hover:text-foreground">About</a></li>
                 <li><a href="/legal/terms" className="transition-colors hover:text-foreground">Terms of Service</a></li>
                 <li><a href="/legal/privacy" className="transition-colors hover:text-foreground">Privacy Policy</a></li>
@@ -116,7 +116,7 @@ const Footer = () => {
 
             <div className="flex-1">
               <h4 className="mb-4 font-semibold">Resources</h4>
-              <ul className="space-y-2 text-sm text-foreground/70">
+              <ul className="space-y-2 text-xs text-foreground/70">
                 <li><a href="/blog" className="transition-colors hover:text-foreground">Blog</a></li>
                 <li><a href="/jobs" className="transition-colors hover:text-foreground">Jobs</a></li>
               </ul>
@@ -127,7 +127,7 @@ const Footer = () => {
         <div className="mt-2 border-t border-foreground/20 pt-8">
           <div className="flex flex-col items-center space-y-2 text-center">
             <div className="flex flex-col items-center gap-2">
-              <div className="text-center text-sm text-foreground/60">
+              <div className="text-center text-xs text-foreground/60">
                 <p>
                   © {currentYear} Pasive. All rights reserved. Pasive is a product of{" "}
                   <a

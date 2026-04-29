@@ -17,6 +17,9 @@ type Conversation = {
   source: string | null;
   supportSessionId: string | null;
   customerName: string | null;
+  leadSource: string | null;
+  adHeadline: string | null;
+  adSourceId: string | null;
   lastMessage: string;
   lastMessageDirection: "inbound" | "outbound" | null;
   lastMessageAt: string | null;
@@ -34,7 +37,7 @@ type ThreadMessage = {
 };
 
 type ThreadResponse = {
-  conversation: Pick<Conversation, "waId" | "step" | "productType" | "productName" | "productPrice" | "salesLink" | "source" | "supportSessionId" | "customerName">;
+  conversation: Pick<Conversation, "waId" | "step" | "productType" | "productName" | "productPrice" | "salesLink" | "source" | "supportSessionId" | "customerName" | "leadSource" | "adHeadline" | "adSourceId">;
   messages: ThreadMessage[];
 };
 
@@ -178,7 +181,7 @@ export default function AdminWhatsAppPage() {
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{conversation.lastMessage || "No messages yet"}</p>
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <Badge variant="outline" className="capitalize">
-                    {conversation.source === "support_widget" ? "Support" : formatStep(conversation.step)}
+                    {conversation.leadSource === "click_to_whatsapp_ad" ? "Ad lead" : conversation.source === "support_widget" ? "Support" : formatStep(conversation.step)}
                   </Badge>
                   <span className="shrink-0 text-[11px] text-muted-foreground">{formatTime(conversation.lastMessageAt)}</span>
                 </div>
@@ -211,7 +214,7 @@ export default function AdminWhatsAppPage() {
               <p className="truncate text-xs text-muted-foreground">
                 {thread?.conversation.source === "support_widget" || activeConversation?.source === "support_widget"
                   ? `Support via Messages · ${activeConversation?.waId || thread?.conversation.waId || ""}`
-                  : thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
+                  : thread?.conversation.adHeadline || activeConversation?.adHeadline || thread?.conversation.productName || activeConversation?.productName || "WhatsApp onboarding"}
               </p>
             </div>
           </div>

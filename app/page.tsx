@@ -18,6 +18,8 @@ import {
   Package,
   BookOpen,
   Video,
+  Play,
+  X,
   Ticket,
   Briefcase,
   ShoppingBag
@@ -130,6 +132,7 @@ export default function LandingPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [userCount, setUserCount] = useState<number | null>(null)
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
 
   useEffect(() => {
     const fetchUserCount = async () => {
@@ -150,7 +153,7 @@ export default function LandingPage() {
   if (loading || user) return null
 
   return (
-    <div className="flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-hidden home-page [&_h1]:uppercase [&_h2]:uppercase [&_h3]:uppercase [&_h4]:uppercase [&_h5]:uppercase [&_h6]:uppercase">
+    <div className="marketing-font flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-clip home-page [&_h1]:uppercase [&_h2]:uppercase [&_h3]:uppercase [&_h4]:uppercase [&_h5]:uppercase [&_h6]:uppercase">
       <div className="sticky top-0 z-50">
         <Header isMenuOpen={false} setIsMenuOpen={() => { }} />
       </div>
@@ -203,6 +206,58 @@ export default function LandingPage() {
           <div className="w-px h-12 bg-foreground" />
         </div>
       </section>
+
+      <section className="relative z-10 bg-background px-6 py-12">
+        <div className="mx-auto max-w-md">
+          <button
+            type="button"
+            onClick={() => setIsVideoOpen(true)}
+            className="group relative aspect-[9/16] w-full overflow-hidden bg-foreground text-background shadow-2xl transition-transform duration-500 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-foreground focus:ring-offset-4 focus:ring-offset-background"
+            aria-label="Play Pasive video"
+          >
+            <img
+              src="https://i.ytimg.com/vi/tk4mRRz2xWI/hqdefault.jpg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
+            <span className="absolute left-1/2 top-1/2 inline-flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-white/30 bg-white text-black transition-transform duration-500 group-hover:scale-110">
+              <Play className="h-7 w-7 fill-current" />
+            </span>
+          </button>
+        </div>
+      </section>
+
+      {isVideoOpen ? (
+        <div
+          className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pasive YouTube video"
+          onClick={() => setIsVideoOpen(false)}
+        >
+          <div
+            className="relative aspect-[9/16] w-full max-w-[460px] overflow-hidden bg-black shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <iframe
+              className="h-full w-full"
+              src="https://www.youtube.com/embed/tk4mRRz2xWI?autoplay=1&mute=1&playsinline=1&rel=0"
+              title="Pasive YouTube Short"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+            <button
+              type="button"
+              onClick={() => setIsVideoOpen(false)}
+              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center bg-black/70 text-white backdrop-blur transition-colors hover:bg-black"
+              aria-label="Close video"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <section className="px-6 py-16 bg-background relative z-10">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">

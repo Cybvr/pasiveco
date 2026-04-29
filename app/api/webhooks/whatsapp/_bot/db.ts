@@ -61,6 +61,7 @@ export async function recordWhatsAppMessage(
     mediaId?: string;
     fileName?: string;
     raw?: any;
+    referral?: any;
     sendStatus?: "sent" | "failed";
     sendError?: any;
   }

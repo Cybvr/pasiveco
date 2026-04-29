@@ -126,6 +126,87 @@ function verifyWebhookSignature(req: NextRequest, rawBody: string) {
   );
 }
 
+function getWhatsAppAdReferral(message: any) {
+  const referral = message?.referral || message?.context?.ad || message?.context?.referral;
+  if (!referral || typeof referral !== "object") return null;
+
+  return {
+    sourceUrl: referral.source_url || null,
+    sourceId: referral.source_id || null,
+    sourceType: referral.source_type || null,
+    headline: referral.headline || null,
+    body: referral.body || null,
+    mediaType: referral.media_type || null,
+    imageUrl: referral.image_url || referral.image?.url || null,
+    videoUrl: referral.video_url || referral.video?.url || null,
+    thumbnailUrl: referral.thumbnail_url || referral.video?.thumbnail_url || null,
+    ctwaClid: referral.ctwa_clid || referral.conversion?.ctwa_clid || null,
+    welcomeMessage: referral.welcome_message || null,
+    raw: referral,
+  };
+}
+
+async function captureWhatsAppAdLead({
+  from,
+  messageId,
+  referral,
+  contact,
+  preview,
+}: {
+  from: string;
+  messageId?: string;
+  referral: ReturnType<typeof getWhatsAppAdReferral>;
+  contact?: any;
+  preview: string;
+}) {
+  if (!referral) return;
+
+  const now = FieldValue.serverTimestamp();
+  const lead = {
+    waId: from,
+    messageId: messageId || null,
+    profileName: contact?.profile?.name || null,
+    preview,
+    referral,
+    source: "click_to_whatsapp_ad",
+    sourceId: referral.sourceId,
+    sourceType: referral.sourceType,
+    sourceUrl: referral.sourceUrl,
+    headline: referral.headline,
+    ctwaClid: referral.ctwaClid,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await Promise.all([
+    db.collection("whatsappAdLeads").add(lead),
+    sessionDoc(from).set(
+      {
+        leadSource: "click_to_whatsapp_ad",
+        lastAdReferral: referral,
+        adSourceId: referral.sourceId,
+        adSourceType: referral.sourceType,
+        adSourceUrl: referral.sourceUrl,
+        adHeadline: referral.headline,
+        adClickId: referral.ctwaClid,
+        adLeadCapturedAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    ),
+    db.collection("users").doc(creatorIdFromPhone(from)).set(
+      {
+        leadSource: "click_to_whatsapp_ad",
+        lastWhatsAppAdReferral: referral,
+        lastWhatsAppAdMessageId: messageId || null,
+        lastWhatsAppAdContactAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    ),
+  ]);
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("hub.mode");
@@ -167,13 +248,23 @@ export async function POST(req: NextRequest) {
     const from = message.from;
     const contact = getWhatsAppContact(value, from);
     await upsertWhatsAppUserFromContact(from, contact);
+    const preview = getInboundPreview(message);
+    const adReferral = getWhatsAppAdReferral(message);
+    await captureWhatsAppAdLead({
+      from,
+      messageId,
+      referral: adReferral,
+      contact,
+      preview,
+    });
 
     await recordWhatsAppMessage(from, {
       direction: "inbound",
-      content: getInboundPreview(message),
+      content: preview,
       type: message.type || "unknown",
       mediaId: message.document?.id,
       fileName: message.document?.filename,
+      referral: adReferral,
       raw: message,
     });
 
@@ -186,10 +277,11 @@ export async function POST(req: NextRequest) {
         .collection("messages")
         .add({
           role: "user",
-          content: getInboundPreview(message),
+          content: preview,
           createdAt: FieldValue.serverTimestamp(),
           source: "whatsapp_inbound",
           waId: from,
+          referral: adReferral,
         });
 
       await db
@@ -198,7 +290,8 @@ export async function POST(req: NextRequest) {
         .set(
           {
             status: "needs_handoff",
-            lastMessage: getInboundPreview(message),
+            lastMessage: preview,
+            lastAdReferral: adReferral,
             updatedAt: FieldValue.serverTimestamp(),
           },
           { merge: true }

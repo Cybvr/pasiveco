@@ -55,6 +55,9 @@ export async function GET(_req: NextRequest, context: RouteContext) {
         source: session?.source || null,
         supportSessionId: session?.supportSessionId || null,
         customerName: session?.customerName || null,
+        leadSource: session?.leadSource || null,
+        adHeadline: session?.adHeadline || null,
+        adSourceId: session?.adSourceId || null,
       },
       messages,
     });
