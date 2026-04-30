@@ -44,7 +44,25 @@ export async function GET() {
 
 async function getSessionSnapshot() {
   try {
-    return await db.collection(SESSION_COLLECTION).orderBy("lastMessageAt", "desc").limit(100).get();
+    const [recentSnap, fallbackSnap] = await Promise.all([
+      db.collection(SESSION_COLLECTION).orderBy("lastMessageAt", "desc").limit(100).get(),
+      db.collection(SESSION_COLLECTION).orderBy("updatedAt", "desc").limit(100).get(),
+    ]);
+
+    const docsById = new Map(recentSnap.docs.map((doc) => [doc.id, doc]));
+    for (const doc of fallbackSnap.docs) {
+      docsById.set(doc.id, doc);
+    }
+
+    return {
+      docs: Array.from(docsById.values()).sort((a, b) => {
+        const aData = a.data() as any;
+        const bData = b.data() as any;
+        const aTime = aData.lastMessageAt?.toMillis?.() || aData.updatedAt?.toMillis?.() || 0;
+        const bTime = bData.lastMessageAt?.toMillis?.() || bData.updatedAt?.toMillis?.() || 0;
+        return bTime - aTime;
+      }),
+    };
   } catch (error) {
     console.warn("WhatsApp ordered query failed, falling back to unsorted query:", error);
     return db.collection(SESSION_COLLECTION).limit(100).get();
