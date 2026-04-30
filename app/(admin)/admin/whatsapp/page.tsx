@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, RefreshCw, Send, Smartphone } from "lucide-react";
+import { ChevronLeft, FileText, ImageIcon, Music, Paperclip, RefreshCw, Send, Smartphone, Video, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +32,7 @@ type ThreadMessage = {
   content: string;
   type: string;
   author: "bot" | "admin" | "widget" | null;
+  mediaId?: string | null;
   fileName: string | null;
   createdAt: string | null;
 };
@@ -55,11 +56,29 @@ function formatStep(step: string) {
   return step.replace(/_/g, " ");
 }
 
+function formatFileSize(size: number) {
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function AttachmentIcon({ type }: { type: string }) {
+  if (type === "image") return <ImageIcon className="h-4 w-4" />;
+  if (type === "video") return <Video className="h-4 w-4" />;
+  if (type === "audio") return <Music className="h-4 w-4" />;
+  return <FileText className="h-4 w-4" />;
+}
+
+function attachmentTypeFromFile(file: File) {
+  const type = file.type.split("/")[0];
+  return type === "image" || type === "video" || type === "audio" ? type : "document";
+}
+
 export default function AdminWhatsAppPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeWaId, setActiveWaId] = useState<string | null>(null);
   const [thread, setThread] = useState<ThreadResponse | null>(null);
   const [reply, setReply] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
   const [sending, setSending] = useState(false);
@@ -68,6 +87,7 @@ export default function AdminWhatsAppPage() {
   const activeWaIdRef = useRef<string | null>(null);
 
   const [showMobileThread, setShowMobileThread] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeConversation = useMemo(
     () => conversations.find((item) => item.waId === activeWaId) || null,
@@ -110,18 +130,26 @@ export default function AdminWhatsAppPage() {
   }, []);
 
   const sendReply = async () => {
-    if (!activeWaId || !reply.trim()) return;
+    if (!activeWaId || (!reply.trim() && !selectedFile)) return;
     setSending(true);
     setError("");
     try {
+      const body = selectedFile ? new FormData() : JSON.stringify({ text: reply });
+      if (selectedFile && body instanceof FormData) {
+        body.append("text", reply);
+        body.append("file", selectedFile);
+      }
+
       const res = await fetch(`/api/admin/whatsapp/${encodeURIComponent(activeWaId)}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: reply }),
+        headers: selectedFile ? undefined : { "Content-Type": "application/json" },
+        body,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to send reply");
       setReply("");
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       await Promise.all([loadThread(activeWaId), loadConversations()]);
     } catch (err: any) {
       setError(err?.message || "Failed to send reply");
@@ -149,6 +177,8 @@ export default function AdminWhatsAppPage() {
   // Load thread when user selects a conversation.
   useEffect(() => {
     if (activeWaId) loadThread(activeWaId);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }, [activeWaId, loadThread]);
 
   // Poll the active thread every 15 s (silent = no loading spinner).
@@ -289,7 +319,30 @@ export default function AdminWhatsAppPage() {
                         outbound ? "bg-primary text-primary-foreground" : "bg-background"
                       )}
                     >
-                      <p className="whitespace-pre-wrap leading-6">{message.content}</p>
+                      {message.type !== "text" || message.fileName || message.mediaId ? (
+                        <div
+                          className={cn(
+                            "mb-2 flex items-center gap-2 rounded-md border px-2.5 py-2",
+                            outbound ? "border-primary-foreground/20 bg-primary-foreground/10" : "bg-muted/40"
+                          )}
+                        >
+                          <AttachmentIcon type={message.type} />
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-medium">
+                              {message.fileName || `${message.type || "media"} attachment`}
+                            </p>
+                            <p
+                              className={cn(
+                                "text-[10px] capitalize",
+                                outbound ? "text-primary-foreground/70" : "text-muted-foreground"
+                              )}
+                            >
+                              {message.type || "media"}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+                      {message.content ? <p className="whitespace-pre-wrap leading-6">{message.content}</p> : null}
                       <div
                         className={cn(
                           "mt-1 flex justify-end gap-2 text-[10px]",
@@ -309,23 +362,75 @@ export default function AdminWhatsAppPage() {
 
         {activeWaId && (
           <div className="shrink-0 border-t bg-background p-3">
-            <div className="mx-auto flex max-w-3xl items-end gap-2">
-              <Textarea
-                value={reply}
-                onChange={(event) => setReply(event.target.value)}
-                placeholder="Reply from Pasive..."
-                className="min-h-11 resize-none"
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-                    event.preventDefault();
-                    sendReply();
-                  }
-                }}
-              />
-              <Button onClick={sendReply} disabled={!activeWaId || !reply.trim() || sending} className="h-11 shrink-0 gap-2">
-                <Send className="h-4 w-4" />
-                Send
-              </Button>
+            <div className="mx-auto max-w-3xl">
+              {selectedFile ? (
+                <div className="mb-2 flex items-center justify-between gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <AttachmentIcon type={attachmentTypeFromFile(selectedFile)} />
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    disabled={sending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : null}
+              <div className="flex items-end gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] || null;
+                    if (file && file.size > 100 * 1024 * 1024) {
+                      setError("Attachment must be 100MB or less");
+                      event.target.value = "";
+                      return;
+                    }
+                    setError("");
+                    setSelectedFile(file);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  className="h-11 w-11 shrink-0"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Textarea
+                  value={reply}
+                  onChange={(event) => setReply(event.target.value)}
+                  placeholder={selectedFile ? "Add a caption..." : "Reply from Pasive..."}
+                  className="min-h-11 resize-none"
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+                      event.preventDefault();
+                      sendReply();
+                    }
+                  }}
+                />
+                <Button onClick={sendReply} disabled={!activeWaId || (!reply.trim() && !selectedFile) || sending} className="h-11 shrink-0 gap-2">
+                  <Send className="h-4 w-4" />
+                  Send
+                </Button>
+              </div>
             </div>
           </div>
         )}

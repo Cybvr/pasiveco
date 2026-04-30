@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { getWhatsAppMediaType, sendWhatsAppMediaMessage, sendWhatsAppMessage } from "@/lib/whatsapp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,11 +74,27 @@ export async function POST(req: NextRequest, context: RouteContext) {
   try {
     const { waId } = await context.params;
     const to = decodeURIComponent(waId);
-    const body = await req.json();
-    const text = typeof body?.text === "string" ? body.text.trim() : "";
+    const contentType = req.headers.get("content-type") || "";
+    let text = "";
+    let file: File | null = null;
 
-    if (!text) {
-      return NextResponse.json({ error: "Reply text is required" }, { status: 400 });
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const formText = formData.get("text");
+      const formFile = formData.get("file");
+      text = typeof formText === "string" ? formText.trim() : "";
+      file = formFile instanceof File && formFile.size > 0 ? formFile : null;
+    } else {
+      const body = await req.json();
+      text = typeof body?.text === "string" ? body.text.trim() : "";
+    }
+
+    if (!text && !file) {
+      return NextResponse.json({ error: "Reply text or attachment is required" }, { status: 400 });
+    }
+
+    if (file && file.size > 100 * 1024 * 1024) {
+      return NextResponse.json({ error: "Attachment must be 100MB or less" }, { status: 400 });
     }
 
     const sessionRef = db.collection(SESSION_COLLECTION).doc(to);
@@ -86,17 +102,21 @@ export async function POST(req: NextRequest, context: RouteContext) {
     const session = sessionSnap.exists ? (sessionSnap.data() as any) : {};
     const supportSessionId = typeof session?.supportSessionId === "string" ? session.supportSessionId : null;
 
-    const result = await sendWhatsAppMessage(to, text);
+    const result = file
+      ? await sendWhatsAppMediaMessage({ to, file, caption: text })
+      : await sendWhatsAppMessage(to, text);
     if (!result.success && !supportSessionId) {
       return NextResponse.json({ error: "Failed to send WhatsApp reply", details: result.error }, { status: 502 });
     }
 
     const now = FieldValue.serverTimestamp();
+    const messageType = file ? getWhatsAppMediaType(file.type || "application/octet-stream") : "text";
+    const lastMessage = text || (file ? `Sent ${messageType}: ${file.name || "attachment"}` : "");
 
     await sessionRef.set(
       {
         waId: to,
-        lastMessage: text,
+        lastMessage,
         lastMessageDirection: "outbound",
         lastMessageAt: now,
         unread: false,
@@ -110,8 +130,12 @@ export async function POST(req: NextRequest, context: RouteContext) {
     const messageRef = await sessionRef.collection("messages").add({
       direction: "outbound",
       content: text,
-      type: "text",
+      type: messageType,
       author: "admin",
+      mediaId: file ? (result as any).mediaId || null : null,
+      fileName: file?.name || null,
+      mimeType: file?.type || null,
+      fileSize: file?.size || null,
       sendStatus: result.success ? "sent" : "failed",
       sendError: result.success ? null : result.error,
       createdAt: now,
@@ -122,19 +146,28 @@ export async function POST(req: NextRequest, context: RouteContext) {
       await supportRef.set(
         {
           status: "agent_replied",
-          lastResponse: text,
+          lastResponse: lastMessage,
           updatedAt: now,
-          lastMessage: text,
+          lastMessage,
         },
         { merge: true }
       );
       await supportRef.collection("messages").add({
         role: "assistant",
-        content: text,
+        content: lastMessage,
         createdAt: now,
         author: "admin",
         source: "whatsapp_admin",
         waId: to,
+        attachment: file
+          ? {
+              fileName: file.name || null,
+              mimeType: file.type || null,
+              fileSize: file.size || null,
+              whatsappMediaId: (result as any).mediaId || null,
+              type: messageType,
+            }
+          : null,
         whatsappSendStatus: result.success ? "sent" : "failed",
         whatsappSendError: result.success ? null : result.error,
       });
