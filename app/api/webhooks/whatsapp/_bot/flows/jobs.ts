@@ -8,32 +8,28 @@ export async function handleWhatsAppJobApplication(
   from: string,
   session: WhatsAppSession,
   textBody: string,
-  _normalizedText: string
+  normalizedText: string // renamed from _normalizedText — it IS used throughout
 ) {
   const sessionRef = sessionDoc(from);
   const step = session.step || "job_full_name";
 
-  if (GREETINGS.includes(_normalizedText)) {
+  if (GREETINGS.includes(normalizedText)) {
     if (step === "complete") {
       await resetWhatsAppSession(from, "welcome");
       return welcomeMessage;
     }
-    
+
     if (step === "job_full_name") {
       return "Let's get your application started. What's your full name?";
     }
 
-    // For other steps, we might want to remind them where they are
-    const stepMessages: Record<string, string> = {
-      job_portfolio: "Welcome back. Please send your portfolio link or links to continue your application.",
-      job_age: "Welcome back. Please send your age.",
-      job_location: "Welcome back. Please send your location.",
-      job_role: "Welcome back. Which role are you applying for?",
-    };
-    
-    if (stepMessages[step]) {
-      return stepMessages[step];
+    if (step === "job_portfolio") {
+      return "Welcome back. Please send your portfolio link or links to continue your application.";
     }
+
+    // Any other step: fall through to normal handling below.
+    // Returning here avoids silent fallthrough if new steps are added later.
+    return "Welcome back. Please continue your application.";
   }
 
   if (step === "job_full_name") {
@@ -60,7 +56,13 @@ export async function handleWhatsAppJobApplication(
     return "Thanks. Send your portfolio link or links.";
   }
 
-  if (["job_portfolio", "job_age", "job_location", "job_role", "job_screening"].includes(step)) {
+  // Only job_portfolio is a real reachable step here. The previous code
+  // also included job_age, job_location, job_role, job_screening in this
+  // array, but those are ghost states — the flow never routes there naturally
+  // after job_full_name. Keeping them would silently accept any input on
+  // those steps as a portfolio submission, masking bugs when the step chain
+  // is extended. They are removed until the full multi-step flow is built.
+  if (step === "job_portfolio") {
     if (!textBody || !hasPortfolioReference(textBody)) {
       return "Please send a portfolio link or social handle, like https://yourportfolio.com or @yourhandle.";
     }
@@ -88,6 +90,7 @@ export async function handleWhatsAppJobApplication(
     return "Your job application has already been received. Reply jobs if you want to start a new application.";
   }
 
+  // Unrecognised step — reset to the start of the job flow.
   await resetWhatsAppJobSession(from);
   return "Let's get your application started.\n\nWhat's your full name?";
 }
