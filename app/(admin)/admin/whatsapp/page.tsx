@@ -61,6 +61,27 @@ function formatFileSize(size: number) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getInitials(name: string | null) {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+const AVATAR_COLORS = [
+  "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", 
+  "bg-pink-500", "bg-teal-500", "bg-indigo-500", "bg-rose-500",
+  "bg-cyan-500", "bg-amber-500"
+];
+
+function getAvatarColor(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 function AttachmentIcon({ type }: { type: string }) {
   if (type === "image") return <ImageIcon className="h-4 w-4" />;
   if (type === "video") return <Video className="h-4 w-4" />;
@@ -222,27 +243,31 @@ export default function AdminWhatsAppPage() {
                 setShowMobileThread(true);
               }}
               className={cn(
-                "flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors hover:bg-muted/60",
+                "flex w-full items-start gap-2.5 border-b px-3 py-2 text-left transition-colors hover:bg-muted/60",
                 activeWaId === conversation.waId && "bg-muted"
               )}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Smartphone className="h-4 w-4" />
+              <div className={cn(
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white mt-0.5",
+                getAvatarColor(conversation.waId)
+              )}>
+                {getInitials(conversation.customerName) || <Smartphone className="h-3.5 w-3.5" />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{conversation.customerName || conversation.waId}</p>
-                  {conversation.unread ? <span className="h-2 w-2 rounded-full bg-primary" /> : null}
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="truncate text-sm font-semibold">{conversation.customerName || conversation.waId}</p>
+                    <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-3.5 capitalize font-medium shrink-0 leading-none">
+                      {conversation.leadSource === "click_to_whatsapp_ad" ? "Ad" : conversation.source === "support_widget" ? "Support" : formatStep(conversation.step)}
+                    </Badge>
+                  </div>
+                  <span className="shrink-0 text-[10px] text-muted-foreground font-medium">{formatTime(conversation.lastMessageAt)}</span>
                 </div>
-                {conversation.customerName ? (
-                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{conversation.waId}</p>
-                ) : null}
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">{conversation.lastMessage || "No messages yet"}</p>
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <Badge variant="outline" className="capitalize">
-                    {conversation.leadSource === "click_to_whatsapp_ad" ? "Ad lead" : conversation.source === "support_widget" ? "Support" : formatStep(conversation.step)}
-                  </Badge>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{formatTime(conversation.lastMessageAt)}</span>
+                <div className="flex items-center justify-between gap-2 mt-0.5">
+                  <p className="truncate text-[11px] text-muted-foreground flex-1 leading-tight">
+                    {conversation.lastMessage || "No messages yet"}
+                  </p>
+                  {conversation.unread ? <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" /> : null}
                 </div>
               </div>
             </button>
@@ -268,6 +293,14 @@ export default function AdminWhatsAppPage() {
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
+            {activeWaId && (
+              <div className={cn(
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
+                getAvatarColor(activeWaId)
+              )}>
+                {getInitials(thread?.conversation.customerName || activeConversation?.customerName) || <Smartphone className="h-4 w-4" />}
+              </div>
+            )}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{thread?.conversation.customerName || activeConversation?.customerName || activeConversation?.waId || "Select a conversation"}</p>
               <p className="truncate text-xs text-muted-foreground">
