@@ -35,6 +35,9 @@ export const isJobApplicationIntent = (value: string) =>
   /\b(job|jobs|career|careers|apply|application|candidate|vacancy|hiring)\b/i.test(value) ||
   value.includes("apply for a job");
 
+export const hasPortfolioReference = (value: string) =>
+  /(https?:\/\/|www\.|[a-z0-9.-]+\.[a-z]{2,}|@[a-z0-9._-]{2,})/i.test(value);
+
 export function stripUndefined<T extends Record<string, any>>(value: T) {
   return Object.fromEntries(
     Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)

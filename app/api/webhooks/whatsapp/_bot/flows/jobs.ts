@@ -2,6 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
 import { WhatsAppSession, GREETINGS, welcomeMessage } from "../types";
 import { sessionDoc, resetWhatsAppJobSession, resetWhatsAppSession } from "../session";
+import { hasPortfolioReference } from "../utils";
 
 export async function handleWhatsAppJobApplication(
   from: string,
@@ -14,8 +15,8 @@ export async function handleWhatsAppJobApplication(
 
   if (GREETINGS.includes(_normalizedText)) {
     if (step === "complete") {
-      await resetWhatsAppJobSession(from);
-      return "Hi again! Let's get a new application started for you.\n\nWhat's your full name?";
+      await resetWhatsAppSession(from, "welcome");
+      return welcomeMessage;
     }
     
     if (step === "job_full_name") {
@@ -60,8 +61,8 @@ export async function handleWhatsAppJobApplication(
   }
 
   if (["job_portfolio", "job_age", "job_location", "job_role", "job_screening"].includes(step)) {
-    if (!textBody || textBody.length < 3) {
-      return "Please send your portfolio link or links.";
+    if (!textBody || !hasPortfolioReference(textBody)) {
+      return "Please send a portfolio link or social handle, like https://yourportfolio.com or @yourhandle.";
     }
 
     const applicationId = await createWhatsAppJobApplication(from, {

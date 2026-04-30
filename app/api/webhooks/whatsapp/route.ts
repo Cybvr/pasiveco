@@ -350,14 +350,20 @@ async function handleWhatsAppMessage(from: string, message: any) {
 
   const textBody = getMessageText(message);
   const normalizedText = normalize(textBody);
+  const hasJobIntent = isJobApplicationIntent(normalizedText);
 
   if (["restart", "start over", "reset"].includes(normalizedText)) {
     await resetWhatsAppSession(from, "welcome");
     return welcomeMessage;
   }
 
+  if (session.flow === "jobs" && session.step === "complete" && !hasJobIntent) {
+    await resetWhatsAppSession(from, "welcome");
+    return welcomeMessage;
+  }
+
   if (
-    isJobApplicationIntent(normalizedText) &&
+    hasJobIntent &&
     (session.flow !== "jobs" || session.step === "complete")
   ) {
     return handleJobsCommand(from);
