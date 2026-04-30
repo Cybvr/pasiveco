@@ -234,10 +234,6 @@ export async function POST(req: NextRequest) {
     const message = value?.messages?.[0];
 
     if (!message) {
-      // No message in this webhook payload. This can happen with Click-to-WhatsApp
-      // ads that use Chat Builder — Meta fires a lead notification with contacts
-      // data before the user has sent any WhatsApp message. Capture the contact
-      // so the conversation appears in the admin dashboard straight away.
       const ctwaContacts = Array.isArray(value?.contacts) ? value.contacts : [];
       const ctwaContact = ctwaContacts[0];
       const ctwaFrom = ctwaContact?.wa_id;
@@ -245,6 +241,10 @@ export async function POST(req: NextRequest) {
         try {
           await upsertWhatsAppUserFromContact(ctwaFrom, ctwaContact);
           const ctwaName = ctwaContact?.profile?.name?.trim() || null;
+          // Capture the lead details so it appears in the admin dashboard.
+          // We don't send an automated message here to avoid infinite loops
+          // with status webhooks. The welcome message will be sent when the
+          // user actually sends their first message.
           await sessionDoc(ctwaFrom).set(
             {
               waId: ctwaFrom,
@@ -257,20 +257,6 @@ export async function POST(req: NextRequest) {
             },
             { merge: true }
           );
-          // Send welcome so the user sees something immediately.
-          const welcomeReply = await handleWhatsAppMessage(ctwaFrom, {
-            from: ctwaFrom,
-            type: "text",
-            text: { body: "" },
-          });
-          const sendResult = await sendWhatsAppMessage(ctwaFrom, welcomeReply);
-          await recordWhatsAppMessage(ctwaFrom, {
-            direction: "outbound",
-            content: welcomeReply,
-            type: "text",
-            author: "bot",
-            sendStatus: sendResult.success ? "sent" : "failed",
-          });
         } catch (ctwaErr) {
           console.error("Failed to capture CTWA contact without message:", ctwaErr);
         }
@@ -428,6 +414,9 @@ async function handleWhatsAppMessage(from: string, message: any) {
       return handleJobsCommand(from);
     }
     // All other first messages → welcome screen.
+    // Important: We must return here to prevent falling through to
+    // intent-based routing which might incorrectly trigger the job flow
+    // if the user's first message contains broad keywords like 'apply'.
     await resetWhatsAppSession(from, "welcome");
     return welcomeMessage;
   }
