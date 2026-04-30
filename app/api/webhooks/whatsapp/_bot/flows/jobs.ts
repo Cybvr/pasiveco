@@ -1,36 +1,17 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "@/lib/firebase-admin";
-import { WhatsAppSession, GREETINGS, welcomeMessage } from "../types";
-import { sessionDoc, resetWhatsAppJobSession, resetWhatsAppSession } from "../session";
+import { WhatsAppSession } from "../types";
+import { sessionDoc, resetWhatsAppJobSession } from "../session";
 import { hasPortfolioReference } from "../utils";
 
 export async function handleWhatsAppJobApplication(
   from: string,
   session: WhatsAppSession,
   textBody: string,
-  normalizedText: string // renamed from _normalizedText — it IS used throughout
+  normalizedText: string
 ) {
   const sessionRef = sessionDoc(from);
   const step = session.step || "job_full_name";
-
-  if (GREETINGS.includes(normalizedText)) {
-    if (step === "complete") {
-      await resetWhatsAppSession(from, "welcome");
-      return welcomeMessage;
-    }
-
-    if (step === "job_full_name") {
-      return "Let's get your application started. What's your full name?";
-    }
-
-    if (step === "job_portfolio") {
-      return "Welcome back. Please send your portfolio link or links to continue your application.";
-    }
-
-    // Any other step: fall through to normal handling below.
-    // Returning here avoids silent fallthrough if new steps are added later.
-    return "Welcome back. Please continue your application.";
-  }
 
   if (step === "job_full_name") {
     if (!textBody || textBody.length < 2) {

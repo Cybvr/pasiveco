@@ -7,6 +7,7 @@ import {
   WhatsAppSession,
   welcomeMessage,
   productTypeMessage,
+  GREETINGS,
 } from "./_bot/types";
 import {
   normalize,
@@ -398,6 +399,14 @@ async function handleWhatsAppMessage(from: string, message: any) {
 
   // Explicit reset commands always take priority.
   if (["restart", "start over", "reset"].includes(normalizedText)) {
+    await resetWhatsAppSession(from, "welcome");
+    return welcomeMessage;
+  }
+
+  // Greetings always return to the global welcome screen regardless of
+  // which flow is active. This means "Hi" is a reliable escape hatch —
+  // the user is never trapped in a pending jobs or commerce session.
+  if (GREETINGS.includes(normalizedText)) {
     await resetWhatsAppSession(from, "welcome");
     return welcomeMessage;
   }
