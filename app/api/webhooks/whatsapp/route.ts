@@ -382,7 +382,7 @@ async function handleWhatsAppMessage(from: string, message: any) {
     sessionSnap.exists ? sessionSnap.data() : {}
   ) as WhatsAppSession;
 
-  const SESSION_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+  const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
   let hasExpired = false;
   if (sessionSnap.exists && session.updatedAt) {
     try {
@@ -400,10 +400,10 @@ async function handleWhatsAppMessage(from: string, message: any) {
   const normalizedText = normalize(textBody);
   const hasJobIntent = isJobApplicationIntent(normalizedText);
 
-  // If the session expired, tell them we bounced and offer the dashboard.
+  // If the session expired, offer a fresh start and the dashboard.
   if (hasExpired) {
     await resetWhatsAppSession(from, "welcome");
-    return `I had to bounce since you couldn't focus for 5 seconds. Let's start over.\n\nIf you want to move faster, use the dashboard: ${SITE_URL}/dashboard\n\n${welcomeMessage}`;
+    return `Welcome back! Your previous session timed out, so I've reset things to give you a fresh start.\n\nIf you prefer to use our web dashboard, you can pick up where you left off here: ${SITE_URL}/dashboard\n\n${welcomeMessage}`;
   }
 
   // Explicit reset commands always take priority.
