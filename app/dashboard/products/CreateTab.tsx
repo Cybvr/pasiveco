@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import EditorContent from '@/app/(admin)/admin/content/EditorContent'
 import { createProduct, updateProduct, type Product } from '@/services/productsService'
+import { requestFirstProductReward } from '@/services/firstProductRewardService'
 import { getProductTypeLabel, PRODUCT_TYPE_OPTIONS, type ProductTypeId } from '@/lib/productTypes'
 import type { IntakeFormField, IntakeFieldType, BookingLocationType } from '@/services/productsService'
 import { toast } from 'sonner'
@@ -587,9 +588,15 @@ function CreateTab({ user, selectedCategory, onProductCreated, existingProducts 
 
       if (mode === 'edit' && productToEdit?.id) {
         await updateProduct(productToEdit.id, productData)
+        if (productData.status === 'active' && productToEdit.status !== 'active') {
+          void requestFirstProductReward(productToEdit.id)
+        }
         toast.success('Product updated successfully!')
       } else {
-        await createProduct(productData)
+        const productId = await createProduct(productData)
+        if (productData.status === 'active') {
+          void requestFirstProductReward(productId)
+        }
         toast.success('Product created successfully!')
         resetForm()
       }

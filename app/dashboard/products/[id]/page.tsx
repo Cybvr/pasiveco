@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import CreateTab from "../CreateTab"
 import { useAuth } from "@/hooks/useAuth"
 import { getProduct, getUserProducts, updateProduct, type Product } from "@/services/productsService"
+import { requestFirstProductReward } from "@/services/firstProductRewardService"
 import { getUser } from "@/services/userService"
 import { getProductTypeLabel } from "@/lib/productTypes"
 import { toast } from "sonner"
@@ -94,6 +95,9 @@ export default function DashboardProductDetailPage() {
 
     try {
       await updateProduct(product.id, { status: newStatus })
+      if (newStatus === "active" && previousStatus !== "active") {
+        void requestFirstProductReward(product.id)
+      }
       toast.success(`Product ${checked ? "published" : "set to draft"}`)
     } catch (error) {
       console.error("Error updating product status:", error)

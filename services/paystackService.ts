@@ -106,6 +106,26 @@ export class PaystackService {
   }
 
   /**
+   * Fetch Paystack balance
+   */
+  static async fetchBalance() {
+    try {
+      const response = await fetch(`${this.BASE_URL}/balance`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.SECRET_KEY}`,
+        },
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error: any) {
+      console.error('Paystack Balance Error:', error);
+      return { status: false, message: error.message };
+    }
+  }
+
+  /**
    * List supported banks
    */
   static async listBanks(country = 'nigeria') {
