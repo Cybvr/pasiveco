@@ -101,12 +101,22 @@ export async function POST(req: NextRequest, context: RouteContext) {
     const sessionSnap = await sessionRef.get();
     const session = sessionSnap.exists ? (sessionSnap.data() as any) : {};
     const supportSessionId = typeof session?.supportSessionId === "string" ? session.supportSessionId : null;
+    const isMessenger = session?.source === "messenger" || to.startsWith("msgr_");
 
-    const result = file
-      ? await sendWhatsAppMediaMessage({ to, file, caption: text })
-      : await sendWhatsAppMessage(to, text);
+    let result;
+    if (isMessenger) {
+      const { sendMessengerMediaMessage, sendMessengerMessage } = await import("@/lib/messenger");
+      result = file
+        ? await sendMessengerMediaMessage({ to, file, caption: text })
+        : await sendMessengerMessage(to, text);
+    } else {
+      result = file
+        ? await sendWhatsAppMediaMessage({ to, file, caption: text })
+        : await sendWhatsAppMessage(to, text);
+    }
+
     if (!result.success && !supportSessionId) {
-      return NextResponse.json({ error: "Failed to send WhatsApp reply", details: result.error }, { status: 502 });
+      return NextResponse.json({ error: `Failed to send ${isMessenger ? "Messenger" : "WhatsApp"} reply`, details: result.error }, { status: 502 });
     }
 
     const now = FieldValue.serverTimestamp();

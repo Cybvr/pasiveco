@@ -9,11 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
   GoogleAuthProvider, 
+  getRedirectResult,
   signInWithPopup,
+  signInWithRedirect,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult
+  ConfirmationResult,
 } from "firebase/auth"
+import type { UserCredential } from "firebase/auth"
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { ArrowRight, Star, Disc, ChevronLeft, Smartphone } from "lucide-react"
@@ -34,7 +37,52 @@ function LoginContent() {
   const [step, setStep] = useState<'social' | 'phone' | 'otp'>('social')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const nextHref = searchParams.get('next') || '/dashboard'
+  const nextHref = searchParams.get('next') || searchParams.get('redirect') || '/dashboard'
+
+  const finishGoogleSignIn = async (result: UserCredential) => {
+    const userRef = doc(db, 'users', result.user.uid)
+    const userSnap = await getDoc(userRef)
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: result.user.email,
+        displayName: result.user.displayName,
+        photoURL: result.user.photoURL,
+        createdAt: new Date(),
+        plan: 'free',
+        isAdmin: false,
+        role: 'user',
+        username: (result.user.email || '').split('@')[0],
+        profilePicture: result.user.photoURL || '',
+        slug: (result.user.email || '').split('@')[0],
+      })
+    }
+    router.push(nextHref)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function completeRedirectSignIn() {
+      try {
+        const result = await getRedirectResult(auth)
+        if (!result || cancelled) return
+        setLoading(true)
+        await finishGoogleSignIn(result)
+      } catch (error) {
+        console.error('Google redirect authentication failed:', error)
+        if (!cancelled) setError('Google authentication failed.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    completeRedirectSignIn()
+
+    return () => {
+      cancelled = true
+    }
+  }, [nextHref, router])
 
   useEffect(() => {
     return () => {
@@ -58,30 +106,25 @@ function LoginContent() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     setLoading(true)
+    setError('')
     try {
       const result = await signInWithPopup(auth, provider)
-      const userRef = doc(db, 'users', result.user.uid)
-      const userSnap = await getDoc(userRef)
-
-      if (!userSnap.exists()) {
-        await setDoc(userRef, {
-          email: result.user.email,
-          displayName: result.user.displayName,
-          photoURL: result.user.photoURL,
-          createdAt: new Date(),
-          plan: 'free',
-          isAdmin: false,
-          role: 'user',
-          username: (result.user.email || '').split('@')[0],
-          profilePicture: result.user.photoURL || '',
-          slug: (result.user.email || '').split('@')[0],
-        })
-      }
-      router.push(nextHref)
+      await finishGoogleSignIn(result)
     } catch (error: any) {
+      if (
+        error?.code === 'auth/popup-blocked' ||
+        error?.code === 'auth/popup-closed-by-user' ||
+        error?.code === 'auth/cancelled-popup-request' ||
+        error?.code === 'auth/operation-not-supported-in-this-environment'
+      ) {
+        await signInWithRedirect(auth, provider)
+        return
+      }
+      console.error('Google authentication failed:', error)
       setError('Google authentication failed.')
-    } finally {
       setLoading(false)
+    } finally {
+      if (auth.currentUser) setLoading(false)
     }
   }
 

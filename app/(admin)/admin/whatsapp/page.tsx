@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, FileText, ImageIcon, Music, Paperclip, RefreshCw, Send, Smartphone, Video, X } from "lucide-react";
+import { ChevronLeft, FileText, ImageIcon, MessageSquare, Music, Paperclip, RefreshCw, Send, Smartphone, Video, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -248,10 +248,20 @@ export default function AdminWhatsAppPage() {
               )}
             >
               <div className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white mt-0.5",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white mt-0.5 relative",
                 getAvatarColor(conversation.waId)
               )}>
-                {getInitials(conversation.customerName) || <Smartphone className="h-3.5 w-3.5" />}
+                {getInitials(conversation.customerName) || (conversation.source === "messenger" ? <MessageSquare className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />)}
+                <div className={cn(
+                  "absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-card",
+                  conversation.source === "messenger" ? "bg-blue-500" : "bg-green-500"
+                )}>
+                  {conversation.source === "messenger" ? (
+                    <MessageSquare className="h-2 w-2 text-white" />
+                  ) : (
+                    <Smartphone className="h-2 w-2 text-white" />
+                  )}
+                </div>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
@@ -295,10 +305,20 @@ export default function AdminWhatsAppPage() {
             </Button>
             {activeWaId && (
               <div className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white",
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white relative",
                 getAvatarColor(activeWaId)
               )}>
-                {getInitials(thread?.conversation.customerName || activeConversation?.customerName) || <Smartphone className="h-4 w-4" />}
+                {getInitials(thread?.conversation.customerName || activeConversation?.customerName) || (activeConversation?.source === "messenger" ? <MessageSquare className="h-4 w-4" /> : <Smartphone className="h-4 w-4" />)}
+                <div className={cn(
+                  "absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full border-2 border-background",
+                  activeConversation?.source === "messenger" ? "bg-blue-500" : "bg-green-500"
+                )}>
+                  {activeConversation?.source === "messenger" ? (
+                    <MessageSquare className="h-2 w-2 text-white" />
+                  ) : (
+                    <Smartphone className="h-2 w-2 text-white" />
+                  )}
+                </div>
               </div>
             )}
             <div className="min-w-0">
