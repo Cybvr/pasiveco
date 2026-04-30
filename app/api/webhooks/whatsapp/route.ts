@@ -234,6 +234,52 @@ export async function POST(req: NextRequest) {
     const message = value?.messages?.[0];
 
     if (!message) {
+      // No message in this webhook payload. This can happen with Click-to-WhatsApp
+      // ads that use Chat Builder — Meta fires a lead notification with contacts
+      // data before the user has sent any WhatsApp message. Capture the contact
+      // so the conversation appears in the admin dashboard straight away.
+      const ctwaContacts = Array.isArray(value?.contacts) ? value.contacts : [];
+      const ctwaContact = ctwaContacts[0];
+      const ctwaFrom = ctwaContact?.wa_id;
+      if (ctwaFrom) {
+        try {
+          await upsertWhatsAppUserFromContact(ctwaFrom, ctwaContact);
+          const ctwaName = ctwaContact?.profile?.name?.trim() || null;
+          await sessionDoc(ctwaFrom).set(
+            {
+              waId: ctwaFrom,
+              ...(ctwaName ? { customerName: ctwaName } : {}),
+              source: "click_to_whatsapp_ad",
+              lastMessage: "(Ad lead — awaiting first message)",
+              lastMessageAt: FieldValue.serverTimestamp(),
+              unread: true,
+              updatedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+          // Send welcome so the user sees something immediately.
+          const welcomeReply = await handleWhatsAppMessage(ctwaFrom, {
+            from: ctwaFrom,
+            type: "text",
+            text: { body: "" },
+          });
+          const sendResult = await sendWhatsAppMessage(ctwaFrom, welcomeReply);
+          await recordWhatsAppMessage(ctwaFrom, {
+            direction: "outbound",
+            content: welcomeReply,
+            type: "text",
+            author: "bot",
+            sendStatus: sendResult.success ? "sent" : "failed",
+          });
+        } catch (ctwaErr) {
+          console.error("Failed to capture CTWA contact without message:", ctwaErr);
+        }
+      }
+      return NextResponse.json({ status: "ignored" });
+    }
+
+    // Guard against malformed payloads where from is missing.
+    if (!value?.messages?.[0]?.from) {
       return NextResponse.json({ status: "ignored" });
     }
 

@@ -16,6 +16,8 @@ export const getMessageText = (message: any) =>
   message.button?.text?.trim() ||
   message.interactive?.button_reply?.title?.trim() ||
   message.interactive?.list_reply?.title?.trim() ||
+  // WhatsApp Flow / Chat Builder NFM reply body
+  message.interactive?.nfm_reply?.body?.trim() ||
   "";
 
 export const withSessionTimestamps = (sessionExists: boolean) => ({
@@ -26,6 +28,21 @@ export const withSessionTimestamps = (sessionExists: boolean) => ({
 export const getInboundPreview = (message: any) => {
   const text = getMessageText(message);
   if (text) return text;
+
+  // WhatsApp Flow / Chat Builder: parse and summarise the response_json answers
+  const nfmReply = message.interactive?.nfm_reply;
+  if (nfmReply) {
+    try {
+      const answers = JSON.parse(nfmReply.response_json || "{}");
+      const summary = Object.entries(answers)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(", ");
+      return summary ? `Chat Builder: ${summary}` : "Chat Builder response received";
+    } catch {
+      return "Chat Builder response received";
+    }
+  }
+
   if (message.document?.filename) return `Document: ${message.document.filename}`;
   if (message.document) return "Document received";
   return "Unsupported WhatsApp message";
