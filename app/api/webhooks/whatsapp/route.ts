@@ -280,6 +280,26 @@ export async function POST(req: NextRequest) {
     }
 
     const from = message.from;
+    const isEcho = message.from_me === true;
+
+    if (isEcho) {
+      // This is a message sent by the business (admin) via Meta Business Suite
+      // or a linked device. Record it as an outbound message to keep the
+      // dashboard synced.
+      const echoPreview = getInboundPreview(message);
+      await recordWhatsAppMessage(from, {
+        direction: "outbound",
+        content: echoPreview,
+        type: message.type || "text",
+        author: "admin",
+        sendStatus: "sent",
+      });
+      if (messageId) {
+        await markWhatsAppMessageProcessed(messageId, "completed");
+      }
+      return NextResponse.json({ status: "echo_recorded" });
+    }
+
     const contact = getWhatsAppContact(value, from);
     await upsertWhatsAppUserFromContact(from, contact);
 
