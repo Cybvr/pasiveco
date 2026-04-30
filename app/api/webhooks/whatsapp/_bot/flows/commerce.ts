@@ -63,6 +63,38 @@ export async function handleCommerceFlow(
       return productTypeMessage;
     }
 
+    if (
+      ["3", "resume", "continue"].includes(normalizedText) &&
+      session.previousFlow
+    ) {
+      const prevFlow = session.previousFlow;
+      const prevStep = session.previousStep;
+
+      await sessionRef.set(
+        {
+          flow: prevFlow,
+          step: prevStep,
+          previousFlow: FieldValue.delete(),
+          previousStep: FieldValue.delete(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      // Re-run the relevant flow with the restored state
+      const restoredSession = { ...session, flow: prevFlow, step: prevStep };
+      if (prevFlow === "jobs") {
+        return handleWhatsAppJobApplication(from, restoredSession, "", "");
+      } else {
+        return handleCommerceFlow(
+          from,
+          restoredSession,
+          message,
+          sessionSnap
+        );
+      }
+    }
+
     await sessionRef.set(
       { step: "welcome", ...withSessionTimestamps(sessionSnap.exists) },
       { merge: true }

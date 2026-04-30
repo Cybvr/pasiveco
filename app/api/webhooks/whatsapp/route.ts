@@ -382,13 +382,12 @@ async function handleWhatsAppMessage(from: string, message: any) {
     sessionSnap.exists ? sessionSnap.data() : {}
   ) as WhatsAppSession;
 
-  const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+  const SESSION_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
   let hasExpired = false;
   if (sessionSnap.exists && session.updatedAt) {
     try {
       const lastUpdate = session.updatedAt.toDate().getTime();
       if (Date.now() - lastUpdate > SESSION_EXPIRY_MS) {
-        session = {};
         hasExpired = true;
       }
     } catch (e) {
@@ -400,24 +399,40 @@ async function handleWhatsAppMessage(from: string, message: any) {
   const normalizedText = normalize(textBody);
   const hasJobIntent = isJobApplicationIntent(normalizedText);
 
-  // If the session expired, offer a fresh start and the dashboard.
-  if (hasExpired) {
-    await resetWhatsAppSession(from, "welcome");
-    return `Welcome back! Your previous session timed out, so I've reset things to give you a fresh start.\n\nIf you prefer to use our web dashboard, you can pick up where you left off here: ${SITE_URL}/dashboard\n\n${welcomeMessage}`;
-  }
+  // Robust Greeting Detection (handles "Hello!", "Hi...", etc.)
+  const isGreeting = /^(hi|hello|hey|hiya|yo|greetings|morning|afternoon|evening)[!\.]*$/i.test(normalizedText);
 
-  // Explicit reset commands always take priority.
-  if (["restart", "start over", "reset"].includes(normalizedText)) {
-    await resetWhatsAppSession(from, "welcome");
-    return welcomeMessage;
-  }
+  // If the session expired OR it's an explicit reset OR a greeting, 
+  // show the (potentially smart) welcome screen.
+  if (hasExpired || ["restart", "start over", "reset"].includes(normalizedText) || isGreeting) {
+    const prevFlow = session.flow;
+    const prevStep = session.step;
+    
+    await sessionRef.set({
+      flow: "commerce",
+      step: "welcome",
+      // Only store as "previous" if it was a real flow in progress
+      ...(hasExpired && prevFlow ? {
+        previousFlow: prevFlow,
+        previousStep: prevStep || null,
+      } : {}),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
 
-  // Greetings always return to the global welcome screen regardless of
-  // which flow is active. This means "Hi" is a reliable escape hatch —
-  // the user is never trapped in a pending jobs or commerce session.
-  if (GREETINGS.includes(normalizedText)) {
-    await resetWhatsAppSession(from, "welcome");
-    return welcomeMessage;
+    let msg = welcomeMessage;
+    if (hasExpired) {
+      msg = `Welcome back! Your previous session timed out. What would you like to do?\n\n1. Start fresh\n2. Tell me more`;
+      if (prevFlow === "jobs") {
+        msg += `\n3. Continue with my application`;
+      } else if (prevFlow === "commerce" && prevStep !== "welcome") {
+        msg += `\n3. Continue with my product setup`;
+      }
+    } else if (session.previousFlow) {
+      // Even if not expired, if they say "Hi" and have a saved previous flow, show option 3
+      msg += `\n3. Continue with my ${session.previousFlow === "jobs" ? "application" : "product setup"}`;
+    }
+    
+    return msg;
   }
 
   // Brand-new users (no established flow/step) must go through the welcome

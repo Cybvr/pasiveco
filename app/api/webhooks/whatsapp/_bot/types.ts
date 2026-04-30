@@ -18,6 +18,8 @@ export type WhatsAppStep =
 export type WhatsAppSession = {
   flow?: "commerce" | "jobs";
   step?: WhatsAppStep;
+  previousFlow?: "commerce" | "jobs";
+  previousStep?: WhatsAppStep;
   productType?: string;
   productName?: string;
   productPrice?: number;
