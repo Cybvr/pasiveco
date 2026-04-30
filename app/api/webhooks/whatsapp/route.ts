@@ -8,6 +8,7 @@ import {
   welcomeMessage,
   productTypeMessage,
   GREETINGS,
+  SITE_URL,
 } from "./_bot/types";
 import {
   normalize,
@@ -381,12 +382,14 @@ async function handleWhatsAppMessage(from: string, message: any) {
     sessionSnap.exists ? sessionSnap.data() : {}
   ) as WhatsAppSession;
 
-  const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+  const SESSION_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+  let hasExpired = false;
   if (sessionSnap.exists && session.updatedAt) {
     try {
       const lastUpdate = session.updatedAt.toDate().getTime();
       if (Date.now() - lastUpdate > SESSION_EXPIRY_MS) {
         session = {};
+        hasExpired = true;
       }
     } catch (e) {
       // Ignore timestamp errors
@@ -396,6 +399,12 @@ async function handleWhatsAppMessage(from: string, message: any) {
   const textBody = getMessageText(message);
   const normalizedText = normalize(textBody);
   const hasJobIntent = isJobApplicationIntent(normalizedText);
+
+  // If the session expired, tell them we bounced and offer the dashboard.
+  if (hasExpired) {
+    await resetWhatsAppSession(from, "welcome");
+    return `I had to bounce since you couldn't focus for 5 seconds. Let's start over.\n\nIf you want to move faster, use the dashboard: ${SITE_URL}/dashboard\n\n${welcomeMessage}`;
+  }
 
   // Explicit reset commands always take priority.
   if (["restart", "start over", "reset"].includes(normalizedText)) {
