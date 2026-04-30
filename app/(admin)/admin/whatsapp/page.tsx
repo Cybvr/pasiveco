@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, RefreshCw, Send, Smartphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,8 @@ export default function AdminWhatsAppPage() {
   const [loadingThread, setLoadingThread] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
+  const activeWaIdRef = useRef<string | null>(null);
 
   const [showMobileThread, setShowMobileThread] = useState(false);
 
@@ -72,27 +74,26 @@ export default function AdminWhatsAppPage() {
     [activeWaId, conversations]
   );
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async (silent = false) => {
     setError("");
-    setLoadingList(true);
+    if (!silent) setLoadingList(true);
     try {
       const res = await fetch("/api/admin/whatsapp", { cache: "no-store" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load conversations");
       const next = Array.isArray(data.conversations) ? data.conversations : [];
       setConversations(next);
-      // Removed automatic selection of first item to better support mobile list-first view
-      // setActiveWaId((current) => current || next[0]?.waId || null);
+      setLastRefreshedAt(new Date());
     } catch (err: any) {
       setError(err?.message || "Failed to load conversations");
     } finally {
-      setLoadingList(false);
+      if (!silent) setLoadingList(false);
     }
-  };
+  }, []);
 
-  const loadThread = async (waId: string) => {
+  const loadThread = useCallback(async (waId: string, silent = false) => {
     setError("");
-    setLoadingThread(true);
+    if (!silent) setLoadingThread(true);
     try {
       const res = await fetch(`/api/admin/whatsapp/${encodeURIComponent(waId)}`, { cache: "no-store" });
       const data = await res.json();
@@ -104,9 +105,9 @@ export default function AdminWhatsAppPage() {
     } catch (err: any) {
       setError(err?.message || "Failed to load thread");
     } finally {
-      setLoadingThread(false);
+      if (!silent) setLoadingThread(false);
     }
-  };
+  }, []);
 
   const sendReply = async () => {
     if (!activeWaId || !reply.trim()) return;
@@ -129,13 +130,34 @@ export default function AdminWhatsAppPage() {
     }
   };
 
+  // Keep ref in sync so polling closures always use the current waId.
+  useEffect(() => {
+    activeWaIdRef.current = activeWaId;
+  }, [activeWaId]);
+
+  // Initial load.
   useEffect(() => {
     loadConversations();
-  }, []);
+  }, [loadConversations]);
 
+  // Poll the conversations list every 30 s (silent = no loading spinner).
+  useEffect(() => {
+    const id = setInterval(() => loadConversations(true), 30_000);
+    return () => clearInterval(id);
+  }, [loadConversations]);
+
+  // Load thread when user selects a conversation.
   useEffect(() => {
     if (activeWaId) loadThread(activeWaId);
-  }, [activeWaId]);
+  }, [activeWaId, loadThread]);
+
+  // Poll the active thread every 15 s (silent = no loading spinner).
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (activeWaIdRef.current) loadThread(activeWaIdRef.current, true);
+    }, 15_000);
+    return () => clearInterval(id);
+  }, [loadThread]);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] lg:h-[calc(100vh-7rem)] min-h-[500px] flex-col overflow-hidden bg-background lg:rounded-lg lg:border lg:flex-row">
@@ -146,9 +168,16 @@ export default function AdminWhatsAppPage() {
         <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
           <div>
             <h1 className="text-sm font-semibold">WhatsApp</h1>
-            <p className="text-xs text-muted-foreground">{conversations.length} conversations</p>
+            <p className="text-xs text-muted-foreground">
+              {conversations.length} conversation{conversations.length !== 1 ? "s" : ""}
+              {lastRefreshedAt ? (
+                <span className="ml-1 text-[10px] opacity-50">
+                  · {lastRefreshedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              ) : null}
+            </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={loadConversations} disabled={loadingList}>
+          <Button variant="ghost" size="icon" onClick={() => loadConversations()} disabled={loadingList}>
             <RefreshCw className={cn("h-4 w-4", loadingList && "animate-spin")} />
           </Button>
         </div>

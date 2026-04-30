@@ -248,6 +248,18 @@ export async function POST(req: NextRequest) {
     const from = message.from;
     const contact = getWhatsAppContact(value, from);
     await upsertWhatsAppUserFromContact(from, contact);
+
+    // Mirror the contact's display name onto the session doc so the admin
+    // WhatsApp dashboard can show a human-readable name instead of the raw
+    // phone number. The users collection is never read by the admin API.
+    const contactProfileName = contact?.profile?.name?.trim() || null;
+    if (contactProfileName) {
+      await sessionDoc(from).set(
+        { customerName: contactProfileName, updatedAt: FieldValue.serverTimestamp() },
+        { merge: true }
+      );
+    }
+
     const preview = getInboundPreview(message);
     const adReferral = getWhatsAppAdReferral(message);
     await captureWhatsAppAdLead({
@@ -352,16 +364,35 @@ async function handleWhatsAppMessage(from: string, message: any) {
   const normalizedText = normalize(textBody);
   const hasJobIntent = isJobApplicationIntent(normalizedText);
 
+  // Explicit reset commands always take priority.
   if (["restart", "start over", "reset"].includes(normalizedText)) {
     await resetWhatsAppSession(from, "welcome");
     return welcomeMessage;
   }
 
+  // Brand-new users (no established flow/step) must go through the welcome
+  // message first. This prevents broad job-intent regex matches on a user's
+  // very first text (e.g. "Hi, I'd like to apply for something") from
+  // silently routing them into the job application flow.
+  // We still honour an explicit, standalone job command from a fresh start.
+  const EXPLICIT_JOB_COMMANDS = new Set(["jobs", "job", "apply", "careers", "career"]);
+  const isNewSession = !session.flow && !session.step;
+  if (isNewSession) {
+    if (EXPLICIT_JOB_COMMANDS.has(normalizedText)) {
+      return handleJobsCommand(from);
+    }
+    // All other first messages → welcome screen.
+    await resetWhatsAppSession(from, "welcome");
+    return welcomeMessage;
+  }
+
+  // Completed jobs flow + no further job intent → back to main menu.
   if (session.flow === "jobs" && session.step === "complete" && !hasJobIntent) {
     await resetWhatsAppSession(from, "welcome");
     return welcomeMessage;
   }
 
+  // Mid-session job intent (user is in commerce flow but mentions jobs).
   if (
     hasJobIntent &&
     (session.flow !== "jobs" || session.step === "complete")
