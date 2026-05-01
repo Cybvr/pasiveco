@@ -31,12 +31,14 @@ function isAuthorized(req: NextRequest) {
   }
 
   const authorization = req.headers.get("authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  const customSecret = req.headers.get("x-sendpulse-secret") || "";
+  const token = (authorization.replace(/^Bearer\s+/i, "") || customSecret).trim();
   const authorized = token === secret;
 
   if (!authorized) {
     console.warn("[SendPulse] Unauthorized create-account request", {
       hasAuthorizationHeader: Boolean(authorization),
+      hasCustomSecretHeader: Boolean(customSecret),
       tokenLength: token.length,
       secretLength: secret.length,
       tokenPrefix: token.slice(0, 10),
