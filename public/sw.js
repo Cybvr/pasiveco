@@ -1,5 +1,5 @@
-const CACHE_NAME = 'pasive-cache-v3';
-const ASSETS = ['/', '/favicon.png', '/manifest.json', '/images/logo.png'];
+const CACHE_NAME = 'pasive-cache-v4';
+const ASSETS = ['/', '/favicon.ico', '/manifest.json', '/images/logo.svg'];
 const DEFAULT_NOTIFICATION_URL = '/dashboard/notifications';
 
 function shouldBypassRequest(request) {
@@ -31,7 +31,13 @@ function shouldBypassRequest(request) {
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      return Promise.all(
+        ASSETS.map((asset) =>
+          cache.add(asset).catch((error) => {
+            console.warn('[sw] Failed to cache asset:', asset, error);
+          })
+        )
+      );
     })
   );
 });

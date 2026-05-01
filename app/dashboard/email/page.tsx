@@ -23,7 +23,8 @@ import {
   Save,
   Trash2,
   RefreshCw,
-  ImagePlus
+  ImagePlus,
+  FileText
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -136,6 +137,7 @@ function EmailPageContent() {
   const editor = useEditor({
     extensions: [StarterKit, EmailImage],
     content: '<p>Write your email here...</p>',
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: 'min-h-[500px] p-6 prose prose-sm max-w-none focus:outline-none',
