@@ -24,14 +24,27 @@ const normalizePhone = (value?: string) => {
 };
 
 function isAuthorized(req: NextRequest) {
-  const secret = process.env.SENDPULSE_API_SECRET;
+  const secret = process.env.SENDPULSE_API_SECRET?.trim();
 
   if (!secret) {
     return process.env.NODE_ENV !== "production";
   }
 
   const authorization = req.headers.get("authorization") || "";
-  return authorization.replace(/^Bearer\s+/i, "").trim() === secret;
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+  const authorized = token === secret;
+
+  if (!authorized) {
+    console.warn("[SendPulse] Unauthorized create-account request", {
+      hasAuthorizationHeader: Boolean(authorization),
+      tokenLength: token.length,
+      secretLength: secret.length,
+      tokenPrefix: token.slice(0, 10),
+      secretPrefix: secret.slice(0, 10),
+    });
+  }
+
+  return authorized;
 }
 
 async function findExistingUser(email: string, phoneNumber: string) {
