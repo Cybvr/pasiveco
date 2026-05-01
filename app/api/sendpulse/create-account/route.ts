@@ -54,6 +54,13 @@ async function findExistingUser(email: string, phoneNumber: string) {
   return null;
 }
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    message: "SendPulse create-account API is live. Use POST to create accounts.",
+  });
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!isAuthorized(req)) {
