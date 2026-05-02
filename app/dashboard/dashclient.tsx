@@ -89,11 +89,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       return
     }
 
-    const LEGACY_SESSION_KEY = 'onboarding_checked'
-    const SESSION_KEY = `onboarding_checked:${user.uid}`
-    sessionStorage.removeItem(LEGACY_SESSION_KEY)
-    if (sessionStorage.getItem(SESSION_KEY)) return
-
     let isActive = true
 
     const checkOnboarding = async () => {
@@ -103,7 +98,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         const onboardingCompleted = Boolean(userData?.onboardingCompleted)
 
         if (isActive) {
-          sessionStorage.setItem(SESSION_KEY, '1')
           setShowOnboarding(!onboardingCompleted)
         }
       } catch (error) {
