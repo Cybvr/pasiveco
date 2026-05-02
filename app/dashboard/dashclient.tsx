@@ -84,24 +84,38 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   }, [pathname])
 
   useEffect(() => {
-    const SESSION_KEY = 'onboarding_checked'
+    if (!user?.uid) {
+      setShowOnboarding(false)
+      return
+    }
+
+    const LEGACY_SESSION_KEY = 'onboarding_checked'
+    const SESSION_KEY = `onboarding_checked:${user.uid}`
+    sessionStorage.removeItem(LEGACY_SESSION_KEY)
     if (sessionStorage.getItem(SESSION_KEY)) return
 
+    let isActive = true
+
     const checkOnboarding = async () => {
-      if (user?.uid) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid))
-          const userData = userDoc.data()
-          const onboardingCompleted = Boolean(userData?.onboardingCompleted)
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid))
+        const userData = userDoc.data()
+        const onboardingCompleted = Boolean(userData?.onboardingCompleted)
+
+        if (isActive) {
           sessionStorage.setItem(SESSION_KEY, '1')
           setShowOnboarding(!onboardingCompleted)
-        } catch (error) {
-          console.error("Error checking onboarding status:", error)
         }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error)
       }
     }
     checkOnboarding()
-  }, [user])
+
+    return () => {
+      isActive = false
+    }
+  }, [user?.uid])
 
   const handleOnboardingClose = async () => {
     setShowOnboarding(false)
