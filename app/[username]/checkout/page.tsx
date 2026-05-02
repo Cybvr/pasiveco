@@ -26,6 +26,7 @@ function CartCheckoutPageContent() {
   const { username } = useParams<{ username: string }>();
   const { items, cartTotal, removeItem, clearCart } = useCart();
   const { currency: userCurrency, rates } = useCurrency();
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState(false);
