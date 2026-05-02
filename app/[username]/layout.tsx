@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import { headers } from 'next/headers'
+import { notFound } from 'next/navigation'
 import { getUserByUsername } from '@/services/userService'
+import { getSocialProfileByUsername } from '@/lib/social-data'
 import StorefrontLayoutClient from './StorefrontLayoutClient'
 
 interface UsernameLayoutProps {
@@ -39,6 +41,21 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
 export default async function UsernameLayout({ children, params }: UsernameLayoutProps) {
   const resolvedParams = await params
   const username = resolvedParams.username
+
+  // Validate the username exists in either data source before rendering the layout
+  const [firebaseProfile, socialProfile] = await Promise.allSettled([
+    getUserByUsername(username),
+    getSocialProfileByUsername(username),
+  ])
+
+  const profileExists =
+    (firebaseProfile.status === 'fulfilled' && !!firebaseProfile.value) ||
+    (socialProfile.status === 'fulfilled' && !!socialProfile.value)
+
+  if (!profileExists) {
+    notFound()
+  }
+
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || ''
   const isProductPage = pathname.includes('/product/')

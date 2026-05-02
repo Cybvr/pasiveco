@@ -37,6 +37,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [isPinned, setIsPinned] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<any>(null);
   const [hasPurchased, setHasPurchased] = useState(false);
+  const { user } = useAuth();
   const { currency: userCurrency, rates } = useCurrency();
 
   useEffect(() => {
