@@ -35,7 +35,6 @@ function Page() {
   const [profileData, setProfileData] = useState<
     Partial<AppUser> & {
       username: string;
-      slug: string;
       displayName: string;
       bio: string;
       profilePicture: string | null;
@@ -49,7 +48,6 @@ function Page() {
     bio: "Your bio here",
     profilePicture: null,
     bannerImage: null,
-    slug: "username",
     iconColor: "#6b7280", // Default muted-foreground
     themeColor: "#ffffff",
   });
@@ -98,7 +96,6 @@ function Page() {
             profilePicture: "",
             links: defaultLinks,
             socialLinks: defaultSocialLinks,
-            slug: user.email?.split("@")[0] || "user",
           });
           profile = await getUser(user.uid);
         }
@@ -111,7 +108,6 @@ function Page() {
             bio: profile.bio || "Building something amazing ✨",
             profilePicture: profile.profilePicture || user.photoURL || null,
             bannerImage: profile.bannerImage || null,
-            slug: profile.slug || profile.username || "user",
             iconColor: (profile as any).iconColor || "#6b7280",
             themeColor: (profile as any).themeColor || "#ffffff",
           }));

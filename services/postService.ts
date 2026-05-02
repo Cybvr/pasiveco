@@ -58,7 +58,7 @@ export const getCommunityPosts = async (communityId: string): Promise<Post[]> =>
             const userData = userDoc.data();
             post.authorName = userData.displayName;
             post.authorUsername = userData.username;
-            post.authorSlug = userData.slug || userData.username;
+            post.authorSlug = userData.username;
             post.authorImage = userData.photoURL || userData.image;
           }
         } catch (err) {
@@ -93,7 +93,7 @@ export const getPostById = async (postId: string): Promise<Post | null> => {
           const userData = userDoc.data();
           post.authorName = userData.displayName;
           post.authorUsername = userData.username;
-          post.authorSlug = userData.slug || userData.username;
+          post.authorSlug = userData.username;
           post.authorImage = userData.photoURL || userData.image;
         }
       } catch (err) {

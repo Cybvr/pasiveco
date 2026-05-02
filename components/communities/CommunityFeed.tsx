@@ -160,7 +160,7 @@ export default function CommunityFeed({ communityId }: CommunityFeedProps) {
         category: 'general',
         authorName: profile?.displayName || user.displayName || '',
         authorUsername: profile?.username || '',
-        authorSlug: profile?.slug || profile?.username || '',
+        authorSlug: profile?.username || '',
         authorImage: profile?.profilePicture || profile?.photoURL || user.photoURL || '',
       };
 

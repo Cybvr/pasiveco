@@ -551,7 +551,6 @@ export default function UsersPage() {
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
         category: formData.category,
-        slug: createProfileSlug(formData.username || formData.displayName),
         links: [],
         socialLinks: [],
         theme: 'default',
@@ -593,7 +592,6 @@ export default function UsersPage() {
         bio: formData.bio.trim(),
         profilePicture: formData.profilePicture.trim(),
         category: formData.category,
-        slug: createProfileSlug(formData.username || formData.displayName),
         isFeatured: formData.isFeatured,
         isTrending: formData.isTrending,
         isVerified: formData.isVerified,
@@ -747,14 +745,6 @@ export default function UsersPage() {
 
   const normalizeCsvHeader = (value: string) =>
     value.trim().toLowerCase().replace(/[\s-]+/g, '')
-
-  const createProfileSlug = (value: string) =>
-    value
-      .trim()
-      .toLowerCase()
-      .replace(/^@/, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
 
   const parseCsvText = (csvText: string) => {
     const rows: string[][] = []
@@ -952,7 +942,6 @@ export default function UsersPage() {
             bio: row.bio?.trim() || '',
             profilePicture: row.profilePicture?.trim() || '',
             category: row.category?.trim() || '',
-            slug: createProfileSlug(row.username || row.displayName),
             links: [],
             socialLinks: [],
             theme: 'default'
@@ -1226,7 +1215,6 @@ export default function UsersPage() {
                       if (newUsername !== (user.username || '').replace(/^@/, '')) {
                         handleInlineUpdate(user.id!, {
                           username: newUsername ? `@${newUsername}` : '',
-                          slug: createProfileSlug(newUsername || user.displayName || '')
                         })
                       }
                     }}

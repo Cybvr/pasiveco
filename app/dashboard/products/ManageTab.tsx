@@ -55,7 +55,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
     void fetchProfile()
   }, [user])
 
-  const cleanHandle = (profile?.username || profile?.slug || (user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '') || 'user'
+  const cleanHandle = (profile?.username || (user as any)?.username || user?.email?.split('@')[0])?.replace(/^@/, '') || 'user'
 
   const handleDeleteProduct = (productId: string, productName: string) => {
     toast(`Delete "${productName}"?`, {

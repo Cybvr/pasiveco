@@ -14,7 +14,7 @@ import {
 import { auth, db } from '@/lib/firebase'
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { createReferral } from '@/services/referralService'
-import { sanitizeUsername } from '@/lib/username'
+import { generateUsername, sanitizeUsername } from '@/lib/username'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -64,8 +64,9 @@ const discoveryOptions = [
 
 const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, displayName }) => {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [storeName, setStoreName] = useState(displayName || '')
-  const [storeHandle, setStoreHandle] = useState('')
+  const [profileName, setProfileName] = useState(displayName || '')
+  const [username, setUsername] = useState(() => generateUsername(displayName || ''))
+  const [hasEditedUsername, setHasEditedUsername] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState('')
   const [verificationId, setVerificationId] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
@@ -93,7 +94,11 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
     }
   }, [])
 
-  const cleanHandle = useMemo(() => sanitizeUsername(storeHandle), [storeHandle])
+  useEffect(() => {
+    if (!hasEditedUsername) setUsername(generateUsername(profileName))
+  }, [hasEditedUsername, profileName])
+
+  const cleanUsername = useMemo(() => sanitizeUsername(username), [username])
 
   const getRecaptchaVerifier = () => {
     if (window.onboardingRecaptchaVerifier) return window.onboardingRecaptchaVerifier
@@ -165,7 +170,7 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
     try {
       const resolvedCreatorType = creatorType === 'other' ? customCreatorType.trim() : creatorType
       const resolvedGoal = goal === 'other' ? customGoal.trim() : goal
-      const trimmedStoreName = storeName.trim()
+      const trimmedDisplayName = profileName.trim()
 
       if (status === 'completed' && referralCode && referralCode !== userId) {
         await createReferral(referralCode, userId, displayName).catch(console.warn)
@@ -173,12 +178,12 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
       }
 
       await setDoc(doc(db, 'users', userId), {
-        ...(trimmedStoreName ? { displayName: trimmedStoreName, storeName: trimmedStoreName } : {}),
-        ...(cleanHandle ? { requestedUsername: cleanHandle } : {}),
+        ...(trimmedDisplayName ? { displayName: trimmedDisplayName } : {}),
+        ...(cleanUsername ? { username: cleanUsername } : {}),
         ...(phoneVerified ? { phoneNumber: phoneNumber.trim(), phoneVerified: true } : {}),
         onboarding: {
-          storeName: trimmedStoreName,
-          requestedUsername: cleanHandle,
+          displayName: trimmedDisplayName,
+          username: cleanUsername,
           phoneNumber: phoneVerified ? phoneNumber.trim() : '',
           phoneVerified,
           creatorType: resolvedCreatorType,
@@ -201,33 +206,39 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
   const slides = [
     <div key="store" className="space-y-5">
       <div className="space-y-2">
-        <h3 className="text-2xl font-semibold tracking-tight">What should your store be called?</h3>
-        <p className="text-sm leading-6 text-muted-foreground">Use your creator name, brand name, or the name customers already know.</p>
+        <h3 className="text-2xl font-semibold tracking-tight">What should people see on your store?</h3>
+        <p className="text-sm leading-6 text-muted-foreground">Use your creator name or brand name. This becomes the name shown on your Pasive store.</p>
       </div>
       <div className="space-y-3">
         <div className="space-y-2">
-          <Label htmlFor="store-name">Store name</Label>
+          <Label htmlFor="display-name">Display name</Label>
           <Input
-            id="store-name"
-            value={storeName}
-            onChange={(event) => setStoreName(event.target.value)}
+            id="display-name"
+            value={profileName}
+            onChange={(event) => setProfileName(event.target.value)}
             placeholder="e.g. Ada Creates"
             className="h-12"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="store-handle">Preferred link</Label>
+          <Label htmlFor="username">Username</Label>
           <div className="flex h-12 items-center rounded-md border bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
             <span className="shrink-0 text-sm text-muted-foreground">pasive.co/</span>
             <input
-              id="store-handle"
-              value={storeHandle}
-              onChange={(event) => setStoreHandle(event.target.value)}
+              id="username"
+              value={username}
+              onChange={(event) => {
+                setHasEditedUsername(true)
+                setUsername(event.target.value)
+              }}
               placeholder="adacreates"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
-          {storeHandle ? <p className="text-xs text-muted-foreground">We will save this as your preferred handle: {cleanHandle || '...'}</p> : null}
+          <p className="text-xs text-muted-foreground">
+            Generated from your display name by default. You can change it.
+          </p>
+          {username && username !== cleanUsername ? <p className="text-xs text-muted-foreground">Will save as {cleanUsername || '...'}</p> : null}
         </div>
       </div>
     </div>,

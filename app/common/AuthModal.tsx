@@ -94,7 +94,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           username: (result.user.email || '').split('@')[0],
           bio: '',
           profilePicture: result.user.photoURL || '',
-          slug: (result.user.email || '').split('@')[0],
         })
       }
       onClose()
@@ -153,7 +152,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           isAdmin: false,
           role: 'user',
           username: (result.user.phoneNumber || '').slice(-6),
-          slug: (result.user.phoneNumber || '').slice(-6),
         })
       }
       onClose()

@@ -10,11 +10,11 @@ export const generateUsername = (displayName?: string | null, email?: string | n
     base = email.split('@')[0];
   }
 
-  // 3. Normalize: lowercase, remove special characters except underscores/dots, replace spaces with underscores
+  // 3. Normalize: lowercase, remove spaces and special characters except underscores/dots
   let username = base
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, '_')
+    .replace(/\s+/g, '')
     .replace(/[^a-z0-9_.]/g, '');
 
   // 4. Final safety check: if still empty, use a default
@@ -29,5 +29,10 @@ export const generateUsername = (displayName?: string | null, email?: string | n
  * Sanitizes an existing username by removing the '@' prefix and trimming.
  */
 export const sanitizeUsername = (username?: string | null): string => {
-  return (username || '').replace(/^@/, '').trim();
+  return (username || '')
+    .replace(/^@/, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9_.]/g, '');
 };

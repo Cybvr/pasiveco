@@ -49,7 +49,7 @@ export default function DashboardProductDetailPage() {
         return
       }
 
-      const cleanHandle = (profile?.username || profile?.slug || (user as any)?.username || (user as any)?.slug || user.email?.split("@")[0])?.replace(/^@/, "") || "user"
+      const cleanHandle = (profile?.username || (user as any)?.username || user.email?.split("@")[0])?.replace(/^@/, "") || "user"
 
       setProduct(fetchedProduct)
       setProducts(allProducts)

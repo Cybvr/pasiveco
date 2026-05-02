@@ -60,7 +60,7 @@ async function findProduct(productId: string) {
 async function getSellerHandle(userId: string) {
   const sellerDoc = await db.collection("users").doc(userId).get();
   const seller = sellerDoc.data();
-  return String(seller?.username || seller?.slug || "").replace(/^@/, "").trim();
+  return String(seller?.username || "").replace(/^@/, "").trim();
 }
 
 export async function GET(req: NextRequest) {

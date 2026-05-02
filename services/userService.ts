@@ -74,7 +74,6 @@ export interface User {
   bio?: string;
   profilePicture?: string | null;
   bannerImage?: string | null;
-  slug?: string; // @deprecated - use username instead
   category?: string;
   links?: UserLink[];
   socialLinks?: UserSocialLink[];
@@ -219,7 +218,6 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
   try {
     const normalizedUsername = sanitizeUsername(username);
     
-    // 1. Try finding by username (new source of truth)
     const qUsername = query(usersCollection, where('username', '==', normalizedUsername));
     const snapUsername = await getDocs(qUsername);
 
@@ -227,17 +225,9 @@ export const getUserByUsername = async (username: string): Promise<User | null> 
       return normalizeUser(snapUsername.docs[0].id, snapUsername.docs[0].data());
     }
 
-    // 2. Fallback to slug (legacy support)
-    const qSlug = query(usersCollection, where('slug', '==', normalizedUsername));
-    const snapSlug = await getDocs(qSlug);
-
-    if (!snapSlug.empty) {
-      return normalizeUser(snapSlug.docs[0].id, snapSlug.docs[0].data());
-    }
-
     return null;
   } catch (error) {
-    console.error('Error fetching user by username/slug:', error);
+    console.error('Error fetching user by username:', error);
     throw error;
   }
 };

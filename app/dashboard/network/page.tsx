@@ -100,7 +100,7 @@ export default function NetworkPage() {
 
         const enriched = data.map(p => {
           const seller = userMap.get(p.userId)
-          const handle = (seller?.username || seller?.slug || "shop").replace(/^@/, '')
+          const handle = (seller?.username || "shop").replace(/^@/, '')
           return { ...p, sellerHandle: handle }
         })
 
@@ -420,7 +420,7 @@ export default function NetworkPage() {
             merchants.map((m) => (
               <Link
                 key={m.id || m.userId}
-                href={`/${(m.username || m.slug || "user").replace(/^@/, '')}`}
+                href={`/${(m.username || "user").replace(/^@/, '')}`}
                 className="flex flex-col items-center gap-3 min-w-[120px] p-6 rounded-3xl bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer group"
               >
                 <div className="relative group-hover:scale-110 transition-transform duration-500">

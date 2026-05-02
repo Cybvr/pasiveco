@@ -71,7 +71,6 @@ const AIOnboardingSticky = () => {
       role: 'user',
       username: email.split('@')[0],
       bio: data?.profile?.bio || '',
-      slug: email.split('@')[0],
       brandPreferences: data?.profile?.brandVoice || '',
       category: data?.profile?.category || '',
       links: [],

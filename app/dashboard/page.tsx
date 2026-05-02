@@ -130,7 +130,7 @@ export default function DashboardHomePage() {
             <div className="w-[280px] sm:w-[320px]">
               <InviteCard
                 userId={user?.uid || ''}
-                username={((user as any)?.username || (user as any)?.slug || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
+                username={((user as any)?.username || user?.email?.split('@')[0])?.replace(/^@/, '')?.trim()}
               />
             </div>
 

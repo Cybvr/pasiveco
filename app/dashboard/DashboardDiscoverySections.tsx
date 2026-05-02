@@ -30,7 +30,7 @@ interface DiscoveryProfile {
 const sanitizeHandle = (username?: string) => username?.replace(/^@/, '').trim() || ''
 
 const toDiscoveryProfile = (profile: User): DiscoveryProfile => {
-  const cleanHandle = sanitizeHandle(profile.username || profile.slug || profile.email?.split('@')[0])
+  const cleanHandle = sanitizeHandle(profile.username || profile.email?.split('@')[0])
   const displayName = profile.displayName?.trim() || cleanHandle || 'User'
   const userId = profile.userId || profile.id || ''
   const publicPath = cleanHandle ? `/${cleanHandle}` : '/'

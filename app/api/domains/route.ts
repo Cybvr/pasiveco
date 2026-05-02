@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const userSnap = await db.collection("users").doc(authUser.uid).get()
     const user = userSnap.exists ? userSnap.data() : null
-    const username = sanitizeUsername(String(user?.username || user?.slug || ""))
+    const username = sanitizeUsername(String(user?.username || ""))
 
     if (!username) {
       return NextResponse.json({ error: "Set your Pasive username before connecting a domain." }, { status: 400 })

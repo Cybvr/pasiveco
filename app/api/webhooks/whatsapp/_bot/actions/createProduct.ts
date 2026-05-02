@@ -54,7 +54,6 @@ export async function createWhatsAppProduct({
       isActive: existingUser.isActive ?? true,
       role: existingUser.role || "user",
       username: existingUser.username || creatorHandle,
-      slug: existingUser.slug || creatorHandle,
       phoneNumber: existingUser.phoneNumber || from,
       source: existingUser.source || "whatsapp",
       accountStatus: existingUser.accountStatus || "whatsapp_unclaimed",

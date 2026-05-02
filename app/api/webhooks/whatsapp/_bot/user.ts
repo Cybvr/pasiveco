@@ -29,7 +29,6 @@ export async function upsertWhatsAppUserFromContact(from: string, contact?: What
       plan: existing.plan || "free",
       displayName: shouldUseProfileName ? profileName : existingDisplayName || creatorHandle,
       username: existing.username || creatorHandle,
-      slug: existing.slug || creatorHandle,
       phoneNumber: existing.phoneNumber || from,
       whatsappId: contact?.wa_id || existing.whatsappId || from,
       whatsappProfileName: profileName || existing.whatsappProfileName || null,

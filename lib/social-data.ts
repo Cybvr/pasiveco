@@ -118,7 +118,7 @@ async function ensureAuthorProfile(authorId: string) {
     return null
   }
 
-  const username = (appUser.username || appUser.slug || appUser.email.split('@')[0] || authorId).replace(/^@/, '').trim()
+  const username = (appUser.username || appUser.email.split('@')[0] || authorId).replace(/^@/, '').trim()
   const profile: SocialProfile = {
     id: authorId,
     name: appUser.displayName || username || 'You',

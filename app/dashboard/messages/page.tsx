@@ -66,12 +66,12 @@ function MessagesPageContent() {
     getPublicUsers().then(users => {
       const mapped = users.map(u => ({
         id: u.id || u.userId,
-        name: u.displayName || u.username || u.slug || 'User',
-        handle: `@${(u.username || u.slug || u.email?.split('@')[0] || 'user').replace(/^@/, '').trim()}`,
+        name: u.displayName || u.username || 'User',
+        handle: `@${(u.username || u.email?.split('@')[0] || 'user').replace(/^@/, '').trim()}`,
         image: getDisplayAvatar({
           image: u.profilePicture || u.photoURL || '',
           displayName: u.displayName || u.username || 'User',
-          handle: u.username || u.slug || u.userId || u.id,
+          handle: u.username || u.userId || u.id,
         })
       }))
       setGlobalUsers(mapped)
@@ -108,12 +108,12 @@ function MessagesPageContent() {
             const fallbackUser = socialProfile ? null : await getUser(requestedUserId).catch(() => null)
             const profile = socialProfile || (fallbackUser ? {
               id: fallbackUser.userId || fallbackUser.id || requestedUserId,
-              name: fallbackUser.displayName || fallbackUser.username || fallbackUser.slug || 'User',
-              handle: `@${(fallbackUser.username || fallbackUser.slug || fallbackUser.email?.split('@')[0] || 'user').replace(/^@/, '').trim()}`,
+              name: fallbackUser.displayName || fallbackUser.username || 'User',
+              handle: `@${(fallbackUser.username || fallbackUser.email?.split('@')[0] || 'user').replace(/^@/, '').trim()}`,
               image: getDisplayAvatar({
                 image: fallbackUser.profilePicture || fallbackUser.photoURL || '',
                 displayName: fallbackUser.displayName || fallbackUser.username || 'User',
-                handle: fallbackUser.username || fallbackUser.slug || fallbackUser.userId || requestedUserId,
+                handle: fallbackUser.username || fallbackUser.userId || requestedUserId,
               }),
             } : null)
 
