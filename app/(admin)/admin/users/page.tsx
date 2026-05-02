@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, Download, UserRound } from "lucide-react"
+import { Trash2, Edit, Plus, Search, Upload, Sparkles, Loader2, Download, UserRound, RotateCcw } from "lucide-react"
 import { getAllUsers, updateUser, deleteUser, createUser, type User } from "@/services/userService"
 import { DEFAULT_USER_CATEGORIES, getUserCategories } from "@/services/categoryService"
 import { Timestamp } from "firebase/firestore"
@@ -689,6 +689,33 @@ export default function UsersPage() {
     }
   }
 
+  const handleResetOnboarding = async (user: User) => {
+    if (!user.id) return
+
+    const updates = {
+      onboardingCompleted: false,
+      onboarding: null,
+    } as Partial<User>
+
+    try {
+      await updateUser(user.id, updates)
+      setUsers(prevUsers => prevUsers.map(u =>
+        u.id === user.id ? { ...u, ...updates } : u
+      ))
+      toast({
+        title: "Onboarding reset",
+        description: `${user.displayName || user.email || 'User'} will see onboarding again on their next dashboard load.`,
+      })
+    } catch (error) {
+      console.error('Error resetting onboarding:', error)
+      toast({
+        title: "Error",
+        description: "Failed to reset onboarding",
+        variant: "destructive",
+      })
+    }
+  }
+
   const formatDate = (timestamp: any) => {
     if (timestamp instanceof Timestamp) {
       return timestamp.toDate().toLocaleDateString()
@@ -1103,6 +1130,9 @@ export default function UsersPage() {
                 <Button variant="ghost" size="sm" onClick={() => handleImpersonate(user)} title="Login as user">
                   <UserRound className="h-4 w-4 text-blue-600" />
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleResetOnboarding(user)} title="Reset onboarding">
+                  <RotateCcw className="h-4 w-4 text-amber-600" />
+                </Button>
                 <Button variant="ghost" size="sm" onClick={() => openEditModal(user)}>
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -1262,6 +1292,15 @@ export default function UsersPage() {
                       title="Login as user"
                     >
                       <UserRound className="h-4 w-4 text-blue-600" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleResetOnboarding(user)}
+                      title="Reset onboarding"
+                    >
+                      <RotateCcw className="h-4 w-4 text-amber-600" />
                     </Button>
 
                     <Button
