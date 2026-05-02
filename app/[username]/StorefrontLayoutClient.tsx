@@ -31,7 +31,6 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -120,8 +119,6 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
         tabs={tabs} 
         activeTab={activeTab}
         isOwnUser={isOwnUser}
-        isCartOpen={isCartOpen}
-        setIsCartOpen={setIsCartOpen}
         isPageModalOpen={isPageModalOpen}
         setIsPageModalOpen={setIsPageModalOpen}
         isShareModalOpen={isShareModalOpen}
@@ -140,11 +137,11 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
 
 function StorefrontContent({ 
   username, p, socialLinks, tabs, activeTab, isOwnUser, 
-  isCartOpen, setIsCartOpen, isPageModalOpen, setIsPageModalOpen,
+  isPageModalOpen, setIsPageModalOpen,
   isShareModalOpen, setIsShareModalOpen, isGiftModalOpen, setIsGiftModalOpen,
   handleMessageClick, pathname, coverImage, children 
 }: any) {
-  const { cartCount } = useCart();
+  const { cartCount, setIsOpen: setIsCartOpen, isOpen: isCartOpen } = useCart();
 
   return (
     <div className="min-h-screen bg-background">

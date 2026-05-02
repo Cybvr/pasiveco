@@ -41,8 +41,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [hasPurchased, setHasPurchased] = useState(false);
   const { user } = useAuth();
   const { currency: userCurrency, rates } = useCurrency();
-  const { addItem } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { addItem, setIsOpen } = useCart();
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -154,7 +153,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
       description: `${product.name} is now in your cart.`,
       action: {
         label: 'View Cart',
-        onClick: () => setIsCartOpen(true),
+        onClick: () => setIsOpen(true),
       },
     });
   };
@@ -162,7 +161,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const handleBuyNow = () => {
     if (!product) return;
     addItem(product);
-    setIsCartOpen(true);
+    setIsOpen(true);
   };
 
   const handlePinToStore = async () => {
@@ -396,7 +395,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
       {/* Product Reviews Section */}
       <ProductReviewSection productId={product.id || productId} user={user} />
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} username={username} />
     </div>
   );
 }

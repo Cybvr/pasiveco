@@ -38,7 +38,7 @@ function CartCheckoutPageContent() {
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(defaultPaymentSettings);
   const [selectedMethod, setSelectedMethod] = useState<'card' | 'bank'>('card');
   const [error, setError] = useState('');
-  
+
   // Meta-compatibility state
   const [urlProducts, setUrlProducts] = useState<any[]>([]);
   const [isUrlCheckout, setIsUrlCheckout] = useState(false);
@@ -76,7 +76,7 @@ function CartCheckoutPageContent() {
   useEffect(() => {
     const productsParam = searchParams.get('products');
     const couponParam = searchParams.get('coupon');
-    
+
     if (productsParam) {
       setIsUrlCheckout(true);
       setUrlLoading(true);
@@ -89,7 +89,7 @@ function CartCheckoutPageContent() {
               const quantity = parseInt(qty) || 1;
               let productData = await getProductBySlug(id);
               if (!productData) productData = await getProduct(id);
-              
+
               if (productData) {
                 return {
                   productId: productData.id,
@@ -121,11 +121,11 @@ function CartCheckoutPageContent() {
 
   // Use either cart items or URL-parsed products
   const displayItems = isUrlCheckout ? urlProducts : items;
-  const displayTotal = isUrlCheckout 
+  const displayTotal = isUrlCheckout
     ? urlProducts.reduce((acc, item) => {
-        const priceInNgn = convertAmount(item.price, item.currency as any, 'NGN', rates);
-        return acc + priceInNgn * item.quantity;
-      }, 0)
+      const priceInNgn = convertAmount(item.price, item.currency as any, 'NGN', rates);
+      return acc + priceInNgn * item.quantity;
+    }, 0)
     : cartTotal;
 
   const formattedTotal = useMemo(() => {
