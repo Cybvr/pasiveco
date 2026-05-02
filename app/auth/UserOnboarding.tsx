@@ -6,7 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, ArrowRight, Check, Loader2, X } from 'lucide-react'
-import { db } from '@/lib/firebase'
+import {
+  PhoneAuthProvider,
+  RecaptchaVerifier,
+  updatePhoneNumber,
+} from 'firebase/auth'
+import { auth, db } from '@/lib/firebase'
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { createReferral } from '@/services/referralService'
 import { sanitizeUsername } from '@/lib/username'
@@ -15,6 +20,12 @@ interface OnboardingProps {
   onComplete: () => void
   userId: string
   displayName?: string
+}
+
+declare global {
+  interface Window {
+    onboardingRecaptchaVerifier?: RecaptchaVerifier
+  }
 }
 
 const creatorTypes = [
@@ -55,6 +66,13 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
   const [currentSlide, setCurrentSlide] = useState(0)
   const [storeName, setStoreName] = useState(displayName || '')
   const [storeHandle, setStoreHandle] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [verificationId, setVerificationId] = useState('')
+  const [verificationCode, setVerificationCode] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [phoneError, setPhoneError] = useState('')
+  const [isSendingCode, setIsSendingCode] = useState(false)
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false)
   const [creatorType, setCreatorType] = useState('')
   const [customCreatorType, setCustomCreatorType] = useState('')
   const [goal, setGoal] = useState('')
@@ -68,7 +86,77 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
     if (savedRef) setReferralCode(savedRef)
   }, [])
 
+  useEffect(() => {
+    return () => {
+      window.onboardingRecaptchaVerifier?.clear()
+      window.onboardingRecaptchaVerifier = undefined
+    }
+  }, [])
+
   const cleanHandle = useMemo(() => sanitizeUsername(storeHandle), [storeHandle])
+
+  const getRecaptchaVerifier = () => {
+    if (window.onboardingRecaptchaVerifier) return window.onboardingRecaptchaVerifier
+
+    auth.useDeviceLanguage()
+    window.onboardingRecaptchaVerifier = new RecaptchaVerifier(auth, 'onboarding-recaptcha', {
+      size: 'invisible',
+      callback: () => {},
+    })
+
+    return window.onboardingRecaptchaVerifier
+  }
+
+  const handleSendCode = async () => {
+    if (!phoneNumber.trim()) {
+      setPhoneError('Enter a phone number first.')
+      return
+    }
+
+    setIsSendingCode(true)
+    setPhoneError('')
+
+    try {
+      const provider = new PhoneAuthProvider(auth)
+      const id = await provider.verifyPhoneNumber(phoneNumber.trim(), getRecaptchaVerifier())
+      setVerificationId(id)
+    } catch (error) {
+      console.error('Phone verification send failed:', error)
+      setPhoneError('Could not send code. Use international format, like +234...')
+      window.onboardingRecaptchaVerifier?.clear()
+      window.onboardingRecaptchaVerifier = undefined
+    } finally {
+      setIsSendingCode(false)
+    }
+  }
+
+  const handleVerifyCode = async () => {
+    const currentUser = auth.currentUser
+
+    if (!currentUser) {
+      setPhoneError('Sign in again before verifying your phone.')
+      return
+    }
+
+    if (!verificationId || !verificationCode.trim()) {
+      setPhoneError('Enter the code we sent.')
+      return
+    }
+
+    setIsVerifyingCode(true)
+    setPhoneError('')
+
+    try {
+      const credential = PhoneAuthProvider.credential(verificationId, verificationCode.trim())
+      await updatePhoneNumber(currentUser, credential)
+      setPhoneVerified(true)
+    } catch (error) {
+      console.error('Phone verification failed:', error)
+      setPhoneError('That code did not work. Try again.')
+    } finally {
+      setIsVerifyingCode(false)
+    }
+  }
 
   const saveOnboarding = async (status: 'completed' | 'skipped') => {
     if (isSaving) return
@@ -87,9 +175,12 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
       await setDoc(doc(db, 'users', userId), {
         ...(trimmedStoreName ? { displayName: trimmedStoreName, storeName: trimmedStoreName } : {}),
         ...(cleanHandle ? { requestedUsername: cleanHandle } : {}),
+        ...(phoneVerified ? { phoneNumber: phoneNumber.trim(), phoneVerified: true } : {}),
         onboarding: {
           storeName: trimmedStoreName,
           requestedUsername: cleanHandle,
+          phoneNumber: phoneVerified ? phoneNumber.trim() : '',
+          phoneVerified,
           creatorType: resolvedCreatorType,
           goal: resolvedGoal,
           referralSource,
@@ -138,6 +229,75 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
           </div>
           {storeHandle ? <p className="text-xs text-muted-foreground">We will save this as your preferred handle: {cleanHandle || '...'}</p> : null}
         </div>
+      </div>
+    </div>,
+    <div key="phone" className="space-y-5">
+      <div className="space-y-2">
+        <h3 className="text-2xl font-semibold tracking-tight">What phone number should we use?</h3>
+        <p className="text-sm leading-6 text-muted-foreground">We will verify it with Firebase SMS for payouts, order alerts, and account recovery.</p>
+      </div>
+      <div id="onboarding-recaptcha" />
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label htmlFor="phone-number">Phone number</Label>
+          <div className="flex gap-2">
+            <Input
+              id="phone-number"
+              type="tel"
+              value={phoneNumber}
+              onChange={(event) => {
+                setPhoneNumber(event.target.value)
+                setPhoneVerified(false)
+              }}
+              placeholder="+234 800 000 0000"
+              className="h-12"
+              disabled={phoneVerified}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 shrink-0"
+              disabled={isSendingCode || phoneVerified}
+              onClick={handleSendCode}
+            >
+              {isSendingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : verificationId ? 'Resend' : 'Send code'}
+            </Button>
+          </div>
+        </div>
+
+        {verificationId && !phoneVerified ? (
+          <div className="space-y-2">
+            <Label htmlFor="phone-code">Verification code</Label>
+            <div className="flex gap-2">
+              <Input
+                id="phone-code"
+                inputMode="numeric"
+                value={verificationCode}
+                onChange={(event) => setVerificationCode(event.target.value)}
+                placeholder="6-digit code"
+                className="h-12"
+              />
+              <Button
+                type="button"
+                className="h-12 shrink-0"
+                disabled={isVerifyingCode}
+                onClick={handleVerifyCode}
+              >
+                {isVerifyingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {phoneVerified ? (
+          <p className="flex items-center gap-2 text-sm font-medium text-green-600">
+            <Check className="h-4 w-4" />
+            Phone verified
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">You can skip this for now, but verified phone numbers are better for seller accounts.</p>
+        )}
+        {phoneError ? <p className="text-sm text-destructive">{phoneError}</p> : null}
       </div>
     </div>,
     <div key="creator-type" className="space-y-5">
