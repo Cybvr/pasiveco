@@ -42,6 +42,7 @@ function CartCheckoutPageContent() {
   // Meta-compatibility state
   const [urlProducts, setUrlProducts] = useState<any[]>([]);
   const [isUrlCheckout, setIsUrlCheckout] = useState(false);
+  const [urlLoading, setUrlLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -78,6 +79,7 @@ function CartCheckoutPageContent() {
     
     if (productsParam) {
       setIsUrlCheckout(true);
+      setUrlLoading(true);
       const parseAndFetch = async () => {
         try {
           const entries = productsParam.split(',');
@@ -105,6 +107,8 @@ function CartCheckoutPageContent() {
           setUrlProducts(fetchedItems.filter(i => i !== null));
         } catch (e) {
           console.error("Failed to parse Meta products param", e);
+        } finally {
+          setUrlLoading(false);
         }
       };
       parseAndFetch();
@@ -187,7 +191,7 @@ function CartCheckoutPageContent() {
     }
   };
 
-  if (loading) {
+  if (loading || urlLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
