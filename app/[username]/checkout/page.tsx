@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { countryCodes, formatPhoneNumber } from '@/lib/countries';
+import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
 import { getPaymentSettings, PaymentSettings, defaultPaymentSettings } from '@/services/paymentMethodService';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,6 +37,10 @@ function CartCheckoutPageContent() {
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(defaultPaymentSettings);
   const [selectedMethod, setSelectedMethod] = useState<'card' | 'bank'>('card');
   const [error, setError] = useState('');
+  
+  // Meta-compatibility state
+  const [urlProducts, setUrlProducts] = useState<any[]>([]);
+  const [isUrlCheckout, setIsUrlCheckout] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -65,15 +70,68 @@ function CartCheckoutPageContent() {
     init();
   }, [username]);
 
+  // Meta Shop URL Parsing Logic
+  useEffect(() => {
+    const productsParam = searchParams.get('products');
+    const couponParam = searchParams.get('coupon');
+    
+    if (productsParam) {
+      setIsUrlCheckout(true);
+      const parseAndFetch = async () => {
+        try {
+          const entries = productsParam.split(',');
+          const fetchedItems = await Promise.all(
+            entries.map(async (entry) => {
+              const [id, qty] = entry.split(':');
+              const quantity = parseInt(qty) || 1;
+              let productData = await getProductBySlug(id);
+              if (!productData) productData = await getProduct(id);
+              
+              if (productData) {
+                return {
+                  productId: productData.id,
+                  name: productData.name,
+                  price: productData.price,
+                  currency: productData.currency || 'NGN',
+                  thumbnail: productData.thumbnail,
+                  quantity: quantity,
+                  userId: productData.userId
+                };
+              }
+              return null;
+            })
+          );
+          setUrlProducts(fetchedItems.filter(i => i !== null));
+        } catch (e) {
+          console.error("Failed to parse Meta products param", e);
+        }
+      };
+      parseAndFetch();
+    }
+
+    if (couponParam) {
+      setNotes(prev => prev ? `${prev}\nCoupon: ${couponParam}` : `Coupon: ${couponParam}`);
+    }
+  }, [searchParams]);
+
+  // Use either cart items or URL-parsed products
+  const displayItems = isUrlCheckout ? urlProducts : items;
+  const displayTotal = isUrlCheckout 
+    ? urlProducts.reduce((acc, item) => {
+        const priceInNgn = convertAmount(item.price, item.currency as any, 'NGN', rates);
+        return acc + priceInNgn * item.quantity;
+      }, 0)
+    : cartTotal;
+
   const formattedTotal = useMemo(() => {
     return formatCurrency(
-      convertAmount(cartTotal, 'NGN', userCurrency as any, rates),
+      convertAmount(displayTotal, 'NGN', userCurrency as any, rates),
       userCurrency as any
     );
-  }, [cartTotal, userCurrency, rates]);
+  }, [displayTotal, userCurrency, rates]);
 
   const handlePay = async () => {
-    if (items.length === 0) return;
+    if (displayItems.length === 0) return;
 
     if (!user) {
       router.push(`/auth/login?next=${encodeURIComponent(pathname)}`);
@@ -89,24 +147,23 @@ function CartCheckoutPageContent() {
     setPaymentLoading(true);
 
     try {
-      // In a real multi-item cart, we might need a specialized API endpoint
-      // For now, we'll process it as a single transaction with multiple items in metadata
       const res = await fetch('/api/paystack/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.uid,
           email: buyerEmail,
-          amount: cartTotal,
-          currency: items[0]?.currency || 'NGN',
-          productId: 'multiple', // Special ID for cart
+          amount: displayTotal,
+          currency: displayItems[0]?.currency || 'NGN',
+          productId: 'multiple',
           productName: `Order from ${username}`,
           slug: username,
           metadata: {
             customerName: buyerName,
             customerPhone: buyerPhone.trim() ? formatPhoneNumber(countryCode, buyerPhone) : '',
-            items: items.map(i => ({ id: i.productId, name: i.name, qty: i.quantity, price: i.price })),
-            cartTotal: cartTotal,
+            items: displayItems.map(i => ({ id: i.productId, name: i.name, qty: i.quantity, price: i.price })),
+            cartTotal: displayTotal,
+            source: isUrlCheckout ? 'meta_shop' : 'direct_cart'
           }
         }),
       });
@@ -137,7 +194,7 @@ function CartCheckoutPageContent() {
     );
   }
 
-  if (items.length === 0) {
+  if (displayItems.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
         <ShoppingBag className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
@@ -237,7 +294,7 @@ function CartCheckoutPageContent() {
               <div className="p-5 space-y-4">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Order Summary</h2>
                 <div className="space-y-4">
-                  {items.map(item => (
+                  {displayItems.map(item => (
                     <div key={item.id} className="flex gap-3">
                       <div className="h-12 w-12 rounded border bg-muted overflow-hidden shrink-0">
                         <img src={item.thumbnail} alt={item.name} className="h-full w-full object-cover" />
@@ -249,7 +306,11 @@ function CartCheckoutPageContent() {
                       <p className="text-sm font-semibold whitespace-nowrap">
                         {formatCurrency(convertAmount(item.price * item.quantity, item.currency as any || 'NGN', userCurrency as any, rates), userCurrency as any)}
                       </p>
-                      <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      {!isUrlCheckout && (
+                        <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
