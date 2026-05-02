@@ -16,6 +16,9 @@ import VerifiedBadge from '@/components/common/VerifiedBadge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import PixelTracker from '@/components/common/PixelTracker';
+import { CartProvider, useCart } from '@/context/CartContext';
+import CartDrawer from '@/components/cart/CartDrawer';
+import { ShoppingCart } from 'lucide-react';
 
 export default function StorefrontLayoutClient({ username, children }: { username: string; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,6 +31,7 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
   const [isPageModalOpen, setIsPageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -108,14 +112,60 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
   };
 
   return (
+    <CartProvider>
+      <StorefrontContent 
+        username={username} 
+        p={p} 
+        socialLinks={socialLinks} 
+        tabs={tabs} 
+        activeTab={activeTab}
+        isOwnUser={isOwnUser}
+        isCartOpen={isCartOpen}
+        setIsCartOpen={setIsCartOpen}
+        isPageModalOpen={isPageModalOpen}
+        setIsPageModalOpen={setIsPageModalOpen}
+        isShareModalOpen={isShareModalOpen}
+        setIsShareModalOpen={setIsShareModalOpen}
+        isGiftModalOpen={isGiftModalOpen}
+        setIsGiftModalOpen={setIsGiftModalOpen}
+        handleMessageClick={handleMessageClick}
+        pathname={pathname}
+        coverImage={coverImage}
+      >
+        {children}
+      </StorefrontContent>
+    </CartProvider>
+  );
+}
+
+function StorefrontContent({ 
+  username, p, socialLinks, tabs, activeTab, isOwnUser, 
+  isCartOpen, setIsCartOpen, isPageModalOpen, setIsPageModalOpen,
+  isShareModalOpen, setIsShareModalOpen, isGiftModalOpen, setIsGiftModalOpen,
+  handleMessageClick, pathname, coverImage, children 
+}: any) {
+  const { cartCount } = useCart();
+
+  return (
     <div className="min-h-screen bg-background">
-      <PixelTracker integrations={profileData?.integrations} />
+      <PixelTracker integrations={p?.integrations} />
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between p-3 pointer-events-none">
         <button onClick={() => setIsPageModalOpen(true)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors pointer-events-auto">
           <Menu className="w-4 h-4 text-white drop-shadow-md" />
         </button>
         <div className="flex items-center gap-2 pointer-events-auto">
+          <button 
+            onClick={() => setIsCartOpen(true)} 
+            className="relative p-2 rounded-lg bg-background/20 backdrop-blur-md hover:bg-background/40 transition-colors pointer-events-auto"
+          >
+            <ShoppingCart className="w-4 h-4 text-white" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm">
+                {cartCount}
+              </span>
+            )}
+          </button>
           <button onClick={() => setIsShareModalOpen(true)} className="p-2 rounded-lg bg-background/20 backdrop-blur-md hover:bg-background/40 transition-colors pointer-events-auto">
             <Share2 className="w-4 h-4 text-white" />
           </button>
@@ -218,6 +268,7 @@ export default function StorefrontLayoutClient({ username, children }: { usernam
         creatorId={p.userId || p.id}
         creatorName={p.username}
       />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} username={username} />
     </div>
   );
 }

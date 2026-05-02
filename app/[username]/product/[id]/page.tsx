@@ -16,6 +16,8 @@ import { getProductTypeLabel } from '@/lib/productTypes';
 import StarRating from '@/components/products/StarRating';
 import ProductReviewSection from '@/components/products/ProductReviewSection';
 import { useCurrency } from "@/context/CurrencyContext";
+import { useCart } from '@/context/CartContext';
+import CartDrawer from '@/components/cart/CartDrawer';
 import { formatCurrency, convertAmount, type ExchangeRates } from "@/utils/currency";
 
 const formatPrice = (amount: number, productCurrency: string, userCurrency: string, rates: ExchangeRates) => {
@@ -39,6 +41,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const [hasPurchased, setHasPurchased] = useState(false);
   const { user } = useAuth();
   const { currency: userCurrency, rates } = useCurrency();
+  const { addItem } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -104,9 +108,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
   const checkoutHref = `/${username}/product/${product.slug || product.id || productId}/checkout`;
   const formattedPrice = formatPrice(product.price, product.currency || 'NGN', userCurrency, rates);
   const hasDirectLink = Boolean(product.url);
-  // Allow checkout for any priced product — the global Paystack key handles the actual payment.
-  // Only fall back to "Unavailable" if price is 0 and there's no direct link.
-  const hasPaystack = !hasDirectLink && product.price > 0;
+  // Prioritize native checkout (Cart) if there is a price, even if a direct link exists.
+  const hasPaystack = product.price > 0;
+  const isExternalOnly = hasDirectLink && !hasPaystack;
 
   const handleShare = async () => {
     const shareData = {
@@ -141,6 +145,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
     } catch (err) {
       toast.error('Failed to copy link.');
     }
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+    addItem(product);
+    toast.success('Added to cart!', {
+      description: `${product.name} is now in your cart.`,
+      action: {
+        label: 'View Cart',
+        onClick: () => setIsCartOpen(true),
+      },
+    });
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    addItem(product);
+    setIsCartOpen(true);
   };
 
   const handlePinToStore = async () => {
@@ -274,14 +296,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
                   View in My Library
                 </Button>
               </Link>
+            ) : hasPaystack ? (
+              <div className="flex flex-col gap-3">
+                <Button 
+                  className="h-12 w-full text-base font-bold" 
+                  size="lg"
+                  onClick={handleAddToCart}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add to cart
+                </Button>
+                <Button 
+                  className="h-12 w-full text-base font-bold" 
+                  variant="outline"
+                  size="lg"
+                  onClick={handleBuyNow}
+                >
+                  Buy it now
+                </Button>
+              </div>
             ) : hasDirectLink ? (
               <a href={product.url} target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="h-12 w-full" size="lg"><ExternalLink className="mr-2 h-4 w-4" />Get product</Button>
               </a>
-            ) : hasPaystack ? (
-              <Link href={checkoutHref} className="block">
-                <Button className="h-12 w-full" size="lg">Continue to checkout</Button>
-              </Link>
             ) : (
               <Button className="h-12 w-full" size="lg" variant="outline" disabled>Unavailable for purchase</Button>
             )}
@@ -358,6 +395,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string; 
 
       {/* Product Reviews Section */}
       <ProductReviewSection productId={product.id || productId} user={user} />
+
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} username={username} />
     </div>
   );
 }
