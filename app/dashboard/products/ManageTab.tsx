@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   List,
   Zap,
+  Upload,
 } from 'lucide-react'
 import StarRating from '@/components/products/StarRating'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,7 @@ import { formatCurrency, convertAmount } from '@/utils/currency'
 import { getUser, type User as AppUser } from '@/services/userService'
 import DashboardPagination from '@/components/dashboard/DashboardPagination'
 
-function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, onBulkAINew, hasBankingDetails = false }) {
+function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew, onGenAINew, onBulkAINew, onCsvImport, hasBankingDetails = false }) {
   const ITEMS_PER_PAGE = 12
   const router = useRouter()
   const { user } = useAuth()
@@ -182,7 +183,7 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
             </Button>
           </div>
 
-          <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
+          <div className="grid w-full grid-cols-4 gap-2 sm:flex sm:w-auto">
             <Button
               variant="outline"
               onClick={onGenAINew}
@@ -200,6 +201,15 @@ function ManageTab({ products, isLoading = false, onProductsChanged, onCreateNew
             >
               <Layers className="h-3.5 w-3.5" />
               <span className="max-w-full whitespace-normal text-center leading-tight sm:whitespace-nowrap">Instant Catalog</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onCsvImport}
+              title="Import CSV"
+              className="h-auto min-h-[3.25rem] shrink-0 flex-col gap-1 rounded-lg border-primary/20 px-2 py-2 text-[10px] text-primary hover:bg-primary/5 sm:h-8 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-3 sm:py-0 sm:text-xs"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              <span className="max-w-full whitespace-normal text-center leading-tight sm:whitespace-nowrap">Import</span>
             </Button>
             <Button
               onClick={onCreateNew}

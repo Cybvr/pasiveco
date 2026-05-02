@@ -23,6 +23,7 @@ import { storage } from '@/lib/firebase'
 
 import ManageTab from './ManageTab'
 import InstantCatalogModal from '@/components/products/InstantCatalogModal'
+import CatalogCsvImportModal from '@/components/products/CatalogCsvImportModal'
 
 
 
@@ -46,6 +47,7 @@ function ProductCreator() {
     }>
   }>(null)
   const [isInstantCatalogOpen, setIsInstantCatalogOpen] = useState(false)
+  const [isCsvImportOpen, setIsCsvImportOpen] = useState(false)
   const [brandStyle, setBrandStyle] = useState<string>("")
   const [processingIdx, setProcessingIdx] = useState<number | null>(null)
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null)
@@ -272,6 +274,7 @@ function ProductCreator() {
           }}
           onGenAINew={() => setIsAIModalOpen(true)}
           onBulkAINew={() => setIsInstantCatalogOpen(true)}
+          onCsvImport={() => setIsCsvImportOpen(true)}
           hasBankingDetails={hasBankingDetails}
         />
       </div>
@@ -281,6 +284,12 @@ function ProductCreator() {
         onOpenChange={setIsInstantCatalogOpen}
         onProductsCreated={loadMyProducts}
         creatorName={user?.displayName || "Creator"}
+      />
+
+      <CatalogCsvImportModal
+        open={isCsvImportOpen}
+        onOpenChange={setIsCsvImportOpen}
+        onProductsCreated={loadMyProducts}
       />
 
       {/* AI Modal */}
