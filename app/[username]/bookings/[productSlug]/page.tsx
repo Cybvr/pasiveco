@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
+import { countryCodes, formatPhoneNumber } from '@/lib/countries';
 import { getUserByUsername } from '@/services/userService';
 import { getUserProducts, Product } from '@/services/productsService';
 import type { IntakeFormField } from '@/services/productsService';
@@ -203,6 +205,7 @@ export default function BookingDetailPage() {
   // Customer info
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+234');
   const [customerPhone, setCustomerPhone] = useState('');
 
   // Intake answers: fieldId → value
@@ -296,7 +299,7 @@ export default function BookingDetailPage() {
         endTime: selectedSlot.end,
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim(),
-        customerPhone: customerPhone.trim() || undefined,
+        customerPhone: customerPhone.trim() ? formatPhoneNumber(countryCode, customerPhone) : undefined,
         intakeAnswers,
         locationType: product.details?.locationType,
         locationDetail: product.details?.locationDetail,
@@ -544,13 +547,28 @@ export default function BookingDetailPage() {
               <Label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Phone (optional)
               </Label>
-              <Input
-                id="booking-customer-phone"
-                type="tel"
-                placeholder="+234 800 000 0000"
-                value={customerPhone}
-                onChange={e => setCustomerPhone(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode}>
+                  <SelectTrigger className="h-10 w-[100px] shrink-0 bg-background">
+                    <SelectValue placeholder="Code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countryCodes.map((item) => (
+                      <SelectItem key={item.code} value={item.code}>
+                        {item.flag} {item.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="booking-customer-phone"
+                  type="tel"
+                  placeholder="800 000 0000"
+                  className="h-10 rounded-md flex-1"
+                  value={customerPhone}
+                  onChange={e => setCustomerPhone(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Dynamic intake form fields */}

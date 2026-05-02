@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { countryCodes, formatPhoneNumber } from '@/lib/countries'
 import { 
   getAuth,
   GoogleAuthProvider, 
@@ -39,6 +41,7 @@ declare global {
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [countryCode, setCountryCode] = useState('+234')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
@@ -107,17 +110,38 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
+    const fullPhoneNumber = formatPhoneNumber(countryCode, phoneNumber)
+    
+    if (!phoneNumber.trim()) {
+      setError('Enter a phone number first.')
+      return
+    }
+
     setLoading(true)
     setError('')
     
     try {
       const verifier = setupRecaptcha('recaptcha-anchor')
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier)
+      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier)
       window.confirmationResult = confirmationResult
       setStep('otp')
     } catch (err: any) {
-      console.error(err)
-      setError('Failed to send SMS. verify number format (+234...)')
+      console.error('AuthModal OTP send failed:', err)
+      let message = 'Could not send code. Please check the number and try again.'
+      
+      if (err.code === 'auth/invalid-phone-number') {
+        message = 'The phone number is invalid. Please check the country code and digits.'
+      } else if (err.code === 'auth/too-many-requests') {
+        message = 'Too many attempts. Please try again later.'
+      } else if (err.code === 'auth/quota-exceeded') {
+        message = 'SMS quota exceeded. Please contact support.'
+      } else if (err.message?.includes('unauthorized-domain') || err.code === 'auth/unauthorized-domain') {
+        message = 'Domain not authorized. Check Firebase Console Authorized Domains.'
+      } else if (err.message) {
+        message = `Error: ${err.message}`
+      }
+      
+      setError(message)
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear()
         window.recaptchaVerifier = undefined
@@ -237,7 +261,29 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <form onSubmit={handleSendOtp} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" required placeholder="+234 800 000 0000" className="h-10 rounded-md" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                    <div className="flex gap-2">
+                      <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger className="h-10 w-[100px] shrink-0 bg-background">
+                          <SelectValue placeholder="Code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {countryCodes.map((item) => (
+                            <SelectItem key={item.code} value={item.code}>
+                              {item.flag} {item.code}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input 
+                        id="phone" 
+                        type="tel" 
+                        required 
+                        placeholder="800 000 0000" 
+                        className="h-10 rounded-md flex-1" 
+                        value={phoneNumber} 
+                        onChange={(e) => setPhoneNumber(e.target.value)} 
+                      />
+                    </div>
                   </div>
                   {error && <div className="p-2.5 bg-red-50 rounded-md text-[11px] font-medium text-red-600 border border-red-100">{error}</div>}
                   <Button type="submit" disabled={loading} className="w-full h-11 rounded-md font-semibold text-sm">

@@ -7,6 +7,8 @@ import Image from 'next/image'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { countryCodes, formatPhoneNumber } from '@/lib/countries'
 import {
   getAuth,
   GoogleAuthProvider,
@@ -91,6 +93,7 @@ async function handleAIPendingOnboarding(uid: string, fallbackName: string, fall
 }
 
 function RegisterContent() {
+  const [countryCode, setCountryCode] = useState('+234')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
@@ -146,15 +149,37 @@ function RegisterContent() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
+    const fullPhoneNumber = formatPhoneNumber(countryCode, phoneNumber)
+    
+    if (!phoneNumber.trim()) {
+      setError('Enter a phone number first.')
+      return
+    }
+
     setLoading(true)
     setError('')
     try {
       const verifier = setupRecaptcha('recaptcha-anchor-reg')
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, verifier)
+      const confirmationResult = await signInWithPhoneNumber(auth, fullPhoneNumber, verifier)
       window.confirmationResult = confirmationResult
       setStep('otp')
-    } catch (err) {
-      setError('Invalid phone format (+234...)')
+    } catch (err: any) {
+      console.error('Register OTP send failed:', err)
+      let message = 'Could not send code. Please check the number and try again.'
+      
+      if (err.code === 'auth/invalid-phone-number') {
+        message = 'The phone number is invalid. Please check the country code and digits.'
+      } else if (err.code === 'auth/too-many-requests') {
+        message = 'Too many attempts. Please try again later.'
+      } else if (err.code === 'auth/quota-exceeded') {
+        message = 'SMS quota exceeded. Please contact support.'
+      } else if (err.message?.includes('unauthorized-domain') || err.code === 'auth/unauthorized-domain') {
+        message = 'Domain not authorized. Check Firebase Console Authorized Domains.'
+      } else if (err.message) {
+        message = `Error: ${err.message}`
+      }
+      
+      setError(message)
       if (window.recaptchaVerifier) {
         window.recaptchaVerifier.clear()
         window.recaptchaVerifier = undefined
@@ -253,8 +278,30 @@ function RegisterContent() {
                 {step === 'phone' ? (
                   <form onSubmit={handleSendOtp} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phone-reg" className="text-[10px] uppercase font-bold tracking-widest opacity-60">Mobile Number (+234...)</Label>
-                      <Input id="phone-reg" type="tel" required placeholder="+234 800 000 0000" className="h-14 rounded-none border-2 border-muted focus:border-foreground transition-all text-lg" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                      <Label htmlFor="phone-reg" className="text-[10px] uppercase font-bold tracking-widest opacity-60">Mobile Number</Label>
+                      <div className="flex gap-2">
+                        <Select value={countryCode} onValueChange={setCountryCode}>
+                          <SelectTrigger className="h-14 w-[110px] rounded-none border-2 border-muted focus:border-foreground bg-background">
+                            <SelectValue placeholder="Code" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countryCodes.map((item) => (
+                              <SelectItem key={item.code} value={item.code}>
+                                {item.flag} {item.code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input 
+                          id="phone-reg" 
+                          type="tel" 
+                          required 
+                          placeholder="800 000 0000" 
+                          className="h-14 rounded-none border-2 border-muted focus:border-foreground transition-all text-lg flex-1" 
+                          value={phoneNumber} 
+                          onChange={(e) => setPhoneNumber(e.target.value)} 
+                        />
+                      </div>
                     </div>
                     <Button type="submit" disabled={loading} className="w-full h-14 rounded-none font-bold text-lg">
                       {loading ? 'Sending SMS...' : 'Initialize Registry'}

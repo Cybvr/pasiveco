@@ -15,6 +15,7 @@ import { auth, db } from '@/lib/firebase'
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { createReferral } from '@/services/referralService'
 import { generateUsername, sanitizeUsername } from '@/lib/username'
+import { countryCodes, formatPhoneNumber } from '@/lib/countries'
 
 interface OnboardingProps {
   onComplete: () => void
@@ -67,6 +68,7 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
   const [profileName, setProfileName] = useState(displayName || '')
   const [username, setUsername] = useState(() => generateUsername(displayName || ''))
   const [hasEditedUsername, setHasEditedUsername] = useState(false)
+  const [countryCode, setCountryCode] = useState('+234')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [verificationId, setVerificationId] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
@@ -106,13 +108,15 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
     auth.useDeviceLanguage()
     window.onboardingRecaptchaVerifier = new RecaptchaVerifier(auth, 'onboarding-recaptcha', {
       size: 'invisible',
-      callback: () => {},
+      callback: () => { },
     })
 
     return window.onboardingRecaptchaVerifier
   }
 
   const handleSendCode = async () => {
+    const fullPhoneNumber = formatPhoneNumber(countryCode, phoneNumber)
+    
     if (!phoneNumber.trim()) {
       setPhoneError('Enter a phone number first.')
       return
@@ -123,11 +127,29 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
 
     try {
       const provider = new PhoneAuthProvider(auth)
-      const id = await provider.verifyPhoneNumber(phoneNumber.trim(), getRecaptchaVerifier())
+      const verifier = getRecaptchaVerifier()
+      const id = await provider.verifyPhoneNumber(fullPhoneNumber, verifier)
       setVerificationId(id)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Phone verification send failed:', error)
-      setPhoneError('Could not send code. Use international format, like +234...')
+      
+      let message = 'Could not send code. Please check the number and try again.'
+      
+      if (error.code === 'auth/invalid-phone-number') {
+        message = 'The phone number is invalid. Please check the country code and digits.'
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Too many attempts. Please try again later.'
+      } else if (error.code === 'auth/captcha-check-failed') {
+        message = 'Security check failed. Please refresh and try again.'
+      } else if (error.code === 'auth/quota-exceeded') {
+        message = 'SMS quota exceeded. Please contact support.'
+      } else if (error.message?.includes('unauthorized-domain') || error.code === 'auth/unauthorized-domain') {
+        message = 'Domain not authorized. Please add this domain to Firebase Authorized Domains.'
+      } else if (error.message) {
+        message = `Error: ${error.message}`
+      }
+      
+      setPhoneError(message)
       window.onboardingRecaptchaVerifier?.clear()
       window.onboardingRecaptchaVerifier = undefined
     } finally {
@@ -252,6 +274,18 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
         <div className="space-y-2">
           <Label htmlFor="phone-number">Phone number</Label>
           <div className="flex gap-2">
+            <Select value={countryCode} onValueChange={setCountryCode} disabled={phoneVerified}>
+              <SelectTrigger className="h-12 w-[120px] shrink-0">
+                <SelectValue placeholder="Code" />
+              </SelectTrigger>
+              <SelectContent>
+                {countryCodes.map((item) => (
+                  <SelectItem key={item.code} value={item.code}>
+                    {item.flag} {item.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               id="phone-number"
               type="tel"
@@ -260,18 +294,18 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
                 setPhoneNumber(event.target.value)
                 setPhoneVerified(false)
               }}
-              placeholder="+234 800 000 0000"
+              placeholder="800 000 0000"
               className="h-12"
               disabled={phoneVerified}
             />
             <Button
               type="button"
               variant="outline"
-              className="h-12 shrink-0"
+              className="h-12 shrink-0 px-6"
               disabled={isSendingCode || phoneVerified}
               onClick={handleSendCode}
             >
-              {isSendingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : verificationId ? 'Resend' : 'Send code'}
+              {isSendingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : verificationId ? 'Resend' : 'Send'}
             </Button>
           </div>
         </div>

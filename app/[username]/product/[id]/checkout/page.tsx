@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { countryCodes, formatPhoneNumber } from '@/lib/countries';
 import { getProduct, getProductBySlug, Product } from '@/services/productsService';
 import { getUser } from '@/services/userService';
 import { getPaymentSettings, PaymentSettings, defaultPaymentSettings } from '@/services/paymentMethodService';
@@ -44,6 +46,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; usernam
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+234');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>(defaultPaymentSettings);
@@ -130,7 +133,7 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; usernam
           slug: username,
           metadata: {
             customerName: buyerName,
-            customerPhone: buyerPhone,
+            customerPhone: buyerPhone.trim() ? formatPhoneNumber(countryCode, buyerPhone) : '',
             sellerId: product.userId,
             affiliate: affiliateId,
           }
@@ -247,13 +250,28 @@ function CheckoutPageContent({ params }: { params: Promise<{ id: string; usernam
                         Phone{' '}
                         <span className="font-normal text-muted-foreground">(optional)</span>
                       </Label>
-                      <Input
-                        id="buyer-phone"
-                        type="tel"
-                        value={buyerPhone}
-                        onChange={(e) => setBuyerPhone(e.target.value)}
-                        placeholder="+234 000 000 0000"
-                      />
+                      <div className="flex gap-2">
+                        <Select value={countryCode} onValueChange={setCountryCode}>
+                          <SelectTrigger className="h-10 w-[100px] shrink-0 bg-background">
+                            <SelectValue placeholder="Code" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countryCodes.map((item) => (
+                              <SelectItem key={item.code} value={item.code}>
+                                {item.flag} {item.code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          id="buyer-phone"
+                          type="tel"
+                          value={buyerPhone}
+                          onChange={(e) => setBuyerPhone(e.target.value)}
+                          placeholder="800 000 0000"
+                          className="flex-1"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
