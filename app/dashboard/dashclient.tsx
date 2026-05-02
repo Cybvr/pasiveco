@@ -130,8 +130,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
         console.error("Failed to persist onboarding dismissal:", e)
       }
     }
-    // Show the Create Space modal immediately after onboarding
-    setShowCreateSpaceModal(true)
   }
 
   return (
