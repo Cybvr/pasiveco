@@ -54,53 +54,6 @@ const TESTIMONIALS = [
   }
 ];
 
-const SALES_EARNINGS = [
-  { name: "Abdussamad S", amount: "₦200", time: "11 days ago" },
-  { name: "Precious O", amount: "₦200", time: "11 days ago" },
-  { name: "Aniebiet U", amount: "₦200", time: "11 days ago" },
-  { name: "Favour A", amount: "₦200", time: "11 days ago" },
-  { name: "Mary A", amount: "₦200", time: "11 days ago" },
-  { name: "Oluwabukola F", amount: "₦200", time: "11 days ago" },
-  { name: "Bunmi R", amount: "₦200", time: "11 days ago" },
-  { name: "Rukayat R", amount: "₦186", time: "11 days ago" },
-  { name: "Emmanuel C", amount: "₦186", time: "11 days ago" },
-  { name: "Nwachinemerem O", amount: "₦200", time: "11 days ago" },
-  { name: "Eniola O", amount: "₦186", time: "11 days ago" },
-  { name: "Maryann N", amount: "₦200", time: "11 days ago" },
-  { name: "Rofiu A", amount: "₦186", time: "11 days ago" },
-  { name: "Mariam A", amount: "₦200", time: "11 days ago" },
-  { name: "Fredrick A", amount: "₦186", time: "11 days ago" },
-  { name: "Chigozie I", amount: "₦186", time: "11 days ago" },
-  { name: "Mistura A", amount: "₦186", time: "11 days ago" },
-  { name: "Asaph N", amount: "₦200", time: "11 days ago" },
-  { name: "Franklin E", amount: "₦186", time: "11 days ago" },
-  { name: "Wasiu A", amount: "₦200", time: "11 days ago" },
-  { name: "Mosunmade F", amount: "₦186", time: "11 days ago" },
-  { name: "Faizat A", amount: "₦465", time: "11 days ago" },
-  { name: "Olusegun D", amount: "₦465", time: "11 days ago" },
-  { name: "Semilore A", amount: "₦500", time: "11 days ago" },
-  { name: "Mujeebat A", amount: "₦500", time: "11 days ago" },
-  { name: "Perpetual O", amount: "₦465", time: "11 days ago" },
-  { name: "Ayomikun O", amount: "₦27,900", time: "2 days ago" },
-  { name: "Ayomikun O", amount: "₦18,600", time: "2 days ago" },
-  { name: "Desmond O", amount: "₦30,000", time: "2 days ago" },
-  { name: "Gbenga A", amount: "₦27,900", time: "2 days ago" },
-  { name: "Folajimi O", amount: "₦27,900", time: "2 days ago" },
-  { name: "Oluwaseyi B", amount: "₦27,900", time: "2 days ago" },
-  { name: "Benjamin S", amount: "₦15,000", time: "2 days ago" },
-  { name: "Precious B", amount: "₦13,950", time: "2 days ago" },
-  { name: "Abigail E", amount: "₦15,000", time: "2 days ago" },
-  { name: "Daniel A", amount: "₦15,000", time: "4 days ago" },
-  { name: "Adebisi A", amount: "₦15,000", time: "4 days ago" },
-  { name: "Elijah K", amount: "₦13,950", time: "4 days ago" },
-  { name: "Aisha I", amount: "₦15,000", time: "4 days ago" },
-  { name: "Nasir M", amount: "₦13,950", time: "4 days ago" },
-  { name: "Faizah O", amount: "₦15,000", time: "4 days ago" },
-  { name: "Fredrick A", amount: "₦27,900", time: "11 days ago" },
-  { name: "Joy P", amount: "₦30,000", time: "11 days ago" },
-  { name: "Janet A", amount: "₦30,000", time: "11 days ago" },
-  { name: "Joy P", amount: "₦200", time: "11 days ago" },
-]
 
 const SHORTS_VIDEOS = [
   { id: "tk4mRRz2xWI", label: "Pasive short 1" },
@@ -111,30 +64,6 @@ const SHORTS_VIDEOS = [
   { id: "FuKxneywESs", label: "Pasive short 6" },
 ]
 
-function SalesEarningsTicker() {
-  return (
-    <section className="sales-earnings-ticker">
-      <div className="sales-earnings-ticker__fade sales-earnings-ticker__fade--left" />
-      <div className="sales-earnings-ticker__fade sales-earnings-ticker__fade--right" />
-
-      <div className="sales-earnings-ticker__track">
-        {[...SALES_EARNINGS, ...SALES_EARNINGS].map((earning, index) => (
-          <div
-            key={`${earning.name}-${earning.amount}-${earning.time}-${index}`}
-            className="sales-earnings-ticker__item"
-            aria-hidden={index >= SALES_EARNINGS.length}
-          >
-            <span className="sales-earnings-ticker__name">{earning.name}</span>
-            <span className="sales-earnings-ticker__muted">earned</span>
-            <span className="sales-earnings-ticker__amount">{earning.amount}</span>
-            <span className="sales-earnings-ticker__muted">{earning.time}</span>
-            <span className="sales-earnings-ticker__dot">•</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
 
 export default function LandingPage() {
   const router = useRouter()
