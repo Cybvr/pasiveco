@@ -1,10 +1,24 @@
 import localFont from 'next/font/local'
+import { EB_Garamond, Libre_Baskerville } from 'next/font/google'
 import '@/styles/globals.css'
 import type { Metadata } from 'next'
 import ClientLayout from './ClientLayout'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import ConsentAnalytics from '@/components/common/ConsentAnalytics'
+
+const garamond = EB_Garamond({
+  subsets: ['latin'],
+  variable: '--font-garamond',
+  display: 'swap',
+})
+
+const baskerville = Libre_Baskerville({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-baskerville',
+  display: 'swap',
+})
 
 const aeonik = localFont({
   src: [
@@ -73,7 +87,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${aeonik.variable} ${chunko.variable} font-sans antialiased font-normal`}>
+      <body className={`${aeonik.variable} ${chunko.variable} ${garamond.variable} ${baskerville.variable} font-sans antialiased font-normal`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

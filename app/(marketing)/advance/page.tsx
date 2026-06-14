@@ -21,7 +21,7 @@ export default function AdvancePage() {
             <div className="inline-block px-3 py-1 border border-foreground/20 text-[10px] uppercase tracking-[0.3em] font-mono opacity-60">
               Funding v1.0 // Advance Program
             </div>
-            <h1 className="text-6xl sm:text-8xl md:text-9xl lg:text-[10rem] font-bold leading-[0.85] tracking-tighter text-foreground text-left">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.85] tracking-tighter text-foreground text-left">
               <span className="block italic font-light opacity-40">Fuel for</span>
               <span className="block -mt-1 sm:-mt-4">Your Empire</span>
             </h1>
@@ -29,7 +29,7 @@ export default function AdvancePage() {
 
           <div className="flex flex-col lg:flex-row items-end justify-between gap-12 pt-12">
             <div className="max-w-xl space-y-6">
-              <p className="text-xl md:text-2xl font-medium leading-tight border-l-4 border-primary pl-6 py-2">
+              <p className="text-base md:text-lg font-medium leading-tight border-l-4 border-primary pl-6 py-2">
                 Creator Payout Advances allow eligible Pasive creators to access up to <span className="text-primary font-bold">₦200,000</span> instantly. Repay automatically as you grow.
               </p>
               <div className="flex flex-wrap gap-4">
@@ -64,10 +64,10 @@ export default function AdvancePage() {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
           <div className="space-y-12">
             <div className="space-y-4">
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none italic font-light">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none italic font-light">
                 The Capital <br /> <span className="opacity-40 italic not-italic">You deserve</span>
               </h2>
-              <p className="text-xl text-zinc-400 font-light leading-relaxed max-w-md">
+              <p className="text-base text-zinc-400 font-light leading-relaxed max-w-md">
                 Stop waiting for 30-day payout cycles. A Creator Payout Advance is a short-term funding option that gives you the speed to move at the pace of your creativity.
               </p>
             </div>
@@ -96,7 +96,7 @@ export default function AdvancePage() {
               <div className="text-xs font-mono uppercase tracking-[0.5em] text-zinc-500 mb-8 flex items-center gap-4">
                 <span className="w-8 h-px bg-zinc-800" /> Auto-Repayment Sync
               </div>
-              <h3 className="text-3xl md:text-5xl font-bold mb-8 leading-none tracking-tight">Zero Manual <br /> effort Required.</h3>
+              <h3 className="text-2xl md:text-3xl font-bold mb-8 leading-none tracking-tight">Zero Manual <br /> effort Required.</h3>
               <p className="text-zinc-400 mb-12">Repayment happens automatically from your future Pasive sales. As you make money, your advance clears itself.</p>
               <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-widest">
                 Live Status: Connected <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -110,7 +110,7 @@ export default function AdvancePage() {
       <section className="px-6 py-40 border-b border-border">
         <div className="max-w-7xl mx-auto space-y-24">
           <div className="flex flex-col lg:flex-row items-baseline justify-between gap-8">
-            <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none italic font-light lowercase">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none italic font-light lowercase">
               Qualification <span className="not-italic opacity-20 block sm:inline">Checklist</span>
             </h2>
             <div className="max-w-xs text-xs uppercase tracking-widest text-muted-foreground font-mono leading-loose">
@@ -143,10 +143,10 @@ export default function AdvancePage() {
           LIMIT LIMIT LIMIT LIMIT LIMIT LIMIT LIMIT
         </div>
         <div className="relative z-10 max-w-5xl mx-auto space-y-12">
-          <h2 className="text-7xl md:text-[12rem] font-black tracking-tighter leading-none lowercase">
+          <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none lowercase">
             <span className="block opacity-20">Up to</span> ₦200,000
           </h2>
-          <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto opacity-70 italic">
+          <p className="text-base md:text-lg font-medium max-w-2xl mx-auto opacity-70 italic">
             Whether you're scaling course production or running your first major ad campaign, we've got the backing you need to win.
           </p>
           <div className="flex flex-col sm:flex-row gap-8 justify-center pt-8 hover:[&_div]:scale-110 transition-all">
@@ -166,11 +166,11 @@ export default function AdvancePage() {
             <div className="inline-block px-3 py-1 bg-primary text-[10px] uppercase font-bold tracking-widest text-primary-foreground">
               Scenario 01
             </div>
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none italic font-light lowercase">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none italic font-light lowercase">
               Launch <br /> <span className="not-italic opacity-20">Capital</span>
             </h2>
             <div className="space-y-8">
-              <p className="text-xl text-muted-foreground leading-relaxed border-l-2 border-border pl-8">
+              <p className="text-base text-muted-foreground leading-relaxed border-l-2 border-border pl-8">
                 If you're preparing to launch a new product, an advance helps cover expenses before the first sale hits.
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 font-mono text-[10px] uppercase tracking-widest opacity-60">
@@ -186,11 +186,11 @@ export default function AdvancePage() {
             <div className="inline-block px-3 py-1 border border-foreground/20 text-[10px] uppercase font-bold tracking-widest">
               Scenario 02
             </div>
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none italic font-light lowercase">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none italic font-light lowercase">
               Early <br /> <span className="not-italic opacity-20">Access</span>
             </h2>
             <div className="space-y-8">
-              <p className="text-xl text-muted-foreground leading-relaxed border-l-2 border-border pl-8">
+              <p className="text-base text-muted-foreground leading-relaxed border-l-2 border-border pl-8">
                 Already made sales but waiting for payout cycles? Request an advance based on verified pending settlements.
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 font-mono text-[10px] uppercase tracking-widest opacity-60">
@@ -211,11 +211,11 @@ export default function AdvancePage() {
             <div className="space-y-12">
               <div className="space-y-4">
                 <div className="text-[10px] uppercase tracking-[0.5em] font-mono opacity-40">The Ecosystem</div>
-                <h2 className="text-5xl md:text-8xl font-bold tracking-tighter leading-none uppercase">
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none uppercase">
                   More than <br /><span className="italic font-light opacity-30">Just funding</span>
                 </h2>
               </div>
-              <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                 Pasive is the infrastructure for creative independence. We provide creators with the tools to build their own digital headquarters—free from the noise of social algorithms.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -260,12 +260,12 @@ export default function AdvancePage() {
       {/* ── CTA / Apply ── */}
       <section className="px-6 py-40 text-center space-y-16">
         <div className="max-w-4xl mx-auto space-y-10">
-          <h2 className="text-5xl md:text-9xl font-extrabold tracking-tighter leading-none uppercase">
+          <h2 className="text-3xl md:text-6xl font-extrabold tracking-tighter leading-none uppercase">
             Ready to <br /> <span className="opacity-20 italic font-medium lowercase">Scale Up?</span>
           </h2>
           <div className="rounded-none border border-foreground p-12 md:p-20 bg-background group hover:bg-foreground hover:text-background transition-all duration-700">
             <h3 className="text-2xl font-bold mb-8">payoutadvance@Pasive.co</h3>
-            <p className="text-xl opacity-60 mb-12 max-w-md mx-auto">Include your account email, store link, and requested amount.</p>
+            <p className="text-base opacity-60 mb-12 max-w-md mx-auto">Include your account email, store link, and requested amount.</p>
             <Button size="lg" className="rounded-none h-16 px-12 text-xl font-bold bg-primary text-primary-foreground group-hover:bg-background group-hover:text-foreground border-none transition-all" asChild>
               <a href="mailto:payoutadvance@Pasive.co">Send Application <ArrowRight className="ml-3 w-6 h-6" /></a>
             </Button>

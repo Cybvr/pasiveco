@@ -3,70 +3,72 @@ import type { Metadata } from "next"
 import {
   ArrowRight,
   BadgeCheck,
+  Bell,
   CheckCircle2,
-  Globe2,
-  LockKeyhole,
-  PlugZap,
-  ShieldCheck,
+  FileText,
+  Receipt,
+  Repeat,
+  Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Custom Domains for Creator Profiles | Pasive",
+  title: "Create & Send Invoices Online | Pasive",
   description:
-    "Connect a domain you already own to your Pasive profile page and share a branded link with your audience.",
+    "Send professional invoices, get paid online, and track every payment. Pasive lets creators and freelancers bill clients and collect money in one place.",
 }
 
 const setupSteps = [
   {
-    title: "Add your domain",
-    copy: "Enter the domain you already own, like yourbrand.com or www.yourbrand.com.",
+    title: "Build the invoice",
+    copy: "Add your client, line items, and amount. Your logo and details fill in automatically.",
   },
   {
-    title: "Update DNS",
-    copy: "Pasive gives you the DNS records to add inside your domain provider.",
+    title: "Send the link",
+    copy: "Email the invoice or share a payment link your client can open anywhere.",
   },
   {
-    title: "Go live",
-    copy: "Once verified, your domain opens your existing Pasive profile page.",
+    title: "Get paid & track",
+    copy: "Clients pay online and you see paid, pending, and overdue invoices at a glance.",
   },
 ]
 
 const benefits = [
   {
-    icon: Globe2,
-    title: "A link that feels owned",
-    copy: "Share your own domain instead of a platform URL across social bios, packaging, email, and campaigns.",
+    icon: FileText,
+    title: "Professional invoices",
+    copy: "Branded invoices with your logo, itemized charges, taxes, and due dates that look the part.",
   },
   {
-    icon: LockKeyhole,
-    title: "Secure by default",
-    copy: "Connected domains are designed to run over HTTPS after verification and setup.",
+    icon: Wallet,
+    title: "Online payments",
+    copy: "Clients pay by card or transfer through a secure link and money settles to your account.",
   },
   {
-    icon: PlugZap,
-    title: "No website rebuild",
-    copy: "Your current Pasive profile, products, links, bookings, and storefront stay in one place.",
+    icon: Repeat,
+    title: "Recurring billing",
+    copy: "Set invoices to repeat weekly or monthly for retainers and subscription work.",
   },
   {
-    icon: ShieldCheck,
-    title: "Clear ownership check",
-    copy: "DNS verification helps make sure only the real domain owner can connect it.",
+    icon: Bell,
+    title: "Automatic reminders",
+    copy: "Pasive nudges clients about due and overdue invoices so you don't have to chase them.",
   },
 ]
 
-const dnsRows = [
-  { type: "CNAME", name: "www", value: "connect.pasive.co" },
-  { type: "TXT", name: "_pasive", value: "pasive_verify_abc123" },
+const invoiceRows = [
+  { label: "Brand strategy session", amount: "₦120,000" },
+  { label: "Logo design — 2 concepts", amount: "₦85,000" },
+  { label: "Social templates pack", amount: "₦40,000" },
 ]
 
-export default function CustomDomainsPage() {
+export default function InvoicesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <section className="relative isolate min-h-[82vh] overflow-hidden px-5 py-20 sm:px-8 lg:px-12">
         <img
-          src="/images/website/profile.jpg"
-          alt="Creator profile preview"
+          src="/images/redesign/podcast.png"
+          alt="Creator working"
           className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
         <div className="absolute inset-0 -z-10 bg-background/80" />
@@ -76,13 +78,13 @@ export default function CustomDomainsPage() {
           <div className="max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 border border-foreground/20 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
               <BadgeCheck className="h-4 w-4 text-emerald-600" />
-              Custom domains for Pasive profiles
+              Invoices on Pasive
             </div>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.05] tracking-normal text-foreground sm:text-5xl lg:text-6xl">
-              Put your creator page on your own domain.
+              Bill your clients. Get paid faster.
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-foreground/75 sm:text-lg">
-              Connect a domain you already own to your Pasive profile, so your audience visits your brand first and Pasive powers everything behind it.
+              Send clean, professional invoices and let clients pay you online. Track what's paid, pending, and overdue without spreadsheets or back-and-forth.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="rounded-none px-7 font-bold uppercase tracking-widest" asChild>
@@ -101,23 +103,23 @@ export default function CustomDomainsPage() {
             <div className="border border-foreground/10 bg-[#f7f3ed] p-5 text-[#171411]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6f6258]">Connected domain</p>
-                  <p className="mt-2 text-2xl font-black">www.amaka.co</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6f6258]">Invoice #0042</p>
+                  <p className="mt-2 text-2xl font-black">₦245,000</p>
                 </div>
-                <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                <Receipt className="h-7 w-7 text-emerald-700" />
               </div>
-              <div className="mt-8 rounded-sm bg-white p-4 shadow-sm">
-                <div className="h-28 rounded-sm bg-[url('/images/redesign/fitness.png')] bg-cover bg-center" />
-                <div className="mt-4 h-3 w-32 rounded-full bg-[#171411]" />
-                <div className="mt-3 h-2 w-full rounded-full bg-[#d8cfc3]" />
-                <div className="mt-2 h-2 w-4/5 rounded-full bg-[#d8cfc3]" />
-                <div className="mt-5 grid gap-2">
-                  <div className="h-9 rounded-sm bg-[#171411]" />
-                  <div className="h-9 rounded-sm border border-[#171411]/20" />
-                  <div className="h-9 rounded-sm border border-[#171411]/20" />
+              <div className="mt-6 rounded-sm bg-white p-4 shadow-sm">
+                {invoiceRows.map((row) => (
+                  <div key={row.label} className="flex items-center justify-between border-b border-[#171411]/10 py-2 text-sm last:border-b-0">
+                    <span className="text-[#5f564d]">{row.label}</span>
+                    <span className="font-bold">{row.amount}</span>
+                  </div>
+                ))}
+                <div className="mt-3 flex items-center gap-2 text-sm font-bold text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" /> Paid online
                 </div>
               </div>
-              <p className="mt-4 text-sm font-medium text-[#6f6258]">Same profile. Cleaner link. Stronger brand memory.</p>
+              <p className="mt-4 text-sm font-medium text-[#6f6258]">Sent, paid, and tracked in one place.</p>
             </div>
           </div>
         </div>
@@ -138,12 +140,12 @@ export default function CustomDomainsPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Built for brand trust</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Built for getting paid</p>
             <h2 className="mt-4 text-2xl font-black tracking-normal sm:text-3xl">
-              Keep Pasive running the business. Let your domain own the front door.
+              Look professional and get paid on time, every time.
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              Custom domains are for creators who want the ease of Pasive with a link that feels permanent, professional, and portable.
+              Whether you freelance, consult, or sell services, Pasive turns billing into a single link your client can pay in seconds.
             </p>
           </div>
 
@@ -162,26 +164,25 @@ export default function CustomDomainsPage() {
       <section className="bg-[#f7f3ed] px-5 py-20 text-[#171411] sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#806447]">DNS preview</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#806447]">All in one place</p>
             <h2 className="mt-4 text-2xl font-black tracking-normal sm:text-3xl">
-              They buy the domain anywhere. Pasive tells them what to connect.
+              Invoices live next to your products, bookings, and payouts.
             </h2>
             <p className="mt-5 text-base leading-7 text-[#5f564d]">
-              No registrar partnership is needed for this version. The creator keeps their domain provider, and Pasive verifies the records before turning the domain on.
+              No separate accounting tool to juggle. Bill clients, sell products, and collect every payment from the same Pasive account.
             </p>
           </div>
 
-          <div className="overflow-hidden border border-[#171411]/15 bg-white shadow-xl">
-            <div className="grid grid-cols-3 border-b border-[#171411]/10 bg-[#171411] px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white">
-              <span>Type</span>
-              <span>Name</span>
-              <span>Value</span>
-            </div>
-            {dnsRows.map((row) => (
-              <div key={row.type} className="grid grid-cols-3 gap-3 border-b border-[#171411]/10 px-4 py-4 text-sm last:border-b-0">
-                <span className="font-bold">{row.type}</span>
-                <span className="font-mono text-xs">{row.name}</span>
-                <span className="min-w-0 break-words font-mono text-xs">{row.value}</span>
+          <div className="grid gap-4 border border-[#171411]/15 bg-white p-8 shadow-xl sm:grid-cols-3">
+            {[
+              { icon: FileText, label: "Invoices", value: "Branded" },
+              { icon: Wallet, label: "Payments", value: "Card & transfer" },
+              { icon: Bell, label: "Reminders", value: "Automatic" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <stat.icon className="mx-auto h-7 w-7 text-emerald-700" />
+                <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-[#806447]">{stat.label}</p>
+                <p className="mt-1 text-lg font-black">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -191,14 +192,14 @@ export default function CustomDomainsPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 border-y border-foreground/15 py-12 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-black tracking-normal sm:text-3xl">Launch with the page they already use.</h2>
+            <h2 className="text-2xl font-black tracking-normal sm:text-3xl">Send your first invoice today.</h2>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              One branded domain can point to a creator profile with links, products, bookings, spaces, and sales tools already inside Pasive.
+              Create an account for free, bill your first client, and get paid online in minutes.
             </p>
           </div>
           <Button size="lg" className="w-full rounded-none px-8 font-bold uppercase tracking-widest sm:w-auto" asChild>
             <Link href="/auth/register">
-              Create your page
+              Create an invoice
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

@@ -49,7 +49,7 @@ const QRBenefitsSection = () => {
               Unlock Your
               <span className="block text-primary mt-2">QR Potential</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-12">
+            <p className="text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-12">
               Transform simple QR codes into powerful business tools with advanced analytics, custom branding, and
               enterprise-grade features that drive real results.
             </p>
@@ -85,7 +85,7 @@ const QRBenefitsSection = () => {
                 {/* Content Side */}
                 <div className={`${index % 2 === 1 ? "lg:order-2" : "lg:order-1"}`}>
                   <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">{benefit.title}</h2>
-                  <p className="text-xl text-muted-foreground mb-8 leading-relaxed">{benefit.description}</p>
+                  <p className="text-base text-muted-foreground mb-8 leading-relaxed">{benefit.description}</p>
                   {/* Features List */}
                   <div className="grid sm:grid-cols-2 gap-4 mb-8">
                     {benefit.features.map((feature, featureIndex) => (
@@ -206,7 +206,7 @@ const QRBenefitsSection = () => {
               {pricingHighlight.trialDays} Days
               <span className="block text-primary">Completely Free</span>
             </h3>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
               Then from ${pricingHighlight.startingPrice}/{pricingHighlight.billingPeriod} • Cancel anytime • No credit
               card required
             </p>

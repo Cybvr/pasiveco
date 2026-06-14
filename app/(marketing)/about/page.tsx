@@ -16,7 +16,7 @@ export default function AboutPage() {
                 <h1 className="text-3xl font-bold sm:text-5xl xl:text-6xl">
                   Build your creator brand in minutes, not hours
                 </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                <p className="max-w-[600px] text-muted-foreground md:text-lg">
                   Create a professional creator hub that showcases all your content, drives engagement, and converts followers into revenue.
                 </p>
               </div>
@@ -83,7 +83,7 @@ export default function AboutPage() {
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold sm:text-4xl">Everything you need to grow your creator business</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl">
+              <p className="max-w-[900px] text-muted-foreground md:text-lg">
                 Pasive provides all the tools creators need to showcase content, engage audiences, and monetize their brand.
               </p>
             </div>
@@ -165,7 +165,7 @@ export default function AboutPage() {
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold sm:text-4xl">How Pasive works</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl">
+              <p className="max-w-[900px] text-muted-foreground md:text-lg">
                 Launch your creator hub in three simple steps and start converting followers into audience.
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function AboutPage() {
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold sm:text-4xl">Perfect for every type of creator</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl">
+              <p className="max-w-[900px] text-muted-foreground md:text-lg">
                 See how creators across different niches use Pasive to grow their brand and revenue.
               </p>
             </div>
@@ -268,7 +268,7 @@ export default function AboutPage() {
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold sm:text-4xl">What creators are saying</h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl">
+              <p className="max-w-[900px] text-muted-foreground md:text-lg">
                 Hear from creators who have transformed their online presence and revenue with Pasive.
               </p>
             </div>

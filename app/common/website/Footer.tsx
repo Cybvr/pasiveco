@@ -2,7 +2,6 @@
 
 import { Instagram, Twitter, Youtube } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useTheme } from "next-themes"
 import { featuresService, Feature } from "@/services/featuresService"
 import { solutionsService, Solution } from "@/services/solutionsService"
 
@@ -15,10 +14,8 @@ function WhatsAppIcon({ className }: { className?: string }) {
 }
 
 const Footer = () => {
-  const { theme } = useTheme()
   const [features, setFeatures] = useState<Feature[]>([])
   const [solutions, setSolutions] = useState<Solution[]>([])
-  const [mounted, setMounted] = useState(false)
   const currentYear = new Date().getFullYear()
 
   useEffect(() => {
@@ -38,16 +35,10 @@ const Footer = () => {
     void fetchData()
   }, [])
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const footerLogo = mounted && theme === "light"
-    ? "/images/pasivelogoblack.png"
-    : "/images/pasivelogowhite.png"
+  const footerLogo = "/images/pasivelogowhite.png"
 
   return (
-    <footer className="bg-background px-4 py-16 text-foreground sm:px-6 lg:px-8">
+    <footer className="dark bg-background px-4 py-16 text-foreground sm:px-6 lg:px-8">
       <div className="-mx-4 border-b border-foreground/15 px-4 pb-8 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="mx-auto w-full max-w-7xl">
           <img

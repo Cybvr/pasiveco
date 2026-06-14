@@ -42,7 +42,7 @@ export default function FeaturesPage() {
           <h1 className="text-5xl font-bold text-foreground mb-6">
             Powerful Features for Your Business
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-base text-muted-foreground mb-8 max-w-3xl mx-auto">
             Discover all the tools and features that make Pasive the perfect platform for selling your products and services online.
           </p>
           <div className="w-24 h-1 bg-primary rounded-full mx-auto"></div>
@@ -105,7 +105,7 @@ export default function FeaturesPage() {
           <h2 className="text-3xl font-bold text-foreground mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8">
+          <p className="text-base text-muted-foreground mb-8">
             Join thousands of creators and entrepreneurs who trust Pasive to power their online business.
           </p>
           <Link href="/auth/register">

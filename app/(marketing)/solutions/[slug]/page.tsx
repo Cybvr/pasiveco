@@ -48,7 +48,7 @@ export default function SolutionPage() {
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="flex-1">
               <h1 className="text-5xl font-bold mb-6 text-foreground">{solution.title}</h1>
-              <p className="text-xl text-muted-foreground mb-8">{solution.description}</p>
+              <p className="text-base text-muted-foreground mb-8">{solution.description}</p>
               <Link href="/auth/login">
                 <button className="bg-primary text-primary-foreground px-4 py-2 rounded">Get Started</button>
               </Link>

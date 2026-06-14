@@ -48,7 +48,7 @@ export default function PricingPage() {
       <div className="container px-4 py-12 sm:py-16 lg:py-24">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold tracking-tight text-foreground">Simple, transparent pricing</h1>
-          <p className="mt-2 text-xl text-muted-foreground">Choose the plan that works best for you</p>
+          <p className="mt-2 text-base text-muted-foreground">Choose the plan that works best for you</p>
         </div>
         <PricingPlans 
           currentPlan={user?.plan || "free"}

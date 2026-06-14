@@ -23,7 +23,7 @@
       return (
         <div className="container">
           <h1 className="text-5xl font-bold text-center mb-12">Blog</h1>
-          <p className="mt-2 text-xl text-muted-foreground">What's New?</p>
+          <p className="mt-2 text-base text-muted-foreground">What's New?</p>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-[400px] w-full" />

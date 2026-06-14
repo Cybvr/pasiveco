@@ -102,10 +102,39 @@
     @apply bg-background text-foreground text-base;
   }
 
+
 }
 
 .marketing-font {
   --font-aeonik: "Rooftop";
+
+  /* Marketing pages always use the light palette, even when the app is in dark mode */
+  --background: 45 15% 97%;
+  --foreground: 152 10% 15%;
+  --muted: 45 10% 92%;
+  --muted-foreground: 152 5% 55%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 152 10% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 152 10% 15%;
+  --primary: 154 55% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 85 30% 90%;
+  --secondary-foreground: 152 10% 15%;
+  --accent: 85 35% 92%;
+  --accent-foreground: 152 10% 15%;
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
+}
+
+.marketing-font h1,
+.marketing-font h2,
+.marketing-font h3,
+.marketing-font h4,
+.marketing-font h5,
+.marketing-font h6 {
+  font-family: var(--font-baskerville), Georgia, "Times New Roman", serif;
+  font-weight: 400;
 }
 
 .scrollbar-hide {

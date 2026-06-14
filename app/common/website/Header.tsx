@@ -1,31 +1,47 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Menu, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import UserMenu from '@/app/common/dashboard/user-menu';
 import AuthModal from '@/app/common/AuthModal';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { featuresService, Feature } from '@/services/featuresService';
 import { solutionsService, Solution } from '@/services/solutionsService';
-import { CurrencySelector } from '@/components/currency-selector';
 
-const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
+const STORE_LINKS = [
+  { label: 'Digital Store', href: '/store' },
+  { label: 'Tickets', href: '/tickets' },
+  { label: 'Invoices', href: '/invoices' },
+  { label: 'Domains', href: '/custom-domains' },
+]
+
+type ActiveMenu = 'products' | 'solutions' | 'resources' | null
+
+const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {}, overlay = false }: {
   isMenuOpen?: boolean;
   setIsMenuOpen?: (open: boolean) => void;
+  overlay?: boolean;
 }) => {
   const { user } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [solutions, setSolutions] = useState<Solution[]>([]);
+  const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
+  const [hoveredStore, setHoveredStore] = useState('Digital Store');
+  const [scrolled, setScrolled] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const transparent = overlay && !activeMenu && !scrolled;
+  const navTextClass = transparent ? 'text-background' : 'text-foreground';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,157 +59,69 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
     fetchData();
   }, []);
 
+  const open = (menu: ActiveMenu) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setActiveMenu(menu);
+  };
+
+  const close = () => {
+    closeTimer.current = setTimeout(() => setActiveMenu(null), 120);
+  };
+
   return (
     <>
-      <nav className="sticky top-0 z-[100] w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav
+        className={`relative w-full z-[100] transition-colors duration-200 ${transparent ? 'bg-transparent border-none' : 'bg-background border-b'}`}
+        onMouseLeave={close}
+      >
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-10">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-5">
+
               {/* Logo */}
-              <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-                <img src="/images/logo.svg" alt="Logo" className="w-8 h-8" />
-                <span className="text-3xl font-chunko ml-2.5 translate-y-[1px]">PASIVE</span>
+              <Link href="/" className={`flex items-center transition-colors hover:opacity-80 ${navTextClass}`}>
+                <img src="/images/logo.svg" alt="Logo" className="w-6 h-6" />
+                <span className={`ml-2 translate-y-[1px] text-2xl font-chunko ${navTextClass}`}>PASIVE</span>
               </Link>
 
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-6">
-                {/* Features Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-auto p-0 text-sm font-normal">
-                    Features
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  {features.map((feature) => (
-                    <DropdownMenuItem key={feature.id} asChild>
-                      <Link href={`/features/${feature.slug}`} className="block">
-                        <div>
-                          <div className="font-medium text-sm">{feature.title}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {feature.description}
-                          </div>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/features" className="font-medium text-primary">
-                      View All Features →
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Solutions Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-auto p-0 text-sm font-normal">
-                    Solutions
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  {solutions.map((solution) => (
-                    <DropdownMenuItem key={solution.id} asChild>
-                      <Link href={`/solutions/${solution.slug}`} className="block">
-                        <div>
-                          <div className="font-medium text-sm">{solution.title}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {solution.description}
-                          </div>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/solutions" className="font-medium text-primary">
-                      View All Solutions →
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Link href="/pricing" className="text-sm hover:text-primary transition-colors">
-                Pricing
-              </Link>
-
-              <Link href="/custom-domains" className="text-sm hover:text-primary transition-colors">
-                Domains
-              </Link>
-
-              {/* Resources Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-auto p-0 text-sm font-normal">
-                    Resources
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link href="/blog" className="block">
-                      <div>
-                        <div className="font-medium text-sm">Blog</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Latest updates and insights
-                        </div>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/about" className="block">
-                      <div>
-                        <div className="font-medium text-sm">About</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          Learn more about us
-                        </div>
-                      </div>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Desktop Nav */}
+              <div className="hidden md:flex items-center space-x-3">
+                {(['products', 'solutions', 'resources'] as const).map((menu) => (
+                  <button
+                    key={menu}
+                    className={`flex items-center gap-1 py-1 text-xs font-normal capitalize transition-colors hover:opacity-70 ${navTextClass}`}
+                    onMouseEnter={() => open(menu)}
+                  >
+                    {menu}
+                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeMenu === menu ? 'rotate-180' : ''}`} />
+                  </button>
+                ))}
+                <Link href="/pricing" className={`text-xs font-normal transition-colors hover:opacity-70 ${navTextClass}`}>
+                  Pricing
+                </Link>
               </div>
             </div>
 
             {/* User Actions */}
             <div className="hidden md:flex items-center space-x-3">
-              <CurrencySelector className="h-8 w-[105px] rounded-none border-border/70" />
               {user ? (
-                <>
-                  <Link href="/dashboard">
-                    <Button variant="ghost" size="sm">
-                      Dashboard
-                    </Button>
-                  </Link>
-                </>
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm">Dashboard</Button>
+                </Link>
               ) : (
-                <>
-                  <Button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    variant="ghost"
-                    size="sm"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    size="sm"
-                    className="rounded-none font-bold uppercase tracking-widest px-6"
-                  >
-                    Get Started
-                  </Button>
-                </>
+                <Button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  size="sm"
+                >
+                  Get In
+                </Button>
               )}
             </div>
 
-            {/* Mobile Navigation */}
+            {/* Mobile */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="md:hidden p-2">
+                <Button variant="ghost" size="sm" className={`p-2 md:hidden ${navTextClass}`}>
                   <Menu className="w-6 h-6" />
                 </Button>
               </SheetTrigger>
@@ -201,80 +129,25 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
                 <SheetHeader className="sr-only">
                   <SheetTitle>Site Navigation</SheetTitle>
                 </SheetHeader>
-                <div className="py-6 space-y-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                        Currency
-                      </div>
-                      <CurrencySelector className="w-full" showLabel />
-                    </div>
-                    <Link 
-                      href="/features" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      Features
-                    </Link>
-                    <Link 
-                      href="/solutions" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      Solutions
-                    </Link>
-                    <Link 
-                      href="/pricing" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      Pricing
-                    </Link>
-                    <Link 
-                      href="/custom-domains" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      Domains
-                    </Link>
-                    <Link 
-                      href="/blog" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      Blog
-                    </Link>
-                    <Link 
-                      href="/about" 
-                      className="block text-sm font-medium hover:text-primary transition-colors"
-                    >
-                      About
-                    </Link>
-                  </div>
-
-                  <div className="border-t pt-6">
+                <div className="py-6 space-y-4">
+                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Products</div>
+                  {STORE_LINKS.map((item) => (
+                    <Link key={item.href} href={item.href} className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">{item.label}</Link>
+                  ))}
+                  <Link href="/solutions" className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Solutions</Link>
+                  <Link href="/pricing" className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+                  <Link href="/blog" className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Blog</Link>
+                  <Link href="/about" className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</Link>
+                  <div className="border-t pt-4">
                     {user ? (
                       <div className="space-y-4">
-                        <Link href="/dashboard">
-                          <Button variant="outline" className="w-full justify-start">
-                            Dashboard
-                          </Button>
-                        </Link>
-                        <div className="flex justify-start">
-                          <UserMenu />
-                        </div>
+                        <Link href="/dashboard"><Button variant="outline" className="w-full justify-start">Dashboard</Button></Link>
+                        <div className="flex justify-start"><UserMenu /></div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        <Button
-                          onClick={() => setIsAuthModalOpen(true)}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          Sign In
-                        </Button>
-                        <Button
-                          onClick={() => setIsAuthModalOpen(true)}
-                          className="w-full rounded-none font-bold uppercase tracking-widest"
-                        >
-                          Get Started
-                        </Button>
-                      </div>
+                      <Button onClick={() => setIsAuthModalOpen(true)} className="w-full">
+                        Get In
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -282,12 +155,68 @@ const Header = ({ isMenuOpen = false, setIsMenuOpen = () => {} }: {
             </Sheet>
           </div>
         </div>
+
+        {/* Shared mega panel */}
+        {activeMenu && (
+          <div className="absolute left-0 right-0 top-full bg-background border-b shadow-2xl z-50" onMouseEnter={() => open(activeMenu)}>
+            <div className="max-w-7xl mx-auto px-6 py-8">
+
+              {activeMenu === 'products' && (
+                <div className="grid grid-cols-[240px_1fr] gap-10">
+                  <div className="flex flex-col">
+                    {STORE_LINKS.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onMouseEnter={() => setHoveredStore(item.label)}
+                        className={`py-2 text-lg font-semibold transition-colors ${hoveredStore === item.label ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                  {hoveredStore === 'Digital Store' && (
+                    <div className="flex flex-col self-start">
+                      {features.map((feature) => (
+                        <Link key={feature.id} href={`/features/${feature.slug}`} className="py-2 text-lg font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                          {feature.title}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeMenu === 'solutions' && (
+                <div className="grid grid-cols-3 gap-px bg-border border border-border">
+                  {solutions.map((solution) => (
+                    <Link key={solution.id} href={`/solutions/${solution.slug}`} className="group p-4 bg-background hover:bg-muted/30 transition-colors">
+                      <div className="font-semibold text-base mb-1 text-muted-foreground group-hover:text-foreground transition-colors">{solution.title}</div>
+                      <div className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{solution.description}</div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {activeMenu === 'resources' && (
+                <div className="grid grid-cols-3 gap-px bg-border border border-border">
+                  <Link href="/blog" className="group p-4 bg-background hover:bg-muted/30 transition-colors">
+                    <div className="font-semibold text-base mb-1 text-muted-foreground group-hover:text-foreground transition-colors">Blog</div>
+                    <div className="text-sm text-muted-foreground">Latest updates and insights</div>
+                  </Link>
+                  <Link href="/about" className="group p-4 bg-background hover:bg-muted/30 transition-colors">
+                    <div className="font-semibold text-base mb-1 text-muted-foreground group-hover:text-foreground transition-colors">About</div>
+                    <div className="text-sm text-muted-foreground">Learn more about us</div>
+                  </Link>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
       </nav>
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </>
   );
 };
