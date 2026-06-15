@@ -77,7 +77,7 @@ export default function TicketsPage() {
         <div className="mx-auto flex min-h-[68vh] max-w-7xl flex-col justify-end gap-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 border border-foreground/20 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
-              <BadgeCheck className="h-4 w-4 text-emerald-600" />
+              <BadgeCheck className="h-4 w-4 text-foreground" />
               Event tickets on Pasive
             </div>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.05] tracking-normal text-foreground sm:text-5xl lg:text-6xl">
@@ -108,7 +108,7 @@ export default function TicketsPage() {
                     <CalendarDays className="h-5 w-5" /> Sat, Jul 12
                   </p>
                 </div>
-                <Ticket className="h-7 w-7 text-emerald-700" />
+                <Ticket className="h-7 w-7 text-foreground" />
               </div>
               <div className="mt-6 grid gap-2">
                 {ticketTiers.map((tier) => (
@@ -131,7 +131,7 @@ export default function TicketsPage() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
           {setupSteps.map((step, index) => (
             <div key={step.title} className="border-l border-white/20 pl-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">Step {index + 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-background/60">Step {index + 1}</p>
               <h2 className="mt-3 text-xl font-black">{step.title}</h2>
               <p className="mt-3 text-sm leading-6 text-white/70">{step.copy}</p>
             </div>
@@ -142,7 +142,7 @@ export default function TicketsPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Built for live events</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">Built for live events</p>
             <h2 className="mt-4 text-2xl font-black tracking-normal sm:text-3xl">
               Everything you need to run the door, all from your phone.
             </h2>
@@ -154,7 +154,7 @@ export default function TicketsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {benefits.map((benefit) => (
               <article key={benefit.title} className="border border-border bg-card p-6">
-                <benefit.icon className="h-6 w-6 text-emerald-700" />
+                <benefit.icon className="h-6 w-6 text-foreground" />
                 <h3 className="mt-5 text-lg font-bold">{benefit.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{benefit.copy}</p>
               </article>
@@ -182,7 +182,7 @@ export default function TicketsPage() {
               { icon: QrCode, label: "Check-in", value: "QR scan" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <stat.icon className="mx-auto h-7 w-7 text-emerald-700" />
+                <stat.icon className="mx-auto h-7 w-7 text-foreground" />
                 <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-[#806447]">{stat.label}</p>
                 <p className="mt-1 text-lg font-black">{stat.value}</p>
               </div>

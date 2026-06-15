@@ -42,12 +42,12 @@ const QRBenefitsSection = () => {
         <div className="max-w-[1400px] mx-auto">
           <div className="text-center mb-32">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 backdrop-blur-md border border-primary/20 mb-8">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Pro Features</span>
+              <Sparkles className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-medium text-foreground">Pro Features</span>
             </div>
             <h1 className="text-6xl lg:text-8xl font-bold mb-8 leading-[0.85] tracking-tight">
               Unlock Your
-              <span className="block text-primary mt-2">QR Potential</span>
+              <span className="block text-foreground mt-2">QR Potential</span>
             </h1>
             <p className="text-base text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-12">
               Transform simple QR codes into powerful business tools with advanced analytics, custom branding, and
@@ -56,19 +56,19 @@ const QRBenefitsSection = () => {
             {/* Global Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">{globalStats.totalScans}</div>
+                <div className="text-3xl font-bold text-foreground mb-2">{globalStats.totalScans}</div>
                 <div className="text-sm text-muted-foreground">Total Scans</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">{globalStats.activeUsers}</div>
+                <div className="text-3xl font-bold text-foreground mb-2">{globalStats.activeUsers}</div>
                 <div className="text-sm text-muted-foreground">Active Users</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">{globalStats.countriesServed}</div>
+                <div className="text-3xl font-bold text-foreground mb-2">{globalStats.countriesServed}</div>
                 <div className="text-sm text-muted-foreground">Countries</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-2">{globalStats.uptimePercent}</div>
+                <div className="text-3xl font-bold text-foreground mb-2">{globalStats.uptimePercent}</div>
                 <div className="text-sm text-muted-foreground">Uptime</div>
               </div>
             </div>
@@ -91,7 +91,7 @@ const QRBenefitsSection = () => {
                     {benefit.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="flex items-start gap-3">
                         <div className="w-6 h-6 bg-primary/15 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <Check className="w-4 h-4 text-primary" />
+                          <Check className="w-4 h-4 text-foreground" />
                         </div>
                         <span className="text-muted-foreground text-sm leading-relaxed">{feature}</span>
                       </div>
@@ -101,10 +101,10 @@ const QRBenefitsSection = () => {
                   <Card className="p-6 bg-gradient-to-br from-primary/5 via-background to-muted/10 border border-primary/20 mb-8">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-3xl font-bold text-primary mb-1">{benefit.stats.value}</div>
+                        <div className="text-3xl font-bold text-foreground mb-1">{benefit.stats.value}</div>
                         <div className="text-sm text-muted-foreground">{benefit.stats.label}</div>
                         {benefit.stats.trend && (
-                          <div className="text-xs text-primary mt-1 flex items-center gap-1">
+                          <div className="text-xs text-foreground mt-1 flex items-center gap-1">
                             <TrendingUp className="w-3 h-3" />
                             {benefit.stats.trend}
                           </div>
@@ -150,7 +150,7 @@ const QRBenefitsSection = () => {
                       </blockquote>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                          <Users className="w-5 h-5 text-primary" />
+                          <Users className="w-5 h-5 text-foreground" />
                         </div>
                         <div>
                           <div className="font-semibold text-sm">{benefit.testimonial.author}</div>
@@ -199,12 +199,12 @@ const QRBenefitsSection = () => {
         <div className="max-w-[1400px] mx-auto">
           <div className="text-center bg-gradient-to-br from-primary/5 via-background to-muted/10 rounded-3xl p-16 border border-primary/20">
             <div className="inline-flex items-center gap-2 mb-6">
-              <Zap className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium text-primary">Start Growing Today</span>
+              <Zap className="w-5 h-5 text-foreground" />
+              <span className="text-sm font-medium text-foreground">Start Growing Today</span>
             </div>
             <h3 className="text-5xl lg:text-6xl font-bold mb-4 leading-tight">
               {pricingHighlight.trialDays} Days
-              <span className="block text-primary">Completely Free</span>
+              <span className="block text-foreground">Completely Free</span>
             </h3>
             <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
               Then from ${pricingHighlight.startingPrice}/{pricingHighlight.billingPeriod} • Cancel anytime • No credit
@@ -228,7 +228,7 @@ const QRBenefitsSection = () => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
               {pricingHighlight.features.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2 justify-center sm:justify-start">
-                  <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                  <Check className="w-4 h-4 text-foreground flex-shrink-0" />
                   <span className="text-sm text-muted-foreground">{feature}</span>
                 </div>
               ))}

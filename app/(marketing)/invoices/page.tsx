@@ -77,7 +77,7 @@ export default function InvoicesPage() {
         <div className="mx-auto flex min-h-[68vh] max-w-7xl flex-col justify-end gap-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 border border-foreground/20 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
-              <BadgeCheck className="h-4 w-4 text-emerald-600" />
+              <BadgeCheck className="h-4 w-4 text-foreground" />
               Invoices on Pasive
             </div>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.05] tracking-normal text-foreground sm:text-5xl lg:text-6xl">
@@ -106,7 +106,7 @@ export default function InvoicesPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6f6258]">Invoice #0042</p>
                   <p className="mt-2 text-2xl font-black">₦245,000</p>
                 </div>
-                <Receipt className="h-7 w-7 text-emerald-700" />
+                <Receipt className="h-7 w-7 text-foreground" />
               </div>
               <div className="mt-6 rounded-sm bg-white p-4 shadow-sm">
                 {invoiceRows.map((row) => (
@@ -115,7 +115,7 @@ export default function InvoicesPage() {
                     <span className="font-bold">{row.amount}</span>
                   </div>
                 ))}
-                <div className="mt-3 flex items-center gap-2 text-sm font-bold text-emerald-700">
+                <div className="mt-3 flex items-center gap-2 text-sm font-bold text-foreground">
                   <CheckCircle2 className="h-4 w-4" /> Paid online
                 </div>
               </div>
@@ -129,7 +129,7 @@ export default function InvoicesPage() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
           {setupSteps.map((step, index) => (
             <div key={step.title} className="border-l border-white/20 pl-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">Step {index + 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-background/60">Step {index + 1}</p>
               <h2 className="mt-3 text-xl font-black">{step.title}</h2>
               <p className="mt-3 text-sm leading-6 text-white/70">{step.copy}</p>
             </div>
@@ -140,7 +140,7 @@ export default function InvoicesPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Built for getting paid</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">Built for getting paid</p>
             <h2 className="mt-4 text-2xl font-black tracking-normal sm:text-3xl">
               Look professional and get paid on time, every time.
             </h2>
@@ -152,7 +152,7 @@ export default function InvoicesPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {benefits.map((benefit) => (
               <article key={benefit.title} className="border border-border bg-card p-6">
-                <benefit.icon className="h-6 w-6 text-emerald-700" />
+                <benefit.icon className="h-6 w-6 text-foreground" />
                 <h3 className="mt-5 text-lg font-bold">{benefit.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{benefit.copy}</p>
               </article>
@@ -180,7 +180,7 @@ export default function InvoicesPage() {
               { icon: Bell, label: "Reminders", value: "Automatic" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <stat.icon className="mx-auto h-7 w-7 text-emerald-700" />
+                <stat.icon className="mx-auto h-7 w-7 text-foreground" />
                 <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-[#806447]">{stat.label}</p>
                 <p className="mt-1 text-lg font-black">{stat.value}</p>
               </div>

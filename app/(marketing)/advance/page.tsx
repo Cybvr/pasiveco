@@ -30,7 +30,7 @@ export default function AdvancePage() {
           <div className="flex flex-col lg:flex-row items-end justify-between gap-12 pt-12">
             <div className="max-w-xl space-y-6">
               <p className="text-base md:text-lg font-medium leading-tight border-l-4 border-primary pl-6 py-2">
-                Creator Payout Advances allow eligible Pasive creators to access up to <span className="text-primary font-bold">₦200,000</span> instantly. Repay automatically as you grow.
+                Creator Payout Advances allow eligible Pasive creators to access up to <span className="text-foreground font-bold">₦200,000</span> instantly. Repay automatically as you grow.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="rounded-none px-10 h-14 bg-foreground text-background hover:bg-foreground/90 transition-all font-bold text-lg group" asChild>
@@ -60,14 +60,14 @@ export default function AdvancePage() {
       </section>
 
       {/* ── High Contrast: What it is ── */}
-      <section className="px-6 py-32 bg-zinc-950 text-zinc-100 relative overflow-hidden">
+      <section className="px-6 py-32 bg-zinc-950 text-background relative overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-24 items-center">
           <div className="space-y-12">
             <div className="space-y-4">
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter leading-none italic font-light">
                 The Capital <br /> <span className="opacity-40 italic not-italic">You deserve</span>
               </h2>
-              <p className="text-base text-zinc-400 font-light leading-relaxed max-w-md">
+              <p className="text-base text-muted-foreground font-light leading-relaxed max-w-md">
                 Stop waiting for 30-day payout cycles. A Creator Payout Advance is a short-term funding option that gives you the speed to move at the pace of your creativity.
               </p>
             </div>
@@ -81,10 +81,10 @@ export default function AdvancePage() {
               ].map((item, i) => (
                 <div key={i} className="group space-y-3">
                   <div className="w-10 h-10 flex items-center justify-center border border-zinc-800 bg-zinc-900 group-hover:border-primary transition-colors">
-                    <item.icon className="w-4 h-4 text-primary" />
+                    <item.icon className="w-4 h-4 text-foreground" />
                   </div>
                   <h4 className="text-lg font-bold">{item.title}</h4>
-                  <p className="text-sm text-zinc-500">{item.desc}</p>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -93,12 +93,12 @@ export default function AdvancePage() {
           <div className="relative group">
             <div className="absolute -inset-10 bg-primary/10 blur-[120px] rounded-full opacity-50 group-hover:opacity-80 transition-opacity" />
             <div className="relative border border-zinc-800 p-10 md:p-16 bg-zinc-900/50 backdrop-blur-xl">
-              <div className="text-xs font-mono uppercase tracking-[0.5em] text-zinc-500 mb-8 flex items-center gap-4">
+              <div className="text-xs font-mono uppercase tracking-[0.5em] text-muted-foreground mb-8 flex items-center gap-4">
                 <span className="w-8 h-px bg-zinc-800" /> Auto-Repayment Sync
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-8 leading-none tracking-tight">Zero Manual <br /> effort Required.</h3>
-              <p className="text-zinc-400 mb-12">Repayment happens automatically from your future Pasive sales. As you make money, your advance clears itself.</p>
-              <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-widest">
+              <p className="text-muted-foreground mb-12">Repayment happens automatically from your future Pasive sales. As you make money, your advance clears itself.</p>
+              <div className="flex items-center gap-2 text-foreground font-mono text-xs uppercase tracking-widest">
                 Live Status: Connected <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function AdvancePage() {
               { id: "06", title: "Compliance", desc: "Full adherence to Pasive Creator Terms & Conditions." }
             ].map((step, i) => (
               <div key={i} className="p-12 bg-background hover:bg-muted/30 transition-colors space-y-6">
-                <span className="block text-xs font-mono tracking-[0.5em] text-primary">{step.id}</span>
+                <span className="block text-xs font-mono tracking-[0.5em] text-muted-foreground">{step.id}</span>
                 <h4 className="text-2xl font-bold tracking-tight">{step.title}</h4>
                 <p className="text-muted-foreground leading-relaxed font-light">{step.desc}</p>
               </div>
@@ -174,10 +174,10 @@ export default function AdvancePage() {
                 If you're preparing to launch a new product, an advance helps cover expenses before the first sale hits.
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 font-mono text-[10px] uppercase tracking-widest opacity-60">
-                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-primary" /> Video Editing</li>
-                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-primary" /> Ad Placement</li>
-                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-primary" /> Visual Design</li>
-                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-primary" /> Guest Features</li>
+                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-foreground" /> Video Editing</li>
+                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-foreground" /> Ad Placement</li>
+                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-foreground" /> Visual Design</li>
+                <li className="flex items-center gap-3"><Plus className="w-3 h-3 text-foreground" /> Guest Features</li>
               </ul>
             </div>
           </div>
@@ -221,14 +221,14 @@ export default function AdvancePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <div className="w-10 h-10 bg-muted flex items-center justify-center">
-                    <Star className="w-5 h-5 text-amber-500" />
+                    <Star className="w-5 h-5 text-foreground" />
                   </div>
                   <h4 className="font-bold uppercase tracking-widest text-xs">Digital Spaces</h4>
                   <p className="text-sm text-muted-foreground">Community-first hubs for your most loyal supporters.</p>
                 </div>
                 <div className="space-y-3">
                   <div className="w-10 h-10 bg-muted flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                    <DollarSign className="w-5 h-5 text-foreground" />
                   </div>
                   <h4 className="font-bold uppercase tracking-widest text-xs">Direct Commerce</h4>
                   <p className="text-sm text-muted-foreground">Sell templates, courses, and assets with one-click checkouts.</p>

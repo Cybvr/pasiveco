@@ -10,7 +10,7 @@ export function CtaSection() {
           {/* Left side with heading */}
           <div className="lg:col-span-3 text-left">
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary-foreground">
-              Ready to <span className="italic text-orange-500">connect</span> with your customers?
+              Ready to <span className="italic text-primary-foreground">connect</span> with your customers?
             </h1>
           </div>
 

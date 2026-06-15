@@ -67,7 +67,7 @@ function FeedbackSurveyPageContent() {
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/30 to-background px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <section className="space-y-4 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">Feedback</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">Feedback</p>
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Help us make Pasive more useful
           </h1>
@@ -157,7 +157,7 @@ function FeedbackSurveyPageContent() {
 
               {submitted ? (
                 <div className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-foreground">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 text-foreground" />
                   <p>Thanks. Your feedback has been saved and will help us improve Pasive.</p>
                 </div>
               ) : null}
@@ -170,17 +170,17 @@ function FeedbackSurveyPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/60 bg-zinc-950 text-zinc-50 shadow-sm">
+          <Card className="border-border/60 bg-zinc-950 text-background shadow-sm">
             <CardHeader>
-              <CardTitle className="text-zinc-50">Why we ask</CardTitle>
-              <CardDescription className="text-zinc-400">
+              <CardTitle className="text-background">Why we ask</CardTitle>
+              <CardDescription className="text-background/60">
                 Pasive is built for creators who want more control over their business.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">What Pasive helps with</p>
-                <ul className="mt-3 space-y-3 text-sm leading-6 text-zinc-200">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-background/60">What Pasive helps with</p>
+                <ul className="mt-3 space-y-3 text-sm leading-6 text-background">
                   <li>Sell digital products from your own storefront</li>
                   <li>Build a dedicated space around your audience</li>
                   <li>Earn through the affiliate network from one dashboard</li>
@@ -188,8 +188,8 @@ function FeedbackSurveyPageContent() {
               </div>
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">Good feedback for us</p>
-                <ul className="mt-3 space-y-3 text-sm leading-6 text-zinc-200">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-background/60">Good feedback for us</p>
+                <ul className="mt-3 space-y-3 text-sm leading-6 text-background">
                   <li>What you expected to happen when you signed up</li>
                   <li>Where the product felt confusing or incomplete</li>
                   <li>What would make Pasive worth returning to</li>
@@ -198,9 +198,9 @@ function FeedbackSurveyPageContent() {
 
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
                 <div className="flex items-start gap-3">
-                  <Mail className="mt-0.5 h-4 w-4 text-primary" />
-                  <p className="text-sm leading-6 text-zinc-200">
-                    Prefer to write directly instead? Email <a className="text-primary underline underline-offset-4" href="mailto:admin@pasive.co">admin@pasive.co</a>.
+                  <Mail className="mt-0.5 h-4 w-4 text-background" />
+                  <p className="text-sm leading-6 text-background">
+                    Prefer to write directly instead? Email <a className="text-background underline underline-offset-4" href="mailto:admin@pasive.co">admin@pasive.co</a>.
                   </p>
                 </div>
               </div>

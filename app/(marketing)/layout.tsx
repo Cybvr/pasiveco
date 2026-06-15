@@ -5,7 +5,7 @@ import SupportChatWidget from '@/components/SupportChatWidget';
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="marketing-font min-h-screen flex flex-col font-sans">
+    <div className="marketing-font min-h-screen flex flex-col font-sans text-foreground bg-background">
       <div className="sticky top-0 z-50">
         <Header />
       </div>

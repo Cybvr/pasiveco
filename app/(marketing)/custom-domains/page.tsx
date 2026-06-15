@@ -75,7 +75,7 @@ export default function CustomDomainsPage() {
         <div className="mx-auto flex min-h-[68vh] max-w-7xl flex-col justify-end gap-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 border border-foreground/20 bg-background/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
-              <BadgeCheck className="h-4 w-4 text-emerald-600" />
+              <BadgeCheck className="h-4 w-4 text-foreground" />
               Custom domains for Pasive profiles
             </div>
             <h1 className="max-w-5xl text-4xl font-black leading-[1.05] tracking-normal text-foreground sm:text-5xl lg:text-6xl">
@@ -104,7 +104,7 @@ export default function CustomDomainsPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#6f6258]">Connected domain</p>
                   <p className="mt-2 text-2xl font-black">www.amaka.co</p>
                 </div>
-                <CheckCircle2 className="h-7 w-7 text-emerald-700" />
+                <CheckCircle2 className="h-7 w-7 text-foreground" />
               </div>
               <div className="mt-8 rounded-sm bg-white p-4 shadow-sm">
                 <div className="h-28 rounded-sm bg-[url('/images/redesign/fitness.png')] bg-cover bg-center" />
@@ -127,7 +127,7 @@ export default function CustomDomainsPage() {
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
           {setupSteps.map((step, index) => (
             <div key={step.title} className="border-l border-white/20 pl-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">Step {index + 1}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-background/60">Step {index + 1}</p>
               <h2 className="mt-3 text-xl font-black">{step.title}</h2>
               <p className="mt-3 text-sm leading-6 text-white/70">{step.copy}</p>
             </div>
@@ -138,7 +138,7 @@ export default function CustomDomainsPage() {
       <section className="px-5 py-20 sm:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">Built for brand trust</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-foreground">Built for brand trust</p>
             <h2 className="mt-4 text-2xl font-black tracking-normal sm:text-3xl">
               Keep Pasive running the business. Let your domain own the front door.
             </h2>
@@ -150,7 +150,7 @@ export default function CustomDomainsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {benefits.map((benefit) => (
               <article key={benefit.title} className="border border-border bg-card p-6">
-                <benefit.icon className="h-6 w-6 text-emerald-700" />
+                <benefit.icon className="h-6 w-6 text-foreground" />
                 <h3 className="mt-5 text-lg font-bold">{benefit.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{benefit.copy}</p>
               </article>

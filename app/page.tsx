@@ -90,7 +90,7 @@ export default function LandingPage() {
   if (loading || user) return null
 
   return (
-    <div className="marketing-font relative flex flex-col min-h-screen bg-background selection:bg-foreground selection:text-background font-sans overflow-x-hidden home-page">
+    <div className="marketing-font relative flex flex-col min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background font-sans overflow-x-hidden home-page">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header isMenuOpen={false} setIsMenuOpen={() => { }} overlay />
       </div>
@@ -216,7 +216,7 @@ export default function LandingPage() {
               Pasive is more than a platform. It's an ecosystem for creators to build deep, direct relationships with their most passionate audience.
             </p>
             <div className="flex items-center gap-6 pt-4">
-              <Link href="/about" className="group flex items-center gap-2 text-lg font-medium text-foreground transition-colors hover:text-primary">
+              <Link href="/about" className="group flex items-center gap-2 text-lg font-medium text-foreground transition-colors hover:text-foreground">
                 Learn our mission <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -287,37 +287,37 @@ export default function LandingPage() {
                 title: "Digital Products",
                 desc: "Sell any and every kind of digital product, from content packs to designs to bundles and more without stress.",
                 icon: Package,
-                color: "text-blue-500"
+                color: "text-foreground"
               },
               {
                 title: "Ebooks",
                 desc: "Pasive is the best platform to sell your ebooks both downloadable and non-downloadable in any format.",
                 icon: BookOpen,
-                color: "text-amber-500"
+                color: "text-foreground"
               },
               {
                 title: "Courses & Memberships",
                 desc: "You can host your courses & membership sites with unlimited videos & files, unlimited storage, and have unlimited students, plus you get content security to prevent theft.",
                 icon: Video,
-                color: "text-purple-500"
+                color: "text-foreground"
               },
               {
                 title: "Event Tickets & Training",
                 desc: "Sell tickets for events and access to masterclasses, workshops, training, webinars, and more.",
                 icon: Ticket,
-                color: "text-rose-500"
+                color: "text-foreground"
               },
               {
                 title: "Services",
                 desc: "Sell any kind of service, from coaching and consultations to counseling sessions and design services.",
                 icon: Briefcase,
-                color: "text-emerald-500"
+                color: "text-foreground"
               },
               {
                 title: "Physical Goods",
                 desc: "Use Pasive to sell your physical products from clothing to books to electronics and appliances.",
                 icon: ShoppingBag,
-                color: "text-orange-500"
+                color: "text-foreground"
               }
             ].map((feature, i) => (
               <div key={i} className="group p-12 bg-background hover:bg-muted/10 transition-all duration-500 space-y-8 flex flex-col h-full relative overflow-hidden">
