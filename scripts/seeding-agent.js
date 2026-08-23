@@ -73,7 +73,7 @@ async function createAgents() {
     - username: A unique, trendy handle (lowercase, no spaces, e.g. @tunde_creatives).
     - bio: A short, engaging influencer-style bio (max 150 chars).
     - category: One of the provided categories.
-    - email: A unique placeholder email ending in @pasive.co.
+    - email: A unique placeholder email ending in @pasive.cc.
     
     Return ONLY a JSON array of objects without any markdown formatting.`;
 

@@ -30,7 +30,7 @@ const jobs = [
     location: "Remote",
     type: "Full-time",
     active: true,
-    description: `Social Media Manager Brief — Pasive.co
+    description: `Social Media Manager Brief — Pasive.cc
 
 The role
 Build a culture account for African creators.
@@ -51,7 +51,7 @@ NoteSphere, Kalshi Culture.
 Platforms
 - x.com/pasivehq
 - instagram.com/visualafrica__
-- pasive.co`,
+- pasive.cc`,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now()
   }

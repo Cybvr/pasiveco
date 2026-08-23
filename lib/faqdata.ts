@@ -59,6 +59,6 @@ export const FAQ_DATA: FaqItem[] = [
     id: "q10",
     question: "How do I share my bio page?",
     answer:
-      "Your bio page gets a custom URL (pasive.co/yourusername) that you can share anywhere. Use the built-in share features to copy the link, generate QR codes, or share directly to social media platforms.",
+      "Your bio page gets a custom URL (pasive.cc/yourusername) that you can share anywhere. Use the built-in share features to copy the link, generate QR codes, or share directly to social media platforms.",
   }
 ];

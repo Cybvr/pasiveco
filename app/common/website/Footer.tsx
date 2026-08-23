@@ -134,10 +134,10 @@ const Footer = () => {
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 <a
-                  href="mailto:hello@pasive.co"
+                  href="mailto:hello@pasive.cc"
                   className="text-sm text-foreground/60 transition-colors hover:text-foreground"
                 >
-                  hello@pasive.co
+                  hello@pasive.cc
                 </a>
                 <a
                   href="https://wa.me/message/FTFCG66XC4J2O1"

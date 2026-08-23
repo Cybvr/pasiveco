@@ -47,7 +47,7 @@ async function syncUsersToFirestore() {
           uid: user.uid,
           plan: 'free',
           referralLink: '',
-          isAdmin: user.email === 'admin@pasive.co',
+          isAdmin: user.email === 'admin@pasive.cc',
           createdAt: new Date(user.metadata.creationTime)
         };
 

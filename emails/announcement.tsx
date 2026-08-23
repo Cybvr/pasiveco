@@ -14,7 +14,7 @@ export default function AnnouncementEmail({
   title = 'Big News!',
   message = 'We have something exciting to share with you today.',
   ctaText = 'Check it out',
-  ctaLink = 'https://pasive.co',
+  ctaLink = 'https://pasive.cc',
 }: AnnouncementEmailProps) {
   return (
     <Html>

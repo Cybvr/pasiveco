@@ -14,7 +14,7 @@ export default function AdminBlastEmail({
   heading = 'Update from Pasive',
   message = 'Thanks for being here. We wanted to share a quick update with you.',
   ctaLabel = 'Open Pasive',
-  ctaUrl = 'https://pasive.co',
+  ctaUrl = 'https://pasive.cc',
 }: AdminBlastEmailProps) {
   return (
     <Html>

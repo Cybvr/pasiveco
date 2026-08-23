@@ -55,7 +55,7 @@ export default function GiftCreatorModal({ isOpen, onClose, creatorId, creatorNa
           currency: paymentMethod === 'paystack' ? 'NGN' : 'USD',
           paymentMethod,
           senderName: user?.displayName || 'Anonymous',
-          senderEmail: user?.email || 'anonymous@pasive.co',
+          senderEmail: user?.email || 'anonymous@pasive.cc',
           senderId: user?.uid || null,
           message,
         }),

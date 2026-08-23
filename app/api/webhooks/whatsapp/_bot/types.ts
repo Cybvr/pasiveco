@@ -45,7 +45,7 @@ export type WhatsAppContact = {
 };
 
 export const SESSION_COLLECTION = "whatsappSessions";
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.co";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.cc";
 
 export const PRODUCT_TYPES: Record<string, string> = {
   "1": "Ebooks / PDFs",

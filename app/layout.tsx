@@ -54,11 +54,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Pasive | Go Be Awesome',
     description: 'Sell digital products online',
-    url: 'https://pasive.co',
+    url: 'https://pasive.cc',
     siteName: 'Pasive',
     images: [
       {
-        url: 'https://pasive.co/images/thumbnail.jpg',
+        url: 'https://pasive.cc/images/thumbnail.jpg',
         width: 1200,
         height: 630,
         alt: 'Pasive',
@@ -71,13 +71,13 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pasive | Go Be Awesome',
     description: 'Sell digital products online',
-    images: ['https://pasive.co/images/thumbnail.jpg'],
+    images: ['https://pasive.cc/images/thumbnail.jpg'],
   },
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
-  metadataBase: new URL('https://pasive.co'),
+  metadataBase: new URL('https://pasive.cc'),
 }
 
 export default function RootLayout({

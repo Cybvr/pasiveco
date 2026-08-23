@@ -39,7 +39,7 @@ const buildHtml = ({ firstName, jobTitle }) => `
     <p>Hi ${firstName},</p>
     <p>Thanks for applying for the <strong>${jobTitle}</strong> role at Pasive.</p>
     <p>We've received your application and our team will review it carefully. If your experience looks like a fit, we'll reach out with next steps.</p>
-    <p>In the meantime, you can learn more about what we're building at <a href="https://pasive.co">pasive.co</a>.</p>
+    <p>In the meantime, you can learn more about what we're building at <a href="https://pasive.cc">pasive.cc</a>.</p>
     <p>Best,<br>The Pasive Team</p>
   </div>
 `;

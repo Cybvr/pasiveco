@@ -245,7 +245,7 @@ const UserOnboarding: React.FC<OnboardingProps> = ({ onComplete, userId, display
         <div className="space-y-2">
           <Label htmlFor="username">Username</Label>
           <div className="flex h-12 items-center rounded-md border bg-background px-3 focus-within:ring-2 focus-within:ring-ring">
-            <span className="shrink-0 text-sm text-muted-foreground">pasive.co/</span>
+            <span className="shrink-0 text-sm text-muted-foreground">pasive.cc/</span>
             <input
               id="username"
               value={username}

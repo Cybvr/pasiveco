@@ -58,7 +58,7 @@ function Page() {
   const profileUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/${profileData.username}`
-      : `https://pasive.co/${profileData.username}`;
+      : `https://pasive.cc/${profileData.username}`;
 
   useEffect(() => {
     const handleSaveRequest = () => { void saveProfile(); };
@@ -76,7 +76,7 @@ function Page() {
           const defaultLinks = [
             { id: "1", title: "My Portfolio", description: "Check out my latest work", url: "https://example.com", thumbnail: "/images/pages/website.svg", active: true, clicks: 0, ctr: 0, type: "custom" },
             { id: "2", title: "Personal Website", description: "Visit my home on the web", url: "https://example.com", thumbnail: "/images/pages/website.svg", active: true, clicks: 0, ctr: 0, type: "custom" },
-            { id: "3", title: "Contact Me", description: "Reach out for collaborations", url: "mailto:hello@pasive.co", thumbnail: "/images/pages/website.svg", active: true, clicks: 0, ctr: 0, type: "custom" },
+            { id: "3", title: "Contact Me", description: "Reach out for collaborations", url: "mailto:hello@pasive.cc", thumbnail: "/images/pages/website.svg", active: true, clicks: 0, ctr: 0, type: "custom" },
           ];
           const defaultSocialLinks = [
             { id: "1", platform: "Instagram", url: "https://instagram.com/username", thumbnail: "/images/pages/instagram.svg", active: true },

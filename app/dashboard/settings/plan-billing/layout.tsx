@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: 'Plan & Billing — Dashboard',
     description: 'Manage your subscription, billing cycle, and view past invoices.',
     type: 'website',
-    url: 'https://pasive.co/dashboard/settings/plan-billing',
+    url: 'https://pasive.cc/dashboard/settings/plan-billing',
     siteName: 'Pasive',
   },
   twitter: {

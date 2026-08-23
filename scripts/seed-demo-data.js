@@ -183,7 +183,7 @@ async function seedDemoData() {
     
     console.log('📝 Creating demo user document...');
     await setDoc(doc(db, 'users', DEMO_USER_ID), {
-      email: 'demo@pasive.co',
+      email: 'demo@pasive.cc',
       emailVerified: true,
       isActive: true,
       isAdmin: false,

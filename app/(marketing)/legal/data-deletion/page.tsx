@@ -18,7 +18,7 @@ export default function DataDeletionInstructions() {
         {
           heading: "2. How to request deletion",
           paragraphs: [
-            "To request deletion of your personal data, email admin@pasive.co from the email address connected to your Pasive account or include enough information for us to identify your account.",
+            "To request deletion of your personal data, email admin@pasive.cc from the email address connected to your Pasive account or include enough information for us to identify your account.",
           ],
           bullets: [
             "Use the subject line: Data Deletion Request.",
@@ -56,7 +56,7 @@ export default function DataDeletionInstructions() {
         {
           heading: "6. Contact",
           paragraphs: [
-            "Questions about data deletion can be sent to admin@pasive.co.",
+            "Questions about data deletion can be sent to admin@pasive.cc.",
           ],
         },
       ]}

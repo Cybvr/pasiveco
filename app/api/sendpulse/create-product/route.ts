@@ -190,10 +190,10 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     });
 
-    const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.co"}/${username}/product/${productRef.id}`;
+    const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.cc"}/${username}/product/${productRef.id}`;
     const loginLink = email
       ? await auth.generatePasswordResetLink(email, {
-          url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.co"}/auth/login`,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.cc"}/auth/login`,
         })
       : null;
 

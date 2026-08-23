@@ -57,7 +57,7 @@ function FeedbackSurveyPageContent() {
       setBlocker("")
     } catch (submissionError) {
       console.error("Error saving feedback response:", submissionError)
-      setError("We could not save your feedback right now. Please try again or email admin@pasive.co.")
+      setError("We could not save your feedback right now. Please try again or email admin@pasive.cc.")
     } finally {
       setLoading(false)
     }
@@ -200,7 +200,7 @@ function FeedbackSurveyPageContent() {
                 <div className="flex items-start gap-3">
                   <Mail className="mt-0.5 h-4 w-4 text-background" />
                   <p className="text-sm leading-6 text-background">
-                    Prefer to write directly instead? Email <a className="text-background underline underline-offset-4" href="mailto:admin@pasive.co">admin@pasive.co</a>.
+                    Prefer to write directly instead? Email <a className="text-background underline underline-offset-4" href="mailto:admin@pasive.cc">admin@pasive.cc</a>.
                   </p>
                 </div>
               </div>

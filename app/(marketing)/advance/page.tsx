@@ -34,7 +34,7 @@ export default function AdvancePage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="rounded-none px-10 h-14 bg-foreground text-background hover:bg-foreground/90 transition-all font-bold text-lg group" asChild>
-                  <a href="mailto:payoutadvance@Pasive.co">
+                  <a href="mailto:payoutadvance@Pasive.cc">
                     Apply Now <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </Button>
@@ -264,10 +264,10 @@ export default function AdvancePage() {
             Ready to <br /> <span className="opacity-20 italic font-medium lowercase">Scale Up?</span>
           </h2>
           <div className="rounded-none border border-foreground p-12 md:p-20 bg-background group hover:bg-foreground hover:text-background transition-all duration-700">
-            <h3 className="text-2xl font-bold mb-8">payoutadvance@Pasive.co</h3>
+            <h3 className="text-2xl font-bold mb-8">payoutadvance@Pasive.cc</h3>
             <p className="text-base opacity-60 mb-12 max-w-md mx-auto">Include your account email, store link, and requested amount.</p>
             <Button size="lg" className="rounded-none h-16 px-12 text-xl font-bold bg-primary text-primary-foreground group-hover:bg-background group-hover:text-foreground border-none transition-all" asChild>
-              <a href="mailto:payoutadvance@Pasive.co">Send Application <ArrowRight className="ml-3 w-6 h-6" /></a>
+              <a href="mailto:payoutadvance@Pasive.cc">Send Application <ArrowRight className="ml-3 w-6 h-6" /></a>
             </Button>
           </div>
         </div>

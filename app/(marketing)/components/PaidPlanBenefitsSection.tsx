@@ -123,7 +123,7 @@ const QRBenefitsSection = () => {
                         className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90"
                         asChild
                       >
-                        <a href="https://pasive.co/dashboard">
+                        <a href="https://pasive.cc/dashboard">
                           Customize Your Brand
                           <ArrowRight className="ml-2 w-5 h-5" />
                         </a>
@@ -135,7 +135,7 @@ const QRBenefitsSection = () => {
                         className="text-lg px-8 py-6 h-auto bg-primary hover:bg-primary/90"
                         asChild
                       >
-                        <a href="https://pasive.co/dashboard/templates">
+                        <a href="https://pasive.cc/dashboard/templates">
                           Browse Templates
                           <ExternalLink className="ml-2 w-5 h-5" />
                         </a>

@@ -99,7 +99,7 @@ export default function PrivacyPolicy() {
           bullets: [
             "You can update profile, storefront, product, and payment-related information from your account settings where those controls are available.",
             "You can manage cookie preferences and certain communication settings through your browser or in-product controls.",
-            "You may request access to, correction of, deletion of, restriction of, or portability of certain personal information by contacting admin@pasive.co.",
+            "You may request access to, correction of, deletion of, restriction of, or portability of certain personal information by contacting admin@pasive.cc.",
             "You may object to processing based on legitimate interests and may object to direct marketing at any time.",
             "Where processing is based on consent, you may withdraw consent at any time without affecting processing that happened before withdrawal.",
             "You may lodge a complaint with your local data protection authority if you believe your rights have been violated.",
@@ -121,7 +121,7 @@ export default function PrivacyPolicy() {
         {
           heading: "11. Children's privacy",
           paragraphs: [
-            "Pasive is not intended for children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided personal information to us, contact admin@pasive.co so we can review and address the issue.",
+            "Pasive is not intended for children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided personal information to us, contact admin@pasive.cc so we can review and address the issue.",
           ],
         },
         {
@@ -133,7 +133,7 @@ export default function PrivacyPolicy() {
         {
           heading: "13. Contact",
           paragraphs: [
-            "Questions about this Privacy Policy, privacy rights, or data requests can be sent to admin@pasive.co.",
+            "Questions about this Privacy Policy, privacy rights, or data requests can be sent to admin@pasive.cc.",
           ],
         },
       ]}

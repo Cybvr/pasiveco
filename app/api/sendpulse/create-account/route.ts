@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
 
     const loginLink = email
       ? await auth.generatePasswordResetLink(email, {
-          url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.co"}/auth/login`,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://pasive.cc"}/auth/login`,
         })
       : null;
 

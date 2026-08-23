@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
         description,
         openGraph: {
           title, description,
-          url: `https://pasive.co/${username}`,
+          url: `https://pasive.cc/${username}`,
           siteName: 'Pasive',
           images: profile.profilePicture ? [{ url: profile.profilePicture, width: 400, height: 400, alt: `${profile.displayName}'s profile picture` }] : [],
           type: 'profile',

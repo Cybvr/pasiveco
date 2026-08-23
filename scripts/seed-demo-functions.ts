@@ -7,7 +7,7 @@ const DEMO_USER_ID = 'mdBW2iIUy2diyIrnK55s';
 
 export const createDemoUser = async (): Promise<void> => {
   const demoUser: Omit<User, 'id' | 'userId'> = {
-    email: 'demo@pasive.co',
+    email: 'demo@pasive.cc',
     emailVerified: true,
     isActive: true,
     isAdmin: false,

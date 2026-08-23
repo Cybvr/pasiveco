@@ -64,7 +64,7 @@ export default function CookiePolicy() {
         {
           heading: "7. Contact",
           paragraphs: [
-            "If you have questions about our use of cookies or similar technologies, contact admin@pasive.co.",
+            "If you have questions about our use of cookies or similar technologies, contact admin@pasive.cc.",
           ],
         },
       ]}

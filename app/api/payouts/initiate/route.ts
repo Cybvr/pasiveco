@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         address: cryptoWallet,
         network: cryptoNetwork,
         reference: `payout_${userId}_${Date.now()}`,
-        email: email || 'hello@pasive.co'
+        email: email || 'hello@pasive.cc'
       })
       transferData = result?.data || {}
     } else {

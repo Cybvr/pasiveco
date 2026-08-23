@@ -56,7 +56,7 @@ const benefits = [
 ]
 
 const dnsRows = [
-  { type: "CNAME", name: "www", value: "connect.pasive.co" },
+  { type: "CNAME", name: "www", value: "connect.pasive.cc" },
   { type: "TXT", name: "_pasive", value: "pasive_verify_abc123" },
 ]
 

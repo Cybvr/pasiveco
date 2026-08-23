@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     await transactionalEmailService.sendWelcomeEmail({
       email,
       userName: firstName || 'there',
-      ctaUrl: 'https://pasive.co/dashboard'
+      ctaUrl: 'https://pasive.cc/dashboard'
     });
 
     return NextResponse.json({ success: true });

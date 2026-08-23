@@ -28,7 +28,7 @@ export function CtaSection() {
               <Link href="/auth/register">Get started for free</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <a href="mailto:admin@pasive.co">Contact sales</a>
+              <a href="mailto:admin@pasive.cc">Contact sales</a>
             </Button>
           </div>
 

@@ -53,7 +53,7 @@ export interface JobApplication {
 
 const JOBS_COLLECTION = 'jobs';
 const APPLICATIONS_COLLECTION = 'job_applications';
-const ADMIN_EMAIL = 'hello@pasive.co';
+const ADMIN_EMAIL = 'hello@pasive.cc';
 
 const usernameFromEmail = (email: string) =>
   email
@@ -184,7 +184,7 @@ export const jobsService = {
               <p>Hi ${firstName},</p>
               <p>Thanks for applying for the <strong>${application.jobTitle}</strong> role at Pasive.</p>
               <p>We've received your application and our team will review it carefully. If your experience looks like a fit, we'll reach out with next steps.</p>
-              <p>In the meantime, you can learn more about what we're building at <a href="https://pasive.co">pasive.co</a>.</p>
+              <p>In the meantime, you can learn more about what we're building at <a href="https://pasive.cc">pasive.cc</a>.</p>
               <p>Best,<br>The Pasive Team</p>
             </div>
           `

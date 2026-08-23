@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         creatorName: sanitizedCreatorName,
         senderId: senderId || null,
         senderName: senderName || 'Anonymous',
-        senderEmail: senderEmail || 'anonymous@pasive.co',
+        senderEmail: senderEmail || 'anonymous@pasive.cc',
         amount,
         currency,
         message: message || '',
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       const result = await PaystackService.initializeTransaction({
         reference,
         amount,
-        email: senderEmail || 'gift@pasive.co',
+        email: senderEmail || 'gift@pasive.cc',
         currency,
         callback_url: `${origin}/${encodeURIComponent(sanitizedCreatorName)}?status=gift_success&reference=${reference}`,
         metadata: {
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     if (paymentMethod === 'crypto') {
       const result = await BitnobService.createCheckout({
         amount: Math.round(amount * 100),
-        email: senderEmail || 'gift@pasive.co',
+        email: senderEmail || 'gift@pasive.cc',
         description: `Gift to ${sanitizedCreatorName} on Pasive`,
         reference,
         callbackUrl: `${origin}/api/webhooks/bitnob`,

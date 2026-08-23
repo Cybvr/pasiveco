@@ -25,8 +25,8 @@ const blockedHostnames = new Set([
   "localhost",
   "127.0.0.1",
   "0.0.0.0",
-  "pasive.co",
-  "www.pasive.co",
+  "pasive.cc",
+  "www.pasive.cc",
 ])
 
 export function normalizeCustomDomain(input: string) {
@@ -70,7 +70,7 @@ export function isPlatformHostname(hostname: string) {
     blockedHostnames.has(host) ||
     host.endsWith(".localhost") ||
     host.endsWith(".vercel.app") ||
-    host.endsWith(".pasive.co")
+    host.endsWith(".pasive.cc")
   )
 }
 

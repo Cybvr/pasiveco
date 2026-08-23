@@ -8,7 +8,7 @@ export const BrandFooter = () => (
       <Column align="left" style={{ width: '36px' }}>
         <Link href="https://twitter.com/pasive">
           <Img
-            src="https://pasive.co/images/Socials/X.png"
+            src="https://pasive.cc/images/Socials/X.png"
             width="24"
             height="24"
             alt="X"
@@ -18,7 +18,7 @@ export const BrandFooter = () => (
       <Column align="left">
         <Link href="https://instagram.com/pasive">
           <Img
-            src="https://pasive.co/images/Socials/Instagram.png"
+            src="https://pasive.cc/images/Socials/Instagram.png"
             width="24"
             height="24"
             alt="Instagram"
@@ -41,7 +41,7 @@ export const BrandFooter = () => (
       of these trademarks and brand names do not represent endorsement by or
       association with Mainstack.
     </Text>
-    <Link href="https://pasive.co/unsubscribe" style={unsubscribeLink}>
+    <Link href="https://pasive.cc/unsubscribe" style={unsubscribeLink}>
       Unsubscribe from these emails
     </Link>
   </Section>

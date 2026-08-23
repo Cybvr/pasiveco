@@ -3,9 +3,9 @@ import { Section, Img, Link } from 'react-email';
 
 export const BrandHeader = () => (
   <Section style={header}>
-    <Link href="http://pasive.co">
+    <Link href="http://pasive.cc">
       <Img
-        src="https://pasive.co/images/pasivelogoblack.png"
+        src="https://pasive.cc/images/pasivelogoblack.png"
         width="100"
         height="auto"
         alt="Pasive"

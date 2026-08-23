@@ -316,7 +316,7 @@ export default function SpaceSettingsDialog({ open, onOpenChange, community, sav
               <div className="space-y-1.5">
                 <Label className="text-xs uppercase font-semibold tracking-widest text-muted-foreground">URL Slug</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">pasive.co/</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">pasive.cc/</span>
                   <Input
                     value={form.slug}
                     onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}

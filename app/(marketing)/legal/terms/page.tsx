@@ -104,7 +104,7 @@ export default function Terms() {
           heading: "13. Changes to these terms and contact",
           paragraphs: [
             "We may update these terms from time to time. Continued use of Pasive after changes become effective means you accept the revised terms.",
-            "Questions about these terms can be sent to admin@pasive.co.",
+            "Questions about these terms can be sent to admin@pasive.cc.",
           ],
         },
       ]}

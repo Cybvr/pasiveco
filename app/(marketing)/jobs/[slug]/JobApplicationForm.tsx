@@ -78,7 +78,7 @@ export function JobApplicationForm({ jobId, jobTitle }: JobApplicationFormProps)
       toast({
         variant: "destructive",
         title: "Something went wrong",
-        description: "Please try again later or contact hello@pasive.co directly.",
+        description: "Please try again later or contact hello@pasive.cc directly.",
       })
     } finally {
       setIsSubmitting(false)

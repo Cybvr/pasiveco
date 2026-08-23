@@ -10,7 +10,7 @@ type WelcomeEmailProps = {
 
 export default function WelcomeEmail({
   userName = 'there',
-  ctaUrl = 'https://pasive.co/dashboard',
+  ctaUrl = 'https://pasive.cc/dashboard',
 }: WelcomeEmailProps) {
   return (
     <Html>

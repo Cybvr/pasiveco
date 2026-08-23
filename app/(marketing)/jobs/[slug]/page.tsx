@@ -128,7 +128,7 @@ export default async function JobDetailPage({ params }: PageProps) {
                 If you have any questions regarding this position, feel free to reach out to our team.
               </p>
               <Button variant="outline" className="w-full bg-background" asChild>
-                <a href="mailto:hello@pasive.co">Contact Support</a>
+                <a href="mailto:hello@pasive.cc">Contact Support</a>
               </Button>
             </div>
           </div>

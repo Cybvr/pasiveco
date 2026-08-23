@@ -7,7 +7,7 @@
 
   const sendEmailNotification = (to, subject, text, html) => {
     return mg.messages.create('your-mailgun-domain', {
-      from: "Pasive Notifications <mailgun@hello.pasive.co>",
+      from: "Pasive Notifications <mailgun@hello.pasive.cc>",
       to: [to],
       subject: subject,
       text: text,

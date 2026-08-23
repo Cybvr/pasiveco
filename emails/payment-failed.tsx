@@ -12,7 +12,7 @@ type PaymentFailedEmailProps = {
 export default function PaymentFailedEmail({
   productName = 'Product',
   userName = 'Customer',
-  ctaUrl = 'https://pasive.co/dashboard',
+  ctaUrl = 'https://pasive.cc/dashboard',
 }: PaymentFailedEmailProps) {
   return (
     <Html>
